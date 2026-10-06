@@ -1,0 +1,226 @@
+/* ── Menu ngang phía trên (components/topbar.blade.php) ─────────────── */
+
+.odin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 64px;
+    padding: 0 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid var(--odin-border);
+}
+
+.odin-topbar__left,
+.odin-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.odin-topbar__title {
+    margin: 0 0 0 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.odin-topbar__divider {
+    width: 1px;
+    height: 28px;
+    background: var(--odin-border);
+}
+
+/* Nút icon tròn góc (thu gọn menu, màu giao diện, chuông) */
+.odin-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--odin-border);
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.odin-icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.odin-icon-btn:hover,
+.odin-icon-btn:focus-visible,
+.odin-icon-btn[aria-expanded="true"]:not([data-odin-sidebar-toggle]) {
+    border-color: var(--odin-primary);
+    color: var(--odin-primary);
+}
+
+/* Chuông thông báo */
+.odin-bell-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+.odin-notify-menu {
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    padding: 0;
+    overflow: hidden;
+}
+
+.odin-notify-menu__header {
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    border-bottom: 1px solid var(--odin-border);
+}
+
+.odin-notify-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.7rem 1rem;
+    border-radius: 0;
+    white-space: normal;
+}
+
+.odin-notify-item__time {
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.odin-notify-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.odin-notify-empty svg {
+    width: 40px;
+    height: 40px;
+}
+
+/* Tài khoản */
+.odin-account-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--odin-ink);
+    text-align: left;
+}
+
+.odin-account-btn:hover,
+.odin-account-btn[aria-expanded="true"] {
+    background: #f1f5f9;
+}
+
+.odin-account-btn__text {
+    flex-direction: column;
+    line-height: 1.2;
+    max-width: 180px;
+}
+
+.odin-account-btn__name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.odin-account-btn__role {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.odin-account-btn__chevron {
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+}
+
+.odin-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--odin-primary);
+    color: var(--odin-on-primary);
+    font-weight: 700;
+}
+
+.odin-avatar--lg {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+}
+
+.odin-account-menu {
+    width: 260px;
+}
+
+.odin-account-menu__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.6rem;
+}
+
+.odin-account-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.odin-account-menu__item svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Màn nhỏ: thu hẹp khoảng cách */
+@media (max-width: 575.98px) {
+    .odin-topbar {
+        padding: 0 1rem;
+    }
+
+    .odin-topbar__right {
+        gap: 0.4rem;
+    }
+}
+
+/* Nút ngôn ngữ cao bằng các nút icon */
+.odin-topbar .lang-btn {
+    height: 40px;
+}

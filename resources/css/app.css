@@ -1,0 +1,56 @@
+@import "bootstrap/dist/css/bootstrap.min.css";
+
+/* ── Style dùng chung cho toàn bộ Odin CRM ────────────────────────── */
+
+:root {
+    --odin-primary: #005e12;
+    --odin-on-primary: #ffffff;
+    --odin-accent: #fcda43;
+    --odin-ink: #222222;
+    --odin-border: #e2e8f0;
+}
+
+body {
+    font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--odin-ink);
+}
+
+/* Nút đổi ngôn ngữ */
+.lang-btn {
+    border: 1px solid var(--odin-border);
+    background: #fff;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    color: #334155;
+}
+
+.lang-btn:hover,
+.lang-btn:focus {
+    border-color: var(--odin-primary);
+    color: var(--odin-primary);
+    background: #fff;
+}
+
+.dropdown-menu {
+    border-radius: 12px;
+    border-color: var(--odin-border);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    padding: 0.35rem;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background: var(--odin-primary);
+    color: var(--odin-on-primary);
+}
+
+[x-cloak] {
+    display: none !important;
+}

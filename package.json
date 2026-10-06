@@ -1,0 +1,18 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.4.20",
+        "axios": "^1.7.4",
+        "postcss": "^8.4.47",
+        "laravel-vite-plugin": "^1.2.0",
+        "vite": "^6.0.11"
+    },
+    "dependencies": {
+        "bootstrap": "^5.3.6"
+    }
+}

@@ -1,0 +1,85 @@
+/* ── Bộ chọn màu giao diện (components/theme-picker.blade.php) ───────── */
+
+.odin-theme-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--odin-primary);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--odin-border);
+}
+
+.odin-theme-menu {
+    width: 232px;
+    padding: 0.85rem;
+}
+
+.odin-theme-menu__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.6rem;
+}
+
+.odin-theme-swatches {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+}
+
+.odin-theme-swatch {
+    aspect-ratio: 1;
+    width: 100%;
+    border: 0;
+    border-radius: 50%;
+    background: var(--swatch);
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.odin-theme-swatch:hover {
+    transform: scale(1.1);
+}
+
+.odin-theme-swatch[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--swatch);
+}
+
+.odin-theme-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--odin-border);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.odin-theme-custom input[type="color"] {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+}
+
+/* Popup đăng xuất (components/logout-modal.blade.php) */
+.odin-logout-modal {
+    border: 0;
+    border-radius: 16px;
+}
+
+.odin-logout-modal__icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+}
