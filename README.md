@@ -33,15 +33,47 @@ Mỗi nhân viên đăng nhập sẽ thấy giao diện và menu theo **vai trò
 
 ## 1. Công nghệ sử dụng
 
+### 1.1. Kiến trúc tổng quan
+
+Hệ thống chia làm 3 phần: **Frontend** (giao diện), **Backend** (xử lý nghiệp vụ, cung cấp API) và **Xác thực – phân quyền**. Frontend không truy cập CSDL trực tiếp mà chỉ gọi API của Backend.
+
+```
+┌──────────────────────┐   HTTP + JSON (RESTful API)   ┌──────────────────────────┐        ┌─────────┐
+│  Frontend            │  ───────────────────────────▶ │  Backend                 │ ─────▶ │  MySQL  │
+│  ReactJS, HTML5/CSS3 │  Authorization: Bearer token  │  Laravel + Eloquent ORM  │ ◀───── │ (odin)  │
+│  thư viện giao diện  │  ◀─────────────────────────── │  Sanctum + middleware    │        └─────────┘
+└──────────────────────┘                               └──────────────────────────┘
+```
+
+| Phần | Công nghệ | Vai trò trong hệ thống |
+|---|---|---|
+| **Lập trình giao diện (Frontend)** | ReactJS, HTML5/CSS3 và thư viện giao diện | Xây dựng giao diện từ các thành phần (component) dùng lại được; hiển thị dữ liệu, nhận thao tác của người dùng và gửi yêu cầu tới Backend qua API. Thư viện giao diện giúp thống nhất cách trình bày biểu mẫu, bảng dữ liệu và các thành phần tương tác. |
+| **Lập trình xử lý nghiệp vụ (Backend)** | Laravel (PHP), Eloquent ORM | Xây dựng và cung cấp RESTful API; xử lý các nghiệp vụ như tạo và phân bổ Lead, cập nhật quá trình tư vấn, quản lý học viên và giao dịch (báo giá, đơn hàng, hóa đơn). Eloquent ORM hỗ trợ truy vấn, cập nhật dữ liệu và quản lý quan hệ giữa các bảng. |
+| **Xác thực và phân quyền** | Laravel Sanctum; cơ chế phân quyền của ứng dụng | Sanctum cấp và kiểm tra token cho mỗi yêu cầu gọi API. Quyền dùng chức năng và phạm vi dữ liệu được kiểm soát tại Backend theo **5 vai trò**: Giám đốc, Sale Admin, Sale Leader, Salesperson và Kế toán. |
+
+**Tình trạng hiện tại của từng phần:**
+
+| Phần | Đã có trong code | Vị trí |
+|---|---|---|
+| Frontend ReactJS | Chưa bắt đầu. Trong lúc chờ, giao diện web đang được làm bằng **Livewire + Blade + Bootstrap** (chạy song song, dùng chung Backend) | `resources/views`, `resources/css`, `resources/js` (xem [mục 5](#5-code-giao-diện--frontend-nằm-ở-đâu)) |
+| Backend Laravel + Eloquent | Model cho toàn bộ bảng trong `odin.sql` (kèm quan hệ giữa các bảng); API đăng nhập | `app/Models`, `app/Http/Controllers/Api`, `routes/api.php` |
+| Xác thực – phân quyền | Đăng nhập bằng token Sanctum (API) và session (web); middleware `role:` chặn truy cập sai vai trò | `app/Http/Middleware/CheckRole.php`, `config/sanctum.php` |
+
+> **Vì sao chọn Sanctum thay vì Passport?** Passport cài đặt đầy đủ chuẩn OAuth2, phù hợp khi cho ứng dụng bên thứ ba đăng nhập. Hệ thống chỉ có frontend của chính mình gọi API, nên Sanctum (token đơn giản, nhẹ hơn) là đủ.
+
+### 1.2. Danh sách công nghệ
+
 | Thành phần | Công nghệ |
 |---|---|
 | Ngôn ngữ backend | PHP 8.2+ |
 | Framework | Laravel 11 |
-| Giao diện web | Livewire 3 + Blade |
+| ORM | Eloquent ORM |
+| Frontend (dự kiến) | ReactJS + HTML5/CSS3 + thư viện giao diện, gọi RESTful API |
+| Giao diện web (hiện tại) | Livewire 3 + Blade |
 | CSS / UI | Bootstrap 5.3 + CSS riêng của dự án, font Be Vietnam Pro |
 | JavaScript | JS thuần (ES module) + Bootstrap JS (dropdown, modal, offcanvas) |
 | Build CSS/JS | Vite 6 (`laravel-vite-plugin`) |
-| API | Laravel Sanctum (token) — chuẩn bị cho frontend React sau này |
+| Xác thực API | Laravel Sanctum (Bearer token) — dùng cho frontend React |
 | Cơ sở dữ liệu | MySQL / MariaDB |
 | Đa ngôn ngữ | Laravel Localization + `laravel-lang/common` (Tiếng Việt, English) |
 
