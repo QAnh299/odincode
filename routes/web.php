@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\Profile\Show as Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,9 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('login');
 })->name('logout')->middleware('auth');
+
+// ── Thông tin tài khoản cá nhân (dùng chung mọi vai trò) ─────────────
+Route::get('/profile', Profile::class)->name('profile')->middleware('auth');
 
 // ── Route theo vai trò (mỗi vai trò một file trong routes/web/) ──────
 Route::middleware(['auth', 'role:director'])->prefix('director')->name('director.')

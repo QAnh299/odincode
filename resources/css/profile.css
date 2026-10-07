@@ -1,0 +1,725 @@
+/* ── Trang thông tin tài khoản (livewire/profile/show.blade.php) ──────
+   Chỉ nạp ở trang này qua @assets. Mọi class dùng tiền tố .pf- để không
+   đụng với menu dọc (sidebar.css) và menu ngang (topbar.css).
+   Màu chính lấy theo --odin-primary nên đổi theo bộ chọn màu giao diện. */
+
+.pf {
+    --pf-primary: var(--odin-primary, #005e12);
+    --pf-on-primary: var(--odin-on-primary, #fff);
+    --pf-accent: var(--odin-accent, #fcda43);
+    --pf-tint: color-mix(in srgb, var(--pf-primary) 9%, #fff);
+    --pf-tint-strong: color-mix(in srgb, var(--pf-primary) 16%, #fff);
+    --pf-surface: #fff;
+    --pf-border: #e6ebe4;
+    --pf-ink: #1f2937;
+    --pf-muted: #6b7280;
+    --pf-success: #15803d;
+    --pf-danger: #b91c1c;
+    --pf-radius: 18px;
+    --pf-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+
+    max-width: 1200px;
+    margin: 0 auto;
+    color: var(--pf-ink);
+    animation: pf-in 0.35s ease-out both;
+}
+
+@keyframes pf-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.pf-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.pf-icon--xs {
+    width: 13px;
+    height: 13px;
+}
+
+/* ── Thẻ tổng quan ─────────────────────────────────────────────────── */
+
+.pf-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--pf-border);
+    border-radius: var(--pf-radius);
+    background: var(--pf-surface);
+    box-shadow: var(--pf-shadow);
+}
+
+.pf-hero__cover {
+    height: 132px;
+    background:
+        radial-gradient(circle at 88% -20%, color-mix(in srgb, var(--pf-accent) 55%, transparent) 0 22%, transparent 23%),
+        radial-gradient(circle at 70% 140%, rgba(255, 255, 255, 0.14) 0 30%, transparent 31%),
+        radial-gradient(circle at 8% 20%, rgba(255, 255, 255, 0.1) 0 14%, transparent 15%),
+        linear-gradient(120deg, var(--pf-primary), color-mix(in srgb, var(--pf-primary) 65%, #000));
+}
+
+.pf-hero__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.5rem;
+    padding: 0 1.75rem 1.5rem;
+    margin-top: -48px;
+}
+
+.pf-hero__avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    border: 5px solid var(--pf-surface);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pf-primary) 80%, #fff), var(--pf-primary));
+    color: var(--pf-on-primary);
+    font-size: 2.6rem;
+    font-weight: 800;
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--pf-primary) 30%, transparent);
+}
+
+.pf-hero__presence {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid var(--pf-surface);
+}
+
+.pf-hero__presence.is-on { background: #22c55e; }
+.pf-hero__presence.is-off { background: #94a3b8; }
+
+.pf-hero__info {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding-bottom: 0.25rem;
+}
+
+.pf-hero__name {
+    margin: 0 0 0.5rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.pf-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.pf-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+}
+
+/* Số liệu nhanh */
+.pf-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--pf-border);
+}
+
+.pf-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+    padding: 1rem 1.5rem;
+}
+
+.pf-stat + .pf-stat {
+    border-left: 1px solid var(--pf-border);
+}
+
+.pf-stat__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--pf-tint);
+    color: var(--pf-primary);
+}
+
+.pf-stat dt {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--pf-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pf-stat dd {
+    margin: 0.1rem 0 0;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Chip / nút ────────────────────────────────────────────────────── */
+
+.pf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.pf-chip .pf-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.pf-chip--primary {
+    background: var(--pf-tint-strong);
+    color: var(--pf-primary);
+}
+
+.pf-chip--success {
+    background: #dcfce7;
+    color: var(--pf-success);
+}
+
+.pf-chip--danger {
+    background: #fee2e2;
+    color: var(--pf-danger);
+}
+
+.pf-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.pf-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.pf-btn:active {
+    transform: translateY(1px);
+}
+
+.pf-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.pf-btn--primary {
+    background: var(--pf-primary);
+    color: var(--pf-on-primary);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--pf-primary) 28%, transparent);
+}
+
+.pf-btn--primary:hover {
+    background: color-mix(in srgb, var(--pf-primary) 88%, #000);
+    color: var(--pf-on-primary);
+}
+
+.pf-btn--ghost {
+    background: var(--pf-surface);
+    border-color: var(--pf-border);
+    color: var(--pf-ink);
+}
+
+.pf-btn--ghost:hover {
+    border-color: var(--pf-primary);
+    color: var(--pf-primary);
+}
+
+.pf-btn--light {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.pf-btn--light:hover {
+    background: #e2e8f0;
+}
+
+.pf-btn:focus-visible,
+.pf-security__link:focus-visible,
+.pf-leader__mail:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pf-primary) 35%, transparent);
+}
+
+/* ── Thông báo đã lưu ──────────────────────────────────────────────── */
+
+.pf-toast {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    background: #f0fdf4;
+    color: var(--pf-success);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.pf-toast__icon {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--pf-success);
+    color: #fff;
+}
+
+.pf-toast__icon .pf-icon {
+    width: 15px;
+    height: 15px;
+}
+
+/* ── Lưới nội dung ─────────────────────────────────────────────────── */
+
+.pf-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.pf-col {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.pf-card {
+    padding: 1.5rem;
+    border: 1px solid var(--pf-border);
+    border-radius: var(--pf-radius);
+    background: var(--pf-surface);
+    box-shadow: var(--pf-shadow);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pf-card.is-editing {
+    border-color: color-mix(in srgb, var(--pf-primary) 45%, #fff);
+    box-shadow: 0 0 0 4px var(--pf-tint), var(--pf-shadow);
+}
+
+.pf-card__head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.pf-card__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--pf-primary);
+    color: var(--pf-on-primary);
+}
+
+.pf-card__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.pf-card__sub {
+    margin: 0.1rem 0 0;
+    font-size: 0.83rem;
+    color: var(--pf-muted);
+}
+
+.pf-card__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--pf-border);
+}
+
+/* Ô thông tin */
+.pf-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.pf-field {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--pf-border);
+    border-radius: 14px;
+    background: #fafbfa;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.pf-field:hover {
+    border-color: color-mix(in srgb, var(--pf-primary) 30%, #fff);
+    background: var(--pf-tint);
+}
+
+.pf-field__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--pf-surface);
+    color: var(--pf-primary);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.pf-field__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pf-field__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--pf-muted);
+}
+
+.pf-field__value {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Ô nhập khi sửa */
+.pf-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pf-input__control {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    height: 100%;
+    min-height: 48px;
+    padding: 0 0.9rem;
+    border: 1.5px solid var(--pf-border);
+    border-radius: 14px;
+    background: var(--pf-surface);
+    color: var(--pf-muted);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pf-input__control:focus-within {
+    border-color: var(--pf-primary);
+    color: var(--pf-primary);
+    box-shadow: 0 0 0 4px var(--pf-tint);
+}
+
+.pf-input__control.is-invalid {
+    border-color: var(--pf-danger);
+    color: var(--pf-danger);
+}
+
+.pf-input__control input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--pf-ink);
+    font-weight: 600;
+}
+
+.pf-input__error {
+    font-size: 0.8rem;
+    color: var(--pf-danger);
+}
+
+/* Trưởng nhóm */
+.pf-leader {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-top: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: linear-gradient(100deg, var(--pf-tint), color-mix(in srgb, var(--pf-accent) 14%, #fff));
+}
+
+.pf-leader__avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--pf-primary);
+    color: var(--pf-on-primary);
+    font-weight: 700;
+}
+
+.pf-leader__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pf-leader__name {
+    font-weight: 700;
+}
+
+.pf-leader__mail {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--pf-surface);
+    color: var(--pf-primary);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.pf-leader__mail:hover {
+    background: var(--pf-primary);
+    color: var(--pf-on-primary);
+}
+
+.pf-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem;
+    border: 1px dashed var(--pf-border);
+    border-radius: 14px;
+    color: var(--pf-muted);
+}
+
+/* Danh sách dòng (tài khoản) */
+.pf-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pf-rows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 0;
+}
+
+.pf-rows li + li {
+    border-top: 1px solid var(--pf-border);
+}
+
+.pf-rows__label {
+    font-size: 0.85rem;
+    color: var(--pf-muted);
+}
+
+.pf-rows__value {
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.pf-mono {
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+}
+
+/* Bảo mật */
+.pf-security {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+    background:
+        radial-gradient(circle at 100% 0, color-mix(in srgb, var(--pf-accent) 28%, transparent) 0 30%, transparent 31%),
+        var(--pf-surface);
+}
+
+.pf-security__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--pf-accent) 35%, #fff);
+    color: color-mix(in srgb, var(--pf-accent) 35%, #000);
+}
+
+.pf-security__body {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.pf-security__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    background: var(--pf-tint);
+    color: var(--pf-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.pf-security__link:hover {
+    background: var(--pf-tint-strong);
+    color: var(--pf-primary);
+}
+
+.pf-security__link .pf-icon {
+    transition: transform 0.15s;
+}
+
+.pf-security__link:hover .pf-icon {
+    transform: translateX(3px);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 1199.98px) {
+    .pf-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .pf-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pf-stat:nth-child(3) {
+        border-left: 0;
+    }
+
+    .pf-stat:nth-child(n + 3) {
+        border-top: 1px solid var(--pf-border);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .pf-hero__cover {
+        height: 104px;
+    }
+
+    .pf-hero__body {
+        flex-direction: column;
+        align-items: center;
+        padding: 0 1rem 1.25rem;
+        text-align: center;
+    }
+
+    .pf-hero__avatar {
+        width: 96px;
+        height: 96px;
+        font-size: 2.2rem;
+    }
+
+    .pf-hero__info {
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .pf-hero__meta,
+    .pf-hero__actions {
+        justify-content: center;
+    }
+
+    .pf-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pf-card {
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .pf-stats {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pf-stat {
+        padding: 0.85rem 1rem;
+    }
+
+    .pf-stat + .pf-stat {
+        border-left: 0;
+        border-top: 1px solid var(--pf-border);
+    }
+
+    .pf-hero__actions {
+        width: 100%;
+    }
+
+    .pf-hero__actions .pf-btn {
+        flex: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pf,
+    .pf * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

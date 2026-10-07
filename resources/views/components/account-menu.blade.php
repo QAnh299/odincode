@@ -35,8 +35,8 @@
         </li>
         <li><hr class="dropdown-divider"></li>
         <li>
-            {{-- Chưa có trang: thay '#' bằng route khi làm chức năng --}}
-            <a class="dropdown-item odin-account-menu__item" href="#">
+            <a class="dropdown-item odin-account-menu__item @if (request()->routeIs('profile')) active @endif"
+                href="{{ route('profile') }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -46,6 +46,7 @@
             </a>
         </li>
         <li>
+            {{-- Chưa có trang: thay '#' bằng route khi làm chức năng --}}
             <a class="dropdown-item odin-account-menu__item" href="#">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

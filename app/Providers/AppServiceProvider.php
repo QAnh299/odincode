@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\CheckRole;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +24,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Cấu hình pagination sử dụng Bootstrap
         Paginator::useBootstrapFive();
+
+        // Kiểm tra lại vai trò ở mọi request cập nhật của Livewire (lọc, phân trang, ...)
+        Livewire::addPersistentMiddleware([CheckRole::class]);
     }
 }
