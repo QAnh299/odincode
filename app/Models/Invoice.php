@@ -20,6 +20,9 @@ class Invoice extends Model
 
     public $timestamps = false;
 
+    // Hoá đơn đã thanh toán (tính vào số tiền đã thu)
+    const STATUS_PAID = 'Paid';
+
     protected $fillable = [
         'invoice_id',
         'issued_date',
