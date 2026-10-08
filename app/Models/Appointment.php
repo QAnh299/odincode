@@ -2,21 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasCompositeKey;
 use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Appointment extends Model
 {
-    use HasCompositeKey, HasFactory, HasStringId;
+    use HasFactory, HasStringId;
 
     protected $table = 'Appointments';
 
-    // Khoá chính ghép (appointment_id, appointment_type)
     protected $primaryKey = 'appointment_id';
-
-    protected array $compositeKey = ['appointment_id', 'appointment_type'];
 
     protected string $idPrefix = 'APT';
 
