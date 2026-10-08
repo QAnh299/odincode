@@ -260,7 +260,7 @@ CREATE TABLE `QuotationDetails` (
   `unit_price` DECIMAL(18,2) NOT NULL,
   `quantity` INT NOT NULL,
   `VAT` DECIMAL(5,2) NOT NULL DEFAULT 0,
-  `line_total` DECIMAL(18,2) NOT NULL COMMENT 'Thanh tien sau VAT, truoc voucher; ung dung tinh va ghi',
+  `line_total` DECIMAL(18,2) NOT NULL ,
   PRIMARY KEY (`quotation_id`, `course_id`),
   CHECK (`unit_price` >= 0),
   CHECK (`quantity` > 0),
@@ -278,7 +278,7 @@ CREATE TABLE `SalesOrders` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `total_amount` DECIMAL(18,2) NOT NULL,
   `paid_amount` DECIMAL(18,2) NOT NULL DEFAULT 0,
-  `remaining_amount` DECIMAL(18,2) NOT NULL COMMENT 'Ung dung cap nhat = total_amount - paid_amount',
+  `remaining_amount` DECIMAL(18,2) NOT NULL ,
   `status` VARCHAR(30) NOT NULL,
   `notes` TEXT NULL,
   `quotation_id` VARCHAR(10) NOT NULL,
@@ -339,8 +339,11 @@ ALTER TABLE `SalesTeams`
 INSERT INTO `Branches`
   (`branch_id`, `branch_name`, `address`, `phone`, `email`, `status`, `established_date`)
 VALUES
-  ('BR001', 'ODIN - Ha Noi', '12 Tran Duy Hung, Cau Giay, Ha Noi', '02473000001', 'hanoi@odin.example', 'Active', '2020-06-01'),
-  ('BR002', 'ODIN - Ho Chi Minh', '25 Nguyen Thi Minh Khai, Quan 1, TP. Ho Chi Minh', '02873000002', 'hcm@odin.example', 'Active', '2021-03-15');
+  ('BR001', 'Trụ sở chính & Hội đồng thi IELTS', 'Số 01 Đông Tác, phường Kim Liên, Hà Nội', '0965754776', 'cs1odin@odin.com.vn', 'Active', '2020-06-01'),
+  ('BR002', 'Cơ sở 02', 'Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '0865750776', 'cs2odin@odin.com.vn', 'Active', '2021-03-15'),
+  ('BR003', 'Cơ sở 03', 'Tầng 4 & 5, số 70 Trần Đại Nghĩa, phường Bạch Mai, Hà Nội', '0956854776', 'cs3odin@odin.com.vn', 'Active', '2022-09-05'),
+  ('BR004', 'Cơ sở 04', 'Số 17 Nguyễn Văn Lộc, phường Hà Đông, Hà Nội', '0965789770', 'cs4odin@odin.com.vn', 'Active', '2023-08-21'),
+  ('BR005', 'Cơ sở 05', 'Số 58 Phố Vọng, phường Bạch Mai, Hà Nội', '0965750076', 'cs5odin@odin.com.vn', 'Active', '2024-11-11');
 
 INSERT INTO `Roles` (`role_id`, `role_name`, `description`) VALUES
   ('ROLE01', 'director', 'Giam doc: xem tong quan va bao cao toan he thong.'),
@@ -459,8 +462,8 @@ INSERT INTO `Appointments`
   (`appointment_id`, `appointment_type`, `location`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
 VALUES
   ('APT001', 'Phone', 'Dien thoai', '2026-10-06 09:00:00', 'Success', 'Da goi lai tu van lo trinh IELTS.', 'EMP005', 'OPP002'),
-  ('APT002', 'Consultation', 'Co so Ha Noi', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
-  ('APT003', 'Consultation', 'Co so Ho Chi Minh', '2026-10-07 15:30:00', 'Success', 'Da tu van va kiem tra dau vao.', 'EMP007', 'OPP005'),
+  ('APT002', 'Consultation', 'Trụ sở chính - Số 01 Đông Tác', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
+  ('APT003', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng', '2026-10-07 15:30:00', 'Success', 'Da tu van va kiem tra dau vao.', 'EMP007', 'OPP005'),
   ('APT004', 'Phone', 'Dien thoai', '2026-09-16 10:00:00', 'Failed', 'Khach khong den, xin doi lich.', 'EMP005', 'OPP006'),
   ('APT005', 'Online', 'Google Meet', '2026-10-08 13:30:00', 'Scheduled', 'Tu van khoa IELTS Intensive.', 'EMP007', 'OPP007');
 
