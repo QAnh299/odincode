@@ -311,7 +311,7 @@ CREATE TABLE `Invoices` (
   CHECK (`payment_installment` > 0),
   CHECK (`due_date` >= `issued_date`),
   CHECK (`payment_method` IN ('BankTransfer', 'Cash')),
-  CHECK (`status` IN ('Unpaid', 'Paid')),
+  CHECK (`status` IN ('Unpaid', 'Paid', 'Overdue')),
   CONSTRAINT `fk_invoices_order_id` FOREIGN KEY (`order_id`)
     REFERENCES `SalesOrders` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_invoices_created_by_employee_id` FOREIGN KEY (`created_by_employee_id`)
@@ -511,7 +511,7 @@ INSERT INTO `Invoices`
 VALUES
   ('INV001', '2026-09-06', '2026-09-06', 5400000.00, 'Paid', 'BankTransfer', '2026-09-06 09:45:00', 'ORD001', 1, 'EMP004', 'EMP008'),
   ('INV002', '2026-09-10', '2026-09-10', 3000000.00, 'Paid', 'BankTransfer', '2026-09-10 11:00:00', 'ORD002', 1, 'EMP004', 'EMP008'),
-  ('INV003', '2026-09-10', '2026-10-10', 5500000.00, 'Unpaid', NULL, NULL, 'ORD002', 2, 'EMP004', NULL),
+  ('INV003', '2026-09-10', '2026-10-05', 5500000.00, 'Overdue', NULL, NULL, 'ORD002', 2, 'EMP004', NULL),
   ('INV004', '2026-09-16', '2026-10-16', 11000000.00, 'Unpaid', NULL, NULL, 'ORD003', 1, 'EMP005', NULL),
   ('INV005', '2026-09-17', '2026-09-17', 6350000.00, 'Paid', 'Cash', '2026-09-17 10:00:00', 'ORD004', 1, 'EMP007', 'EMP008'),
   ('INV006', '2026-09-17', '2026-10-17', 6350000.00, 'Unpaid', NULL, NULL, 'ORD004', 2, 'EMP007', NULL);
