@@ -21,9 +21,6 @@ class SalesOrder extends Model
     // Bảng SalesOrders chỉ có created_at
     const UPDATED_AT = null;
 
-    // Đơn hàng đã huỷ không tính vào doanh thu
-    const STATUS_CANCELLED = 'Cancelled';
-
     protected $fillable = [
         'order_id',
         'payment_type',

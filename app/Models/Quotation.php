@@ -11,6 +11,13 @@ class Quotation extends Model
 {
     use HasFactory, HasStringId;
 
+    // Trạng thái báo giá (CHECK trong odin.sql: Draft, Confirmed, Rejected)
+    const STATUS_DRAFT = 'Draft';
+    const STATUS_CONFIRMED = 'Confirmed';
+    const STATUS_REJECTED = 'Rejected';
+
+    const STATUSES = [self::STATUS_DRAFT, self::STATUS_CONFIRMED, self::STATUS_REJECTED];
+
     protected $table = 'Quotations';
 
     protected $primaryKey = 'quotation_id';

@@ -28,49 +28,59 @@ return [
     // Cột bảng / trường thông tin
     'code'               => 'Mã khóa học',
     'name'               => 'Tên khóa học',
-    'description'        => 'Mô tả',
     'price'              => 'Học phí',
     'vat'                => 'VAT',
     'duration'           => 'Thời lượng',
     'status'             => 'Trạng thái',
-    'created_at'         => 'Ngày tạo',
     'actions'            => 'Thao tác',
     'view'               => 'Xem chi tiết',
 
-    // Chi tiết
-    'back'               => 'Quay lại',
-    'info'               => 'Thông tin khóa học',
-    'read_only'          => 'Chỉ xem, không thể chỉnh sửa thông tin khóa học',
+    // Chi tiết: nội dung khóa học
+    'back_to_list'       => 'Quay lại danh sách',
+    'content'            => 'Nội dung khóa học',
+    'overview_heading'   => 'Tổng quan',
     'no_description'     => 'Chưa có mô tả',
+    'created_on'         => 'Khóa học được tạo ngày :date',
 
-    // Tổng quan kinh doanh
-    'overview'           => 'Tổng quan kinh doanh',
-    'overview_sub'       => 'Tổng hợp từ toàn bộ đơn hàng (trừ đơn đã huỷ) và hoá đơn đã thanh toán có khóa học này',
-    'scope_note'         => 'Chỉ tính đơn hàng trong phạm vi bạn được xem',
-    'registrations'      => 'Số lượt đăng ký',
-    'revenue'            => 'Doanh thu',
-    'paid'               => 'Đã thu',
-    'remaining'          => 'Còn phải thu',
-    'students'           => 'Số học viên',
-    'collected_rate'     => 'Tỷ lệ đã thu',
+    // Chi tiết: thống kê
+    'stats'              => 'Thống kê',
+    'quotations_created' => 'Báo giá đã tạo',
+    'seats_confirmed'    => 'Suất đã chốt',
+    'close_rate'         => 'Tỷ lệ chốt',
+    'close_rate_hint'    => 'Đã xác nhận ÷ (Đã xác nhận + Từ chối)',
+    'revenue_confirmed'  => 'Doanh thu đã chốt',
+    'before_voucher'     => 'Chưa trừ voucher',
+    'scope_own'          => 'Chỉ tính báo giá do bạn lập',
+    'scope_team'         => 'Chỉ tính báo giá của đội :team',
+    'scope_employee'     => 'Chỉ tính báo giá của :name (:team)',
 
-    // Lịch sử kinh doanh
-    'history'            => 'Lịch sử kinh doanh',
-    'history_sub'        => 'Số liệu theo tháng tạo đơn hàng; đã thu / còn phải thu tính đến hiện tại',
-    'from_month'         => 'Từ tháng',
-    'to_month'           => 'Đến tháng',
-    'default_period'     => '12 tháng gần nhất',
-    'period_note'        => 'Đang xem :from – :to (:count tháng)',
-    'month'              => 'Tháng',
-    'month_label'        => 'Tháng :month',
-    'total'              => 'Tổng cộng',
-    'no_sales'           => 'Chưa có đơn hàng trong khoảng thời gian này',
+    // Chi tiết: bộ lọc phạm vi (Sale Admin, Sale Leader)
+    'scope_filter'       => 'Phạm vi xem',
+    'team'               => 'Đội',
+    'all_teams'          => 'Tất cả đội',
+    'no_team'            => 'Chưa thuộc đội nào',
+    'employee'           => 'Nhân viên',
+    'all_employees'      => 'Tất cả',
+    'choose_team_first'  => 'Chọn đội trước',
+    'resigned'           => 'đã nghỉ',
+    'clear_scope'        => 'Bỏ lọc',
 
-    // Biểu đồ
-    'chart_revenue'       => 'Doanh thu theo tháng',
-    'chart_registrations' => 'Số lượt đăng ký theo tháng',
-    'registration_count'  => ':count lượt đăng ký',
-    'unit_thousand'       => 'k',
-    'unit_million'        => 'tr',
-    'unit_billion'        => 'tỷ',
+    // Chi tiết: báo giá theo trạng thái
+    'by_status'          => 'Báo giá theo trạng thái',
+    'filter_by_status'   => 'Lọc danh sách báo giá theo trạng thái',
+
+    'quotation_status' => [
+        'Draft'     => 'Đang soạn',
+        'Confirmed' => 'Đã xác nhận',
+        'Rejected'  => 'Từ chối',
+    ],
+
+    // Chi tiết: danh sách báo giá
+    'quotations_title'     => 'Báo giá có khóa học này',
+    'quotation_id'         => 'Mã báo giá',
+    'quotation_created_at' => 'Ngày tạo',
+    'quantity'             => 'Số lượng',
+    'no_quotations'        => 'Chưa có báo giá nào',
+    'no_quotations_status' => 'Không có báo giá nào ở trạng thái này',
+    'clear_filter'         => 'Xem tất cả báo giá',
 ];

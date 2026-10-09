@@ -3,53 +3,96 @@
 namespace App\Livewire\Courses;
 
 use App\Models\Course;
-use App\Models\Invoice;
-use App\Models\QuotationDetail;
+use App\Models\Employee;
+use App\Models\Quotation;
 use App\Models\Role;
-use App\Models\SalesOrder;
-use App\Models\Student;
-use Carbon\CarbonImmutable;
+use App\Models\SalesTeam;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
+/**
+ * Chi tiết khóa học (chỉ xem): nội dung khóa học, thống kê + báo giá theo trạng thái,
+ * danh sách báo giá có khóa học này (lọc theo trạng thái khi bấm vào khối bên phải).
+ * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson.
+ *
+ * Phạm vi dữ liệu (áp dụng cho cả thống kê, thanh trạng thái và danh sách):
+ *   - Giám đốc: tất cả.
+ *   - Sale Admin: tất cả; lọc được theo Đội, chọn Đội rồi mới lọc được theo Nhân viên của đội đó.
+ *   - Sale Leader: chỉ đội của mình; lọc được theo Nhân viên trong đội.
+ *   - Salesperson: chỉ báo giá do chính mình lập.
+ */
 #[Layout('layouts.app')]
 class Show extends Component
 {
-    // Khoảng tối đa của bộ lọc lịch sử (tháng)
-    const MAX_MONTHS = 36;
+    use WithPagination;
 
-    // Mặc định: 12 tháng gần nhất
-    const DEFAULT_MONTHS = 12;
+    const PER_PAGE = 10;
 
     public Course $course;
 
-    // Khoảng thời gian của lịch sử kinh doanh, dạng YYYY-MM
-    #[Url(except: '')]
-    public string $from = '';
+    // Các bộ lọc có thể bị sửa từ client → luôn đọc qua activeStatus() / activeTeam / activeEmployee
 
+    // Trạng thái báo giá (chỉ lọc danh sách): null = Tất cả
+    #[Url]
+    public ?string $status = null;
+
+    // Đội (Sale Admin) – '' = Tất cả đội
     #[Url(except: '')]
-    public string $to = '';
+    public string $team = '';
+
+    // Nhân viên (Sale Admin, Sale Leader) – '' = Tất cả nhân viên
+    #[Url(except: '')]
+    public string $employee = '';
 
     public function mount(Course $course): void
     {
         $this->course = $course;
-
-        // Ô chọn tháng luôn hiện đúng khoảng đang xem (mặc định 12 tháng gần nhất)
-        [$from, $to] = $this->period;
-        $this->from = $from->format('Y-m');
-        $this->to = $to->format('Y-m');
     }
 
-    public function resetPeriod(): void
+    /**
+     * Bấm một trạng thái: lọc theo trạng thái đó; bấm lại đúng trạng thái đang chọn thì bỏ lọc.
+     */
+    public function filterStatus(?string $status = null): void
     {
-        [$from, $to] = $this->defaultPeriod();
-        $this->from = $from->format('Y-m');
-        $this->to = $to->format('Y-m');
-        unset($this->period, $this->monthly);
+        $status = $this->validStatus($status);
+        $this->status = $status === $this->activeStatus() ? null : $status;
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    // Đổi đội thì bỏ chọn nhân viên (danh sách nhân viên phụ thuộc đội)
+    public function updatedTeam(): void
+    {
+        $this->employee = '';
+        $this->resetPage();
+    }
+
+    public function updatedEmployee(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearScopeFilters(): void
+    {
+        $this->reset('team', 'employee');
+        $this->resetPage();
+    }
+
+    /**
+     * Trạng thái đang lọc sau khi kiểm tra danh sách trắng (giá trị lạ coi như Tất cả).
+     */
+    public function activeStatus(): ?string
+    {
+        return $this->validStatus($this->status);
     }
 
     #[Computed]
@@ -58,156 +101,146 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Sale Leader / Salesperson chỉ thấy số liệu từ báo giá của nhóm / của mình.
-     */
     #[Computed]
-    public function limitedScope(): bool
+    public function canFilterTeam(): bool
     {
-        return in_array(Auth::user()->role_name, [Role::SALE_LEADER, Role::SALESPERSON], true);
+        return $this->routePrefix === Role::SALE_ADMIN;
     }
 
     /**
-     * Mỗi dòng = phần của khóa học trong một đơn hàng:
-     * [month, registrations, revenue, paid, remaining, opportunity_id].
+     * Có bộ lọc Nhân viên và cột Nhân viên trong danh sách.
      */
     #[Computed]
-    public function sales(): Collection
+    public function canFilterEmployee(): bool
     {
-        $employee = Auth::user()->employee;
-
-        return QuotationDetail::query()
-            ->where('course_id', $this->course->course_id)
-            ->whereHas('quotation', fn ($q) => $q->visibleTo($employee))
-            ->whereHas('quotation.order', fn ($q) => $q->where('status', '<>', SalesOrder::STATUS_CANCELLED))
-            ->with(['quotation' => fn ($q) => $q
-                ->withSum('details as lines_total', 'line_total')
-                ->with(['order' => fn ($q) => $q->withSum(
-                    ['invoices as paid_sum' => fn ($q) => $q->where('status', Invoice::STATUS_PAID)],
-                    'payment_amount'
-                )]),
-            ])
-            ->get()
-            ->map(function (QuotationDetail $line) {
-                $quotation = $line->quotation;
-                $order = $quotation->order;
-
-                $linesTotal = (float) $quotation->lines_total;
-                $share = $linesTotal > 0 ? (float) $line->line_total / $linesTotal : 0;
-
-                $revenue = round((float) $order->total_amount * $share, 2);
-                $paid = round(min((float) $order->paid_sum, (float) $order->total_amount) * $share, 2);
-
-                return [
-                    'month'          => $order->created_at->format('Y-m'),
-                    'registrations'  => (int) $line->quantity,
-                    'revenue'        => $revenue,
-                    'paid'           => $paid,
-                    'remaining'      => max(0, $revenue - $paid),
-                    'opportunity_id' => $quotation->opportunity_id,
-                ];
-            });
+        return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true);
     }
 
     /**
-     * Tổng quan kinh doanh (toàn thời gian).
+     * Danh sách đội cho bộ lọc (chỉ Sale Admin).
      */
     #[Computed]
-    public function overview(): array
+    public function teams(): Collection
     {
-        $sales = $this->sales;
-        $opportunities = $sales->pluck('opportunity_id')->unique()->values();
-
-        return [
-            'registrations' => $sales->sum('registrations'),
-            'revenue'       => $sales->sum('revenue'),
-            'paid'          => $sales->sum('paid'),
-            'remaining'     => $sales->sum('remaining'),
-            'students'      => $opportunities->isEmpty() ? 0
-                : Student::query()->whereIn('opportunity_id', $opportunities)->count(),
-        ];
+        return $this->canFilterTeam
+            ? SalesTeam::query()->orderBy('team_name')->get(['team_id', 'team_name'])
+            : collect();
     }
 
     /**
-     * Khoảng tháng đang xem: [from, to] (đầu tháng). Bộ lọc sai / trống thì dùng 12 tháng gần nhất.
-     *
-     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     * Đội đang xem: Sale Admin = đội đã chọn (phải có trong danh sách); Sale Leader = đội của mình.
      */
     #[Computed]
-    public function period(): array
+    public function activeTeam(): ?SalesTeam
     {
-        $to = $this->parseMonth($this->to) ?? $this->defaultPeriod()[1];
-        $from = $this->parseMonth($this->from) ?? $to->subMonths(self::DEFAULT_MONTHS - 1);
+        return match ($this->routePrefix) {
+            Role::SALE_ADMIN  => $this->teams->firstWhere('team_id', $this->team),
+            Role::SALE_LEADER => ($teamId = Auth::user()->employee?->team_id) ? SalesTeam::find($teamId) : null,
+            default           => null,
+        };
+    }
 
-        if ($from->greaterThan($to)) {
-            [$from, $to] = [$to, $from];
+    /**
+     * Nhân viên cho bộ lọc: chỉ nhân viên thuộc đội đang xem.
+     */
+    #[Computed]
+    public function employeeOptions(): Collection
+    {
+        if (! $this->canFilterEmployee || ! $this->activeTeam) {
+            return collect();
         }
 
-        // Giới hạn độ dài khoảng để biểu đồ còn đọc được
-        if ($from->diffInMonths($to) >= self::MAX_MONTHS) {
-            $from = $to->subMonths(self::MAX_MONTHS - 1);
-        }
+        return Employee::query()
+            ->where('team_id', $this->activeTeam->team_id)
+            ->orderBy('full_name')
+            ->get(['employee_id', 'full_name', 'status']);
+    }
 
-        return [$from, $to];
+    #[Computed]
+    public function activeEmployee(): ?Employee
+    {
+        return $this->employee === '' ? null : $this->employeeOptions->firstWhere('employee_id', $this->employee);
     }
 
     /**
-     * Lịch sử kinh doanh theo tháng (theo tháng tạo đơn hàng), đủ mọi tháng trong khoảng, cũ → mới.
+     * Phạm vi nhân viên, tính lại phía server mỗi request (không tin dữ liệu từ client):
+     * null = tất cả báo giá; mảng = chỉ báo giá do các nhân viên này lập ([] = không có gì).
      */
     #[Computed]
-    public function monthly(): Collection
+    public function scopeEmployeeIds(): ?array
     {
-        [$from, $to] = $this->period;
-        $byMonth = $this->sales->groupBy('month');
+        $own = Auth::user()->employee?->employee_id;
 
-        $months = collect();
-        for ($month = $from; $month->lessThanOrEqualTo($to); $month = $month->addMonth()) {
-            $rows = $byMonth->get($month->format('Y-m'), collect());
-
-            $months->push([
-                'month'         => $month,
-                'registrations' => $rows->sum('registrations'),
-                'revenue'       => $rows->sum('revenue'),
-                'paid'          => $rows->sum('paid'),
-                'remaining'     => $rows->sum('remaining'),
-            ]);
-        }
-
-        return $months;
-    }
-
-    public function hasCustomPeriod(): bool
-    {
-        [$from, $to] = $this->defaultPeriod();
-        [$currentFrom, $currentTo] = $this->period;
-
-        return ! $currentFrom->equalTo($from) || ! $currentTo->equalTo($to);
+        return match ($this->routePrefix) {
+            Role::SALESPERSON => $own ? [$own] : [],
+            Role::SALE_LEADER => match (true) {
+                $this->activeEmployee !== null => [$this->activeEmployee->employee_id],
+                $this->activeTeam !== null     => $this->employeeOptions->pluck('employee_id')->all(),
+                default                        => $own ? [$own] : [], // leader chưa thuộc đội nào
+            },
+            Role::SALE_ADMIN => match (true) {
+                $this->activeEmployee !== null => [$this->activeEmployee->employee_id],
+                $this->activeTeam !== null     => $this->employeeOptions->pluck('employee_id')->all(),
+                default                        => null,
+            },
+            default => null,
+        };
     }
 
     /**
-     * 12 tháng gần nhất, tính đến tháng hiện tại.
-     *
-     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     * Mô tả phạm vi đang xem (hiện dưới khối Thống kê); null = toàn hệ thống.
      */
-    private function defaultPeriod(): array
+    #[Computed]
+    public function scopeNote(): ?string
     {
-        $to = CarbonImmutable::today()->startOfMonth();
+        $team = $this->activeTeam?->team_name;
+        $name = $this->activeEmployee?->full_name;
 
-        return [$to->subMonths(self::DEFAULT_MONTHS - 1), $to];
+        return match (true) {
+            $this->routePrefix === Role::SALESPERSON => __('courses.scope_own'),
+            $name !== null                           => __('courses.scope_employee', ['name' => $name, 'team' => $team]),
+            $team !== null                           => __('courses.scope_team', ['team' => $team]),
+            $this->routePrefix === Role::SALE_LEADER => __('courses.scope_own'),
+            default                                  => null,
+        };
+    }
+
+    /**
+     * Thống kê khóa học trong phạm vi quyền + bộ lọc Đội / Nhân viên (không phụ thuộc bộ lọc trạng thái).
+     */
+    #[Computed]
+    public function stats(): array
+    {
+        return $this->course->quotationStats($this->scopeEmployeeIds);
     }
 
     public function render()
     {
-        return view('livewire.courses.show')
-            ->title(__('courses.detail_title', ['code' => $this->course->course_id]));
+        $status = $this->activeStatus();
+
+        $quotations = $this->course->quotationLines($this->scopeEmployeeIds)
+            ->leftJoin('Employees', 'Employees.employee_id', '=', 'Quotations.employee_id')
+            ->when($status !== null, fn ($q) => $q->where('Quotations.status', $status))
+            ->select([
+                'QuotationDetails.quotation_id',
+                'QuotationDetails.quantity',
+                'Quotations.status as quotation_status',
+                'Quotations.created_at as quotation_created_at',
+                'Employees.full_name as employee_name',
+            ])
+            ->withCasts(['quotation_created_at' => 'datetime'])
+            ->orderByDesc('Quotations.created_at')
+            ->orderByDesc('QuotationDetails.quotation_id')
+            ->paginate(self::PER_PAGE);
+
+        return view('livewire.courses.show', [
+            'quotations'   => $quotations,
+            'activeStatus' => $status,
+        ])->title(__('courses.detail_title', ['code' => $this->course->course_id]));
     }
 
-    private function parseMonth(string $value): ?CarbonImmutable
+    private function validStatus(?string $status): ?string
     {
-        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value)) {
-            return null;
-        }
-
-        return CarbonImmutable::createFromFormat('!Y-m', $value)->startOfMonth();
+        return in_array($status, Quotation::STATUSES, true) ? $status : null;
     }
 }

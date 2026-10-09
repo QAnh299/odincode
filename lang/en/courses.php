@@ -25,52 +25,62 @@ return [
         'inactive' => 'Discontinued',
     ],
 
-    // Table columns / detail fields
+    // Table columns / fields
     'code'               => 'Course code',
     'name'               => 'Course name',
-    'description'        => 'Description',
     'price'              => 'Tuition',
     'vat'                => 'VAT',
     'duration'           => 'Duration',
     'status'             => 'Status',
-    'created_at'         => 'Created at',
     'actions'            => 'Actions',
     'view'               => 'View details',
 
-    // Detail
-    'back'               => 'Back',
-    'info'               => 'Course information',
-    'read_only'          => 'View only, course information cannot be edited',
-    'no_description'     => 'No description',
+    // Detail: course content
+    'back_to_list'       => 'Back to list',
+    'content'            => 'Course content',
+    'overview_heading'   => 'Overview',
+    'no_description'     => 'No description yet',
+    'created_on'         => 'Course created on :date',
 
-    // Business overview
-    'overview'           => 'Business overview',
-    'overview_sub'       => 'Aggregated from all orders (excluding cancelled) and paid invoices that include this course',
-    'scope_note'         => 'Only orders within your visibility scope are counted',
-    'registrations'      => 'Registrations',
-    'revenue'            => 'Revenue',
-    'paid'               => 'Collected',
-    'remaining'          => 'Outstanding',
-    'students'           => 'Students',
-    'collected_rate'     => 'Collection rate',
+    // Detail: statistics
+    'stats'              => 'Statistics',
+    'quotations_created' => 'Quotations created',
+    'seats_confirmed'    => 'Seats confirmed',
+    'close_rate'         => 'Close rate',
+    'close_rate_hint'    => 'Confirmed ÷ (Confirmed + Rejected)',
+    'revenue_confirmed'  => 'Confirmed revenue',
+    'before_voucher'     => 'Before vouchers',
+    'scope_own'          => 'Only quotations you created are counted',
+    'scope_team'         => 'Only quotations from team :team are counted',
+    'scope_employee'     => 'Only quotations from :name (:team) are counted',
 
-    // Business history
-    'history'            => 'Business history',
-    'history_sub'        => 'Grouped by order month; collected / outstanding as of today',
-    'from_month'         => 'From month',
-    'to_month'           => 'To month',
-    'default_period'     => 'Last 12 months',
-    'period_note'        => 'Showing :from – :to (:count months)',
-    'month'              => 'Month',
-    'month_label'        => ':month',
-    'total'              => 'Total',
-    'no_sales'           => 'No orders in this period',
+    // Detail: scope filter (Sale Admin, Sale Leader)
+    'scope_filter'       => 'Viewing scope',
+    'team'               => 'Team',
+    'all_teams'          => 'All teams',
+    'no_team'            => 'Not in a team',
+    'employee'           => 'Employee',
+    'all_employees'      => 'All',
+    'choose_team_first'  => 'Choose a team first',
+    'resigned'           => 'resigned',
+    'clear_scope'        => 'Clear',
 
-    // Charts
-    'chart_revenue'       => 'Revenue by month',
-    'chart_registrations' => 'Registrations by month',
-    'registration_count'  => '{1} :count registration|[0,*] :count registrations',
-    'unit_thousand'       => 'K',
-    'unit_million'        => 'M',
-    'unit_billion'        => 'B',
+    // Detail: quotations by status
+    'by_status'          => 'Quotations by status',
+    'filter_by_status'   => 'Filter the quotation list by status',
+
+    'quotation_status' => [
+        'Draft'     => 'Draft',
+        'Confirmed' => 'Confirmed',
+        'Rejected'  => 'Rejected',
+    ],
+
+    // Detail: quotation list
+    'quotations_title'     => 'Quotations with this course',
+    'quotation_id'         => 'Quotation ID',
+    'quotation_created_at' => 'Created at',
+    'quantity'             => 'Quantity',
+    'no_quotations'        => 'No quotations yet',
+    'no_quotations_status' => 'No quotations with this status',
+    'clear_filter'         => 'Show all quotations',
 ];

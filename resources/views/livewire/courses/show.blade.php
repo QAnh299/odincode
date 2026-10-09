@@ -1,247 +1,319 @@
 @php
+    use App\Models\Course;
+    use App\Models\Quotation;
+    use Illuminate\Support\Facades\Lang;
+
     $course = $this->course;
+    $stats = $this->stats;
     $state = $course->state();
-    $overview = $this->overview;
-    $monthly = $this->monthly;
-    [$periodFrom, $periodTo] = $this->period;
+
+    // Màu theo trạng thái (class tiện ích Bootstrap 5.3) – luôn đi kèm chữ, không chỉ dựa vào màu
+    $tones = [
+        Quotation::STATUS_DRAFT     => 'secondary',
+        Quotation::STATUS_CONFIRMED => 'success',
+        Quotation::STATUS_REJECTED  => 'danger',
+    ];
+    $courseTone = $state === Course::STATE_ACTIVE ? 'success' : 'secondary';
+
+    $statusLabel = fn (string $status) => Lang::has('courses.quotation_status.'.$status)
+        ? __('courses.quotation_status.'.$status) : $status;
+    $toneOf = fn (string $status) => $tones[collect(Quotation::STATUSES)
+        ->first(fn ($s) => strcasecmp($s, $status) === 0)] ?? 'secondary';
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
+    $number = fn ($value) => number_format((int) $value, 0, ',', '.');
 
-    // Tiền rút gọn cho trục biểu đồ: 12 tr, 1,5 tỷ
-    $compact = function ($value) {
-        $value = (float) $value;
-        [$divisor, $unit] = match (true) {
-            $value >= 1e9 => [1e9, __('courses.unit_billion')],
-            $value >= 1e6 => [1e6, __('courses.unit_million')],
-            $value >= 1e3 => [1e3, __('courses.unit_thousand')],
-            default       => [1, ''],
-        };
-        $number = rtrim(rtrim(number_format($value / $divisor, 1, ',', '.'), '0'), ',');
+    // Tỷ lệ chốt: "100%", "66,7%"; chưa có báo giá đã kết thúc thì "—"
+    $rate = $stats['close_rate'];
+    $rateText = $rate === null ? '—'
+        : rtrim(rtrim(number_format($rate, 1, ',', '.'), '0'), ',').'%';
 
-        return trim($number.' '.$unit);
-    };
+    // Thanh trạng thái: tổng các báo giá có trạng thái hợp lệ (tổng 0 thì thanh rỗng)
+    $barTotal = array_sum($stats['by_status']);
+    $percentOf = fn (int $count) => $barTotal > 0 ? (int) round($count / $barTotal * 100) : 0;
+    $barLabel = collect($stats['by_status'])
+        ->map(fn ($count, $status) => $statusLabel($status).': '.$count)
+        ->implode(', ');
 
-    // Các trường thông tin: [nhãn, icon, giá trị]; trạng thái (null) hiển thị bằng nhãn màu
-    $fields = [
-        [__('courses.code'), 'tag', $course->course_id],
-        [__('courses.name'), 'book', $course->course_name],
-        [__('courses.status'), 'check-circle', null],
-        [__('courses.price'), 'wallet', $course->displayPrice()],
-        [__('courses.vat'), 'percent', $course->displayVat()],
-        [__('courses.duration'), 'clock', $course->duration ?: '—'],
-        [__('courses.created_at'), 'calendar', $course->created_at?->format('d/m/Y H:i') ?? '—'],
-    ];
-
-    // Thẻ tổng quan kinh doanh: [nhãn, icon, giá trị, class giá trị]
-    $collectedRate = $overview['revenue'] > 0 ? round($overview['paid'] / $overview['revenue'] * 100) : 0;
-    $stats = [
-        [__('courses.registrations'), 'file', number_format($overview['registrations'], 0, ',', '.'), ''],
-        [__('courses.revenue'), 'wallet', $money($overview['revenue']), ''],
-        [__('courses.paid'), 'check-circle', $money($overview['paid']), 'cs-text-paid'],
-        [__('courses.remaining'), 'hourglass', $money($overview['remaining']), 'cs-text-remaining'],
-        [__('courses.students'), 'layers', number_format($overview['students'], 0, ',', '.'), ''],
-    ];
-
-    // Dữ liệu biểu đồ (cũ → mới)
-    $revenueBars = $monthly->map(fn ($m) => [
-        'label'   => $m['month']->format('m/y'),
-        'title'   => __('courses.month_label', ['month' => $m['month']->format('m/Y')]),
-        'value'   => $m['revenue'],
-        'display' => $money($m['revenue']),
-    ])->all();
-
-    $registrationBars = $monthly->map(fn ($m) => [
-        'label'   => $m['month']->format('m/y'),
-        'title'   => __('courses.month_label', ['month' => $m['month']->format('m/Y')]),
-        'value'   => $m['registrations'],
-        'display' => trans_choice('courses.registration_count', $m['registrations'], ['count' => $m['registrations']]),
-    ])->all();
+    $listUrl = route($this->routePrefix.'.courses');
 @endphp
 
-<div class="vc cs">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/course.css --}}
+<div class="cd">
+    {{-- CSS riêng của trang khóa học: resources/css/course.css (chỉ nạp ở trang này) --}}
     @assets
-        @vite(['resources/css/voucher.css', 'resources/css/course.css'])
+        @vite('resources/css/course.css')
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
-    <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ route($this->routePrefix.'.courses') }}" class="vc-crumb__back">
-            <x-icon name="arrow-left" />{{ __('courses.back') }}
+    {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
+    <header class="cd-head">
+        <a href="{{ $listUrl }}" class="btn btn-sm btn-outline-secondary cd-back">
+            <x-icon name="arrow-left" />{{ __('courses.back_to_list') }}
         </a>
-        <span class="vc-crumb__path">
-            <a href="{{ route($this->routePrefix.'.courses') }}">{{ __('courses.title') }}</a>
-            <x-icon name="chevron" />
-            <span aria-current="page">{{ $course->course_id }}</span>
-        </span>
-    </nav>
 
-    {{-- ── Tiêu đề khóa học ─────────────────────────────────────────── --}}
-    <section class="vc-card cs-hero">
-        <span class="cs-hero__icon"><x-icon name="book" /></span>
-        <div class="cs-hero__text">
-            <span class="vc-mono">{{ $course->course_id }}</span>
-            <h1 class="cs-hero__title">{{ $course->course_name }}</h1>
-        </div>
-        <span class="vc-badge vc-badge--lg vc-tone--{{ $state }}">
-            <span class="vc-badge__dot"></span>{{ __('courses.state.'.$state) }}
-        </span>
-    </section>
-
-    {{-- ── 1. Thông tin khóa học (chỉ xem) ──────────────────────────── --}}
-    <section class="vc-card vc-results">
-        <header class="vc-section-head">
-            <h2 class="vc-section-head__title">{{ __('courses.info') }}</h2>
-            <p class="vc-section-head__sub"><x-icon name="shield" />{{ __('courses.read_only') }}</p>
-        </header>
-
-        <dl class="cs-info">
-            @foreach ($fields as $i => [$label, $icon, $value])
-                <div class="cs-info__item {{ $i === 1 ? 'cs-info__item--name' : '' }}">
-                    <dt><x-icon :name="$icon" />{{ $label }}</dt>
-                    <dd>
-                        @if ($value === null)
-                            <span class="vc-badge vc-tone--{{ $state }}">
-                                <span class="vc-badge__dot"></span>{{ __('courses.state.'.$state) }}
-                            </span>
-                        @else
-                            {{ $value }}
-                        @endif
-                    </dd>
-                </div>
-            @endforeach
-
-            <div class="cs-info__item cs-info__item--wide">
-                <dt><x-icon name="file" />{{ __('courses.description') }}</dt>
-                <dd class="cs-info__desc">{{ $course->description ?: __('courses.no_description') }}</dd>
+        <div class="cd-head__title">
+            <div>
+                <h1 class="h3 mb-1">{{ $course->course_name }}</h1>
+                <span class="cd-code">{{ $course->course_id }}</span>
             </div>
-        </dl>
-    </section>
-
-    {{-- ── 2. Tổng quan kinh doanh (toàn thời gian) ─────────────────── --}}
-    <header class="cs-block-head">
-        <div>
-            <h2 class="vc-section-head__title">{{ __('courses.overview') }}</h2>
-            <p class="vc-section-head__sub">
-                @if ($this->limitedScope)
-                    <x-icon name="shield" />{{ __('courses.scope_note') }}
-                @else
-                    {{ __('courses.overview_sub') }}
-                @endif
-            </p>
+            <span class="badge rounded-pill cd-badge bg-{{ $courseTone }}-subtle text-{{ $courseTone }}-emphasis border border-{{ $courseTone }}-subtle">
+                <span class="cd-dot bg-{{ $courseTone }}" aria-hidden="true"></span>{{ __('courses.state.'.$state) }}
+            </span>
         </div>
     </header>
 
-    <div class="vc-stats cs-stats">
-        @foreach ($stats as [$label, $icon, $value, $class])
-            <div class="vc-stat">
-                <span class="vc-stat__icon"><x-icon :name="$icon" /></span>
-                <span class="vc-stat__label">{{ $label }}</span>
-                <span class="vc-stat__value vc-stat__value--sm {{ $class }}">{{ $value }}</span>
+    <div class="cd-grid {{ $this->canFilterEmployee ? 'cd-grid--scoped' : '' }}"
+        wire:loading.class="cd-is-loading" wire:target="team, employee, clearScopeFilters">
+
+        @if ($this->canFilterEmployee)
+            @php
+                $team = $this->activeTeam;
+                $employeeOptions = $this->employeeOptions;
+            @endphp
+            <section class="card cd-card cd-scope cd-area-scope" aria-label="{{ __('courses.scope_filter') }}">
+                <div class="card-body">
+                    @if ($this->canFilterTeam)
+                        <label class="cd-scope__field">
+                            <span class="form-label">{{ __('courses.team') }}</span>
+                            <select wire:model.live="team" class="form-select">
+                                <option value="">{{ __('courses.all_teams') }}</option>
+                                @foreach ($this->teams as $option)
+                                    <option value="{{ $option->team_id }}">{{ $option->team_name }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    @else
+                        {{-- Sale Leader: đội cố định là đội của mình --}}
+                        <div class="cd-scope__field">
+                            <span class="form-label">{{ __('courses.team') }}</span>
+                            <span class="cd-scope__fixed">{{ $team?->team_name ?? __('courses.no_team') }}</span>
+                        </div>
+                    @endif
+
+                    <label class="cd-scope__field">
+                        <span class="form-label">{{ __('courses.employee') }}</span>
+                        <select wire:model.live="employee" class="form-select" @disabled($team === null)>
+                            <option value="">{{ $team === null ? __('courses.choose_team_first') : __('courses.all_employees') }}</option>
+                            @foreach ($employeeOptions as $option)
+                                <option value="{{ $option->employee_id }}">
+                                    {{ $option->full_name }}{{ $option->isActive() ? '' : ' ('.__('courses.resigned').')' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    {{-- Sale Admin: bỏ được cả Đội lẫn Nhân viên; Sale Leader: chỉ bỏ chọn Nhân viên --}}
+                    @if (($this->canFilterTeam && $team !== null) || $this->activeEmployee !== null)
+                        <button type="button" class="btn btn-outline-secondary cd-scope__clear" wire:click="clearScopeFilters">
+                            <x-icon name="x" />{{ __('courses.clear_scope') }}
+                        </button>
+                    @endif
+
+                    <span class="cd-loading text-body-secondary" wire:loading.delay wire:target="team, employee, clearScopeFilters">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        {{ __('courses.loading') }}
+                    </span>
+                </div>
+            </section>
+        @endif
+
+        {{-- Nội dung khóa học --}}
+        <section class="card cd-card cd-area-content">
+            <div class="card-body">
+                <h2 class="cd-card__title">{{ __('courses.content') }}</h2>
+
+                {{-- Ảnh khóa học (public/images/courses/{mã}.jpg) bên trái, tổng quan bên phải --}}
+                @php $image = $course->imageUrl(); @endphp
+                <div class="cd-overview {{ $image ? 'has-image' : '' }}">
+                    @if ($image)
+                        <img src="{{ $image }}" alt="{{ $course->course_name }}" class="cd-cover" width="500" height="333">
+                    @endif
+
+                    <div class="cd-overview__text">
+                        <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
+                        @if (filled($course->description))
+                            {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
+                            <div class="cd-desc">
+                                @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
+                                    <p>{{ $paragraph }}</p>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="cd-desc text-body-secondary fst-italic">{{ __('courses.no_description') }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                <dl class="cd-facts">
+                    <div class="cd-fact">
+                        <dt><x-icon name="clock" />{{ __('courses.duration') }}</dt>
+                        <dd>{{ $course->duration ?: '—' }}</dd>
+                    </div>
+                    <div class="cd-fact">
+                        <dt><x-icon name="wallet" />{{ __('courses.price') }}</dt>
+                        <dd>{{ $course->displayPrice() }}</dd>
+                    </div>
+                    <div class="cd-fact">
+                        <dt><x-icon name="percent" />{{ __('courses.vat') }}</dt>
+                        <dd>{{ $course->displayVat() }}</dd>
+                    </div>
+                </dl>
+
+                <p class="cd-note mb-0">
+                    <x-icon name="calendar" />
+                    {{ __('courses.created_on', ['date' => $course->created_at?->format('d/m/Y') ?? '—']) }}
+                </p>
             </div>
-        @endforeach
-    </div>
+        </section>
 
-    @if ($overview['revenue'] > 0)
-        <div class="vc-card cs-collected">
-            <div class="cs-collected__text">
-                <span>{{ __('courses.collected_rate') }}</span>
-                <strong>{{ $collectedRate }}%</strong>
+        {{-- Thống kê --}}
+        <section class="card cd-card cd-area-stats">
+            <div class="card-body">
+                <h2 class="cd-card__title">{{ __('courses.stats') }}</h2>
+
+                <div class="cd-stats">
+                    <div class="cd-stat">
+                        <span class="cd-stat__label">{{ __('courses.quotations_created') }}</span>
+                        <span class="cd-stat__value">{{ $number($stats['total']) }}</span>
+                    </div>
+                    <div class="cd-stat">
+                        <span class="cd-stat__label">{{ __('courses.seats_confirmed') }}</span>
+                        <span class="cd-stat__value">{{ $number($stats['seats_confirmed']) }}</span>
+                    </div>
+                    <div class="cd-stat" title="{{ __('courses.close_rate_hint') }}">
+                        <span class="cd-stat__label">{{ __('courses.close_rate') }}</span>
+                        <span class="cd-stat__value">{{ $rateText }}</span>
+                        <span class="cd-stat__hint">{{ __('courses.close_rate_hint') }}</span>
+                    </div>
+                    <div class="cd-stat">
+                        <span class="cd-stat__label">{{ __('courses.revenue_confirmed') }}</span>
+                        <span class="cd-stat__value cd-stat__value--money">{{ $money($stats['revenue_confirmed']) }}</span>
+                        <span class="cd-stat__hint">{{ __('courses.before_voucher') }}</span>
+                    </div>
+                </div>
+
+                @if ($this->scopeNote !== null)
+                    <p class="cd-note cd-scope-note mb-0"><x-icon name="shield" />{{ $this->scopeNote }}</p>
+                @endif
             </div>
-            <div class="cs-collected__bar" role="img"
-                aria-label="{{ __('courses.collected_rate') }}: {{ $collectedRate }}%">
-                <span style="width: {{ $collectedRate }}%"></span>
-            </div>
-        </div>
-    @endif
+        </section>
 
-    {{-- ── 3. Lịch sử kinh doanh theo tháng + 4. Biểu đồ ───────────── --}}
-    <section class="vc-card vc-results">
-        <header class="vc-section-head">
-            <h2 class="vc-section-head__title">{{ __('courses.history') }}</h2>
-            <p class="vc-section-head__sub">{{ __('courses.history_sub') }}</p>
-        </header>
+        {{-- Báo giá theo trạng thái (bấm để lọc danh sách bên dưới) --}}
+        <section class="card cd-card cd-area-status">
+            <div class="card-body">
+                <h2 class="cd-card__title">{{ __('courses.by_status') }}</h2>
 
-        {{-- Bộ lọc khoảng thời gian --}}
-        <div class="cs-period">
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('courses.from_month') }}</span>
-                <input type="month" wire:model.live="from" class="vc-control" placeholder="YYYY-MM"
-                    max="{{ $to ?: '' }}">
-            </label>
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('courses.to_month') }}</span>
-                <input type="month" wire:model.live="to" class="vc-control" placeholder="YYYY-MM"
-                    min="{{ $from ?: '' }}">
-            </label>
-            <div class="vc-field vc-field--action">
-                <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetPeriod" @disabled(! $this->hasCustomPeriod())>
-                    <x-icon name="refresh" />{{ __('courses.default_period') }}
-                </button>
-            </div>
-            <p class="cs-period__note">
-                <x-icon name="calendar" />
-                {{ __('courses.period_note', ['from' => $periodFrom->format('m/Y'), 'to' => $periodTo->format('m/Y'), 'count' => $monthly->count()]) }}
-                <span class="vc-results__loading" wire:loading.delay>
-                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    {{ __('courses.loading') }}
-                </span>
-            </p>
-        </div>
-
-        {{-- Biểu đồ --}}
-        <div class="cs-charts" wire:loading.class="is-loading">
-            <x-bar-chart :bars="$revenueBars" :title="__('courses.chart_revenue')" :format="$compact"
-                :empty="__('courses.no_sales')" />
-            <x-bar-chart :bars="$registrationBars" :title="__('courses.chart_registrations')" integer
-                :empty="__('courses.no_sales')" />
-        </div>
-
-        {{-- Bảng theo tháng (mới → cũ) --}}
-        <div class="vc-table-wrap" wire:loading.class="is-loading">
-            <table class="vc-table vc-table--static cs-history">
-                <thead>
-                    <tr>
-                        <th>{{ __('courses.month') }}</th>
-                        <th class="text-lg-end">{{ __('courses.registrations') }}</th>
-                        <th class="text-lg-end">{{ __('courses.revenue') }}</th>
-                        <th class="text-lg-end">{{ __('courses.paid') }}</th>
-                        <th class="text-lg-end">{{ __('courses.remaining') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($monthly->reverse() as $row)
-                        <tr wire:key="month-{{ $row['month']->format('Y-m') }}" class="{{ $row['registrations'] ? '' : 'is-empty' }}">
-                            <td data-label="{{ __('courses.month') }}">
-                                <strong>{{ $row['month']->format('m/Y') }}</strong>
-                            </td>
-                            <td data-label="{{ __('courses.registrations') }}" class="text-lg-end">
-                                {{ number_format($row['registrations'], 0, ',', '.') }}
-                            </td>
-                            <td data-label="{{ __('courses.revenue') }}" class="text-lg-end">
-                                {{ $money($row['revenue']) }}
-                            </td>
-                            <td data-label="{{ __('courses.paid') }}" class="text-lg-end cs-text-paid">
-                                {{ $money($row['paid']) }}
-                            </td>
-                            <td data-label="{{ __('courses.remaining') }}" class="text-lg-end cs-text-remaining">
-                                {{ $money($row['remaining']) }}
-                            </td>
-                        </tr>
+                <div class="cd-bar {{ $barTotal === 0 ? 'is-empty' : '' }}" role="img"
+                    aria-label="{{ __('courses.by_status') }}: {{ $barLabel }}">
+                    @foreach ($stats['by_status'] as $status => $count)
+                        @if ($count > 0)
+                            <span class="cd-bar__seg bg-{{ $tones[$status] }}" style="flex-grow: {{ $count }}"
+                                title="{{ $statusLabel($status) }}: {{ $count }}"></span>
+                        @endif
                     @endforeach
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td data-label="{{ __('courses.month') }}"><strong>{{ __('courses.total') }}</strong></td>
-                        <td data-label="{{ __('courses.registrations') }}" class="text-lg-end">
-                            {{ number_format($monthly->sum('registrations'), 0, ',', '.') }}
-                        </td>
-                        <td data-label="{{ __('courses.revenue') }}" class="text-lg-end">{{ $money($monthly->sum('revenue')) }}</td>
-                        <td data-label="{{ __('courses.paid') }}" class="text-lg-end cs-text-paid">{{ $money($monthly->sum('paid')) }}</td>
-                        <td data-label="{{ __('courses.remaining') }}" class="text-lg-end cs-text-remaining">{{ $money($monthly->sum('remaining')) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </section>
+                </div>
+
+                <div class="cd-legend" role="group" aria-label="{{ __('courses.filter_by_status') }}">
+                    <button type="button" wire:click="filterStatus"
+                        class="cd-legend__item {{ $activeStatus === null ? 'is-active' : '' }}"
+                        aria-pressed="{{ $activeStatus === null ? 'true' : 'false' }}">
+                        <span class="cd-legend__swatch cd-legend__swatch--all" aria-hidden="true"></span>
+                        <span class="cd-legend__name">{{ __('courses.all') }}</span>
+                        <span class="cd-legend__count">{{ $number($stats['total']) }}</span>
+                    </button>
+
+                    @foreach ($stats['by_status'] as $status => $count)
+                        <button type="button" wire:click="filterStatus('{{ $status }}')"
+                            wire:key="legend-{{ $status }}"
+                            class="cd-legend__item {{ $activeStatus === $status ? 'is-active' : '' }}"
+                            aria-pressed="{{ $activeStatus === $status ? 'true' : 'false' }}">
+                            <span class="cd-legend__swatch bg-{{ $tones[$status] }}" aria-hidden="true"></span>
+                            <span class="cd-legend__name">{{ $statusLabel($status) }}</span>
+                            <span class="cd-legend__count">
+                                {{ $number($count) }}
+                                <small class="text-body-secondary">({{ $percentOf($count) }}%)</small>
+                            </span>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        {{-- Báo giá có khóa học này (cột trái, ngay dưới nội dung) --}}
+        <section class="card cd-card cd-area-list">
+            <div class="card-body pb-0">
+                <div class="cd-list-head">
+                    <h2 class="cd-card__title mb-0">
+                        {{ __('courses.quotations_title') }}
+                        @if ($activeStatus !== null)
+                            <span class="text-body-secondary fw-normal">· {{ $statusLabel($activeStatus) }}</span>
+                        @endif
+                        <span class="text-body-secondary fw-normal">({{ $number($quotations->total()) }})</span>
+                    </h2>
+                    <span class="cd-loading text-body-secondary" wire:loading.delay
+                        wire:target="filterStatus, status, gotoPage, nextPage, previousPage">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        {{ __('courses.loading') }}
+                    </span>
+                </div>
+            </div>
+
+            <div wire:loading.class="opacity-50" wire:target="filterStatus, status, gotoPage, nextPage, previousPage"
+                class="cd-list">
+                @if ($quotations->isEmpty())
+                    <div class="cd-empty">
+                        <span class="cd-empty__icon"><x-icon name="inbox" /></span>
+                        <p class="mb-2">
+                            {{ $activeStatus === null || $stats['total'] === 0
+                                ? __('courses.no_quotations')
+                                : __('courses.no_quotations_status') }}
+                        </p>
+                        @if ($activeStatus !== null)
+                            <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="filterStatus">
+                                {{ __('courses.clear_filter') }}
+                            </button>
+                        @endif
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 cd-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{{ __('courses.quotation_id') }}</th>
+                                    @if ($this->canFilterEmployee)
+                                        <th scope="col">{{ __('courses.employee') }}</th>
+                                    @endif
+                                    <th scope="col">{{ __('courses.status') }}</th>
+                                    <th scope="col">{{ __('courses.quotation_created_at') }}</th>
+                                    <th scope="col" class="text-end">{{ __('courses.quantity') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($quotations as $line)
+                                    @php $tone = $toneOf($line->quotation_status); @endphp
+                                    <tr wire:key="quotation-{{ $line->quotation_id }}">
+                                        {{-- Chưa có trang chi tiết báo giá → hiện mã dạng chữ, không tạo link --}}
+                                        <td><span class="cd-code">{{ $line->quotation_id }}</span></td>
+                                        @if ($this->canFilterEmployee)
+                                            <td>{{ $line->employee_name ?? '—' }}</td>
+                                        @endif
+                                        <td>
+                                            <span class="badge rounded-pill cd-badge bg-{{ $tone }}-subtle text-{{ $tone }}-emphasis border border-{{ $tone }}-subtle">
+                                                <span class="cd-dot bg-{{ $tone }}" aria-hidden="true"></span>{{ $statusLabel($line->quotation_status) }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $line->quotation_created_at?->format('d/m/Y') ?? '—' }}</td>
+                                        <td class="text-end fw-semibold">{{ $number($line->quantity) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if ($quotations->hasPages())
+                        <div class="cd-pagination">{{ $quotations->links() }}</div>
+                    @endif
+                @endif
+            </div>
+        </section>
+    </div>
 </div>
