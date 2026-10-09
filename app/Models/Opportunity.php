@@ -10,6 +10,8 @@ class Opportunity extends Model
 {
     use HasFactory, HasStringId;
 
+    const STATUSES = ['InProgress', 'Won', 'Lost', 'Archived'];
+
     protected $table = 'Opportunities';
 
     protected $primaryKey = 'opportunity_id';
@@ -34,6 +36,13 @@ class Opportunity extends Model
         'conversion_date' => 'datetime',
         'expected_value'  => 'decimal:2',
     ];
+
+    public function displayValue(): ?string
+    {
+        return $this->expected_value === null
+            ? null
+            : number_format((float) $this->expected_value, 0, ',', '.').' ₫';
+    }
 
     public function lead()
     {

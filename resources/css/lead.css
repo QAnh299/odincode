@@ -1,0 +1,99 @@
+/* ── Trang danh sách Lead (livewire/leads/index) ──────────────────────
+   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .ld-. */
+
+/* Màu theo trạng thái Lead: thẻ thống kê + nhãn trong bảng */
+.ld-st--all { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
+.ld-st--New { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+.ld-st--Converted { --tone: #15803d; --tone-bg: #dcfce7; }
+.ld-st--rate { --tone: #b45309; --tone-bg: #fef3c7; }
+
+/* Nút Thêm / Import / Phân chia ở góc phải tiêu đề */
+.ld-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+/* 4 thẻ thống kê; thẻ Tỷ lệ chuyển đổi không bấm được */
+.ld-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ld-summary__static {
+    cursor: default;
+}
+
+.ld-summary__static:hover {
+    transform: none;
+    border-color: var(--vc-border);
+}
+
+/* Bộ lọc: hàng 1 = tìm kiếm + trạng thái + nguồn + kênh; hàng 2 = chi nhánh + ngày + xoá lọc */
+.ld-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.ld-filters .vc-search {
+    min-height: 42px;
+    margin-bottom: 0;
+    border-radius: 12px;
+}
+
+.ld-name {
+    display: block;
+    font-weight: 600;
+}
+
+.ld-sub {
+    display: block;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ld-nowrap {
+    white-space: nowrap;
+}
+
+/* Kênh liên hệ */
+.ld-method {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.ld-method--Zalo { background: #e0f2fe; color: #0369a1; }
+.ld-method--Facebook { background: #e0e7ff; color: #4338ca; }
+.ld-method--Phone { background: #fef3c7; color: #92400e; }
+
+@media (max-width: 1199.98px) {
+    .ld-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ld-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ld-filters__search {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ld-summary,
+    .ld-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ld-actions,
+    .ld-actions .vc-btn {
+        width: 100%;
+    }
+}

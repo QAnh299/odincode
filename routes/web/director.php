@@ -3,6 +3,7 @@
 use App\Livewire\Courses\Index as CourseIndex;
 use App\Livewire\Courses\Show as CourseShow;
 use App\Livewire\Director\Home;
+use App\Livewire\Leads\Index as LeadIndex;
 use App\Livewire\Vouchers\Index as VoucherIndex;
 use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,9 @@ use Illuminate\Support\Facades\Route;
 // Giám đốc – prefix /director, name director.*
 
 Route::get('/', Home::class)->name('home');
+
+// Lead – chỉ xem danh sách (dùng chung Giám đốc, Sale Admin, Sale Leader)
+Route::get('/leads', LeadIndex::class)->name('leads');
 
 // Voucher (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/vouchers', VoucherIndex::class)->name('vouchers');

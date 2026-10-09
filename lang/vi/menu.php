@@ -11,6 +11,7 @@ return [
 
     'dashboard'  => 'Dashboard & Báo cáo',
     'leads'      => 'Quản lý Lead',
+    'opportunities' => 'Quản lý Opportunity',
     'employees'  => 'Quản lý nhân viên',
     'quotations' => 'Quản lý báo giá',
     'orders'     => 'Quản lý đơn hàng',
@@ -23,5 +24,6 @@ return [
     'employee_list' => 'Nhân viên',
     'sales_teams'   => 'Đội kinh doanh',
     'lead_list'     => 'Lead',
+    'opportunity_list' => 'Opportunity',
     'appointments'  => 'Lịch hẹn',
 ];

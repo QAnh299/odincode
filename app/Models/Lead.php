@@ -10,6 +10,13 @@ class Lead extends Model
 {
     use HasFactory, HasStringId;
 
+    // Trạng thái: New = Sale Admin vừa nhập, Converted = đã phân cho salesperson (đã có Opportunity)
+    const STATUS_NEW = 'New';
+    const STATUS_CONVERTED = 'Converted';
+    const STATUSES = [self::STATUS_NEW, self::STATUS_CONVERTED];
+
+    const CONTACT_METHODS = ['Zalo', 'Phone', 'Facebook'];
+
     protected $table = 'Leads';
 
     protected $primaryKey = 'lead_id';

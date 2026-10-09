@@ -1,0 +1,406 @@
+/* ── Trang Quản lý Opportunity dạng Kanban (livewire/opportunities/kanban) ──
+   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .ok-. */
+
+.ok {
+    max-width: none;
+}
+
+/* Tổng số Opportunity ở góc phải tiêu đề */
+.ok-total {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.9rem;
+}
+
+.ok-total strong {
+    color: var(--vc-ink);
+}
+
+/* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
+
+.ok-board {
+    display: grid;
+    grid-auto-columns: minmax(280px, 1fr);
+    grid-auto-flow: column;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    overflow-x: auto;
+}
+
+/* Mỗi stage một màu nhạt (theo sort_order): viền cột, vạch đầu cột, viền trái thẻ */
+.ok-col--1 { --stage: #64748b; } /* Data chưa tương tác */
+.ok-col--2 { --stage: #0ea5e9; } /* Data đã có lịch hẹn */
+.ok-col--3 { --stage: #f59e0b; } /* Data đã xử lý */
+.ok-col--4 { --stage: #22c55e; } /* Chốt */
+.ok-col--5 { --stage: #a8a29e; } /* Lưu trữ */
+
+.ok-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1.5px solid color-mix(in srgb, var(--stage, #94a3b8) 28%, #fff);
+    border-top: 4px solid color-mix(in srgb, var(--stage, #94a3b8) 55%, #fff);
+    border-radius: var(--vc-radius);
+    background: color-mix(in srgb, var(--stage, #94a3b8) 5%, #f8faf8);
+}
+
+.ok-col__head {
+    padding: 0.9rem 1rem 0.75rem;
+}
+
+.ok-col__title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.ok-col__title h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.ok-col__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 26px;
+    height: 22px;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: var(--vc-surface);
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ok-col__sum {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--vc-primary);
+}
+
+.ok-col__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 120px;
+    padding: 0 0.75rem 0.85rem;
+}
+
+.ok-col__empty {
+    margin: 0;
+    padding: 1.5rem 0.5rem;
+    border: 1.5px dashed var(--vc-border);
+    border-radius: 12px;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* ── Thẻ Opportunity ───────────────────────────────────────────────── */
+
+.ok-card {
+    display: flex;
+    color: inherit;
+    text-decoration: none;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--vc-border);
+    border-left: 3px solid color-mix(in srgb, var(--stage, #94a3b8) 45%, #fff);
+    border-radius: 14px;
+    background: var(--vc-surface);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.ok-card:hover,
+.ok-card:focus-visible {
+    outline: none;
+    color: inherit;
+    border-color: color-mix(in srgb, var(--stage, #94a3b8) 45%, #fff);
+    box-shadow: var(--vc-shadow);
+}
+
+.ok-card__name {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.ok-card__value {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--vc-primary);
+}
+
+.ok-card__meta {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ok-card__meta li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.vc .ok-card__meta .odin-icon,
+.vc .ok-card__date .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.ok-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+.ok-card__foot .vc-mono {
+    font-size: 0.75rem;
+}
+
+.ok-card__date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+@media (max-width: 575.98px) {
+    .ok-board {
+        grid-auto-columns: 85%;
+    }
+}
+
+/* ══ Chi tiết Opportunity (livewire/opportunities/show), tiền tố .od- ═══ */
+
+.od-res--Success,
+.od-apt--Success { --tone: #15803d; --tone-bg: #dcfce7; }
+.od-res--Failed,
+.od-apt--Failed { --tone: #b91c1c; --tone-bg: #fee2e2; }
+.od-apt--Scheduled { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+
+.od-muted {
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+/* ── Đầu trang ─────────────────────────────────────────────────────── */
+
+.od-head__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+}
+
+.od-head__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+    min-width: 0;
+}
+
+.od-head__title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+/* Thanh giai đoạn dạng mũi tên (giống statusbar của Odoo) */
+.od-stages {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+}
+
+.od-stages__item {
+    --arrow: 12px;
+    display: inline-flex;
+    flex: 1 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 40px;
+    padding: 0 calc(var(--arrow) + 0.9rem);
+    margin-left: -4px;
+    background: #eef1ed;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    clip-path: polygon(0 0, calc(100% - var(--arrow)) 0, 100% 50%, calc(100% - var(--arrow)) 100%, 0 100%, var(--arrow) 50%);
+}
+
+.od-stages__item:first-child {
+    margin-left: 0;
+    border-radius: 10px 0 0 10px;
+    clip-path: polygon(0 0, calc(100% - var(--arrow)) 0, 100% 50%, calc(100% - var(--arrow)) 100%, 0 100%);
+}
+
+.od-stages__item:last-child {
+    border-radius: 0 10px 10px 0;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, var(--arrow) 50%);
+}
+
+.od-stages__item.is-done {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.od-stages__item.is-current {
+    background: var(--vc-primary);
+    color: var(--vc-on-primary);
+}
+
+.vc .od-stages__item .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Lưới 2 cột: trái linh hoạt, phải 360px ────────────────────────── */
+
+.od-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.od-main,
+.od-side {
+    min-width: 0;
+}
+
+.od-title {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* Tiêu đề trong card có bảng (card không padding) */
+.od-title--bar {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.od-empty {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.9rem;
+}
+
+.od-empty--pad {
+    padding: 1.25rem;
+}
+
+.od-foot {
+    margin: 0;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+/* ── Lịch sử chăm sóc: dòng thời gian ──────────────────────────────── */
+
+.od-timeline__item {
+    position: relative;
+    display: flex;
+    gap: 0.85rem;
+    padding-bottom: 1.1rem;
+}
+
+.od-timeline__item:last-child {
+    padding-bottom: 0;
+}
+
+/* Đường nối giữa các chấm */
+.od-timeline__item:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 16px;
+    bottom: 0;
+    left: 6px;
+    width: 2px;
+    background: var(--vc-border);
+}
+
+.od-timeline__dot {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-top: 3px;
+    border: 3px solid var(--tone-bg);
+    border-radius: 50%;
+    background: var(--tone);
+}
+
+.od-timeline__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.od-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.od-timeline__note {
+    margin: 0.3rem 0 0.2rem;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+/* ── Thông tin dạng nhãn – giá trị ─────────────────────────────────── */
+
+.od-info {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem 1rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.od-info dt {
+    color: var(--vc-muted);
+    font-weight: 500;
+}
+
+.od-info dd {
+    margin: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+    .od-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Thông tin khách hàng lên trước */
+    .od-side {
+        order: -1;
+    }
+}

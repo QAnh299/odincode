@@ -22,6 +22,7 @@ return [
     'items' => [
         'dashboard'     => ['route' => 'home',         'icon' => 'dashboard'],
         'leads'         => ['route' => 'leads',        'icon' => 'lead'],
+        'opportunities' => ['route' => 'opportunities', 'icon' => 'opportunity'],
         'employees'     => ['route' => 'employees',    'icon' => 'employee'],
         'quotations'    => ['route' => 'quotations',   'icon' => 'quotation'],
         'orders'        => ['route' => 'orders',       'icon' => 'order'],
@@ -34,6 +35,7 @@ return [
         'employee_list' => ['route' => 'employees'],
         'sales_teams'   => ['route' => 'sales-teams'],
         'lead_list'     => ['route' => 'leads'],
+        'opportunity_list' => ['route' => 'opportunities'],
         'appointments'  => ['route' => 'appointments'],
     ],
 
@@ -75,7 +77,7 @@ return [
         ],
 
         'salesperson' => [
-            'leads' => ['lead_list', 'appointments'],
+            'opportunities' => ['opportunity_list', 'appointments'],
             'quotations',
             'orders',
             'invoices',

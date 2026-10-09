@@ -11,6 +11,7 @@ return [
 
     'dashboard'  => 'Dashboard & Reports',
     'leads'      => 'Leads',
+    'opportunities' => 'Opportunities',
     'employees'  => 'Employees',
     'quotations' => 'Quotations',
     'orders'     => 'Orders',
@@ -23,5 +24,6 @@ return [
     'employee_list' => 'Employees',
     'sales_teams'   => 'Sales teams',
     'lead_list'     => 'Leads',
+    'opportunity_list' => 'Opportunities',
     'appointments'  => 'Appointments',
 ];

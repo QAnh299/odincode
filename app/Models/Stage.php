@@ -10,6 +10,9 @@ class Stage extends Model
 {
     use HasFactory, HasStringId;
 
+    // Stage "Chốt": chỉ Opportunity ở stage này mới được tạo báo giá
+    const CLOSED = 'STG004';
+
     protected $table = 'Stages';
 
     protected $primaryKey = 'stage_id';
