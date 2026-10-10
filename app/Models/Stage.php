@@ -10,6 +10,15 @@ class Stage extends Model
 {
     use HasFactory, HasStringId;
 
+    // Stage "Data chưa tương tác": vừa được phân chia
+    const UNTOUCHED = 'STG001';
+
+    // Stage "Data đã có lịch hẹn": tạo lịch hẹn đầu tiên thì chuyển sang stage này
+    const APPOINTED = 'STG002';
+
+    // Stage "Data đã xử lý": đã test và/hoặc tư vấn xong (mọi loại lịch hẹn đều có lần khách đến)
+    const PROCESSED = 'STG003';
+
     // Stage "Chốt": chỉ Opportunity ở stage này mới được tạo báo giá
     const CLOSED = 'STG004';
 

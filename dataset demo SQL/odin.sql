@@ -163,14 +163,15 @@ CREATE TABLE `Students` (
 
 CREATE TABLE `Appointments` (
   `appointment_id` VARCHAR(10) NOT NULL,
-  `appointment_type` VARCHAR(50) NOT NULL,
+  `appointment_type` VARCHAR(50) NOT NULL,  
   `location` VARCHAR(255) NULL,
   `scheduled_time` DATETIME NOT NULL,
   `status` VARCHAR(30) NOT NULL DEFAULT 'Scheduled',
   `notes` TEXT NULL,
   `employee_id` VARCHAR(10) NOT NULL,
   `opportunity_id` VARCHAR(10) NOT NULL,
-  PRIMARY KEY (`appointment_id`),
+  PRIMARY KEY (`appointment_id`, `appointment_type`),
+  CHECK (`appointment_type` IN ('Test', 'Consultation')),
   CHECK (`status` IN ('Scheduled', 'Success', 'Failed')),
   CONSTRAINT `fk_appointments_employee_id` FOREIGN KEY (`employee_id`)
     REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -334,6 +335,14 @@ ALTER TABLE `SalesTeams`
 -- Username: director, saleadmin, leader1, sales01, sales02,
 --           leader2, sales03, accountant
 -- Account status dung 'active' de phu hop kiem tra dang nhap cua ung dung.
+--
+-- Quy trinh Lead -> Opportunity: moi salesperson co Opportunity o du 5 stage
+--   STG001: vua phan chia, chua cham soc | STG002: co lich hen sap toi (Scheduled)
+--   STG003: da test va/hoac tu van xong  | STG004 Chot: khach dong y, chua co bao gia
+--   STG005: lien he that bai / tu choi
+--   Trang thai Opportunity khop voi stage: STG001-003 InProgress, STG004 Won, STG005 Lost.
+--   OPP026: hoc vien cu LEAD001 dang ky them khoa (1 Lead nhieu Opportunity).
+--   LEAD031 - LEAD036: Lead moi (New) de demo phan chia Lead.
 -- ============================================================
 
 INSERT INTO `Branches`
@@ -375,7 +384,7 @@ INSERT INTO `SalesTargets` (`target_id`, `target_name`, `target_type`, `unit`) V
 INSERT INTO `Stages` (`stage_id`, `stage_name`, `sort_order`, `description`) VALUES
   ('STG001', 'Data chưa tương tác', 1, 'Cơ hội mới tạo, nhân viên chưa liên hệ với khách hàng.'),
   ('STG002', 'Data đã có lịch hẹn', 2, 'Đã liên hệ và đặt lịch hẹn tư vấn với khách hàng.'),
-  ('STG003', 'Data đã xử lý', 3, 'Đã tư vấn, chăm sóc và gửi báo giá; đang chờ khách hàng quyết định.'),
+  ('STG003', 'Data đã xử lý', 3, 'Đã hoàn thành buổi test đầu vào và/hoặc tư vấn với khách hàng; đang chờ khách hàng quyết định.'),
   ('STG004', 'Chốt', 4, 'Khách hàng đồng ý đăng ký khóa học.'),
   ('STG005', 'Lưu trữ', 5, 'Cơ hội không tiếp tục xử lý và được lưu trữ.');
 
@@ -437,7 +446,33 @@ VALUES
   ('LEAD009', 'Ngô Phương Linh', '0912000009', 'phuonglinh@example.test', 'Workshop', 'https://odin.example.test/events', '2026-09-18 11:15:00', 'Zalo', 'New', 'BR001'),
   ('LEAD010', 'Đinh Thành Đạt', '0912000010', 'thanhdat@example.test', 'Referral', NULL, '2026-09-20 16:40:00', 'Phone', 'New', 'BR002'),
   ('LEAD011', 'Mai Thảo NGuyên', '0912000011', 'thaonguyen@example.test', 'Website', 'https://odin.example.test/english', '2026-09-25 10:05:00', 'Phone', 'New', 'BR002'),
-  ('LEAD012', 'Phan Hoài An', '0912000012', 'hoaian@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-01 08:50:00', 'Zalo', 'New', 'BR001');
+  ('LEAD012', 'Phan Hoài An', '0912000012', 'hoaian@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-01 08:50:00', 'Zalo', 'New', 'BR001'),
+  -- Da phan chia (Converted)
+  ('LEAD013', 'Trịnh Minh Khoa', '0912000013', 'minhkhoa@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-02 09:00:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD014', 'Lý Thu Trang', '0912000014', 'thutrang@example.test', 'Website', 'https://odin.example.test/ielts', '2026-10-05 14:20:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD015', 'Vũ Đức Anh', '0912000015', 'ducanh@example.test', 'Workshop', 'https://odin.example.test/events', '2026-09-25 10:30:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD016', 'Cao Ngọc Ánh', '0912000016', 'ngocanh@example.test', 'Referral', NULL, '2026-09-20 16:00:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD017', 'Đoàn Gia Huy', '0912000017', 'giahuy@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-09-18 08:15:00', 'Facebook', 'Converted', 'BR001'),
+  ('LEAD018', 'Tạ Thùy Dung', '0912000018', 'thuydung@example.test', 'Website', 'https://odin.example.test/contact', '2026-09-16 11:45:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD019', 'Hồ Thanh Tùng', '0912000019', 'thanhtung@example.test', 'TikTok', 'https://tiktok.example.test/@odin', '2026-10-06 19:30:00', 'Facebook', 'Converted', 'BR001'),
+  ('LEAD020', 'Lâm Bảo Ngọc', '0912000020', 'baongoc@example.test', 'Education Fair', NULL, '2026-09-28 09:40:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD021', 'Kiều Anh Thư', '0912000021', 'anhthu@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-09-26 20:10:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD022', 'Dương Quốc Việt', '0912000022', 'quocviet@example.test', 'Website', 'https://odin.example.test/ielts', '2026-09-19 13:00:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD023', 'Châu Mỹ Linh', '0912000023', 'mylinh@example.test', 'Referral', NULL, '2026-09-14 15:25:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD024', 'Quách Hữu Phước', '0912000024', 'huuphuoc@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-09-10 10:05:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD025', 'Lưu Khánh Linh', '0912000025', 'khanhlinh@example.test', 'Website', 'https://odin.example.test/kids', '2026-10-04 08:50:00', 'Zalo', 'Converted', 'BR002'),
+  ('LEAD026', 'Tôn Thất Minh', '0912000026', 'thatminh@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-07 21:00:00', 'Facebook', 'Converted', 'BR002'),
+  ('LEAD027', 'Nghiêm Thu Hà', '0912000027', 'thuha.n@example.test', 'Workshop', 'https://odin.example.test/events', '2026-09-27 10:00:00', 'Phone', 'Converted', 'BR002'),
+  ('LEAD028', 'Âu Dương Phong', '0912000028', 'duongphong@example.test', 'Education Fair', NULL, '2026-09-21 14:30:00', 'Zalo', 'Converted', 'BR002'),
+  ('LEAD029', 'Thân Ngọc Bích', '0912000029', 'ngocbich@example.test', 'Referral', NULL, '2026-09-15 09:10:00', 'Phone', 'Converted', 'BR002'),
+  ('LEAD030', 'La Văn Toàn', '0912000030', 'vantoan@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-09-11 16:45:00', 'Facebook', 'Converted', 'BR002'),
+  -- Lead moi, chua phan chia (New)
+  ('LEAD031', 'Mạc Thanh Hương', '0912000031', 'thanhhuong@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-08 10:20:00', 'Zalo', 'New', 'BR001'),
+  ('LEAD032', 'Phùng Đức Mạnh', '0912000032', 'ducmanh@example.test', 'Website', 'https://odin.example.test/ielts', '2026-10-09 15:00:00', 'Phone', 'New', 'BR001'),
+  ('LEAD033', 'Hà Phương Thảo', '0912000033', NULL, 'TikTok', 'https://tiktok.example.test/@odin', '2026-10-10 20:40:00', 'Facebook', 'New', 'BR001'),
+  ('LEAD034', 'Đỗ Quang Vinh', '0912000034', 'quangvinh@example.test', 'Workshop', 'https://odin.example.test/events', '2026-10-08 11:00:00', 'Zalo', 'New', 'BR002'),
+  ('LEAD035', 'Kim Ngọc Hân', '0912000035', 'ngochan@example.test', 'Referral', NULL, '2026-10-09 09:30:00', 'Phone', 'New', 'BR002'),
+  ('LEAD036', 'Lương Tuấn Kiệt', '0912000036', 'tuankiet.l@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-11 08:05:00', 'Facebook', 'New', 'BR002');
 
 INSERT INTO `Opportunities`
   (`opportunity_id`, `conversion_date`, `expected_value`, `status`, `lead_id`, `stage_id`, `employee_id`)
@@ -448,7 +483,29 @@ VALUES
   ('OPP004', '2026-09-09 09:30:00', NULL, 'Lost', 'LEAD004', 'STG005', 'EMP007'),
   ('OPP005', '2026-09-11 15:00:00', 5000000.00, 'InProgress', 'LEAD005', 'STG003', 'EMP007'),
   ('OPP006', '2026-09-13 13:00:00', 11000000.00, 'Won', 'LEAD006', 'STG004', 'EMP005'),
-  ('OPP007', '2026-09-14 10:45:00', 12700000.00, 'Won', 'LEAD007', 'STG004', 'EMP007');
+  ('OPP007', '2026-09-14 10:45:00', 12700000.00, 'Won', 'LEAD007', 'STG004', 'EMP007'),
+  -- sales01 – Phạm Ngọc Lan (EMP004)
+  ('OPP008', '2026-10-09 10:00:00', 6000000.00, 'InProgress', 'LEAD013', 'STG001', 'EMP004'),
+  ('OPP009', '2026-10-10 09:00:00', 8500000.00, 'InProgress', 'LEAD014', 'STG001', 'EMP004'),
+  ('OPP010', '2026-09-27 09:30:00', 12000000.00, 'InProgress', 'LEAD015', 'STG002', 'EMP004'),
+  ('OPP011', '2026-09-22 10:00:00', 8500000.00, 'InProgress', 'LEAD016', 'STG003', 'EMP004'),
+  ('OPP012', '2026-09-19 09:00:00', 6000000.00, 'Won', 'LEAD017', 'STG004', 'EMP004'),
+  ('OPP013', '2026-09-17 10:30:00', NULL, 'Lost', 'LEAD018', 'STG005', 'EMP004'),
+  -- sales02 – Đỗ Tuấn Kiệt (EMP005)
+  ('OPP014', '2026-10-10 14:00:00', 5000000.00, 'InProgress', 'LEAD019', 'STG001', 'EMP005'),
+  ('OPP015', '2026-09-30 10:00:00', 12000000.00, 'InProgress', 'LEAD020', 'STG002', 'EMP005'),
+  ('OPP016', '2026-09-29 09:00:00', 5500000.00, 'InProgress', 'LEAD021', 'STG002', 'EMP005'),
+  ('OPP017', '2026-09-21 09:30:00', 12000000.00, 'InProgress', 'LEAD022', 'STG003', 'EMP005'),
+  ('OPP018', '2026-09-15 10:00:00', 8500000.00, 'Won', 'LEAD023', 'STG004', 'EMP005'),
+  ('OPP019', '2026-09-12 09:00:00', NULL, 'Lost', 'LEAD024', 'STG005', 'EMP005'),
+  ('OPP026', '2026-10-05 09:00:00', 12000000.00, 'InProgress', 'LEAD001', 'STG002', 'EMP005'),
+  -- sales03 – Bùi Gia Hân (EMP007)
+  ('OPP020', '2026-10-08 10:00:00', 5500000.00, 'InProgress', 'LEAD025', 'STG001', 'EMP007'),
+  ('OPP021', '2026-10-10 10:30:00', 6000000.00, 'InProgress', 'LEAD026', 'STG001', 'EMP007'),
+  ('OPP022', '2026-09-29 14:00:00', 8500000.00, 'InProgress', 'LEAD027', 'STG002', 'EMP007'),
+  ('OPP023', '2026-09-23 09:00:00', 12000000.00, 'InProgress', 'LEAD028', 'STG003', 'EMP007'),
+  ('OPP024', '2026-09-16 10:00:00', 11000000.00, 'Won', 'LEAD029', 'STG004', 'EMP007'),
+  ('OPP025', '2026-09-13 09:30:00', NULL, 'Lost', 'LEAD030', 'STG005', 'EMP007');
 
 INSERT INTO `Students`
   (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`)
@@ -461,11 +518,33 @@ VALUES
 INSERT INTO `Appointments`
   (`appointment_id`, `appointment_type`, `location`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
 VALUES
-  ('APT001', 'Phone', 'Dien thoai', '2026-10-06 09:00:00', 'Success', 'Da goi lai tu van lo trinh IELTS.', 'EMP005', 'OPP002'),
-  ('APT002', 'Consultation', 'Trụ sở chính - Số 01 Đông Tác', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
-  ('APT003', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng', '2026-10-07 15:30:00', 'Success', 'Da tu van va kiem tra dau vao.', 'EMP007', 'OPP005'),
-  ('APT004', 'Phone', 'Dien thoai', '2026-09-16 10:00:00', 'Failed', 'Khach khong den, xin doi lich.', 'EMP005', 'OPP006'),
-  ('APT005', 'Online', 'Google Meet', '2026-10-08 13:30:00', 'Scheduled', 'Tu van khoa IELTS Intensive.', 'EMP007', 'OPP007');
+  ('APT001', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-06 09:00:00', 'Success', 'Da tu van lo trinh IELTS.', 'EMP005', 'OPP002'),
+  ('APT002', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
+  ('APT003', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-07 15:30:00', 'Success', 'Da kiem tra dau vao.', 'EMP007', 'OPP005'),
+  ('APT003', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-07 15:30:00', 'Success', 'Da tu van lo trinh hoc.', 'EMP007', 'OPP005'),
+  ('APT004', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-16 10:00:00', 'Failed', 'Khach khong den, xin doi lich.', 'EMP005', 'OPP006'),
+  ('APT005', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-08 13:30:00', 'Scheduled', 'Tu van khoa IELTS Intensive.', 'EMP007', 'OPP007'),
+  -- STG002: lịch đã qua giờ hẹn, chờ cập nhật kết quả (demo nút Khách đã đến / Khách không đến)
+  ('APT008', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-10 17:30:00', 'Scheduled', 'Phụ huynh đưa bé đến test trình độ.', 'EMP005', 'OPP016'),
+  ('APT010', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-10 15:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP007', 'OPP022'),
+  ('APT010', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-10 15:00:00', 'Scheduled', 'Tư vấn lộ trình sau khi có kết quả test.', 'EMP007', 'OPP022'),
+  -- STG002: lịch hẹn sắp tới (demo đổi thời gian / địa điểm)
+  ('APT006', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-13 14:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP004', 'OPP010'),
+  ('APT006', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-13 14:00:00', 'Scheduled', 'Tư vấn lộ trình IELTS 7.0.', 'EMP004', 'OPP010'),
+  ('APT007', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-14 09:30:00', 'Scheduled', 'Tư vấn lộ trình IELTS Intensive.', 'EMP005', 'OPP015'),
+  ('APT009', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-16 18:00:00', 'Scheduled', 'Tư vấn khóa IELTS Intensive cho học viên cũ.', 'EMP005', 'OPP026'),
+  -- STG003: đã test và/hoặc tư vấn xong
+  ('APT011', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-26 15:00:00', 'Success', 'Kết quả test đầu vào 4.5.', 'EMP004', 'OPP011'),
+  ('APT011', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-26 15:00:00', 'Success', 'Đã tư vấn khóa IELTS Foundation.', 'EMP004', 'OPP011'),
+  ('APT012', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-25 20:00:00', 'Success', 'Đã tư vấn lộ trình du học kèm IELTS.', 'EMP005', 'OPP017'),
+  ('APT013', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-29 18:30:00', 'Success', 'Kết quả test đầu vào 5.0.', 'EMP007', 'OPP023'),
+  ('APT013', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-29 18:30:00', 'Success', 'Đã tư vấn khóa IELTS Intensive.', 'EMP007', 'OPP023'),
+  -- STG004: đã chốt (OPP018: lần 1 khách không đến, hẹn lại lần 2)
+  ('APT014', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-03 10:00:00', 'Success', 'Khách học thử và đồng ý đăng ký.', 'EMP004', 'OPP012'),
+  ('APT015', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-20 19:00:00', 'Failed', 'Khách bận, xin dời lịch.', 'EMP005', 'OPP018'),
+  ('APT016', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-22 15:00:00', 'Success', 'Khách chốt lớp tối 2-4-6.', 'EMP005', 'OPP018'),
+  ('APT017', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-24 16:30:00', 'Success', 'Hai bé test trình độ.', 'EMP007', 'OPP024'),
+  ('APT017', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-24 16:30:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids.', 'EMP007', 'OPP024');
 
 INSERT INTO `CareResults`
   (`result_id`, `performed_at`, `result`, `notes`, `activity_id`, `opportunity_id`, `employee_id`)
@@ -478,7 +557,38 @@ VALUES
   ('CARE006', '2026-09-10 10:00:00', 'Failed', 'Khach tu choi, da dang ky trung tam khac.', 'ACT002', 'OPP004', 'EMP007'),
   ('CARE007', '2026-09-11 16:00:00', 'Success', 'Da gui thong tin khoa hoc va uu dai, cho phan hoi bao gia.', 'ACT001', 'OPP005', 'EMP007'),
   ('CARE008', '2026-09-13 14:00:00', 'Success', 'Khach xac nhan dang ky IELTS Intensive.', 'ACT001', 'OPP006', 'EMP005'),
-  ('CARE009', '2026-09-14 11:00:00', 'Success', 'Khach dong y hoc theo nhom, da gui huong dan thanh toan.', 'ACT001', 'OPP007', 'EMP007');
+  ('CARE009', '2026-09-14 11:00:00', 'Success', 'Khach dong y hoc theo nhom, da gui huong dan thanh toan.', 'ACT001', 'OPP007', 'EMP007'),
+  -- STG002 Data đã có lịch hẹn
+  ('CARE010', '2026-09-28 09:15:00', 'Success', 'Khách muốn đạt IELTS 7.0 trong 6 tháng, hẹn lên trung tâm kiểm tra đầu vào.', 'ACT001', 'OPP010', 'EMP004'),
+  ('CARE011', '2026-10-01 10:00:00', 'Success', 'Khách đang ôn thi, cần tư vấn lộ trình IELTS Intensive. Đã hẹn tư vấn online.', 'ACT001', 'OPP015', 'EMP005'),
+  ('CARE012', '2026-09-30 17:30:00', 'Failed', 'Phụ huynh không nghe máy.', 'ACT001', 'OPP016', 'EMP005'),
+  ('CARE013', '2026-10-02 18:00:00', 'Success', 'Phụ huynh tìm khóa English for Kids cho con 8 tuổi, hẹn đưa bé đến test.', 'ACT002', 'OPP016', 'EMP005'),
+  ('CARE014', '2026-10-06 19:00:00', 'Success', 'Học viên cũ (đã học Tiếng Anh giao tiếp) muốn học tiếp IELTS Intensive.', 'ACT001', 'OPP026', 'EMP005'),
+  ('CARE015', '2026-09-30 10:30:00', 'Success', 'Khách là sinh viên năm 3, cần IELTS 6.5 để xét tốt nghiệp. Đã hẹn tư vấn.', 'ACT001', 'OPP022', 'EMP007'),
+  -- STG003 Data đã xử lý
+  ('CARE016', '2026-09-23 09:00:00', 'Success', 'Khách quan tâm IELTS Foundation, đã gửi lịch khai giảng.', 'ACT001', 'OPP011', 'EMP004'),
+  ('CARE017', '2026-09-30 15:00:00', 'Success', 'Đã tư vấn xong, khách cân nhắc học phí và lịch học, hẹn trả lời trong tuần.', 'ACT002', 'OPP011', 'EMP004'),
+  ('CARE018', '2026-09-22 10:00:00', 'Success', 'Khách cần IELTS 6.5 để du học, hẹn tư vấn online.', 'ACT001', 'OPP017', 'EMP005'),
+  ('CARE019', '2026-09-27 14:00:00', 'Success', 'Đã gửi lộ trình IELTS Intensive 3 tháng, khách đang so sánh với trung tâm khác.', 'ACT002', 'OPP017', 'EMP005'),
+  ('CARE020', '2026-09-24 09:30:00', 'Success', 'Khách gặp tư vấn tại hội chợ giáo dục, muốn học buổi tối.', 'ACT001', 'OPP023', 'EMP007'),
+  ('CARE021', '2026-10-01 16:00:00', 'Success', 'Đã test đầu vào 5.0, tư vấn khóa Intensive. Khách chờ sắp xếp lịch làm việc.', 'ACT002', 'OPP023', 'EMP007'),
+  -- STG004 Chốt
+  ('CARE022', '2026-09-19 10:00:00', 'Success', 'Khách cần giao tiếp cho công việc, hẹn lên trung tâm học thử.', 'ACT001', 'OPP012', 'EMP004'),
+  ('CARE023', '2026-10-03 11:00:00', 'Success', 'Khách đồng ý đăng ký Tiếng Anh giao tiếp, chờ nhận báo giá.', 'ACT002', 'OPP012', 'EMP004'),
+  ('CARE024', '2026-09-16 09:00:00', 'Success', 'Khách được bạn giới thiệu, muốn học IELTS Foundation.', 'ACT001', 'OPP018', 'EMP005'),
+  ('CARE025', '2026-09-22 15:30:00', 'Success', 'Khách chốt đăng ký IELTS Foundation lớp tối 2-4-6.', 'ACT002', 'OPP018', 'EMP005'),
+  ('CARE026', '2026-09-17 10:00:00', 'Success', 'Phụ huynh có 2 con muốn học English for Kids.', 'ACT001', 'OPP024', 'EMP007'),
+  ('CARE027', '2026-09-24 17:00:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids, nhờ gửi báo giá.', 'ACT002', 'OPP024', 'EMP007'),
+  -- STG005 Lưu trữ
+  ('CARE028', '2026-09-17 11:00:00', 'Failed', 'Khách không nghe máy.', 'ACT001', 'OPP013', 'EMP004'),
+  ('CARE029', '2026-09-19 15:00:00', 'Failed', 'Khách bận, hẹn gọi lại.', 'ACT002', 'OPP013', 'EMP004'),
+  ('CARE030', '2026-09-23 10:00:00', 'Failed', 'Khách báo hiện chưa có nhu cầu học.', 'ACT003', 'OPP013', 'EMP004'),
+  ('CARE031', '2026-09-12 10:00:00', 'Failed', 'Thuê bao không liên lạc được.', 'ACT001', 'OPP019', 'EMP005'),
+  ('CARE032', '2026-09-14 14:00:00', 'Failed', 'Không nghe máy.', 'ACT002', 'OPP019', 'EMP005'),
+  ('CARE033', '2026-09-17 09:30:00', 'Failed', 'Không nghe máy, đã nhắn Zalo nhưng không phản hồi.', 'ACT003', 'OPP019', 'EMP005'),
+  ('CARE034', '2026-09-21 16:00:00', 'Failed', 'Vẫn không liên lạc được, đóng cơ hội.', 'ACT004', 'OPP019', 'EMP005'),
+  ('CARE035', '2026-09-13 10:00:00', 'Failed', 'Khách không nghe máy.', 'ACT001', 'OPP025', 'EMP007'),
+  ('CARE036', '2026-09-15 11:00:00', 'Failed', 'Khách đã đăng ký học ở trung tâm khác.', 'ACT002', 'OPP025', 'EMP007');
 
 INSERT INTO `Quotations`
   (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`)
