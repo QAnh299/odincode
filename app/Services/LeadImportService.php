@@ -94,10 +94,8 @@ class LeadImportService
 
     /**
      * Luật kiểm tra cho dữ liệu đã chuẩn hoá (theo ràng buộc bảng Leads trong odin.sql).
-     *
-     * @param  string|null  $fixedBranch  Chi nhánh cố định (Sale Leader) – chỉ được thêm Lead cho chi nhánh này.
      */
-    public function rules(?string $fixedBranch = null): array
+    public function rules(): array
     {
         return [
             'full_name'      => ['required', 'string', 'max:150'],
@@ -107,11 +105,7 @@ class LeadImportService
             'source_name'    => ['required', 'string', 'max:150'],
             'source_url'     => ['nullable', 'url:http,https', 'max:2000'],
             'contact_method' => ['required', Rule::in(Lead::CONTACT_METHODS)],
-            'branch_id'      => array_filter([
-                'required',
-                Rule::exists(Branch::class, 'branch_id'),
-                $fixedBranch !== null ? Rule::in([$fixedBranch]) : null,
-            ]),
+            'branch_id'      => ['required', Rule::exists(Branch::class, 'branch_id')],
         ];
     }
 
@@ -121,7 +115,6 @@ class LeadImportService
             'phone.regex'       => __('leads.form.phone_invalid'),
             'contact_method.in' => __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]),
             'branch_id.exists'  => __('leads.form.branch_invalid'),
-            'branch_id.in'      => __('leads.form.branch_not_allowed'),
         ];
     }
 
@@ -141,10 +134,8 @@ class LeadImportService
 
     /**
      * Tạo file mẫu (.xlsx) vào file tạm và trả về đường dẫn.
-     *
-     * @param  string|null  $fixedBranch  Sale Leader: điền sẵn mã chi nhánh vào dòng ví dụ.
      */
-    public function template(?string $fixedBranch = null): string
+    public function template(): string
     {
         $path = tempnam(sys_get_temp_dir(), 'lead').'.xlsx';
         $writer = $this->writer($path);
@@ -152,7 +143,7 @@ class LeadImportService
         $writer->getCurrentSheet()->setName(__('leads.excel.sheet_data'));
         $writer->addRow($this->headerRow());
 
-        $branch = $fixedBranch ?? Branch::query()->orderBy('branch_id')->value('branch_id') ?? 'BR001';
+        $branch = Branch::query()->orderBy('branch_id')->value('branch_id') ?? 'BR001';
         $writer->addRow(Row::fromValues([
             'Nguyễn Văn A', '0912345678', 'nguyenvana@example.com', 'Facebook',
             'https://facebook.com/odin', 'Zalo', $branch,
@@ -176,7 +167,6 @@ class LeadImportService
         $writer->addRow(Row::fromValues(['']));
         $writer->addRow(Row::fromValues([__('leads.excel.guide_branches')], $bold));
         Branch::query()
-            ->when($fixedBranch !== null, fn ($q) => $q->where('branch_id', $fixedBranch))
             ->orderBy('branch_id')
             ->get(['branch_id', 'branch_name'])
             ->each(fn ($branch) => $writer->addRow(Row::fromValues([$branch->branch_id, $branch->branch_name])));
@@ -194,7 +184,7 @@ class LeadImportService
      * @return array{ok: bool, error?: string, total?: int, success?: int, failed?: int, result?: string}
      *               result = đường dẫn file kết quả trên disk local.
      */
-    public function import(string $path, ?string $fixedBranch = null): array
+    public function import(string $path): array
     {
         try {
             $rows = $this->readRows($path);
@@ -223,18 +213,13 @@ class LeadImportService
 
         $results = [];
 
-        DB::transaction(function () use ($rows, $fixedBranch, &$results) {
+        DB::transaction(function () use ($rows, &$results) {
             foreach ($rows as $index => $values) {
                 $line = $index + 2;
                 $raw = array_combine(self::COLUMNS, array_pad(array_slice($values, 0, count(self::COLUMNS)), count(self::COLUMNS), ''));
 
-                // Sale Leader được bỏ trống mã chi nhánh → lấy chi nhánh của mình
-                if ($fixedBranch !== null && trim($raw['branch_id']) === '') {
-                    $raw['branch_id'] = $fixedBranch;
-                }
-
                 $data = $this->normalize($raw);
-                $errors = Validator::make($data, $this->rules($fixedBranch), $this->messages(), $this->attributes())
+                $errors = Validator::make($data, $this->rules(), $this->messages(), $this->attributes())
                     ->errors();
 
                 $leadId = null;

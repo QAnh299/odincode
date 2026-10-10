@@ -33,12 +33,15 @@
 
         @if ($this->canManage)
             <div class="ld-actions">
-                <button type="button" class="vc-btn vc-btn--ghost" wire:click="openCreate">
-                    <x-icon name="plus" />{{ __('leads.add') }}
-                </button>
-                <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
-                    <x-icon name="upload" />{{ __('leads.import') }}
-                </button>
+                {{-- Thêm / Import Lead: chỉ Sale Admin --}}
+                @if ($this->canCreate)
+                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="openCreate">
+                        <x-icon name="plus" />{{ __('leads.add') }}
+                    </button>
+                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
+                        <x-icon name="upload" />{{ __('leads.import') }}
+                    </button>
+                @endif
                 <button type="button" class="vc-btn vc-btn--primary">
                     <x-icon name="share" />
                     {{ $this->routePrefix === Role::SALE_ADMIN ? __('leads.distribute_team') : __('leads.distribute_salesperson') }}
@@ -250,7 +253,7 @@
     </section>
 
     {{-- ── Popup Thêm Lead ──────────────────────────────────────────── --}}
-    @if ($modal === 'create')
+    @if ($modal === 'create' && $this->canCreate)
         <div class="ld-modal" wire:key="modal-create" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <form class="ld-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ld-create-title"
@@ -303,16 +306,12 @@
 
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('leads.branch') }}<span class="ld-req">*</span></span>
-                        @if ($this->routePrefix === Role::SALE_LEADER)
-                            <input type="text" class="vc-control" value="{{ $this->fixedBranch?->branch_name ?? '—' }}" disabled>
-                        @else
-                            <select wire:model="form.branch_id" class="vc-control @error('branch_id') is-invalid @enderror">
-                                <option value="">{{ __('leads.form.choose_branch') }}</option>
-                                @foreach ($this->branches as $option)
-                                    <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
-                                @endforeach
-                            </select>
-                        @endif
+                        <select wire:model="form.branch_id" class="vc-control @error('branch_id') is-invalid @enderror">
+                            <option value="">{{ __('leads.form.choose_branch') }}</option>
+                            @foreach ($this->branches as $option)
+                                <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
+                            @endforeach
+                        </select>
                         @error('branch_id')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
@@ -332,7 +331,7 @@
     @endif
 
     {{-- ── Popup Import Excel ───────────────────────────────────────── --}}
-    @if ($modal === 'import')
+    @if ($modal === 'import' && $this->canCreate)
         <div class="ld-modal" wire:key="modal-import" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <div class="ld-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ld-import-title">

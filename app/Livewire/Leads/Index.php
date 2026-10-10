@@ -26,8 +26,7 @@ use Livewire\WithPagination;
  * Quyền theo vai trò:
  *   - Giám đốc: chỉ xem, tất cả chi nhánh (lọc được theo chi nhánh).
  *   - Sale Admin: tất cả chi nhánh; có nút Thêm, Import Excel, Phân chia Lead cho Sale Team.
- *   - Sale Leader: chỉ Lead thuộc chi nhánh của mình; có nút Thêm, Import Excel,
- *     Phân chia Lead cho Salesperson.
+ *   - Sale Leader: chỉ Lead thuộc chi nhánh của mình; có nút Phân chia Lead cho Salesperson.
  * Thêm Lead (popup) và Import Excel (tải file mẫu, tải lên, trả file kết quả) đã có chức năng;
  * nút Phân chia hiện chỉ hiển thị.
  */
@@ -113,7 +112,7 @@ class Index extends Component
     }
 
     /**
-     * Có các nút Thêm / Import Excel / Phân chia (Sale Admin, Sale Leader).
+     * Có nút Phân chia Lead (Sale Admin, Sale Leader).
      */
     #[Computed]
     public function canManage(): bool
@@ -122,19 +121,17 @@ class Index extends Component
     }
 
     /**
-     * Chi nhánh bắt buộc khi thêm / import: Sale Leader chỉ được thêm cho chi nhánh của mình
-     * ('' nếu tài khoản chưa gán chi nhánh → mọi dòng đều bị từ chối); null = không giới hạn.
+     * Có nút Thêm Lead / Import Excel – chỉ Sale Admin.
      */
-    protected function ownBranchId(): ?string
+    #[Computed]
+    public function canCreate(): bool
     {
-        return $this->routePrefix === Role::SALE_LEADER
-            ? (string) $this->fixedBranch?->branch_id
-            : null;
+        return $this->routePrefix === Role::SALE_ADMIN;
     }
 
-    protected function authorizeManage(): void
+    protected function authorizeCreate(): void
     {
-        abort_unless($this->canManage, 403);
+        abort_unless($this->canCreate, 403);
     }
 
     public function closeModal(): void
@@ -147,7 +144,7 @@ class Index extends Component
 
     public function openCreate(): void
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
 
         $this->form = [
             'full_name'      => '',
@@ -156,7 +153,7 @@ class Index extends Component
             'source_name'    => '',
             'source_url'     => '',
             'contact_method' => '',
-            'branch_id'      => $this->ownBranchId() ?? '',
+            'branch_id'      => '',
         ];
         $this->resetValidation();
         $this->modal = 'create';
@@ -164,15 +161,10 @@ class Index extends Component
 
     public function saveLead(LeadImportService $service): void
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
 
-        $form = $this->form;
-        if ($this->ownBranchId() !== null) {
-            $form['branch_id'] = $this->ownBranchId();
-        }
-
-        $data = $service->normalize($form);
-        $validated = Validator::make($data, $service->rules($this->ownBranchId()), $service->messages(), $service->attributes())
+        $data = $service->normalize($this->form);
+        $validated = Validator::make($data, $service->rules(), $service->messages(), $service->attributes())
             ->validate();
 
         $lead = $service->create($validated);
@@ -186,7 +178,7 @@ class Index extends Component
 
     public function openImport(): void
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
 
         $this->reset('file', 'importResult', 'importError');
         $this->resetValidation();
@@ -195,10 +187,10 @@ class Index extends Component
 
     public function downloadTemplate(LeadImportService $service)
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
 
         return response()
-            ->download($service->template($this->ownBranchId() ?: null), 'mau-import-lead.xlsx')
+            ->download($service->template(), 'mau-import-lead.xlsx')
             ->deleteFileAfterSend();
     }
 
@@ -222,10 +214,10 @@ class Index extends Component
 
     public function importFile(LeadImportService $service): void
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
         $this->validateFile();
 
-        $result = $service->import($this->file->getRealPath(), $this->ownBranchId());
+        $result = $service->import($this->file->getRealPath());
 
         $this->file->delete();
         $this->reset('file');
@@ -251,7 +243,7 @@ class Index extends Component
 
     public function downloadResult()
     {
-        $this->authorizeManage();
+        $this->authorizeCreate();
 
         $path = $this->importResult['result'] ?? null;
 

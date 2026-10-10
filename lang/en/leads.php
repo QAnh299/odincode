@@ -43,7 +43,6 @@ return [
         'phone_invalid'      => 'The phone number must have 10 digits and start with 0.',
         'method_invalid'     => 'The contact channel must be one of: :values.',
         'branch_invalid'     => 'The branch code does not exist.',
-        'branch_not_allowed' => 'You can only add leads to your own branch.',
     ],
 
     // Import Excel popup + template + result file
@@ -100,7 +99,7 @@ return [
             'source_name'    => 'Required, up to 150 characters (e.g. Facebook, Website, Workshop, Referral).',
             'source_url'     => 'Optional, a link starting with http:// or https://.',
             'contact_method' => 'Required: Zalo, Phone or Facebook.',
-            'branch_id'      => 'Required for Sale Admin (e.g. BR001). Sale Leaders may leave it empty – their own branch is used.',
+            'branch_id'      => 'Required, an existing branch code (e.g. BR001).',
         ],
     ],
     'distribute_team'        => 'Distribute leads to sales teams',

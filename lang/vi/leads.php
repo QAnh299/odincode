@@ -43,7 +43,6 @@ return [
         'phone_invalid'      => 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.',
         'method_invalid'     => 'Kênh liên hệ chỉ nhận một trong các giá trị: :values.',
         'branch_invalid'     => 'Mã chi nhánh không tồn tại.',
-        'branch_not_allowed' => 'Bạn chỉ được thêm Lead cho chi nhánh của mình.',
     ],
 
     // Popup Import Excel + file mẫu + file kết quả
@@ -100,7 +99,7 @@ return [
             'source_name'    => 'Bắt buộc, tối đa 150 ký tự (VD: Facebook, Website, Workshop, Referral).',
             'source_url'     => 'Không bắt buộc, đường dẫn bắt đầu bằng http:// hoặc https://.',
             'contact_method' => 'Bắt buộc: Zalo, Phone hoặc Facebook.',
-            'branch_id'      => 'Bắt buộc với Sale Admin (VD: BR001). Sale Leader có thể bỏ trống – hệ thống tự gán chi nhánh của mình.',
+            'branch_id'      => 'Bắt buộc, mã chi nhánh có trong hệ thống (VD: BR001).',
         ],
     ],
     'distribute_team'        => 'Phân chia Lead cho Sale Team',
