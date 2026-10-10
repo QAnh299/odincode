@@ -37,6 +37,15 @@ class Show extends Component
     }
 
     /**
+     * Có trang Đội kinh doanh (Giám đốc, Sale Admin).
+     */
+    #[Computed]
+    public function canViewTeams(): bool
+    {
+        return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
+    }
+
+    /**
      * Nhân viên kinh doanh (Sale Leader, Salesperson) thì hiện khối kết quả kinh doanh.
      */
     #[Computed]

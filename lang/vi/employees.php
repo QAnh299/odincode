@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 // Trang nhân viên: danh sách (livewire/employees/index), chi tiết (livewire/employees/show)
+// và đội kinh doanh (livewire/sales-teams/index)
 return [
     'title'              => 'Quản lý nhân viên',
     'subtitle'           => 'Tra cứu thông tin nhân viên, vai trò, đội kinh doanh và chi nhánh',
@@ -64,6 +65,7 @@ return [
     'seniority_new'      => 'Dưới 1 tháng',
 
     'team_section'       => 'Đội kinh doanh',
+    'view_team'          => 'Xem đội',
     'no_team_note'       => 'Nhân viên này không thuộc đội kinh doanh nào.',
     'team_leader'        => 'Trưởng nhóm',
     'established_date'   => 'Ngày thành lập',
@@ -88,4 +90,31 @@ return [
     'quotations'         => 'Báo giá đã lập',
     'confirmed'          => ':count đã xác nhận',
     'appointments'       => 'Lịch hẹn',
+
+    // Đội kinh doanh
+    'teams' => [
+        'title'              => 'Đội kinh doanh',
+        'subtitle'           => 'Danh sách các đội kinh doanh, trưởng nhóm và thành viên',
+        'lookup'             => 'Tra cứu đội kinh doanh',
+        'search_placeholder' => 'Tìm theo mã đội, tên đội, trưởng nhóm hoặc thành viên (VD: TEAM01, Huy)…',
+        'result_count'       => 'Tìm thấy :count đội',
+        'empty'              => 'Không tìm thấy đội nào',
+        'team'               => 'Đội',
+        'no_leader'          => 'Chưa có trưởng nhóm',
+        'member_count'       => ':count thành viên',
+        'view_members'       => 'Xem nhân viên',
+
+        'summary' => [
+            'teams'   => 'Số đội kinh doanh',
+            'in_team' => 'Nhân viên kinh doanh trong đội',
+            'without' => 'Nhân viên kinh doanh chưa có đội',
+        ],
+
+        'sort' => [
+            'name'    => 'Tên đội (A → Z)',
+            'newest'  => 'Thành lập gần đây',
+            'oldest'  => 'Thành lập lâu nhất',
+            'members' => 'Nhiều thành viên nhất',
+        ],
+    ],
 ];

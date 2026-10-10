@@ -136,6 +136,12 @@
                                 <span class="text-body-secondary fw-normal">· {{ $team->team_name }}</span>
                             @endif
                         </h2>
+                        @if ($team && $this->canViewTeams)
+                            <a href="{{ route($this->routePrefix.'.sales-teams', ['q' => $team->team_id]) }}"
+                                class="btn btn-sm btn-outline-secondary">
+                                <x-icon name="users" />{{ __('employees.view_team') }}
+                            </a>
+                        @endif
                     </div>
 
                     @if (! $team)

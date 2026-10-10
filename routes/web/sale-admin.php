@@ -5,6 +5,7 @@ use App\Livewire\Courses\Show as CourseShow;
 use App\Livewire\Employees\Index as EmployeeIndex;
 use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Leads\Index as LeadIndex;
+use App\Livewire\SalesTeams\Index as SalesTeamIndex;
 use App\Livewire\SaleAdmin\Home;
 use App\Livewire\Vouchers\Index as VoucherIndex;
 use App\Livewire\Vouchers\Show as VoucherShow;
@@ -20,6 +21,9 @@ Route::get('/leads', LeadIndex::class)->name('leads');
 // Quản lý nhân viên – xem danh sách, chi tiết (Sale Leader chỉ thấy nhân viên trong đội của mình)
 Route::get('/employees', EmployeeIndex::class)->name('employees');
 Route::get('/employees/{employee}', EmployeeShow::class)->name('employees.show');
+
+// Đội kinh doanh – xem danh sách + tra cứu (Giám đốc, Sale Admin)
+Route::get('/sales-teams', SalesTeamIndex::class)->name('sales-teams');
 
 // Voucher (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/vouchers', VoucherIndex::class)->name('vouchers');

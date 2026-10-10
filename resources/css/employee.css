@@ -89,6 +89,72 @@ a.em-person:hover .em-person__name {
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
 }
 
+/* Trang đội: ô tìm kiếm + sắp xếp + xoá lọc trên một hàng */
+.em-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.em-filters .vc-search {
+    min-height: 42px;
+    margin-bottom: 0;
+    border-radius: 12px;
+}
+
+/* Thẻ tổng quan chỉ để xem (không bấm lọc) */
+.em-summary-static,
+.em-summary-static:hover {
+    transform: none;
+    cursor: default;
+}
+
+.em-team-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    color: var(--odin-primary, var(--bs-primary));
+    background: color-mix(in srgb, var(--odin-primary, var(--bs-primary)) 12%, transparent);
+}
+
+/* Cột Thành viên: avatar chồng lên nhau + số lượng */
+.em-stack {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+}
+
+.em-stack .em-avatar {
+    width: 30px;
+    height: 30px;
+    margin-right: -8px;
+    font-size: 0.8rem;
+    border: 2px solid var(--bs-body-bg);
+}
+
+.em-stack a.em-avatar:hover {
+    position: relative;
+    z-index: 1;
+    transform: translateY(-2px);
+}
+
+.em-avatar--more {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+
+.em-stack__count {
+    margin-left: 1rem;
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
 /* ══ Chi tiết ════════════════════════════════════════════════════════ */
 
 .em-hero {
@@ -201,6 +267,10 @@ a.em-person:hover .em-person__name {
 }
 
 @media (max-width: 767.98px) {
+    .em-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .em .vc-filters__grid.em-filters--compact {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }

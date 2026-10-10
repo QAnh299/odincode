@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 // Employee pages: list (livewire/employees/index), detail (livewire/employees/show)
+// and sales teams (livewire/sales-teams/index)
 return [
     'title'              => 'Employees',
     'subtitle'           => 'Look up employee information, roles, sales teams and branches',
@@ -64,6 +65,7 @@ return [
     'seniority_new'      => 'Less than 1 month',
 
     'team_section'       => 'Sales team',
+    'view_team'          => 'View team',
     'no_team_note'       => 'This employee is not in any sales team.',
     'team_leader'        => 'Team leader',
     'established_date'   => 'Established',
@@ -88,4 +90,31 @@ return [
     'quotations'         => 'Quotations created',
     'confirmed'          => ':count confirmed',
     'appointments'       => 'Appointments',
+
+    // Sales teams
+    'teams' => [
+        'title'              => 'Sales teams',
+        'subtitle'           => 'Sales teams, their leaders and members',
+        'lookup'             => 'Sales team lookup',
+        'search_placeholder' => 'Search by team code, name, leader or member (e.g. TEAM01, Huy)…',
+        'result_count'       => ':count team(s) found',
+        'empty'              => 'No teams found',
+        'team'               => 'Team',
+        'no_leader'          => 'No leader yet',
+        'member_count'       => ':count member(s)',
+        'view_members'       => 'View employees',
+
+        'summary' => [
+            'teams'   => 'Sales teams',
+            'in_team' => 'Sales staff in a team',
+            'without' => 'Sales staff without a team',
+        ],
+
+        'sort' => [
+            'name'    => 'Team name (A → Z)',
+            'newest'  => 'Newest first',
+            'oldest'  => 'Oldest first',
+            'members' => 'Most members',
+        ],
+    ],
 ];
