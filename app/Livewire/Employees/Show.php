@@ -11,8 +11,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Chi tiết một nhân viên (chỉ xem): thông tin cá nhân, công việc, tài khoản,
- * đội kinh doanh và kết quả kinh doanh (với Sale Leader / Salesperson).
+ * Chi tiết một nhân viên (chỉ xem): thông tin cá nhân, công việc; riêng Sale Leader / Salesperson
+ * có thêm đội kinh doanh và kết quả kinh doanh (Giám đốc, Sale Admin, Kế toán không thuộc đội nào).
  * Sale Leader chỉ xem được nhân viên trong đội của mình.
  */
 #[Layout('layouts.app')]
@@ -27,7 +27,7 @@ class Show extends Component
             403
         );
 
-        $this->employee = $employee->load(['role', 'team.leader', 'branch', 'account']);
+        $this->employee = $employee->load(['role', 'team.leader', 'branch']);
     }
 
     #[Computed]
@@ -71,6 +71,20 @@ class Show extends Component
             ->state(Employee::STATE_WORKING)
             ->orderBy('full_name')
             ->get();
+    }
+
+    /**
+     * Mã các thành viên cùng đội mà người đang đăng nhập được mở chi tiết
+     * (VD: Sale Leader không mở được trang của chính mình) → chỉ những người này mới có link.
+     */
+    #[Computed]
+    public function linkableIds(): array
+    {
+        return Employee::query()
+            ->visibleTo(Auth::user()->employee)
+            ->whereKey($this->teammates->modelKeys())
+            ->pluck('employee_id')
+            ->all();
     }
 
     /**

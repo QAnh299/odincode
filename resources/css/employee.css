@@ -84,9 +84,9 @@ a.em-person:hover .em-person__name {
     vertical-align: -2px;
 }
 
-/* Sale Leader: ít bộ lọc hơn (vai trò, trạng thái, sắp xếp) */
+/* Sale Leader: ít bộ lọc hơn (trạng thái, sắp xếp) */
 .em .vc-filters__grid.em-filters--compact {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
 }
 
 /* Trang đội: ô tìm kiếm + sắp xếp + xoá lọc trên một hàng */
@@ -184,6 +184,11 @@ a.em-person:hover .em-person__name {
     align-items: start;
 }
 
+/* Giám đốc, Sale Admin, Kế toán: chỉ thông tin nhân viên → 1 cột */
+.em-layout--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .em-col {
     display: grid;
     gap: 1.25rem;
@@ -198,37 +203,6 @@ a.em-person:hover .em-person__name {
 .em-link:hover {
     color: var(--cd-primary);
     text-decoration: underline;
-}
-
-/* Tài khoản: các dòng nhãn – giá trị */
-.em-rows > div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.7rem 0;
-    border-bottom: 1px solid var(--bs-border-color-translucent);
-}
-
-.em-rows > div:first-child {
-    padding-top: 0;
-}
-
-.em-rows > div:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
-}
-
-.em-rows dt {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--bs-secondary-color);
-}
-
-.em-rows dd {
-    margin: 0;
-    font-weight: 600;
-    text-align: right;
 }
 
 /* Thành viên cùng đội */

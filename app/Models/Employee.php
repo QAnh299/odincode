@@ -138,20 +138,41 @@ class Employee extends Model
     }
 
     /**
-     * Nhân viên mà $viewer được xem:
-     *   - Giám đốc, Sale Admin: tất cả.
-     *   - Sale Leader: nhân viên trong đội của mình (chưa thuộc đội nào thì chỉ thấy chính mình).
+     * Vai trò của những nhân viên mà vai trò $viewerRole được xem (null = mọi vai trò):
+     *   - Giám đốc: tất cả.
+     *   - Sale Admin: Sale Leader + Salesperson (không thấy Giám đốc, Kế toán, Sale Admin).
+     *   - Sale Leader: Salesperson (trong đội của mình).
      *   - Vai trò khác: không có.
+     */
+    public static function visibleRolesFor(?string $viewerRole): ?array
+    {
+        return match ($viewerRole) {
+            Role::DIRECTOR    => null,
+            Role::SALE_ADMIN  => [Role::SALE_LEADER, Role::SALESPERSON],
+            Role::SALE_LEADER => [Role::SALESPERSON],
+            default           => [],
+        };
+    }
+
+    /**
+     * Nhân viên mà $viewer được xem (xem visibleRolesFor); Sale Leader chỉ thấy
+     * Salesperson trong đội của mình, chưa thuộc đội nào thì không thấy ai.
      */
     public function scopeVisibleTo(Builder $query, ?self $viewer): Builder
     {
-        return match ($viewer?->role_name) {
-            Role::DIRECTOR, Role::SALE_ADMIN => $query,
-            Role::SALE_LEADER => $viewer->team_id
-                ? $query->where('team_id', $viewer->team_id)
-                : $query->whereKey($viewer->employee_id),
-            default => $query->whereRaw('1 = 0'),
-        };
+        $roles = self::visibleRolesFor($viewer?->role_name);
+
+        if ($roles === null) {
+            return $query;
+        }
+
+        if ($roles === [] || ($viewer->hasRole(Role::SALE_LEADER) && ! $viewer->team_id)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->whereHas('role', fn ($q) => $q->whereIn('role_name', $roles))
+            ->when($viewer->hasRole(Role::SALE_LEADER), fn ($q) => $q->where('team_id', $viewer->team_id));
     }
 
     /**

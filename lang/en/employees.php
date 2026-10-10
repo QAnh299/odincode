@@ -7,7 +7,8 @@ declare(strict_types=1);
 return [
     'title'              => 'Employees',
     'subtitle'           => 'Look up employee information, roles, sales teams and branches',
-    'subtitle_team'      => 'Employees in team :team',
+    'subtitle_sale_admin' => 'Sale Leaders and Salespeople under your management',
+    'subtitle_team'      => 'Salespeople in your team :team',
     'subtitle_no_team'   => 'You are not in any sales team yet',
     'detail_title'       => 'Employee :name',
 
@@ -73,13 +74,6 @@ return [
     'teammates'          => 'Teammates',
     'no_teammates'       => 'No other members in this team yet.',
 
-    'account'            => 'Login account',
-    'username'           => 'Username',
-    'account_status'     => 'Status',
-    'account_active'     => 'Active',
-    'account_inactive'   => 'Locked',
-    'account_created'    => 'Created',
-    'no_account'         => 'This employee has no account yet.',
 
     'performance'        => 'Sales performance',
     'performance_note'   => 'Based on all data handled by this employee',

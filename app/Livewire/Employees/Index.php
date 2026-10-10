@@ -17,8 +17,10 @@ use Livewire\WithPagination;
 
 /**
  * Danh sách nhân viên + tra cứu (tìm kiếm, lọc vai trò / đội / chi nhánh / trạng thái).
- * Chỉ xem. Dùng chung cho Giám đốc, Sale Admin (toàn bộ nhân viên)
- * và Sale Leader (chỉ nhân viên trong đội của mình, không có bộ lọc đội / chi nhánh).
+ * Chỉ xem. Phạm vi theo Employee::scopeVisibleTo:
+ *   - Giám đốc: toàn bộ nhân viên.
+ *   - Sale Admin: Sale Leader + Salesperson.
+ *   - Sale Leader: Salesperson trong đội của mình (không có bộ lọc vai trò / đội / chi nhánh).
  */
 #[Layout('layouts.app')]
 class Index extends Component
@@ -90,11 +92,25 @@ class Index extends Component
         return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
+    /**
+     * Vai trò cho bộ lọc: chỉ các vai trò mà người đang đăng nhập được xem.
+     */
     #[Computed]
     public function roles(): Collection
     {
-        return Role::query()->whereIn('role_name', array_keys(Role::HOME_ROUTES))
+        $visible = Employee::visibleRolesFor($this->routePrefix) ?? array_keys(Role::HOME_ROUTES);
+
+        return Role::query()->whereIn('role_name', $visible)
             ->orderBy('role_id')->get(['role_id', 'role_name']);
+    }
+
+    /**
+     * Chỉ hiện bộ lọc Vai trò khi có từ 2 vai trò trở lên (Sale Leader chỉ xem Salesperson).
+     */
+    #[Computed]
+    public function canFilterRole(): bool
+    {
+        return $this->roles->count() > 1;
     }
 
     #[Computed]

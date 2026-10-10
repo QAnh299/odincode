@@ -1,6 +1,7 @@
 @php
     use App\Livewire\Employees\Index;
     use App\Models\Employee;
+    use App\Models\Role;
 
     $counts = $this->counts;
 
@@ -30,8 +31,10 @@
         <div>
             <h1 class="vc-head__title">{{ __('employees.title') }}</h1>
             <p class="vc-head__sub">
-                @if ($this->canFilterScope)
+                @if ($this->routePrefix === Role::DIRECTOR)
                     {{ __('employees.subtitle') }}
+                @elseif ($this->canFilterScope)
+                    <x-icon name="shield" />{{ __('employees.subtitle_sale_admin') }}
                 @else
                     <x-icon name="shield" />
                     {{ $this->ownTeam
@@ -69,15 +72,17 @@
         </div>
 
         <div class="vc-filters__grid {{ $this->canFilterScope ? '' : 'em-filters--compact' }}">
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('employees.role') }}</span>
-                <select wire:model.live="role" class="vc-control">
-                    <option value="">{{ __('employees.all') }}</option>
-                    @foreach ($this->roles as $option)
-                        <option value="{{ $option->role_id }}">{{ __('roles.'.$option->role_name) }}</option>
-                    @endforeach
-                </select>
-            </label>
+            @if ($this->canFilterRole)
+                <label class="vc-field">
+                    <span class="vc-field__label">{{ __('employees.role') }}</span>
+                    <select wire:model.live="role" class="vc-control">
+                        <option value="">{{ __('employees.all') }}</option>
+                        @foreach ($this->roles as $option)
+                            <option value="{{ $option->role_id }}">{{ __('roles.'.$option->role_name) }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
 
             @if ($this->canFilterScope)
                 <label class="vc-field">

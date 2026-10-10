@@ -7,7 +7,8 @@ declare(strict_types=1);
 return [
     'title'              => 'Quản lý nhân viên',
     'subtitle'           => 'Tra cứu thông tin nhân viên, vai trò, đội kinh doanh và chi nhánh',
-    'subtitle_team'      => 'Nhân viên trong đội :team',
+    'subtitle_sale_admin' => 'Sale Leader và Salesperson thuộc quyền quản lý của bạn',
+    'subtitle_team'      => 'Salesperson trong đội :team của bạn',
     'subtitle_no_team'   => 'Bạn chưa thuộc đội kinh doanh nào',
     'detail_title'       => 'Nhân viên :name',
 
@@ -73,13 +74,6 @@ return [
     'teammates'          => 'Thành viên cùng đội',
     'no_teammates'       => 'Chưa có thành viên nào khác trong đội.',
 
-    'account'            => 'Tài khoản đăng nhập',
-    'username'           => 'Tên đăng nhập',
-    'account_status'     => 'Trạng thái',
-    'account_active'     => 'Đang hoạt động',
-    'account_inactive'   => 'Đã khoá',
-    'account_created'    => 'Ngày tạo',
-    'no_account'         => 'Nhân viên chưa được cấp tài khoản.',
 
     'performance'        => 'Kết quả kinh doanh',
     'performance_note'   => 'Tính trên toàn bộ dữ liệu do nhân viên phụ trách',

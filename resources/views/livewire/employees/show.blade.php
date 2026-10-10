@@ -1,7 +1,6 @@
 @php
     $employee = $this->employee;
     $team = $employee->team;
-    $account = $employee->account;
     $state = $employee->state();
     $tone = $employee->isActive() ? 'success' : 'secondary';
 
@@ -54,7 +53,9 @@
         </div>
     </header>
 
-    <div class="em-layout">
+    {{-- Sale Leader / Salesperson: 2 cột (thêm Đội kinh doanh + Kết quả kinh doanh);
+         Giám đốc, Sale Admin, Kế toán: chỉ thông tin nhân viên, 1 cột --}}
+    <div class="em-layout {{ $this->isSales ? '' : 'em-layout--single' }}">
         <div class="em-col">
             {{-- Thông tin cá nhân --}}
             <section class="card cd-card">
@@ -106,10 +107,12 @@
                             <dt><x-icon name="calendar" />{{ __('employees.hire_date') }}</dt>
                             <dd>{{ $date($employee->hire_date) }}</dd>
                         </div>
-                        <div class="cd-fact">
-                            <dt><x-icon name="users" />{{ __('employees.team') }}</dt>
-                            <dd>{{ $team?->team_name ?? __('employees.no_team') }}</dd>
-                        </div>
+                        @if ($this->isSales)
+                            <div class="cd-fact">
+                                <dt><x-icon name="users" />{{ __('employees.team') }}</dt>
+                                <dd>{{ $team?->team_name ?? __('employees.no_team') }}</dd>
+                            </div>
+                        @endif
                         <div class="cd-fact">
                             <dt><x-icon name="layers" />{{ __('employees.branch') }}</dt>
                             <dd>{{ $employee->branch?->branch_name ?? '—' }}</dd>
@@ -126,107 +129,81 @@
                 </div>
             </section>
 
-            {{-- Đội kinh doanh --}}
-            <section class="card cd-card">
-                <div class="card-body">
-                    <div class="cd-list-head mb-3">
-                        <h2 class="cd-card__title mb-0">
-                            {{ __('employees.team_section') }}
-                            @if ($team)
-                                <span class="text-body-secondary fw-normal">· {{ $team->team_name }}</span>
+            {{-- Đội kinh doanh (chỉ với Sale Leader / Salesperson) --}}
+            @if ($this->isSales)
+                <section class="card cd-card">
+                    <div class="card-body">
+                        <div class="cd-list-head mb-3">
+                            <h2 class="cd-card__title mb-0">
+                                {{ __('employees.team_section') }}
+                                @if ($team)
+                                    <span class="text-body-secondary fw-normal">· {{ $team->team_name }}</span>
+                                @endif
+                            </h2>
+                            @if ($team && $this->canViewTeams)
+                                <a href="{{ route($this->routePrefix.'.sales-teams', ['q' => $team->team_id]) }}"
+                                    class="btn btn-sm btn-outline-secondary">
+                                    <x-icon name="users" />{{ __('employees.view_team') }}
+                                </a>
                             @endif
-                        </h2>
-                        @if ($team && $this->canViewTeams)
-                            <a href="{{ route($this->routePrefix.'.sales-teams', ['q' => $team->team_id]) }}"
-                                class="btn btn-sm btn-outline-secondary">
-                                <x-icon name="users" />{{ __('employees.view_team') }}
-                            </a>
+                        </div>
+
+                        @if (! $team)
+                            <div class="cd-empty">
+                                <span class="cd-empty__icon"><x-icon name="users" /></span>
+                                <p class="mb-0">{{ __('employees.no_team_note') }}</p>
+                            </div>
+                        @else
+                            <dl class="cd-facts">
+                                <div class="cd-fact">
+                                    <dt><x-icon name="user" />{{ __('employees.team_leader') }}</dt>
+                                    <dd>{{ $team->leader?->full_name ?? '—' }}</dd>
+                                </div>
+                                <div class="cd-fact">
+                                    <dt><x-icon name="calendar" />{{ __('employees.established_date') }}</dt>
+                                    <dd>{{ $date($team->established_date) }}</dd>
+                                </div>
+                                <div class="cd-fact">
+                                    <dt><x-icon name="users" />{{ __('employees.members') }}</dt>
+                                    <dd>{{ $this->teammates->count() + ($employee->isActive() ? 1 : 0) }}</dd>
+                                </div>
+                            </dl>
+
+                            <h3 class="cd-label">{{ __('employees.teammates') }}</h3>
+                            @if ($this->teammates->isEmpty())
+                                <p class="text-body-secondary mb-0">{{ __('employees.no_teammates') }}</p>
+                            @else
+                                <ul class="em-members">
+                                    @foreach ($this->teammates as $member)
+                                        @php $linkable = in_array($member->employee_id, $this->linkableIds, true); @endphp
+                                        <li wire:key="member-{{ $member->employee_id }}">
+                                            {{-- Chỉ tạo link tới nhân viên mà người đang xem được mở chi tiết --}}
+                                            <{{ $linkable ? 'a' : 'span' }} class="em-person"
+                                                @if ($linkable) href="{{ route($this->routePrefix.'.employees.show', $member) }}" @endif>
+                                                <span class="odin-avatar em-avatar" aria-hidden="true">{{ $member->initial() }}</span>
+                                                <span>
+                                                    <span class="em-person__name">{{ $member->full_name }}</span>
+                                                    <span class="em-person__id">
+                                                        {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '—' }}
+                                                    </span>
+                                                </span>
+                                            </{{ $linkable ? 'a' : 'span' }}>
+                                            @if ($team->team_leader_id === $member->employee_id)
+                                                <span class="em-leader-tag">{{ __('employees.leader_tag') }}</span>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
                         @endif
                     </div>
-
-                    @if (! $team)
-                        <div class="cd-empty">
-                            <span class="cd-empty__icon"><x-icon name="users" /></span>
-                            <p class="mb-0">{{ __('employees.no_team_note') }}</p>
-                        </div>
-                    @else
-                        <dl class="cd-facts">
-                            <div class="cd-fact">
-                                <dt><x-icon name="user" />{{ __('employees.team_leader') }}</dt>
-                                <dd>{{ $team->leader?->full_name ?? '—' }}</dd>
-                            </div>
-                            <div class="cd-fact">
-                                <dt><x-icon name="calendar" />{{ __('employees.established_date') }}</dt>
-                                <dd>{{ $date($team->established_date) }}</dd>
-                            </div>
-                            <div class="cd-fact">
-                                <dt><x-icon name="users" />{{ __('employees.members') }}</dt>
-                                <dd>{{ $this->teammates->count() + ($employee->isActive() ? 1 : 0) }}</dd>
-                            </div>
-                        </dl>
-
-                        <h3 class="cd-label">{{ __('employees.teammates') }}</h3>
-                        @if ($this->teammates->isEmpty())
-                            <p class="text-body-secondary mb-0">{{ __('employees.no_teammates') }}</p>
-                        @else
-                            <ul class="em-members">
-                                @foreach ($this->teammates as $member)
-                                    <li wire:key="member-{{ $member->employee_id }}">
-                                        <a href="{{ route($this->routePrefix.'.employees.show', $member) }}" class="em-person">
-                                            <span class="odin-avatar em-avatar" aria-hidden="true">{{ $member->initial() }}</span>
-                                            <span>
-                                                <span class="em-person__name">{{ $member->full_name }}</span>
-                                                <span class="em-person__id">
-                                                    {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '—' }}
-                                                </span>
-                                            </span>
-                                        </a>
-                                        @if ($team->team_leader_id === $member->employee_id)
-                                            <span class="em-leader-tag">{{ __('employees.leader_tag') }}</span>
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    @endif
-                </div>
-            </section>
+                </section>
+            @endif
         </div>
 
-        <div class="em-col">
-            {{-- Tài khoản đăng nhập --}}
-            <section class="card cd-card">
-                <div class="card-body">
-                    <h2 class="cd-card__title">{{ __('employees.account') }}</h2>
-                    @if ($account)
-                        @php $accountTone = $account->isActive() ? 'success' : 'secondary'; @endphp
-                        <dl class="em-rows mb-0">
-                            <div>
-                                <dt>{{ __('employees.username') }}</dt>
-                                <dd><span class="cd-code">{{ $account->username }}</span></dd>
-                            </div>
-                            <div>
-                                <dt>{{ __('employees.account_status') }}</dt>
-                                <dd>
-                                    <span class="badge rounded-pill cd-badge bg-{{ $accountTone }}-subtle text-{{ $accountTone }}-emphasis border border-{{ $accountTone }}-subtle">
-                                        <span class="cd-dot bg-{{ $accountTone }}" aria-hidden="true"></span>
-                                        {{ $account->isActive() ? __('employees.account_active') : __('employees.account_inactive') }}
-                                    </span>
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>{{ __('employees.account_created') }}</dt>
-                                <dd>{{ $account->created_at?->format('d/m/Y H:i') ?? '—' }}</dd>
-                            </div>
-                        </dl>
-                    @else
-                        <p class="text-body-secondary mb-0">{{ __('employees.no_account') }}</p>
-                    @endif
-                </div>
-            </section>
-
-            {{-- Kết quả kinh doanh (chỉ với Sale Leader / Salesperson) --}}
-            @if ($this->isSales)
+        {{-- Kết quả kinh doanh (chỉ với Sale Leader / Salesperson) --}}
+        @if ($this->isSales)
+            <div class="em-col">
                 @php
                     $stats = $this->stats;
                     $rate = $stats['win_rate'];
@@ -260,7 +237,7 @@
                         <p class="cd-note cd-scope-note mb-0"><x-icon name="info" />{{ __('employees.performance_note') }}</p>
                     </div>
                 </section>
-            @endif
-        </div>
+            </div>
+        @endif
     </div>
 </div>
