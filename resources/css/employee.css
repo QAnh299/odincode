@@ -1,0 +1,222 @@
+/* ── Trang nhân viên & đội kinh doanh (livewire/employees/*, livewire/sales-teams/*) ──
+   - Danh sách (employees/index, sales-teams/index): nạp cùng voucher.css, dùng lại class .vc-*.
+   - Chi tiết (employees/show): nạp cùng course.css, dùng lại khung .cd-*.
+   Phần riêng dùng tiền tố .em-. Màu lấy từ --odin-primary và biến Bootstrap, không hardcode màu. */
+
+/* ══ Dùng chung ══════════════════════════════════════════════════════ */
+
+/* Avatar chữ cái (dựa trên .odin-avatar của topbar) */
+.em-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.em-person {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.em-person > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.em-person__name {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+a.em-person:hover .em-person__name {
+    color: var(--odin-primary, var(--bs-primary));
+    text-decoration: underline;
+}
+
+.em-person__id {
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.em-muted {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+}
+
+.em-role {
+    display: block;
+    font-weight: 600;
+}
+
+.em-contact {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.em-leader-tag {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--odin-primary, var(--bs-primary));
+    background: color-mix(in srgb, var(--odin-primary, var(--bs-primary)) 12%, transparent);
+    white-space: nowrap;
+}
+
+.em-view {
+    white-space: nowrap;
+}
+
+/* ══ Danh sách ═══════════════════════════════════════════════════════ */
+
+.em .vc-head__sub .odin-icon {
+    width: 15px;
+    height: 15px;
+    vertical-align: -2px;
+}
+
+/* Sale Leader: ít bộ lọc hơn (vai trò, trạng thái, sắp xếp) */
+.em .vc-filters__grid.em-filters--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+/* ══ Chi tiết ════════════════════════════════════════════════════════ */
+
+.em-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: 0;
+}
+
+.em-hero__avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.4rem;
+}
+
+.em-hero__role {
+    margin-left: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--bs-secondary-color);
+}
+
+/* Lưới 2 cột: trái linh hoạt, phải ~380px. Dưới 992px xếp dọc. */
+.em-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.em-col {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.em-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.em-link:hover {
+    color: var(--cd-primary);
+    text-decoration: underline;
+}
+
+/* Tài khoản: các dòng nhãn – giá trị */
+.em-rows > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.em-rows > div:first-child {
+    padding-top: 0;
+}
+
+.em-rows > div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.em-rows dt {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+}
+
+.em-rows dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Thành viên cùng đội */
+.em-members {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.em-members li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--bs-border-color-translucent);
+    border-radius: 12px;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 1199.98px) {
+    .em .vc-filters__grid.em-filters--compact {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .em-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .em .vc-filters__grid.em-filters--compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .em-members {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .em-hero__role {
+        display: block;
+        margin: 0.25rem 0 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .em .vc-filters__grid.em-filters--compact {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

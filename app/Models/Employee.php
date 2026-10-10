@@ -3,12 +3,23 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasStringId;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
 {
     use HasFactory, HasStringId;
+
+    // Trạng thái nhân viên (cột status): Đang làm việc hoặc Đã nghỉ việc
+    const STATUS_WORKING = 'Working';
+    const STATUS_RESIGNED = 'Resigned';
+
+    // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang employees.state.*)
+    const STATE_WORKING = 'working';   // status = 'Working'
+    const STATE_RESIGNED = 'resigned'; // status khác 'Working'
+
+    const STATES = [self::STATE_WORKING, self::STATE_RESIGNED];
 
     protected $table = 'Employees';
 
@@ -109,6 +120,47 @@ class Employee extends Model
 
     public function isActive(): bool
     {
-        return $this->status === 'Working';
+        return $this->status === self::STATUS_WORKING;
+    }
+
+    public function scopeState(Builder $query, string $state): Builder
+    {
+        return match ($state) {
+            self::STATE_WORKING  => $query->where('status', self::STATUS_WORKING),
+            self::STATE_RESIGNED => $query->where('status', '<>', self::STATUS_WORKING),
+            default              => $query,
+        };
+    }
+
+    public function state(): string
+    {
+        return $this->isActive() ? self::STATE_WORKING : self::STATE_RESIGNED;
+    }
+
+    /**
+     * Nhân viên mà $viewer được xem:
+     *   - Giám đốc, Sale Admin: tất cả.
+     *   - Sale Leader: nhân viên trong đội của mình (chưa thuộc đội nào thì chỉ thấy chính mình).
+     *   - Vai trò khác: không có.
+     */
+    public function scopeVisibleTo(Builder $query, ?self $viewer): Builder
+    {
+        return match ($viewer?->role_name) {
+            Role::DIRECTOR, Role::SALE_ADMIN => $query,
+            Role::SALE_LEADER => $viewer->team_id
+                ? $query->where('team_id', $viewer->team_id)
+                : $query->whereKey($viewer->employee_id),
+            default => $query->whereRaw('1 = 0'),
+        };
+    }
+
+    /**
+     * Chữ cái đại diện (avatar): chữ đầu của tên, VD "Nguyễn Minh Anh" → "A".
+     */
+    public function initial(): string
+    {
+        $parts = preg_split('/\s+/u', trim((string) $this->full_name)) ?: [];
+
+        return mb_strtoupper(mb_substr(end($parts) ?: '?', 0, 1));
     }
 }
