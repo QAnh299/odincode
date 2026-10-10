@@ -5,13 +5,18 @@ namespace App\Livewire\Leads;
 use App\Models\Branch;
 use App\Models\Lead;
 use App\Models\Role;
+use App\Services\LeadImportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 /**
@@ -23,12 +28,13 @@ use Livewire\WithPagination;
  *   - Sale Admin: tất cả chi nhánh; có nút Thêm, Import Excel, Phân chia Lead cho Sale Team.
  *   - Sale Leader: chỉ Lead thuộc chi nhánh của mình; có nút Thêm, Import Excel,
  *     Phân chia Lead cho Salesperson.
- * Các nút thao tác hiện chỉ hiển thị, chưa có chức năng.
+ * Thêm Lead (popup) và Import Excel (tải file mẫu, tải lên, trả file kết quả) đã có chức năng;
+ * nút Phân chia hiện chỉ hiển thị.
  */
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     const PER_PAGE = 10;
 
@@ -58,6 +64,25 @@ class Index extends Component
     public string $to = '';
 
     const FILTERS = ['search', 'status', 'source', 'method', 'branch', 'from', 'to'];
+
+    // Popup đang mở: '' | 'create' | 'import'
+    public string $modal = '';
+
+    // Dữ liệu popup Thêm Lead
+    public array $form = [];
+
+    // File Excel tải lên (popup Import)
+    public $file = null;
+
+    // Kết quả import gần nhất: total, success, failed, result (đường dẫn file kết quả)
+    #[Locked]
+    public ?array $importResult = null;
+
+    #[Locked]
+    public string $importError = '';
+
+    // Thông báo sau khi thêm / import: ['type' => success|warning|danger, 'text' => ...]
+    public ?array $notice = null;
 
     public function updated(string $property): void
     {
@@ -94,6 +119,154 @@ class Index extends Component
     public function canManage(): bool
     {
         return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true);
+    }
+
+    /**
+     * Chi nhánh bắt buộc khi thêm / import: Sale Leader chỉ được thêm cho chi nhánh của mình
+     * ('' nếu tài khoản chưa gán chi nhánh → mọi dòng đều bị từ chối); null = không giới hạn.
+     */
+    protected function ownBranchId(): ?string
+    {
+        return $this->routePrefix === Role::SALE_LEADER
+            ? (string) $this->fixedBranch?->branch_id
+            : null;
+    }
+
+    protected function authorizeManage(): void
+    {
+        abort_unless($this->canManage, 403);
+    }
+
+    public function closeModal(): void
+    {
+        $this->modal = '';
+        $this->resetValidation();
+    }
+
+    /* ── Thêm Lead ────────────────────────────────────────────────────── */
+
+    public function openCreate(): void
+    {
+        $this->authorizeManage();
+
+        $this->form = [
+            'full_name'      => '',
+            'phone'          => '',
+            'email'          => '',
+            'source_name'    => '',
+            'source_url'     => '',
+            'contact_method' => '',
+            'branch_id'      => $this->ownBranchId() ?? '',
+        ];
+        $this->resetValidation();
+        $this->modal = 'create';
+    }
+
+    public function saveLead(LeadImportService $service): void
+    {
+        $this->authorizeManage();
+
+        $form = $this->form;
+        if ($this->ownBranchId() !== null) {
+            $form['branch_id'] = $this->ownBranchId();
+        }
+
+        $data = $service->normalize($form);
+        $validated = Validator::make($data, $service->rules($this->ownBranchId()), $service->messages(), $service->attributes())
+            ->validate();
+
+        $lead = $service->create($validated);
+
+        $this->modal = '';
+        $this->notice = ['type' => 'success', 'text' => __('leads.form.created', ['id' => $lead->lead_id, 'name' => $lead->full_name])];
+        $this->resetPage();
+    }
+
+    /* ── Import Excel ─────────────────────────────────────────────────── */
+
+    public function openImport(): void
+    {
+        $this->authorizeManage();
+
+        $this->reset('file', 'importResult', 'importError');
+        $this->resetValidation();
+        $this->modal = 'import';
+    }
+
+    public function downloadTemplate(LeadImportService $service)
+    {
+        $this->authorizeManage();
+
+        return response()
+            ->download($service->template($this->ownBranchId() ?: null), 'mau-import-lead.xlsx')
+            ->deleteFileAfterSend();
+    }
+
+    public function updatedFile(): void
+    {
+        $this->reset('importResult', 'importError');
+        $this->validateFile();
+    }
+
+    protected function validateFile(): void
+    {
+        $this->validate(
+            ['file' => ['required', 'file', 'extensions:xlsx', 'max:5120']],
+            [
+                'file.required'   => __('leads.excel.file_required'),
+                'file.extensions' => __('leads.excel.file_type'),
+                'file.max'        => __('leads.excel.file_size'),
+            ],
+        );
+    }
+
+    public function importFile(LeadImportService $service): void
+    {
+        $this->authorizeManage();
+        $this->validateFile();
+
+        $result = $service->import($this->file->getRealPath(), $this->ownBranchId());
+
+        $this->file->delete();
+        $this->reset('file');
+
+        if (! $result['ok']) {
+            $this->importError = $result['error'];
+            $this->notice = ['type' => 'danger', 'text' => $result['error']];
+
+            return;
+        }
+
+        $this->importResult = $result;
+        $this->notice = match (true) {
+            $result['failed'] === 0  => ['type' => 'success', 'text' => __('leads.excel.done_all', ['count' => $result['success']])],
+            $result['success'] === 0 => ['type' => 'danger', 'text' => __('leads.excel.done_none', ['count' => $result['failed']])],
+            default                  => ['type' => 'warning', 'text' => __('leads.excel.done_partial', [
+                'total' => $result['total'], 'success' => $result['success'], 'failed' => $result['failed'],
+            ])],
+        };
+
+        $this->resetPage();
+    }
+
+    public function downloadResult()
+    {
+        $this->authorizeManage();
+
+        $path = $this->importResult['result'] ?? null;
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            $this->importError = __('leads.excel.result_missing');
+
+            return null;
+        }
+
+        return Storage::disk('local')->download($path, 'ket-qua-import-lead-'.now()->format('Ymd-His').'.xlsx');
+    }
+
+    public function dismissNotice(): void
+    {
+        $this->notice = null;
     }
 
     #[Computed]

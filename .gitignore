@@ -10,6 +10,7 @@ storage/*.key
 /storage/framework/testing/*
 /storage/framework/views/*
 /storage/app/public/livewire-tmp/*
+/storage/app/private/lead-imports/*
 /storage/logs/*
 
 storage/app/public/livewire-tmp/vuONVPLZMR6v5pRqoziAM3Qcleu7Tp-metaQsOASSA0LnBwdHg=-.pptx

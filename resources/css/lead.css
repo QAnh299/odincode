@@ -72,6 +72,351 @@
 .ld-method--Facebook { background: #e0e7ff; color: #4338ca; }
 .ld-method--Phone { background: #fef3c7; color: #92400e; }
 
+/* ── Thông báo sau khi thêm / import ──────────────────────────────── */
+
+.ld-notice {
+    --tone: #15803d;
+    --tone-bg: #f0fdf4;
+    --tone-border: #bbf7d0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--tone-border);
+    border-radius: 14px;
+    background: var(--tone-bg);
+    color: var(--tone);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.ld-notice--warning { --tone: #b45309; --tone-bg: #fffbeb; --tone-border: #fde68a; }
+.ld-notice--danger { --tone: #b91c1c; --tone-bg: #fef2f2; --tone-border: #fecaca; }
+
+.ld-notice--inline {
+    margin: 0.75rem 0 0;
+    font-weight: 500;
+}
+
+.ld-notice > .odin-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.ld-notice__text {
+    flex: 1;
+}
+
+.ld-notice__close {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.ld-notice__close:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.ld-notice__close .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ── Popup (Thêm Lead, Import Excel) ─────────────────────────────── */
+
+.ld-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+}
+
+.ld-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    animation: ld-fade 0.15s ease-out;
+}
+
+.ld-modal__dialog {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(640px, 100%);
+    max-height: calc(100vh - 2rem);
+    border-radius: var(--vc-radius);
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+    animation: ld-pop 0.18s ease-out;
+}
+
+@keyframes ld-fade {
+    from { opacity: 0; }
+}
+
+@keyframes ld-pop {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
+.ld-modal__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.ld-modal__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.ld-modal__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.ld-modal__sub {
+    margin: 0.2rem 0 0;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.ld-modal__close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--vc-muted);
+    cursor: pointer;
+}
+
+.ld-modal__close:hover {
+    background: var(--vc-tint);
+    color: var(--vc-ink);
+}
+
+.ld-modal__body {
+    overflow-y: auto;
+    padding: 1.25rem;
+}
+
+.ld-modal__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+/* Form Thêm Lead: 2 cột */
+.ld-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.ld-form__wide {
+    grid-column: 1 / -1;
+}
+
+.ld-form__hint {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ld-req {
+    margin-left: 0.15rem;
+    color: #dc2626;
+}
+
+.vc-control.is-invalid {
+    border-color: #dc2626;
+}
+
+.vc-control:disabled {
+    background: #f8fafc;
+    color: var(--vc-muted);
+}
+
+.ld-error {
+    display: block;
+    margin-top: 0.35rem;
+    color: #dc2626;
+    font-size: 0.8rem;
+}
+
+/* Import: các bước */
+.ld-steps {
+    display: grid;
+    gap: 1.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ld-step {
+    display: flex;
+    gap: 0.85rem;
+}
+
+.ld-step__num {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--vc-primary);
+    color: var(--vc-on-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ld-step__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ld-step__title {
+    margin: 0.15rem 0 0.2rem;
+    font-weight: 700;
+}
+
+.ld-step__sub {
+    margin: 0 0 0.7rem;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+/* Ô chọn file */
+.ld-drop {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.4rem 1rem;
+    border: 2px dashed var(--vc-border);
+    border-radius: 14px;
+    background: #fafbfa;
+    color: var(--vc-muted);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.ld-drop:hover,
+.ld-drop.has-file {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.ld-drop.is-invalid {
+    border-color: #dc2626;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.ld-drop input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ld-drop > .odin-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.ld-drop__text {
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.ld-drop__loading {
+    font-size: 0.8rem;
+}
+
+/* Kết quả import */
+.ld-result {
+    --tone: #15803d;
+    --tone-bg: #f0fdf4;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--tone-bg);
+}
+
+.ld-result--warning { --tone: #b45309; --tone-bg: #fffbeb; }
+.ld-result--danger { --tone: #b91c1c; --tone-bg: #fef2f2; }
+
+.ld-result__title {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0 0 0.9rem;
+    color: var(--tone);
+    font-weight: 600;
+}
+
+.ld-result__title .odin-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.ld-result__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.ld-result__stats > div {
+    display: flex;
+    flex-direction: column;
+    padding: 0.65rem 0.8rem;
+    border-radius: 12px;
+    background: var(--vc-surface);
+}
+
+.ld-result__stats span {
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.ld-result__stats strong {
+    font-size: 1.35rem;
+}
+
+.ld-result__stats .is-ok strong { color: #15803d; }
+.ld-result__stats .is-fail strong { color: #b91c1c; }
+
 @media (max-width: 1199.98px) {
     .ld-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -95,5 +440,17 @@
     .ld-actions,
     .ld-actions .vc-btn {
         width: 100%;
+    }
+
+    .ld-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ld-modal__foot {
+        flex-wrap: wrap;
+    }
+
+    .ld-modal__foot .vc-btn {
+        flex: 1;
     }
 }
