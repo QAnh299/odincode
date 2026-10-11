@@ -7,6 +7,9 @@ return [
     'title'               => 'Đổi mật khẩu',
     'subtitle'            => 'Nhập mật khẩu hiện tại để xác nhận, sau đó đặt mật khẩu mới',
     'back'                => 'Thông tin tài khoản',
+    'forced_subtitle'     => 'Đặt mật khẩu mới để tiếp tục sử dụng hệ thống',
+    'forced_title'        => 'Bạn đang dùng mật khẩu tạm',
+    'forced_message'      => 'Mật khẩu tạm được gửi qua email chỉ dùng để đăng nhập một lần. Vui lòng đặt mật khẩu mới trước khi sử dụng các chức năng khác.',
 
     'current'             => 'Mật khẩu hiện tại',
     'new'                 => 'Mật khẩu mới',

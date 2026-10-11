@@ -27,8 +27,22 @@ class ChangePassword extends Component
     // Hiện thông báo thành công sau khi đổi
     public bool $changed = false;
 
+    // Đang dùng mật khẩu tạm (quên mật khẩu): bắt buộc đổi, không cần nhập mật khẩu hiện tại
+    public bool $forced = false;
+
+    public function mount(): void
+    {
+        $this->forced = Auth::user()->mustChangePassword();
+    }
+
     protected function rules(): array
     {
+        if ($this->forced) {
+            return [
+                'password' => ['required', 'string', 'max:64', 'confirmed', Password::min(8)->letters()->numbers()],
+            ];
+        }
+
         return [
             'current_password' => 'required|string',
             'password'         => [
@@ -58,24 +72,31 @@ class ChangePassword extends Component
         $this->validate();
 
         $user = Auth::user();
-        $limiter = $this->limiter();
-        $key = 'change-password:'.$user->account_id;
 
-        if ($limiter->tooManyAttempts($key, self::MAX_ATTEMPTS)) {
-            $this->addError('current_password', __('change_password.throttle', ['seconds' => $limiter->availableIn($key)]));
-            return;
+        // Người dùng vừa đăng nhập bằng mật khẩu tạm nên bỏ qua bước kiểm tra mật khẩu hiện tại
+        if (! $this->forced) {
+            $limiter = $this->limiter();
+            $key = 'change-password:'.$user->account_id;
+
+            if ($limiter->tooManyAttempts($key, self::MAX_ATTEMPTS)) {
+                $this->addError('current_password', __('change_password.throttle', ['seconds' => $limiter->availableIn($key)]));
+                return;
+            }
+
+            if (! Hash::check($this->current_password, $user->password)) {
+                $limiter->hit($key, 60);
+                $this->addError('current_password', __('change_password.current_wrong'));
+                return;
+            }
+
+            $limiter->clear($key);
         }
-
-        if (! Hash::check($this->current_password, $user->password)) {
-            $limiter->hit($key, 60);
-            $this->addError('current_password', __('change_password.current_wrong'));
-            return;
-        }
-
-        $limiter->clear($key);
 
         // Cột password có cast 'hashed' nên gán mật khẩu thô, model tự băm
         $user->update(['password' => $this->password]);
+        // Đã đặt mật khẩu mới → gỡ cờ bắt buộc đổi, mở lại các trang khác
+        $user->setMustChangePassword(false);
+        $this->forced = false;
 
         // Đăng xuất các thiết bị dùng API (token Sanctum) sau khi đổi mật khẩu.
         // Bảng personal_access_tokens tạo bằng migration, có thể chưa có nếu chỉ import odin.sql.

@@ -7,6 +7,9 @@ return [
     'title'               => 'Change password',
     'subtitle'            => 'Enter your current password to confirm, then set a new one',
     'back'                => 'My profile',
+    'forced_subtitle'     => 'Set a new password to continue using the system',
+    'forced_title'        => 'You are using a temporary password',
+    'forced_message'      => 'The temporary password sent by email is for signing in only. Please set a new password before using other features.',
 
     'current'             => 'Current password',
     'new'                 => 'New password',
