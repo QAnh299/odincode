@@ -26,4 +26,8 @@ return [
     'lead_list'     => 'Lead',
     'opportunity_list' => 'Opportunity',
     'appointments'  => 'Lịch hẹn',
+    'report_revenue'            => 'Doanh thu & thanh toán',
+    'report_lead_conversion'    => 'Hiệu quả chuyển đổi Lead',
+    'report_sales_performance'  => 'Hiệu quả nhân viên Sales',
+    'report_lead_sources'       => 'Chất lượng nguồn Lead',
 ];

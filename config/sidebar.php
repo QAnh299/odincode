@@ -18,6 +18,14 @@
 |                                        có thể có menu con khác nhau.
 */
 
+// Menu con của Dashboard & Báo cáo (dùng chung cho mọi vai trò)
+$reportChildren = [
+    'report_revenue',
+    'report_lead_conversion',
+    'report_sales_performance',
+    'report_lead_sources',
+];
+
 return [
     'items' => [
         'dashboard'     => ['route' => 'home',         'icon' => 'dashboard'],
@@ -37,11 +45,17 @@ return [
         'lead_list'     => ['route' => 'leads'],
         'opportunity_list' => ['route' => 'opportunities'],
         'appointments'  => ['route' => 'appointments'],
+
+        // Menu con của Dashboard & Báo cáo
+        'report_revenue'           => ['route' => 'reports.revenue'],
+        'report_lead_conversion'   => ['route' => 'reports.lead-conversion'],
+        'report_sales_performance' => ['route' => 'reports.sales-performance'],
+        'report_lead_sources'      => ['route' => 'reports.lead-sources'],
     ],
 
     'roles' => [
         'director' => [
-            'dashboard',
+            'dashboard' => $reportChildren,
             'leads',
             'employees' => ['employee_list', 'sales_teams'],
             'quotations',
@@ -61,7 +75,7 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => $reportChildren,
         ],
 
         'sale_leader' => [
@@ -73,7 +87,7 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => $reportChildren,
         ],
 
         'salesperson' => [
@@ -84,7 +98,7 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => $reportChildren,
         ],
 
         'accountant' => [
@@ -92,7 +106,7 @@ return [
             'orders',
             'invoices',
             'students',
-            'dashboard',
+            'dashboard' => $reportChildren,
         ],
     ],
 ];

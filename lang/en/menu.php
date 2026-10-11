@@ -26,4 +26,8 @@ return [
     'lead_list'     => 'Leads',
     'opportunity_list' => 'Opportunities',
     'appointments'  => 'Appointments',
+    'report_revenue'            => 'Revenue & payments',
+    'report_lead_conversion'    => 'Lead conversion',
+    'report_sales_performance'  => 'Sales performance',
+    'report_lead_sources'       => 'Lead source quality',
 ];
