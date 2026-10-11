@@ -18,6 +18,7 @@ use OpenSpout\Reader\XLSX\Reader;
 use OpenSpout\Writer\XLSX\Options;
 use OpenSpout\Writer\XLSX\Writer;
 use Throwable;
+use ZipArchive;
 
 /**
  * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 – HĐ6, PhanLead.docx).
@@ -40,6 +41,9 @@ class LeadImportService
     // Cột bắt buộc (đánh dấu * trên tiêu đề)
     const REQUIRED = ['full_name', 'phone', 'source_name', 'contact_method', 'branch_id'];
 
+    // Ngăn cách mã và tên chi nhánh trong ô chọn của file mẫu
+    const BRANCH_SEPARATOR = ' - ';
+
     /**
      * Chuẩn hoá dữ liệu nhập: bỏ khoảng trắng, chuẩn SĐT, kênh liên hệ, mã chi nhánh.
      */
@@ -54,8 +58,17 @@ class LeadImportService
             'source_name'    => $value('source_name'),
             'source_url'     => $value('source_url') !== '' ? $value('source_url') : null,
             'contact_method' => $this->normalizeMethod($value('contact_method')),
-            'branch_id'      => Str::upper($value('branch_id')),
+            // Ô chọn trong file mẫu có dạng "BR001 - Tên chi nhánh" → chỉ lấy mã
+            'branch_id'      => Str::upper(trim(Str::before($value('branch_id'), self::BRANCH_SEPARATOR))),
         ];
+    }
+
+    /**
+     * Nhãn chi nhánh trong ô chọn của file mẫu: "BR001 - Trụ sở chính".
+     */
+    public function branchLabel(Branch $branch): string
+    {
+        return $branch->branch_id.self::BRANCH_SEPARATOR.$branch->branch_name;
     }
 
     /**
@@ -140,13 +153,15 @@ class LeadImportService
         $path = tempnam(sys_get_temp_dir(), 'lead').'.xlsx';
         $writer = $this->writer($path);
 
+        $branches = Branch::query()->orderBy('branch_id')->get(['branch_id', 'branch_name']);
+        $branchLabels = $branches->map(fn ($branch) => $this->branchLabel($branch))->all();
+
         $writer->getCurrentSheet()->setName(__('leads.excel.sheet_data'));
         $writer->addRow($this->headerRow());
 
-        $branch = Branch::query()->orderBy('branch_id')->value('branch_id') ?? 'BR001';
         $writer->addRow(Row::fromValues([
             'Nguyễn Văn A', '0912345678', 'nguyenvana@example.com', 'Facebook',
-            'https://facebook.com/odin', 'Zalo', $branch,
+            'https://facebook.com/odin', 'Zalo', $branchLabels[0] ?? 'BR001',
         ], (new Style())->setFontItalic()->setFontColor(Color::rgb(107, 114, 128))));
 
         // Sheet hướng dẫn: mô tả cột + giá trị hợp lệ
@@ -166,14 +181,63 @@ class LeadImportService
 
         $writer->addRow(Row::fromValues(['']));
         $writer->addRow(Row::fromValues([__('leads.excel.guide_branches')], $bold));
-        Branch::query()
-            ->orderBy('branch_id')
-            ->get(['branch_id', 'branch_name'])
-            ->each(fn ($branch) => $writer->addRow(Row::fromValues([$branch->branch_id, $branch->branch_name])));
+        $branches->each(fn ($branch) => $writer->addRow(Row::fromValues([$branch->branch_id, $branch->branch_name])));
+
+        // Sheet ẩn chứa danh sách giá trị cho ô chọn: cột A = kênh liên hệ, cột B = chi nhánh
+        $writer->addNewSheetAndMakeItCurrent()->setName(__('leads.excel.sheet_lists'));
+        for ($i = 0; $i < max(count(Lead::CONTACT_METHODS), count($branchLabels)); $i++) {
+            $writer->addRow(Row::fromValues([Lead::CONTACT_METHODS[$i] ?? '', $branchLabels[$i] ?? '']));
+        }
 
         $writer->close();
 
+        $this->addDropdowns($path, count(Lead::CONTACT_METHODS), count($branchLabels));
+
         return $path;
+    }
+
+    /**
+     * Thêm ô chọn (Data Validation dạng List) cho cột Kênh liên hệ, Mã chi nhánh của sheet nhập liệu
+     * và ẩn sheet danh sách. OpenSpout chưa hỗ trợ nên sửa trực tiếp XML trong file .xlsx.
+     */
+    protected function addDropdowns(string $path, int $methodCount, int $branchCount): void
+    {
+        $listSheet = __('leads.excel.sheet_lists');
+        $ref = "'".str_replace("'", "''", $listSheet)."'";
+        $lastRow = self::MAX_ROWS + 1;
+        $column = fn (string $field) => chr(ord('A') + array_search($field, self::COLUMNS, true));
+
+        $validation = fn (string $field, string $range, string $error) => sprintf(
+            '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" errorStyle="stop"'
+            .' errorTitle="%s" error="%s" sqref="%s2:%3$s%d"><formula1>%s!%s</formula1></dataValidation>',
+            e(__('leads.field.'.$field)), e($error), $column($field), $lastRow, e($ref), $range,
+        );
+
+        $xml = '<dataValidations count="2">'
+            .$validation('contact_method', '$A$1:$A$'.max($methodCount, 1),
+                __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]))
+            .$validation('branch_id', '$B$1:$B$'.max($branchCount, 1), __('leads.form.branch_invalid'))
+            .'</dataValidations>';
+
+        $zip = new ZipArchive();
+        $zip->open($path);
+
+        // <dataValidations> phải đứng trước các thẻ này theo chuẩn OOXML
+        $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $sheet = preg_replace_callback(
+            '#(?=<(?:hyperlinks|printOptions|pageMargins|pageSetup|headerFooter|drawing|legacyDrawing|tableParts|extLst)[\s>/]|</worksheet>)#',
+            fn () => $xml, $sheet, 1,
+        );
+        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
+
+        $workbook = $zip->getFromName('xl/workbook.xml');
+        $workbook = preg_replace(
+            '#(<sheet name="'.preg_quote(e($listSheet), '#').'"[^>]*?)state="visible"#u',
+            '$1state="hidden"', $workbook,
+        );
+        $zip->addFromString('xl/workbook.xml', $workbook);
+
+        $zip->close();
     }
 
     /* ── Import ───────────────────────────────────────────────────────── */

@@ -68,6 +68,14 @@ class Employee extends Model
         return $this->belongsTo(SalesTeam::class, 'team_id', 'team_id');
     }
 
+    /**
+     * Đội mà nhân viên này làm trưởng nhóm (SalesTeams.team_leader_id).
+     */
+    public function ledTeam()
+    {
+        return $this->hasOne(SalesTeam::class, 'team_leader_id', 'employee_id');
+    }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class, 'branch_id', 'branch_id');

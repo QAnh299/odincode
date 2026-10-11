@@ -80,6 +80,7 @@ return [
 
         'sheet_data'     => 'Leads',
         'sheet_guide'    => 'Guide',
+        'sheet_lists'    => 'Lists',
         'sheet_result'   => 'Import result',
         'col_line'       => 'Row in file',
         'col_result'     => 'Result',
@@ -98,8 +99,8 @@ return [
             'email'          => 'Optional, a valid email address.',
             'source_name'    => 'Required, up to 150 characters (e.g. Facebook, Website, Workshop, Referral).',
             'source_url'     => 'Optional, a link starting with http:// or https://.',
-            'contact_method' => 'Required: Zalo, Phone or Facebook.',
-            'branch_id'      => 'Required, an existing branch code (e.g. BR001).',
+            'contact_method' => 'Required, pick from the list: Zalo, Phone or Facebook.',
+            'branch_id'      => 'Required, pick a branch from the list (e.g. BR001 - Head office). Typing just the code (e.g. BR001) also works.',
         ],
     ],
     'distribute_team'        => 'Distribute leads to sales teams',

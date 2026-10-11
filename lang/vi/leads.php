@@ -80,6 +80,7 @@ return [
 
         'sheet_data'     => 'Leads',
         'sheet_guide'    => 'Hướng dẫn',
+        'sheet_lists'    => 'Danh mục',
         'sheet_result'   => 'Kết quả import',
         'col_line'       => 'Dòng trong file',
         'col_result'     => 'Kết quả',
@@ -98,8 +99,8 @@ return [
             'email'          => 'Không bắt buộc, đúng định dạng email.',
             'source_name'    => 'Bắt buộc, tối đa 150 ký tự (VD: Facebook, Website, Workshop, Referral).',
             'source_url'     => 'Không bắt buộc, đường dẫn bắt đầu bằng http:// hoặc https://.',
-            'contact_method' => 'Bắt buộc: Zalo, Phone hoặc Facebook.',
-            'branch_id'      => 'Bắt buộc, mã chi nhánh có trong hệ thống (VD: BR001).',
+            'contact_method' => 'Bắt buộc, chọn từ danh sách: Zalo, Phone hoặc Facebook.',
+            'branch_id'      => 'Bắt buộc, chọn chi nhánh từ danh sách (VD: BR001 - Trụ sở chính). Có thể nhập riêng mã chi nhánh (VD: BR001).',
         ],
     ],
     'distribute_team'        => 'Phân chia Lead cho Sale Team',

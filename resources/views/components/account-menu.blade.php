@@ -46,8 +46,8 @@
             </a>
         </li>
         <li>
-            {{-- Chưa có trang: thay '#' bằng route khi làm chức năng --}}
-            <a class="dropdown-item odin-account-menu__item" href="#">
+            <a class="dropdown-item odin-account-menu__item @if (request()->routeIs('profile.password')) active @endif"
+                href="{{ route('profile.password') }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <rect x="3" y="11" width="18" height="11" rx="2" />

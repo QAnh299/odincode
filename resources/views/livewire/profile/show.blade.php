@@ -86,8 +86,7 @@
                         {!! $icon('edit') !!}{{ __('profile.edit_contact') }}
                     </button>
                 @endif
-                {{-- Chưa có trang: thay '#' bằng route khi làm chức năng đổi mật khẩu --}}
-                <a href="#" class="pf-btn pf-btn--ghost">{!! $icon('lock') !!}{{ __('topbar.change_password') }}</a>
+                <a href="{{ route('profile.password') }}" class="pf-btn pf-btn--ghost">{!! $icon('lock') !!}{{ __('topbar.change_password') }}</a>
             </div>
         </div>
 
@@ -335,8 +334,7 @@
                     <h2 class="pf-card__title">{{ __('profile.security') }}</h2>
                     <p class="pf-card__sub">{{ __('profile.security_sub') }}</p>
                 </div>
-                {{-- Chưa có trang: thay '#' bằng route khi làm chức năng đổi mật khẩu --}}
-                <a href="#" class="pf-security__link">
+                <a href="{{ route('profile.password') }}" class="pf-security__link">
                     {{ __('topbar.change_password') }}{!! $icon('chevron') !!}
                 </a>
             </section>
