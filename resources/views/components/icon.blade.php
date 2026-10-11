@@ -39,6 +39,15 @@
         'phone'       => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
         'message'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
         'trending'    => '<path d="m23 6-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>',
+
+        // Loại biểu đồ (trang báo cáo)
+        'chart-bar'      => '<path d="M3 3v18h18"/><path d="M8 17v-5M13 17V7M18 17v-8"/>',
+        'chart-bar_h'    => '<path d="M3 3v18h18"/><path d="M7 7h9M7 12h12M7 17h5"/>',
+        'chart-stacked'  => '<path d="M3 3v18h18"/><rect x="6" y="11" width="4" height="6"/><rect x="6" y="7" width="4" height="4"/><rect x="14" y="13" width="4" height="4"/><rect x="14" y="5" width="4" height="8"/>',
+        'chart-line'     => '<path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-6"/>',
+        'chart-area'     => '<path d="M3 3v18h18"/><path d="M7 17v-3l4-5 3 3 5-5v10z"/>',
+        'chart-pie'      => '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+        'chart-doughnut' => '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v6M22 12h-6"/>',
     ];
 @endphp
 
