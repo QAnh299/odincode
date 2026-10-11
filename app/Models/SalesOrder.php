@@ -10,6 +10,12 @@ class SalesOrder extends Model
 {
     use HasFactory, HasStringId;
 
+    // Hình thức thanh toán (CHECK trong odin.sql: Full, Installment)
+    const PAYMENT_FULL = 'Full';
+    const PAYMENT_INSTALLMENT = 'Installment';
+
+    const PAYMENT_TYPES = [self::PAYMENT_FULL, self::PAYMENT_INSTALLMENT];
+
     protected $table = 'SalesOrders';
 
     protected $primaryKey = 'order_id';
