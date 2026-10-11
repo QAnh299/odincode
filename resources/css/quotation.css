@@ -1,0 +1,1417 @@
+/* ── Trang báo giá: danh sách (livewire/quotations/index) ─────────────
+   Chỉ nạp ở trang này qua @assets. Mọi class dùng tiền tố .qt- để không
+   đụng với menu dọc (sidebar.css), menu ngang (topbar.css) hay trang khác.
+   Màu chính lấy theo --odin-primary nên đổi theo bộ chọn màu giao diện.
+   Bố cục ưu tiên danh sách: tab trạng thái + thanh công cụ gọn, dính khi cuộn;
+   bộ lọc mở dạng panel (màn rộng) hoặc drawer toàn màn hình (màn hẹp). */
+
+.qt {
+    --qt-primary: var(--odin-primary, #005e12);
+    --qt-on-primary: var(--odin-on-primary, #fff);
+    --qt-accent: var(--odin-accent, #fcda43);
+    --qt-tint: color-mix(in srgb, var(--qt-primary) 9%, #fff);
+    --qt-page: #f6f8f5;
+    --qt-surface: #fff;
+    --qt-border: #e6ebe4;
+    --qt-ink: #1f2937;
+    --qt-muted: #6b7280;
+    --qt-danger: #b91c1c;
+    --qt-warning: #b45309;
+    --qt-radius: 18px;
+    --qt-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --qt-topbar: 64px; /* chiều cao menu ngang (topbar.css) – khối dính nằm ngay dưới */
+
+    max-width: 1280px;
+    margin: 0 auto;
+    color: var(--qt-ink);
+    animation: qt-in 0.3s ease-out both;
+}
+
+@keyframes qt-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.qt [x-cloak] {
+    display: none !important;
+}
+
+.qt .odin-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Màu theo trạng thái báo giá: dùng chung cho tab, nhãn trạng thái */
+.qt-tone--all { --tone: var(--qt-primary); --tone-bg: var(--qt-tint); }
+.qt-tone--draft { --tone: #64748b; --tone-bg: #f1f5f9; }
+.qt-tone--confirmed { --tone: #15803d; --tone-bg: #dcfce7; }
+.qt-tone--rejected { --tone: #b91c1c; --tone-bg: #fee2e2; }
+
+/* ── Khối dính: tab trạng thái + thanh công cụ + chip ─────────────── */
+
+.qt-sticky {
+    position: sticky;
+    top: var(--qt-topbar);
+    z-index: 30;
+    /* Kéo sát mép trên và hai bên của <main> (py-4 px-4) để nền che danh sách khi cuộn */
+    margin: -1.5rem -1.5rem 1rem;
+    padding: 1rem 1.5rem 0.85rem;
+    background: var(--qt-page);
+    border-bottom: 1px solid var(--qt-border);
+}
+
+/* Tab trạng thái (thay cho 4 thẻ thống kê) */
+.qt-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.qt-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.qt-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+    height: 38px;
+    padding: 0 0.5rem 0 0.85rem;
+    border: 1.5px solid var(--qt-border);
+    border-radius: 999px;
+    background: var(--qt-surface);
+    color: var(--qt-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.qt .qt-tab .odin-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--tone);
+}
+
+.qt-tab:hover {
+    border-color: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.qt-tab:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 25%, transparent);
+}
+
+.qt-tab__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: var(--tone-bg);
+    color: var(--tone);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.qt-tab.is-current {
+    border-color: var(--tone);
+    background: var(--tone-bg);
+    color: var(--tone);
+}
+
+.qt-tab.is-current .qt-tab__count {
+    background: var(--tone);
+    color: #fff;
+}
+
+/* Thanh công cụ: tìm kiếm + Bộ lọc + Xoá bộ lọc trên một hàng */
+.qt-toolbar {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+}
+
+.qt-search {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    height: 44px;
+    padding: 0 0.4rem 0 1rem;
+    border: 1.5px solid var(--qt-border);
+    border-radius: 12px;
+    background: var(--qt-surface);
+    color: var(--qt-muted);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.qt-search:focus-within {
+    border-color: var(--qt-primary);
+    color: var(--qt-primary);
+    box-shadow: 0 0 0 4px var(--qt-tint);
+}
+
+.qt-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--qt-ink);
+    font-size: 0.92rem;
+}
+
+.qt-search__spin {
+    color: var(--qt-primary);
+}
+
+/* Icon (i) ở cuối ô tìm kiếm + popover hướng dẫn cú pháp */
+.qt-hint {
+    position: relative;
+    display: inline-flex;
+}
+
+.qt-hint__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--qt-muted);
+    cursor: pointer;
+}
+
+.qt-hint__btn:hover,
+.qt-hint__btn[aria-expanded="true"] {
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+}
+
+.qt .qt-hint__btn .odin-icon {
+    width: 17px;
+    height: 17px;
+}
+
+.qt-hint__pop {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 50;
+    width: min(440px, calc(100vw - 2rem));
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--qt-border);
+    border-radius: 14px;
+    background: var(--qt-surface);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    color: var(--qt-ink);
+    font-size: 0.82rem;
+    text-align: left;
+}
+
+.qt-hint__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+}
+
+.qt-hint__item {
+    position: relative;
+    padding-left: 0.9rem;
+}
+
+.qt-hint__item::before {
+    content: "";
+    position: absolute;
+    top: 0.55em;
+    left: 0.15rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--qt-primary);
+}
+
+.qt-hint__pop code {
+    padding: 0.05rem 0.35rem;
+    border-radius: 6px;
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+    font-size: 0.8rem;
+}
+
+/* ── Nút ───────────────────────────────────────────────────────────── */
+
+.qt-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    height: 44px;
+    padding: 0 1rem;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.qt-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.qt-btn--primary {
+    background: var(--qt-primary);
+    color: var(--qt-on-primary);
+}
+
+.qt-btn--primary:hover {
+    background: color-mix(in srgb, var(--qt-primary) 88%, #000);
+}
+
+.qt-btn--ghost,
+.qt-btn--filter {
+    background: var(--qt-surface);
+    border-color: var(--qt-border);
+    color: var(--qt-ink);
+}
+
+.qt-btn--ghost:not(:disabled):hover,
+.qt-btn--filter:hover,
+.qt-btn--filter.is-open {
+    border-color: var(--qt-primary);
+    color: var(--qt-primary);
+}
+
+.qt-btn__badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--qt-primary);
+    color: var(--qt-on-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Chấm báo "đã đổi bộ lọc nhưng chưa áp dụng" (Livewire ẩn/hiện bằng wire:dirty) */
+.qt-btn__dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--qt-surface);
+    border-radius: 50%;
+    background: var(--qt-warning);
+}
+
+/* ── Panel bộ lọc (thả xuống dưới nút Bộ lọc) ──────────────────────── */
+
+.qt-filter {
+    position: relative;
+    display: flex;
+}
+
+.qt-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 40;
+    width: min(680px, calc(100vw - 3rem));
+    border: 1px solid var(--qt-border);
+    border-radius: 16px;
+    background: var(--qt-surface);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+}
+
+.qt-panel__form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+}
+
+.qt-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--qt-border);
+}
+
+.qt-panel__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+}
+
+.qt-panel__title .odin-icon {
+    color: var(--qt-primary);
+}
+
+.qt-panel__close {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--qt-muted);
+    cursor: pointer;
+}
+
+.qt-panel__close:hover {
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+}
+
+.qt-panel__body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem 1rem;
+    padding: 1rem 1.1rem;
+}
+
+.qt-panel__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0.75rem 1.1rem;
+    border-top: 1px solid var(--qt-border);
+}
+
+.qt-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-right: auto;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--qt-warning);
+}
+
+.qt .qt-pending .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+/* Ô nhập trong panel */
+.qt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    margin: 0;
+}
+
+fieldset.qt-field {
+    padding: 0;
+    border: 0;
+}
+
+fieldset.qt-field legend {
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    line-height: inherit;
+}
+
+.qt-field__label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--qt-muted);
+}
+
+.qt-field__error {
+    font-size: 0.78rem;
+    color: var(--qt-danger);
+}
+
+.qt-control {
+    width: 100%;
+    height: 42px;
+    padding: 0 0.8rem;
+    border: 1.5px solid var(--qt-border);
+    border-radius: 12px;
+    background-color: var(--qt-surface);
+    color: var(--qt-ink);
+    font-size: 0.9rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+select.qt-control {
+    appearance: none;
+    padding-right: 2.2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.qt-control:focus {
+    outline: none;
+    border-color: var(--qt-primary);
+    box-shadow: 0 0 0 4px var(--qt-tint);
+}
+
+.qt-control.is-invalid {
+    border-color: var(--qt-danger);
+}
+
+.qt-control--sm {
+    width: auto;
+    height: 36px;
+    font-size: 0.85rem;
+}
+
+/* Cặp ngày từ – đến trong một nhóm */
+.qt-range {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.qt-range .qt-control {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0.6rem;
+}
+
+.qt-range__sep {
+    flex-shrink: 0;
+    color: var(--qt-muted);
+}
+
+/* ── Chip bộ lọc đang áp dụng ──────────────────────────────────────── */
+
+.qt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+}
+
+.qt-chips__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--qt-muted);
+}
+
+.qt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    padding: 0.2rem 0.3rem 0.2rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--qt-primary) 25%, #fff);
+    border-radius: 999px;
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.qt-chip__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qt-chip__remove {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.qt-chip__remove:hover {
+    background: var(--qt-primary);
+    color: var(--qt-on-primary);
+}
+
+.qt .qt-chip__remove .odin-icon {
+    width: 13px;
+    height: 13px;
+}
+
+/* ── Danh sách báo giá ─────────────────────────────────────────────── */
+
+.qt-card {
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--qt-border);
+    border-radius: var(--qt-radius);
+    background: var(--qt-surface);
+    box-shadow: var(--qt-shadow);
+}
+
+.qt-results {
+    overflow: hidden;
+}
+
+.qt-results__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--qt-border);
+    font-size: 0.88rem;
+    color: var(--qt-muted);
+}
+
+.qt-results__bar strong {
+    color: var(--qt-ink);
+}
+
+.qt-results__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.qt-results__loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--qt-primary);
+}
+
+.qt-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--qt-muted);
+}
+
+.qt-table-wrap {
+    overflow-x: auto;
+    transition: opacity 0.15s;
+}
+
+.qt-table-wrap.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.qt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.qt-table th {
+    padding: 0.6rem 1rem;
+    background: #f8faf8;
+    color: var(--qt-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-align: left;
+}
+
+/* Dòng gọn để thấy được nhiều báo giá hơn trong màn hình đầu tiên */
+.qt-table td {
+    padding: 0.55rem 1rem;
+    border-top: 1px solid var(--qt-border);
+    vertical-align: middle;
+}
+
+.qt-table tbody tr {
+    transition: background-color 0.12s;
+}
+
+.qt-table tbody tr:hover {
+    background: color-mix(in srgb, var(--qt-primary) 4%, #fff);
+}
+
+/* Mã báo giá */
+.qt-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.qt-code__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+}
+
+.qt .qt-code__icon .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.qt-code__id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Hai dòng: chính + phụ (khách hàng / mã cơ hội, ngày hết hạn / hạn còn lại) */
+.qt-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.qt-stack__main {
+    font-weight: 600;
+}
+
+.qt-stack__sub {
+    font-size: 0.75rem;
+    color: var(--qt-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Hạn còn lại của báo giá Nháp */
+.qt-expiry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--qt-warning);
+    white-space: nowrap;
+}
+
+.qt-expiry--over {
+    align-self: flex-start;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: var(--qt-danger);
+    font-weight: 600;
+}
+
+.qt .qt-expiry .odin-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.qt-amount {
+    font-weight: 800;
+    color: var(--qt-primary);
+    white-space: nowrap;
+}
+
+/* Nhãn trạng thái */
+.qt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    background: var(--tone-bg, #f1f5f9);
+    color: var(--tone, #475569);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.qt-badge__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.qt-mono {
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.qt-muted {
+    color: var(--qt-muted);
+}
+
+/* Đánh dấu từ khóa tìm kiếm */
+.qt-mark {
+    padding: 0 0.1em;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--qt-accent) 55%, #fff);
+    color: inherit;
+}
+
+/* Trống */
+.qt-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.qt-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 0.5rem;
+    border-radius: 50%;
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+}
+
+.qt-empty__icon .odin-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.qt-empty__title {
+    margin: 0;
+    font-weight: 700;
+}
+
+.qt-empty__sub {
+    margin: 0 0 0.75rem;
+    color: var(--qt-muted);
+    font-size: 0.9rem;
+}
+
+/* Phân trang (giữ nguyên markup Bootstrap, chỉ đổi màu theo màu chính) */
+.qt-pagination {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--qt-border);
+}
+
+.qt-pagination nav {
+    align-items: center;
+}
+
+.qt-pagination .pagination {
+    margin: 0;
+    --bs-pagination-color: var(--qt-ink);
+    --bs-pagination-border-radius: 10px;
+    --bs-pagination-hover-color: var(--qt-primary);
+    --bs-pagination-focus-color: var(--qt-primary);
+    --bs-pagination-focus-box-shadow: 0 0 0 4px var(--qt-tint);
+    --bs-pagination-active-bg: var(--qt-primary);
+    --bs-pagination-active-border-color: var(--qt-primary);
+    --bs-pagination-active-color: var(--qt-on-primary);
+}
+
+.qt-pagination p {
+    margin: 0;
+    color: var(--qt-muted);
+    font-size: 0.85rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+/* Bảng chuyển thành thẻ trên màn nhỏ */
+@media (max-width: 991.98px) {
+    .qt-table thead {
+        display: none;
+    }
+
+    .qt-table,
+    .qt-table tbody,
+    .qt-table tr,
+    .qt-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .qt-table tr {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--qt-border);
+    }
+
+    .qt-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.3rem 0;
+        border: 0;
+        text-align: right;
+    }
+
+    .qt-table td[data-label]::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        color: var(--qt-muted);
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .qt-table td:first-child::before {
+        content: none;
+    }
+
+    .qt-table td:first-child {
+        margin-bottom: 0.25rem;
+    }
+
+    .qt-stack {
+        align-items: flex-end;
+    }
+
+    .qt-expiry--over {
+        align-self: flex-end;
+    }
+}
+
+/* Màn hẹp: khối trên cùng không dính (tiết kiệm chiều cao), ô tìm kiếm một hàng riêng,
+   panel bộ lọc thành drawer toàn màn hình */
+@media (max-width: 767.98px) {
+    .qt-sticky {
+        position: static;
+    }
+
+    .qt-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .qt-search {
+        flex-basis: 100%;
+    }
+
+    .qt-filter,
+    .qt-btn--clear {
+        flex: 1;
+    }
+
+    .qt-btn--filter {
+        width: 100%;
+    }
+
+    .qt-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 1060; /* trên menu ngang (1020) và menu dọc dạng offcanvas */
+        width: auto;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .qt-panel__body {
+        flex: 1;
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        overflow-y: auto;
+    }
+
+    .qt-pending {
+        flex-basis: 100%;
+    }
+
+    .qt-panel__foot .qt-btn {
+        flex: 1;
+    }
+
+    .qt-results__bar {
+        flex-wrap: wrap;
+    }
+
+    .qt-results__tools {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .qt-control--sm {
+        max-width: 220px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qt,
+    .qt * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ── Trang chi tiết báo giá (livewire/quotations/show) ─────────────── */
+
+/* Điều hướng: nút quay lại + đường dẫn */
+.qt-crumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.88rem;
+}
+
+.qt-crumb__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border: 1.5px solid var(--qt-border);
+    border-radius: 10px;
+    background: var(--qt-surface);
+    color: var(--qt-ink);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.qt-crumb__back:hover {
+    border-color: var(--qt-primary);
+    color: var(--qt-primary);
+}
+
+.qt-crumb__path {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--qt-muted);
+}
+
+.qt-crumb__path a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.qt-crumb__path a:hover {
+    color: var(--qt-primary);
+}
+
+.qt .qt-crumb__path .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.qt-crumb__path [aria-current] {
+    color: var(--qt-ink);
+    font-weight: 600;
+}
+
+/* Đầu trang: mã báo giá + trạng thái + hạn */
+.qt-detail-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.qt-detail-head__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
+}
+
+.qt-detail-head__icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--qt-tint);
+    color: var(--qt-primary);
+}
+
+.qt-detail-head__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--qt-muted);
+    font-size: 0.88rem;
+}
+
+.qt .qt-detail-head__meta .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+/* Thanh thao tác (SP lập báo giá, báo giá Nháp) */
+.qt-actions {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--qt-border);
+    border-radius: 14px;
+    background: var(--qt-surface);
+}
+
+.qt-actions__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.qt-actions .qt-btn {
+    height: 40px;
+}
+
+.qt-btn--danger {
+    background: var(--qt-surface);
+    border-color: #fecaca;
+    color: var(--qt-danger);
+}
+
+.qt-btn--danger:not(:disabled):hover {
+    background: #fee2e2;
+}
+
+.qt-actions__warning {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--qt-danger);
+}
+
+/* Tiến trình 4 bước */
+.qt-progress {
+    padding: 1rem 1.25rem;
+}
+
+.qt-progress__steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qt-progress__step {
+    --tone: var(--qt-primary);
+    --tone-bg: var(--qt-tint);
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+/* Bước Báo giá lấy màu theo trạng thái báo giá */
+.qt-progress__step.qt-tone--draft { --tone: #64748b; --tone-bg: #f1f5f9; }
+.qt-progress__step.qt-tone--confirmed { --tone: #15803d; --tone-bg: #dcfce7; }
+.qt-progress__step.qt-tone--rejected { --tone: #b91c1c; --tone-bg: #fee2e2; }
+
+/* Đường nối giữa các bước */
+.qt-progress__step:not(:last-child)::after {
+    content: "";
+    flex: 1;
+    min-width: 12px;
+    height: 2px;
+    margin-left: 0.25rem;
+    border-radius: 2px;
+    background: var(--qt-border);
+}
+
+.qt-progress__step.is-done:not(:last-child)::after {
+    background: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.qt-progress__dot {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--tone-bg);
+    color: var(--tone);
+}
+
+.qt-progress__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.qt-progress__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--qt-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.qt-progress__value {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Bước chưa tới (hoặc sau báo giá bị từ chối): mờ */
+.qt-progress__step.is-muted {
+    opacity: 0.45;
+}
+
+.qt-progress__step.is-muted .qt-progress__dot {
+    background: #f1f5f9;
+    color: var(--qt-muted);
+}
+
+.qt-progress__note,
+.qt-detail-note {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
+    font-size: 0.83rem;
+    color: var(--qt-muted);
+}
+
+.qt .qt-progress__note .odin-icon,
+.qt .qt-detail-note .odin-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--qt-warning);
+}
+
+/* Lưới 2 cột: nội dung chính + cột khách hàng / cơ hội */
+.qt-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.qt-detail-main,
+.qt-detail-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.qt-panel-card {
+    padding: 1.1rem 1.25rem;
+}
+
+.qt-section-head {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--qt-border);
+}
+
+.qt-section-title {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.qt-section-head .qt-section-title {
+    margin: 0;
+}
+
+/* Thông tin dạng nhãn – giá trị */
+.qt-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0;
+}
+
+.qt-info--stack {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.qt-info__row {
+    min-width: 0;
+}
+
+.qt-info__row--wide {
+    grid-column: 1 / -1;
+}
+
+.qt-info dt {
+    margin-bottom: 0.15rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--qt-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.qt-info dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Ghi chú: giữ xuống dòng */
+.qt-info dd.qt-notes {
+    display: block;
+    white-space: pre-line;
+}
+
+.qt-link {
+    color: var(--qt-primary);
+    text-decoration: none;
+}
+
+.qt-link:hover {
+    text-decoration: underline;
+}
+
+.qt-detail-empty {
+    margin: 0;
+    padding: 1.5rem 1.25rem;
+    color: var(--qt-muted);
+}
+
+/* Khối tổng tiền dưới bảng khóa học */
+.qt-totals {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.9rem 1.25rem 1.1rem;
+    border-top: 1px solid var(--qt-border);
+}
+
+.qt-totals__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    width: min(380px, 100%);
+}
+
+.qt-totals__row dt {
+    font-weight: 600;
+    color: var(--qt-muted);
+}
+
+.qt-totals__row dd {
+    margin: 0;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.qt-totals__row--discount dd {
+    color: var(--qt-danger);
+}
+
+.qt-totals__row--grand {
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--qt-border);
+}
+
+.qt-totals__row--grand dt {
+    color: var(--qt-ink);
+}
+
+.qt-totals__row--grand dd {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--qt-primary);
+}
+
+/* Danh sách báo giá: cả dòng là link sang trang chi tiết */
+.qt-table tbody tr.qt-row-link {
+    cursor: pointer;
+}
+
+.qt-row-link .qt-code:focus-visible {
+    outline: 2px solid var(--qt-primary);
+    outline-offset: 3px;
+    border-radius: 10px;
+}
+
+.qt-row-link .qt-code {
+    color: inherit;
+    text-decoration: none;
+}
+
+.qt-row-link:hover .qt-code__id,
+.qt-row-link .qt-code:focus-visible .qt-code__id {
+    color: var(--qt-primary);
+}
+
+@media (max-width: 1199.98px) {
+    .qt-detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Khách hàng / cơ hội lên trước khi xếp một cột */
+    .qt-detail-side {
+        order: -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .qt-detail-side .qt-card {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .qt-progress__steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .qt-progress__step::after {
+        display: none;
+    }
+
+    .qt-detail-side,
+    .qt-info {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .qt-actions__buttons .qt-btn {
+        flex: 1 1 calc(50% - 0.6rem);
+    }
+
+    .qt-totals__row {
+        width: 100%;
+    }
+}
