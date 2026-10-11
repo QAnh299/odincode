@@ -182,7 +182,7 @@
                                 <td class="vc-table__action">
                                     <a href="{{ $url }}" class="vc-icon-btn" title="{{ __('vouchers.view') }}"
                                         onclick="event.stopPropagation()">
-                                        <x-icon name="chevron" />
+                                        <x-icon name="eye" />
                                         <span class="visually-hidden">{{ __('vouchers.view') }} {{ $voucher->voucher_id }}</span>
                                     </a>
                                 </td>

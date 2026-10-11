@@ -38,7 +38,7 @@ return [
     'customer'           => 'Customer',
     'opportunity'        => 'Opportunity',
     'actions'            => 'Actions',
-    'view_detail'        => 'View',
+    'view_detail'        => 'View details',
     'today'              => 'Today',
     'tomorrow'           => 'Tomorrow',
 

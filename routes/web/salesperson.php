@@ -10,6 +10,8 @@ use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Salesperson\Home;
+use App\Livewire\Students\Index as StudentIndex;
+use App\Livewire\Students\Show as StudentShow;
 use App\Livewire\Vouchers\Index as VoucherIndex;
 use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
@@ -42,3 +44,8 @@ Route::get('/vouchers/{voucher}', VoucherShow::class)->name('vouchers.show');
 // Khóa học – chỉ xem (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/courses', CourseIndex::class)->name('courses');
 Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
+
+// Học viên – danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
+// Sale Leader, Salesperson được chỉnh sửa)
+Route::get('/students', StudentIndex::class)->name('students');
+Route::get('/students/{student}', StudentShow::class)->name('students.show');

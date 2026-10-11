@@ -12,6 +12,8 @@ use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadSources as LeadSourceReport;
 use App\Livewire\SalesTeams\Index as SalesTeamIndex;
 use App\Livewire\SaleAdmin\Home;
+use App\Livewire\Students\Index as StudentIndex;
+use App\Livewire\Students\Show as StudentShow;
 use App\Livewire\Vouchers\Index as VoucherIndex;
 use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
@@ -50,3 +52,8 @@ Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
 
 // Báo cáo – Phân tích chất lượng nguồn Lead (chỉ Giám đốc, Sale Admin)
 Route::get('/reports/lead-sources', LeadSourceReport::class)->name('reports.lead-sources');
+
+// Học viên – danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
+// Sale Leader, Salesperson được chỉnh sửa)
+Route::get('/students', StudentIndex::class)->name('students');
+Route::get('/students/{student}', StudentShow::class)->name('students.show');

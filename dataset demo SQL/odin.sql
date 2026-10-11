@@ -471,7 +471,11 @@ VALUES
   ('LEAD033', 'Hà Phương Thảo', '0912000033', NULL, 'TikTok', 'https://tiktok.example.test/@odin', '2026-10-10 20:40:00', 'Facebook', 'New', 'BR001'),
   ('LEAD034', 'Đỗ Quang Vinh', '0912000034', 'quangvinh@example.test', 'Workshop', 'https://odin.example.test/events', '2026-10-08 11:00:00', 'Zalo', 'New', 'BR002'),
   ('LEAD035', 'Kim Ngọc Hân', '0912000035', 'ngochan@example.test', 'Referral', NULL, '2026-10-09 09:30:00', 'Phone', 'New', 'BR002'),
-  ('LEAD036', 'Lương Tuấn Kiệt', '0912000036', 'tuankiet.l@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-11 08:05:00', 'Facebook', 'New', 'BR002');
+  ('LEAD036', 'Lương Tuấn Kiệt', '0912000036', 'tuankiet.l@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-10-11 08:05:00', 'Facebook', 'New', 'BR002'),
+  ('LEAD037', 'Trương Hải Yến', '0912000037', 'haiyen@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-09-15 10:00:00', 'Zalo', 'Converted', 'BR001'),
+  ('LEAD038', 'Phí Minh Quân', '0912000038', 'minhquan@example.test', 'Website', 'https://odin.example.test/ielts', '2026-08-25 09:30:00', 'Phone', 'Converted', 'BR001'),
+  ('LEAD039', 'Lò Thị Hoa', '0912000039', 'thihoa@example.test', 'Referral', NULL, '2026-06-28 14:00:00', 'Zalo', 'Converted', 'BR002'),
+  ('LEAD040', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', 'Facebook', 'https://facebook.example.test/odin', '2026-08-05 19:00:00', 'Facebook', 'Converted', 'BR002');
 
 INSERT INTO `Opportunities`
   (`opportunity_id`, `conversion_date`, `expected_value`, `status`, `lead_id`, `stage_id`, `employee_id`)
@@ -504,15 +508,20 @@ VALUES
   ('OPP022', '2026-09-29 14:00:00', 8500000.00, 'InProgress', 'LEAD027', 'STG002', 'EMP007'),
   ('OPP023', '2026-09-23 09:00:00', 12000000.00, 'InProgress', 'LEAD028', 'STG003', 'EMP007'),
   ('OPP024', '2026-09-16 10:00:00', 11000000.00, 'Won', 'LEAD029', 'STG004', 'EMP007'),
-  ('OPP025', '2026-09-13 09:30:00', NULL, 'Lost', 'LEAD030', 'STG005', 'EMP007');
+  ('OPP025', '2026-09-13 09:30:00', NULL, 'Lost', 'LEAD030', 'STG005', 'EMP007'),
+  ('OPP027', '2026-09-16 09:00:00', 8500000.00, 'Won', 'LEAD037', 'STG004', 'EMP004'),
+  ('OPP028', '2026-08-26 09:00:00', 12000000.00, 'Won', 'LEAD038', 'STG004', 'EMP005'),
+  ('OPP029', '2026-06-29 10:00:00', 6000000.00, 'Won', 'LEAD039', 'STG004', 'EMP007'),
+  ('OPP030', '2026-08-06 09:00:00', 5500000.00, 'Won', 'LEAD040', 'STG004', 'EMP007');
 
 INSERT INTO `Students`
   (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`)
 VALUES
   ('STD001', 'Nguyễn Bảo Châu', '0912000001', 'baochau@example.test', '2002-05-18', '2026-09-10 09:00:00', 'Studying', 'OPP001'),
-  ('STD002', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', '2004-02-23', '2026-09-15 10:00:00', 'Studying', 'OPP003'),
-  ('STD003', 'Bùi Quốc Bảo', '0912000006', 'quocbao@example.test', '2001-11-06', '2026-09-20 14:00:00', 'Studying', 'OPP006'),
-  ('STD004', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', '2003-07-29', '2026-09-22 11:30:00', 'Studying', 'OPP007');
+  ('STD002', 'Trương Hải Yến', '0912000037', 'haiyen@example.test', '2003-04-12', '2026-09-25 09:00:00', 'Studying', 'OPP027'),
+  ('STD003', 'Phí Minh Quân', '0912000038', 'minhquan@example.test', '1999-12-01', '2026-10-04 15:00:00', 'Studying', 'OPP028'),
+  ('STD004', 'Lò Thị Hoa', '0912000039', 'thihoa@example.test', '2000-09-09', '2026-07-08 11:00:00', 'Completed', 'OPP029'),
+  ('STD005', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', '2017-03-15', '2026-08-14 16:00:00', 'Dropped', 'OPP030');
 
 INSERT INTO `Appointments`
   (`appointment_id`, `appointment_type`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
@@ -543,7 +552,13 @@ VALUES
   ('APT015', 'Consultation', '2026-09-20 19:00:00', 'Failed', 'Khách bận, xin dời lịch.', 'EMP005', 'OPP018'),
   ('APT016', 'Consultation', '2026-09-22 15:00:00', 'Success', 'Khách chốt lớp tối 2-4-6.', 'EMP005', 'OPP018'),
   ('APT017', 'Test', '2026-09-24 16:30:00', 'Success', 'Hai bé test trình độ.', 'EMP007', 'OPP024'),
-  ('APT017', 'Consultation', '2026-09-24 16:30:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids.', 'EMP007', 'OPP024');
+  ('APT017', 'Consultation', '2026-09-24 16:30:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids.', 'EMP007', 'OPP024'),
+  ('APT018', 'Test', '2026-09-18 15:00:00', 'Success', 'Kết quả test đầu vào 4.5.', 'EMP004', 'OPP027'),
+  ('APT018', 'Consultation', '2026-09-18 15:00:00', 'Success', 'Khách chọn IELTS Foundation.', 'EMP004', 'OPP027'),
+  ('APT019', 'Test', '2026-08-29 09:00:00', 'Success', 'Kết quả test đầu vào 5.5.', 'EMP005', 'OPP028'),
+  ('APT019', 'Consultation', '2026-08-29 10:00:00', 'Success', 'Khách chọn IELTS Intensive, trả góp 2 đợt.', 'EMP005', 'OPP028'),
+  ('APT020', 'Consultation', '2026-07-02 18:00:00', 'Success', 'Khách đồng ý đăng ký khóa giao tiếp.', 'EMP007', 'OPP029'),
+  ('APT021', 'Test', '2026-08-09 09:30:00', 'Success', 'Bé test trình độ, phụ huynh đăng ký English for Kids.', 'EMP007', 'OPP030');
 
 INSERT INTO `CareResults`
   (`result_id`, `performed_at`, `result`, `notes`, `activity_id`, `opportunity_id`, `employee_id`)
@@ -587,7 +602,11 @@ VALUES
   ('CARE033', '2026-09-17 09:30:00', 'Failed', 'Không nghe máy, đã nhắn Zalo nhưng không phản hồi.', 'ACT003', 'OPP019', 'EMP005'),
   ('CARE034', '2026-09-21 16:00:00', 'Failed', 'Vẫn không liên lạc được, đóng cơ hội.', 'ACT004', 'OPP019', 'EMP005'),
   ('CARE035', '2026-09-13 10:00:00', 'Failed', 'Khách không nghe máy.', 'ACT001', 'OPP025', 'EMP007'),
-  ('CARE036', '2026-09-15 11:00:00', 'Failed', 'Khách đã đăng ký học ở trung tâm khác.', 'ACT002', 'OPP025', 'EMP007');
+  ('CARE036', '2026-09-15 11:00:00', 'Failed', 'Khách đã đăng ký học ở trung tâm khác.', 'ACT002', 'OPP025', 'EMP007'),
+  ('CARE037', '2026-09-16 10:00:00', 'Success', 'Khách muốn học IELTS Foundation, hẹn test đầu vào.', 'ACT001', 'OPP027', 'EMP004'),
+  ('CARE038', '2026-08-26 10:30:00', 'Success', 'Khách cần IELTS 6.5 để du học, hẹn test và tư vấn.', 'ACT001', 'OPP028', 'EMP005'),
+  ('CARE039', '2026-06-29 15:00:00', 'Success', 'Khách được bạn giới thiệu, hẹn tư vấn khóa giao tiếp.', 'ACT001', 'OPP029', 'EMP007'),
+  ('CARE040', '2026-08-06 19:30:00', 'Success', 'Phụ huynh hẹn đưa bé đến test trình độ.', 'ACT001', 'OPP030', 'EMP007');
 
 INSERT INTO `Quotations`
   (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`)
@@ -596,7 +615,11 @@ VALUES
   ('QUO002', '2026-09-09 11:30:00', '2026-10-09', 'Confirmed', '2026-09-10 10:00:00', 'Bao gia IELTS Foundation.', 'EMP004', NULL, 'OPP003'),
   ('QUO003', '2026-09-15 09:30:00', '2026-10-15', 'Confirmed', '2026-09-16 10:00:00', 'Ap dung voucher giam gia co dinh.', 'EMP005', 'VCH002', 'OPP006'),
   ('QUO004', '2026-09-18 14:00:00', '2026-10-18', 'Draft', '2026-09-18 14:00:00', 'Ban nhap bao gia English for Kids.', 'EMP007', NULL, 'OPP005'),
-  ('QUO005', '2026-09-16 13:00:00', '2026-10-16', 'Confirmed', '2026-09-17 09:00:00', 'Dang ky hai suat hoc, thanh toan theo dot.', 'EMP007', 'VCH003', 'OPP007');
+  ('QUO005', '2026-09-16 13:00:00', '2026-10-16', 'Confirmed', '2026-09-17 09:00:00', 'Dang ky hai suat hoc, thanh toan theo dot.', 'EMP007', 'VCH003', 'OPP007'),
+  ('QUO006', '2026-09-19 10:00:00', '2026-10-19', 'Confirmed', '2026-09-20 09:00:00', 'Báo giá IELTS Foundation.', 'EMP004', NULL, 'OPP027'),
+  ('QUO007', '2026-08-30 10:00:00', '2026-09-30', 'Confirmed', '2026-09-01 09:00:00', 'IELTS Intensive, áp dụng voucher giảm 500.000đ.', 'EMP005', 'VCH003', 'OPP028'),
+  ('QUO008', '2026-07-03 10:00:00', '2026-08-03', 'Confirmed', '2026-07-05 09:00:00', 'Báo giá khóa giao tiếp.', 'EMP007', NULL, 'OPP029'),
+  ('QUO009', '2026-08-10 10:00:00', '2026-09-10', 'Confirmed', '2026-08-12 09:00:00', 'Báo giá English for Kids.', 'EMP007', NULL, 'OPP030');
 
 INSERT INTO `QuotationDetails`
   (`quotation_id`, `course_id`, `unit_price`, `quantity`, `VAT`, `line_total`)
@@ -605,7 +628,11 @@ VALUES
   ('QUO002', 'CRS002', 8500000.00, 1, 0.00, 8500000.00),
   ('QUO003', 'CRS003', 12000000.00, 1, 0.00, 12000000.00),
   ('QUO004', 'CRS004', 5000000.00, 1, 10.00, 5500000.00),
-  ('QUO005', 'CRS001', 6000000.00, 2, 10.00, 13200000.00);
+  ('QUO005', 'CRS001', 6000000.00, 2, 10.00, 13200000.00),
+  ('QUO006', 'CRS002', 8500000.00, 1, 0.00, 8500000.00),
+  ('QUO007', 'CRS003', 12000000.00, 1, 0.00, 12000000.00),
+  ('QUO008', 'CRS001', 6000000.00, 1, 0.00, 6000000.00),
+  ('QUO009', 'CRS004', 5000000.00, 1, 10.00, 5500000.00);
 
 INSERT INTO `SalesOrders`
   (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`)
@@ -613,7 +640,11 @@ VALUES
   ('ORD001', 'Full', '2026-09-06 09:30:00', 5400000.00, 5400000.00, 0.00, 'Completed', 'Da thanh toan du.', 'QUO001'),
   ('ORD002', 'Installment', '2026-09-10 10:30:00', 8500000.00, 3000000.00, 5500000.00, 'InProgress', 'Thanh toan theo hai dot.', 'QUO002'),
   ('ORD003', 'Full', '2026-09-16 10:30:00', 11000000.00, 0.00, 11000000.00, 'InProgress', 'Cho thanh toan.', 'QUO003'),
-  ('ORD004', 'Installment', '2026-09-17 09:30:00', 12700000.00, 6350000.00, 6350000.00, 'InProgress', 'Da thanh toan dot mot.', 'QUO005');
+  ('ORD004', 'Installment', '2026-09-17 09:30:00', 12700000.00, 6350000.00, 6350000.00, 'InProgress', 'Da thanh toan dot mot.', 'QUO005'),
+  ('ORD005', 'Full', '2026-09-20 10:00:00', 8500000.00, 8500000.00, 0.00, 'Completed', 'Da thanh toan du.', 'QUO006'),
+  ('ORD006', 'Installment', '2026-09-01 10:00:00', 11500000.00, 11500000.00, 0.00, 'Completed', 'Tra gop 2 dot, da thanh toan du.', 'QUO007'),
+  ('ORD007', 'Full', '2026-07-05 10:00:00', 6000000.00, 6000000.00, 0.00, 'Completed', 'Da thanh toan du.', 'QUO008'),
+  ('ORD008', 'Full', '2026-08-12 10:00:00', 5500000.00, 5500000.00, 0.00, 'Completed', 'Da thanh toan du.', 'QUO009');
 
 INSERT INTO `Invoices`
   (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`)
@@ -623,4 +654,9 @@ VALUES
   ('INV003', '2026-09-10', '2026-10-05', 5500000.00, 'Overdue', NULL, NULL, 'ORD002', 2, 'EMP004', NULL),
   ('INV004', '2026-09-16', '2026-10-16', 11000000.00, 'Unpaid', NULL, NULL, 'ORD003', 1, 'EMP005', NULL),
   ('INV005', '2026-09-17', '2026-09-17', 6350000.00, 'Paid', 'Cash', '2026-09-17 10:00:00', 'ORD004', 1, 'EMP007', 'EMP008'),
-  ('INV006', '2026-09-17', '2026-10-17', 6350000.00, 'Unpaid', NULL, NULL, 'ORD004', 2, 'EMP007', NULL);
+  ('INV006', '2026-09-17', '2026-10-17', 6350000.00, 'Unpaid', NULL, NULL, 'ORD004', 2, 'EMP007', NULL),
+  ('INV007', '2026-09-20', '2026-09-27', 8500000.00, 'Paid', 'BankTransfer', '2026-09-25 09:00:00', 'ORD005', 1, 'EMP004', 'EMP008'),
+  ('INV008', '2026-09-01', '2026-09-05', 6000000.00, 'Paid', 'Cash', '2026-09-05 10:00:00', 'ORD006', 1, 'EMP005', 'EMP008'),
+  ('INV009', '2026-09-01', '2026-10-05', 5500000.00, 'Paid', 'BankTransfer', '2026-10-04 15:00:00', 'ORD006', 2, 'EMP005', 'EMP008'),
+  ('INV010', '2026-07-05', '2026-07-10', 6000000.00, 'Paid', 'BankTransfer', '2026-07-08 11:00:00', 'ORD007', 1, 'EMP007', 'EMP008'),
+  ('INV011', '2026-08-12', '2026-08-15', 5500000.00, 'Paid', 'Cash', '2026-08-14 16:00:00', 'ORD008', 1, 'EMP007', 'EMP008');

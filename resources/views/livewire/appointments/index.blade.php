@@ -151,8 +151,9 @@
                                     </span>
                                 </td>
                                 <td data-label="{{ __('appointments.actions') }}" class="text-lg-end">
-                                    <a href="{{ $url }}" class="vc-btn vc-btn--ghost ap-view" onclick="event.stopPropagation()">
-                                        <x-icon name="info" />{{ __('appointments.view_detail') }}
+                                    <a href="{{ $url }}" class="vc-icon-btn" onclick="event.stopPropagation()"
+                                        title="{{ __('appointments.view_detail') }}" aria-label="{{ __('appointments.view_detail') }} {{ $apt->appointment_id }}">
+                                        <x-icon name="eye" />
                                     </a>
                                 </td>
                             </tr>

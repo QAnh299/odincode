@@ -47,12 +47,12 @@ class Opportunity extends Model
 
     /**
      * Cơ hội mà nhân viên được phép xem:
-     * Giám đốc / Sale Admin xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
+     * Giám đốc / Sale Admin / Kế toán xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
      */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return match ($employee?->role_name) {
-            Role::DIRECTOR, Role::SALE_ADMIN => $query,
+            Role::DIRECTOR, Role::SALE_ADMIN, Role::ACCOUNTANT => $query,
             Role::SALE_LEADER => $employee->team_id
                 ? $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id))
                 : $query->whereRaw('1 = 0'),

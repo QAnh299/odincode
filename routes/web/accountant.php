@@ -5,6 +5,8 @@ use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
+use App\Livewire\Students\Index as StudentIndex;
+use App\Livewire\Students\Show as StudentShow;
 use Illuminate\Support\Facades\Route;
 
 // Kế toán – prefix /accountant, name accountant.*
@@ -20,3 +22,8 @@ Route::get('/orders', OrderIndex::class)->name('orders');
 
 // Hóa đơn – danh sách + tra cứu (chỉ xem; kế toán xem tất cả hóa đơn)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
+
+// Học viên – danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
+// Sale Leader, Salesperson được chỉnh sửa)
+Route::get('/students', StudentIndex::class)->name('students');
+Route::get('/students/{student}', StudentShow::class)->name('students.show');

@@ -188,9 +188,9 @@
                                 </td>
                                 <td data-label="{{ __('employees.actions') }}" class="text-lg-end">
                                     <div class="em-row-actions">
-                                        <a href="{{ $membersUrl }}" class="vc-btn vc-btn--ghost em-view">
-                                            <x-icon name="users" />{{ __('employees.teams.view_members') }}
-                                            <span class="visually-hidden">{{ $team->team_name }}</span>
+                                        <a href="{{ $membersUrl }}" class="vc-icon-btn" title="{{ __('employees.teams.view_members') }}"
+                                            aria-label="{{ __('employees.teams.view_members') }} {{ $team->team_name }}">
+                                            <x-icon name="eye" />
                                         </a>
                                         {{-- Sale Admin: Chỉnh sửa đội, Gắn / đổi trưởng nhóm --}}
                                         @if ($this->canManage)

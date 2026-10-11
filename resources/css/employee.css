@@ -72,10 +72,6 @@ a.em-person:hover .em-person__name {
     white-space: nowrap;
 }
 
-.em-view {
-    white-space: nowrap;
-}
-
 /* ══ Danh sách ═══════════════════════════════════════════════════════ */
 
 .em .vc-head__sub .odin-icon {

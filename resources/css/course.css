@@ -23,10 +23,6 @@
     font-weight: 600;
 }
 
-.cs-view {
-    white-space: nowrap;
-}
-
 @media (max-width: 991.98px) {
     /* Bảng dạng thẻ: nút xem chi tiết nằm cuối thẻ, không đè lên mã */
     .cs .vc-table td:first-child {

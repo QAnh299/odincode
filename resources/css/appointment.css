@@ -58,10 +58,6 @@
     font-weight: 600;
 }
 
-.ap-view {
-    white-space: nowrap;
-}
-
 /* Lịch hẹn hôm nay chưa diễn ra: nhấn nhẹ */
 .vc-table tbody tr.ap-row--today {
     background: color-mix(in srgb, var(--vc-primary) 5%, #fff);

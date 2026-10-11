@@ -52,6 +52,18 @@ class SalesOrder extends Model
         'created_at'       => 'datetime',
     ];
 
+    /**
+     * Đơn hàng chuyển sang Hoàn tất (đã thanh toán toàn bộ học phí) → khách trở thành học viên.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (self $order) {
+            if ($order->status === self::STATUS_COMPLETED && ($order->wasRecentlyCreated || $order->wasChanged('status'))) {
+                Student::enrollFromOrder($order);
+            }
+        });
+    }
+
     public function quotation()
     {
         return $this->belongsTo(Quotation::class, 'quotation_id', 'quotation_id');

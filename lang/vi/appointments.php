@@ -38,7 +38,7 @@ return [
     'customer'           => 'Khách hàng',
     'opportunity'        => 'Cơ hội',
     'actions'            => 'Thao tác',
-    'view_detail'        => 'Xem',
+    'view_detail'        => 'Xem chi tiết',
     'today'              => 'Hôm nay',
     'tomorrow'           => 'Ngày mai',
 

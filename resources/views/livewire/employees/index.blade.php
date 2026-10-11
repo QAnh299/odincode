@@ -221,9 +221,9 @@
                                     </span>
                                 </td>
                                 <td data-label="{{ __('employees.actions') }}" class="text-lg-end">
-                                    <a href="{{ $url }}" class="vc-btn vc-btn--ghost em-view" onclick="event.stopPropagation()">
-                                        <x-icon name="info" />{{ __('employees.view') }}
-                                        <span class="visually-hidden">{{ $employee->employee_id }}</span>
+                                    <a href="{{ $url }}" class="vc-icon-btn" onclick="event.stopPropagation()"
+                                        title="{{ __('employees.view') }}" aria-label="{{ __('employees.view') }} {{ $employee->employee_id }}">
+                                        <x-icon name="eye" />
                                     </a>
                                 </td>
                             </tr>
