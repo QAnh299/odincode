@@ -10,6 +10,10 @@ class CareResult extends Model
 {
     use HasFactory, HasStringId;
 
+    // Kết quả liên hệ
+    const RESULT_SUCCESS = 'Success';
+    const RESULT_FAILED = 'Failed';
+
     protected $table = 'CareResults';
 
     protected $primaryKey = 'result_id';

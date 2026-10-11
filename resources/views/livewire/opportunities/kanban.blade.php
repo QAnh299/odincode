@@ -19,8 +19,41 @@
         </p>
     </header>
 
+    {{-- ── Bộ lọc theo ngày chuyển đổi (ngày Lead được chia) ────────── --}}
+    @php $activePreset = $this->activePreset(); @endphp
+    <section class="vc-card ok-filter" aria-label="{{ __('opportunities.filter_title') }}">
+        <div class="vc-field">
+            <span class="vc-field__label">{{ __('opportunities.conversion_date') }}</span>
+            <div class="ok-presets" role="group">
+                @foreach (['', ...\App\Livewire\Opportunities\Kanban::PRESETS] as $preset)
+                    <button type="button" wire:click="applyPreset('{{ $preset }}')"
+                        class="ok-preset {{ $activePreset === $preset ? 'is-active' : '' }}"
+                        aria-pressed="{{ $activePreset === $preset ? 'true' : 'false' }}">
+                        {{ __('opportunities.preset.'.($preset ?: 'all')) }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        <label class="vc-field">
+            <span class="vc-field__label">{{ __('opportunities.from') }}</span>
+            <input type="date" wire:model.live="from" class="vc-control" max="{{ $to ?: '' }}">
+        </label>
+
+        <label class="vc-field">
+            <span class="vc-field__label">{{ __('opportunities.to') }}</span>
+            <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
+        </label>
+
+        <div class="vc-field vc-field--action">
+            <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetFilters" @disabled(! $this->hasFilters())>
+                <x-icon name="refresh" />{{ __('opportunities.reset') }}
+            </button>
+        </div>
+    </section>
+
     {{-- ── Bảng Kanban: mỗi cột một Stage ───────────────────────────── --}}
-    <div class="ok-board">
+    <div class="ok-board" wire:loading.class="is-loading">
         @foreach ($this->stages as $stage)
             @php $cards = $columns->get($stage->stage_id, collect()); @endphp
 

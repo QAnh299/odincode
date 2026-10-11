@@ -16,6 +16,47 @@
     color: var(--vc-ink);
 }
 
+/* ── Bộ lọc ngày chuyển đổi: nút chọn nhanh + Từ ngày – Đến ngày ───── */
+
+.ok-filter {
+    display: grid;
+    grid-template-columns: auto 170px 170px auto;
+    gap: 0.85rem;
+    align-items: end;
+    justify-content: start;
+}
+
+.ok-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.ok-preset {
+    height: 42px;
+    padding: 0 0.95rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ok-preset:hover {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+.ok-preset.is-active {
+    border-color: var(--vc-primary);
+    background: var(--vc-primary);
+    color: var(--vc-on-primary);
+}
+
 /* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
 
 .ok-board {
@@ -25,6 +66,12 @@
     gap: 1rem;
     padding-bottom: 0.75rem;
     overflow-x: auto;
+    transition: opacity 0.15s;
+}
+
+.ok-board.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* Mỗi stage một màu nhạt (theo sort_order): viền cột, vạch đầu cột, viền trái thẻ */
@@ -178,6 +225,17 @@
     gap: 0.3rem;
     color: var(--vc-muted);
     font-size: 0.78rem;
+}
+
+@media (max-width: 991.98px) {
+    .ok-filter {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ok-filter > .vc-field:first-child,
+    .ok-filter > .vc-field--action {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -402,5 +460,419 @@
     /* Thông tin khách hàng lên trước */
     .od-side {
         order: -1;
+    }
+}
+
+/* ── Tab Lịch sử chăm sóc / Lịch hẹn ───────────────────────────────── */
+
+.od-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--vc-border);
+    overflow-x: auto;
+}
+
+.od-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: -1px;
+    padding: 0.95rem 0.6rem 0.8rem;
+    border: 0;
+    border-bottom: 2.5px solid transparent;
+    background: transparent;
+    color: var(--vc-muted);
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.od-tab:hover {
+    color: var(--vc-ink);
+}
+
+.od-tab.is-active {
+    border-bottom-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+.od-tab__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+}
+
+.od-tab.is-active .od-tab__count {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.od-tabpanel {
+    padding: 1.25rem;
+    transition: opacity 0.15s;
+}
+
+.od-tabpanel.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ── Thẻ lịch hẹn ──────────────────────────────────────────────────── */
+
+.od-apt {
+    padding: 0.95rem 1.1rem;
+    border: 1px solid var(--vc-border);
+    border-left: 3px solid color-mix(in srgb, var(--tone) 50%, #fff);
+    border-radius: 14px;
+}
+
+.od-apt + .od-apt {
+    margin-top: 0.75rem;
+}
+
+.od-apt__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.od-apt__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    margin: 0.55rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.od-apt__meta li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.vc .od-apt__meta .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.od-apt__note {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.od-apt__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+}
+
+.od-apt__actions .vc-btn {
+    height: 36px;
+    font-size: 0.85rem;
+}
+
+.od-btn--success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.od-btn--success:hover {
+    border-color: #15803d;
+}
+
+.od-btn--danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.od-btn--danger:hover {
+    border-color: #b91c1c;
+}
+
+/* Lịch hẹn có loại đã đến, loại chưa / không đến */
+.od-apt--Mixed { --tone: #b45309; --tone-bg: #fef3c7; }
+
+.od-notice {
+    margin-bottom: 1rem;
+}
+
+/* Từng loại trong một lịch hẹn: Test / Tư vấn */
+.od-apt__rows {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.od-apt__row {
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    background: #f8faf8;
+}
+
+.od-apt__type {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.od-type {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.od-type--Test { color: #7c3aed; }
+.od-type--Consultation { color: #0369a1; }
+
+.od-apt__row .od-apt__note {
+    margin-top: 0.35rem;
+}
+
+.od-apt__row .od-apt__actions {
+    margin-top: 0.6rem;
+}
+
+/* ── Hàng nút Đổi lịch – Tạo lịch hẹn + form ──────────────────────── */
+
+.od-apt-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.od-apt-bar__hint {
+    flex: 1 1 220px;
+}
+
+.od-apt-bar .vc-btn {
+    height: 38px;
+    font-size: 0.86rem;
+}
+
+.od-apt-bar .vc-btn--ghost.is-on {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+.od-checks--stack {
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.od-resched__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.od-apt__wait {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.5rem 0 0;
+}
+
+.vc .od-apt__wait .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.od-create {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0.85rem;
+    margin-bottom: 1.1rem;
+    padding: 1rem 1.1rem;
+    border: 1.5px dashed color-mix(in srgb, var(--vc-primary) 40%, #fff);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--vc-primary) 3%, #fff);
+}
+
+.od-create__title {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.od-create__wide {
+    grid-column: 1 / -1;
+}
+
+.od-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+
+.od-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+}
+
+.od-check input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--vc-primary);
+}
+
+.od-check.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.od-textarea {
+    height: auto;
+    padding: 0.6rem 0.8rem;
+    resize: vertical;
+}
+
+@media (max-width: 575.98px) {
+    .od-create {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Ghi nhận liên hệ: chọn kết quả ────────────────────────────────── */
+
+.od-create__sub {
+    margin: -0.4rem 0 0;
+}
+
+.od-results {
+    gap: 0.5rem;
+}
+
+.od-result {
+    padding: 0.5rem 0.85rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 10px;
+    background: var(--vc-surface);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.od-result.is-on {
+    border-color: var(--tone);
+    background: var(--tone-bg);
+    color: var(--tone);
+}
+
+.od-result input {
+    accent-color: var(--tone);
+}
+
+/* Phần lịch hẹn trong form liên hệ thành công */
+.od-subform {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 0.85rem;
+    margin: 0;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    background: #f0fdf4;
+}
+
+.od-subform__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    color: #15803d;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.vc .od-subform__title .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.od-subform__sub {
+    grid-column: 1 / -1;
+    margin: -0.5rem 0 0;
+}
+
+@media (max-width: 575.98px) {
+    .od-subform {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Thời gian + cơ sở riêng cho từng loại lịch hẹn (Test / Tư vấn) */
+.od-slot {
+    display: grid;
+    grid-template-columns: 130px 220px minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: end;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+}
+
+.od-slot__type {
+    align-self: center;
+}
+
+/* Đổi lịch: ô thời gian / cơ sở mới ngay dưới từng lịch được tick */
+.od-picks {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.od-pick {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+}
+
+.od-pick.is-on {
+    border-color: color-mix(in srgb, var(--vc-primary) 45%, #fff);
+}
+
+.od-pick__fields {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.65rem;
+}
+
+@media (max-width: 767.98px) {
+    .od-slot,
+    .od-pick__fields {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
