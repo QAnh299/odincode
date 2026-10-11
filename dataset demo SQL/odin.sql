@@ -164,7 +164,6 @@ CREATE TABLE `Students` (
 CREATE TABLE `Appointments` (
   `appointment_id` VARCHAR(10) NOT NULL,
   `appointment_type` VARCHAR(50) NOT NULL,  
-  `location` VARCHAR(255) NULL,
   `scheduled_time` DATETIME NOT NULL,
   `status` VARCHAR(30) NOT NULL DEFAULT 'Scheduled',
   `notes` TEXT NULL,
@@ -516,35 +515,35 @@ VALUES
   ('STD004', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', '2003-07-29', '2026-09-22 11:30:00', 'Studying', 'OPP007');
 
 INSERT INTO `Appointments`
-  (`appointment_id`, `appointment_type`, `location`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
+  (`appointment_id`, `appointment_type`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
 VALUES
-  ('APT001', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-06 09:00:00', 'Success', 'Da tu van lo trinh IELTS.', 'EMP005', 'OPP002'),
-  ('APT002', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
-  ('APT003', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-07 15:30:00', 'Success', 'Da kiem tra dau vao.', 'EMP007', 'OPP005'),
-  ('APT003', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-07 15:30:00', 'Success', 'Da tu van lo trinh hoc.', 'EMP007', 'OPP005'),
-  ('APT004', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-16 10:00:00', 'Failed', 'Khach khong den, xin doi lich.', 'EMP005', 'OPP006'),
-  ('APT005', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-08 13:30:00', 'Scheduled', 'Tu van khoa IELTS Intensive.', 'EMP007', 'OPP007'),
+  ('APT001', 'Consultation', '2026-10-06 09:00:00', 'Success', 'Da tu van lo trinh IELTS.', 'EMP005', 'OPP002'),
+  ('APT002', 'Consultation', '2026-09-09 14:00:00', 'Success', 'Khach hang da chon khoa giao tiep.', 'EMP004', 'OPP001'),
+  ('APT003', 'Test', '2026-10-07 15:30:00', 'Success', 'Da kiem tra dau vao.', 'EMP007', 'OPP005'),
+  ('APT003', 'Consultation', '2026-10-07 15:30:00', 'Success', 'Da tu van lo trinh hoc.', 'EMP007', 'OPP005'),
+  ('APT004', 'Consultation', '2026-09-16 10:00:00', 'Failed', 'Khach khong den, xin doi lich.', 'EMP005', 'OPP006'),
+  ('APT005', 'Consultation', '2026-10-08 13:30:00', 'Scheduled', 'Tu van khoa IELTS Intensive.', 'EMP007', 'OPP007'),
   -- STG002: lịch đã qua giờ hẹn, chờ cập nhật kết quả (demo nút Khách đã đến / Khách không đến)
-  ('APT008', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-10 17:30:00', 'Scheduled', 'Phụ huynh đưa bé đến test trình độ.', 'EMP005', 'OPP016'),
-  ('APT010', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-10 15:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP007', 'OPP022'),
-  ('APT010', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-10-10 15:00:00', 'Scheduled', 'Tư vấn lộ trình sau khi có kết quả test.', 'EMP007', 'OPP022'),
+  ('APT008', 'Test', '2026-10-10 17:30:00', 'Scheduled', 'Phụ huynh đưa bé đến test trình độ.', 'EMP005', 'OPP016'),
+  ('APT010', 'Test', '2026-10-10 15:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP007', 'OPP022'),
+  ('APT010', 'Consultation', '2026-10-10 15:00:00', 'Scheduled', 'Tư vấn lộ trình sau khi có kết quả test.', 'EMP007', 'OPP022'),
   -- STG002: lịch hẹn sắp tới (demo đổi thời gian / địa điểm)
-  ('APT006', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-13 14:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP004', 'OPP010'),
-  ('APT006', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-13 14:00:00', 'Scheduled', 'Tư vấn lộ trình IELTS 7.0.', 'EMP004', 'OPP010'),
-  ('APT007', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-14 09:30:00', 'Scheduled', 'Tư vấn lộ trình IELTS Intensive.', 'EMP005', 'OPP015'),
-  ('APT009', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-16 18:00:00', 'Scheduled', 'Tư vấn khóa IELTS Intensive cho học viên cũ.', 'EMP005', 'OPP026'),
+  ('APT006', 'Test', '2026-10-13 14:00:00', 'Scheduled', 'Kiểm tra đầu vào IELTS.', 'EMP004', 'OPP010'),
+  ('APT006', 'Consultation', '2026-10-13 14:00:00', 'Scheduled', 'Tư vấn lộ trình IELTS 7.0.', 'EMP004', 'OPP010'),
+  ('APT007', 'Consultation', '2026-10-14 09:30:00', 'Scheduled', 'Tư vấn lộ trình IELTS Intensive.', 'EMP005', 'OPP015'),
+  ('APT009', 'Consultation', '2026-10-16 18:00:00', 'Scheduled', 'Tư vấn khóa IELTS Intensive cho học viên cũ.', 'EMP005', 'OPP026'),
   -- STG003: đã test và/hoặc tư vấn xong
-  ('APT011', 'Test', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-26 15:00:00', 'Success', 'Kết quả test đầu vào 4.5.', 'EMP004', 'OPP011'),
-  ('APT011', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-26 15:00:00', 'Success', 'Đã tư vấn khóa IELTS Foundation.', 'EMP004', 'OPP011'),
-  ('APT012', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-25 20:00:00', 'Success', 'Đã tư vấn lộ trình du học kèm IELTS.', 'EMP005', 'OPP017'),
-  ('APT013', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-29 18:30:00', 'Success', 'Kết quả test đầu vào 5.0.', 'EMP007', 'OPP023'),
-  ('APT013', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-29 18:30:00', 'Success', 'Đã tư vấn khóa IELTS Intensive.', 'EMP007', 'OPP023'),
+  ('APT011', 'Test', '2026-09-26 15:00:00', 'Success', 'Kết quả test đầu vào 4.5.', 'EMP004', 'OPP011'),
+  ('APT011', 'Consultation', '2026-09-26 15:00:00', 'Success', 'Đã tư vấn khóa IELTS Foundation.', 'EMP004', 'OPP011'),
+  ('APT012', 'Consultation', '2026-09-25 20:00:00', 'Success', 'Đã tư vấn lộ trình du học kèm IELTS.', 'EMP005', 'OPP017'),
+  ('APT013', 'Test', '2026-09-29 18:30:00', 'Success', 'Kết quả test đầu vào 5.0.', 'EMP007', 'OPP023'),
+  ('APT013', 'Consultation', '2026-09-29 18:30:00', 'Success', 'Đã tư vấn khóa IELTS Intensive.', 'EMP007', 'OPP023'),
   -- STG004: đã chốt (OPP018: lần 1 khách không đến, hẹn lại lần 2)
-  ('APT014', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-10-03 10:00:00', 'Success', 'Khách học thử và đồng ý đăng ký.', 'EMP004', 'OPP012'),
-  ('APT015', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-20 19:00:00', 'Failed', 'Khách bận, xin dời lịch.', 'EMP005', 'OPP018'),
-  ('APT016', 'Consultation', 'Trụ sở chính & Hội đồng thi IELTS - Số 01 Đông Tác, phường Kim Liên, Hà Nội', '2026-09-22 15:00:00', 'Success', 'Khách chốt lớp tối 2-4-6.', 'EMP005', 'OPP018'),
-  ('APT017', 'Test', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-24 16:30:00', 'Success', 'Hai bé test trình độ.', 'EMP007', 'OPP024'),
-  ('APT017', 'Consultation', 'Cơ sở 02 - Số 103 Trần Quốc Vượng, phường Cầu Giấy, Hà Nội', '2026-09-24 16:30:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids.', 'EMP007', 'OPP024');
+  ('APT014', 'Consultation', '2026-10-03 10:00:00', 'Success', 'Khách học thử và đồng ý đăng ký.', 'EMP004', 'OPP012'),
+  ('APT015', 'Consultation', '2026-09-20 19:00:00', 'Failed', 'Khách bận, xin dời lịch.', 'EMP005', 'OPP018'),
+  ('APT016', 'Consultation', '2026-09-22 15:00:00', 'Success', 'Khách chốt lớp tối 2-4-6.', 'EMP005', 'OPP018'),
+  ('APT017', 'Test', '2026-09-24 16:30:00', 'Success', 'Hai bé test trình độ.', 'EMP007', 'OPP024'),
+  ('APT017', 'Consultation', '2026-09-24 16:30:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids.', 'EMP007', 'OPP024');
 
 INSERT INTO `CareResults`
   (`result_id`, `performed_at`, `result`, `notes`, `activity_id`, `opportunity_id`, `employee_id`)

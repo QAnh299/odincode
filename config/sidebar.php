@@ -58,6 +58,7 @@ return [
                 'report_lead_sources',
             ],
             'leads',
+            'opportunities',
             'employees' => ['employee_list', 'sales_teams'],
             'quotations',
             'orders',
@@ -86,6 +87,7 @@ return [
 
         'sale_leader' => [
             'leads',
+            'opportunities',
             'employees',
             'quotations',
             'orders',

@@ -1,6 +1,6 @@
 {{--
     Các ô nhập lịch hẹn mới (dùng trong form Tạo lịch hẹn và form ghi nhận liên hệ thành công).
-    Mỗi loại được tick (Test / Tư vấn) có thời gian và cơ sở riêng.
+    Mỗi loại được tick (Test / Tư vấn) có thời gian riêng; địa điểm cố định là cơ sở của khách.
     Tham số: $allowedTypes – các loại được chọn.
 --}}
 <div class="vc-field od-create__wide">
@@ -18,7 +18,13 @@
     @error('newTypes.*') <span class="ld-error">{{ $message }}</span> @enderror
 </div>
 
-{{-- Thời gian + cơ sở cho từng loại đã tick --}}
+{{-- Địa điểm cố định: cơ sở của khách (test và tư vấn cùng một nơi) --}}
+<div class="vc-field od-create__wide">
+    <span class="vc-field__label">{{ __('opportunities.location') }}</span>
+    <p class="od-place"><x-icon name="tag" />{{ $this->appointmentPlace ?? '—' }}</p>
+</div>
+
+{{-- Thời gian cho từng loại đã tick --}}
 @foreach (\App\Models\Appointment::TYPES as $type)
     @if (in_array($type, $newTypes, true) && in_array($type, $allowedTypes, true))
         <div class="od-slot od-create__wide" wire:key="slot-{{ $type }}">
@@ -29,16 +35,6 @@
                 <input type="datetime-local" wire:model="newTimes.{{ $type }}" min="{{ now()->format('Y-m-d\TH:i') }}"
                     class="vc-control @error('newTimes.'.$type) is-invalid @enderror">
                 @error('newTimes.'.$type) <span class="ld-error">{{ $message }}</span> @enderror
-            </label>
-
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('opportunities.location') }} <span class="ld-req">*</span></span>
-                <select wire:model="newLocations.{{ $type }}" class="vc-control @error('newLocations.'.$type) is-invalid @enderror">
-                    @foreach ($this->branchOptions as $option)
-                        <option value="{{ $option }}">{{ $option }}</option>
-                    @endforeach
-                </select>
-                @error('newLocations.'.$type) <span class="ld-error">{{ $message }}</span> @enderror
             </label>
         </div>
     @endif

@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Lịch hẹn. Một lịch hẹn (cùng mã, thời gian, địa điểm) có thể gồm cả test và tư vấn:
- * mỗi loại một dòng, khoá chính ghép (appointment_id, appointment_type).
+ * Lịch hẹn. Một lịch hẹn (cùng mã) có thể gồm cả test và tư vấn: mỗi loại một dòng,
+ * khoá chính ghép (appointment_id, appointment_type). Địa điểm là cơ sở của khách (Leads.branch_id).
  */
 class Appointment extends Model
 {
@@ -41,7 +41,6 @@ class Appointment extends Model
     protected $fillable = [
         'appointment_id',
         'appointment_type',
-        'location',
         'scheduled_time',
         'status',
         'notes',

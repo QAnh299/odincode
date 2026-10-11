@@ -6,6 +6,8 @@ use App\Livewire\Employees\Index as EmployeeIndex;
 use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Leads\Index as LeadIndex;
+use App\Livewire\Opportunities\Kanban as OpportunityKanban;
+use App\Livewire\Opportunities\Show as OpportunityShow;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
@@ -20,6 +22,11 @@ Route::get('/', Home::class)->name('home');
 
 // Quản lý Lead (dùng chung Giám đốc, Sale Admin, Sale Leader)
 Route::get('/leads', LeadIndex::class)->name('leads');
+
+// Quản lý cơ hội – Kanban theo Stage + chi tiết (Sale Leader: đội mình, Giám đốc: tất cả; chỉ xem,
+// Sale Leader được chuyển người phụ trách)
+Route::get('/opportunities', OpportunityKanban::class)->name('opportunities');
+Route::get('/opportunities/{opportunity}', OpportunityShow::class)->name('opportunities.show');
 
 // Quản lý nhân viên – xem danh sách, chi tiết (Sale Leader chỉ thấy nhân viên trong đội của mình)
 Route::get('/employees', EmployeeIndex::class)->name('employees');

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasStringId;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,6 +43,22 @@ class Opportunity extends Model
         return $this->expected_value === null
             ? null
             : number_format((float) $this->expected_value, 0, ',', '.').' ₫';
+    }
+
+    /**
+     * Cơ hội mà nhân viên được phép xem:
+     * Giám đốc / Sale Admin xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
+     */
+    public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
+    {
+        return match ($employee?->role_name) {
+            Role::DIRECTOR, Role::SALE_ADMIN => $query,
+            Role::SALE_LEADER => $employee->team_id
+                ? $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id))
+                : $query->whereRaw('1 = 0'),
+            Role::SALESPERSON => $query->where('employee_id', $employee->employee_id),
+            default           => $query->whereRaw('1 = 0'),
+        };
     }
 
     public function lead()

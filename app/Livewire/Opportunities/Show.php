@@ -3,10 +3,11 @@
 namespace App\Livewire\Opportunities;
 
 use App\Models\Appointment;
-use App\Models\Branch;
 use App\Models\CareActivity;
 use App\Models\CareResult;
+use App\Models\Employee;
 use App\Models\Opportunity;
+use App\Models\Role;
 use App\Models\Stage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -19,12 +20,15 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Chi tiết Opportunity của Salesperson: thanh giai đoạn, thông tin khách hàng,
+ * Chi tiết Opportunity: thanh giai đoạn, thông tin khách hàng,
  * 2 tab Lịch sử chăm sóc (mặc định) / Lịch hẹn, và báo giá.
- * Chỉ xem được Opportunity do chính mình phụ trách.
+ * Dùng chung cho Salesperson, Sale Leader, Giám đốc – xem được theo Opportunity::visibleTo().
+ * Mọi thao tác (liên hệ, lịch hẹn, báo giá) chỉ dành cho salesperson đang phụ trách;
+ * Sale Leader / Giám đốc chỉ xem. Sale Leader được chuyển người phụ trách sang salesperson khác
+ * trong đội (khi cơ hội chưa tới stage Chốt) – lịch hẹn đang chờ chuyển theo.
  *
- * Lịch hẹn: mỗi mã lịch hẹn gồm 1–2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian,
- * địa điểm (chọn trong các cơ sở đang hoạt động) và kết quả riêng. Hàng nút ở đầu tab: Đổi lịch – Tạo lịch hẹn.
+ * Lịch hẹn: mỗi mã lịch hẹn gồm 1–2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
+ * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch – Tạo lịch hẹn.
  *   - Đổi lịch: chọn dòng muốn đổi (chưa tới giờ hẹn, chưa có kết quả) rồi nhập thời gian / địa điểm mới.
  *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
  *     đúng các loại đó. Lịch hẹn đầu tiên tạo khi ghi nhận liên hệ thành công. Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
@@ -51,6 +55,14 @@ class Show extends Component
     // Thông báo sau khi thao tác lịch hẹn: ['tone' => success|danger, 'text' => ...]
     public ?array $notice = null;
 
+    // Chuyển người phụ trách (Sale Leader)
+    public bool $reassigning = false;
+
+    public string $newOwner = '';
+
+    // Popup chuyển thành công: ['from' => tên cũ, 'to' => tên mới, 'moved' => số lịch hẹn đang chờ đã chuyển]
+    public ?array $reassigned = null;
+
     // Form đang mở: null | 'care' (tab Lịch sử chăm sóc) | 'create' | 'reschedule' (tab Lịch hẹn)
     public ?string $form = null;
 
@@ -64,25 +76,26 @@ class Show extends Component
     // Form tạo lịch hẹn
     public array $newTypes = [];
 
-    // Thời gian / cơ sở riêng cho từng loại: ['Test' => ..., 'Consultation' => ...]
+    // Thời gian riêng cho từng loại: ['Test' => ..., 'Consultation' => ...]
     public array $newTimes = [];
-
-    public array $newLocations = [];
 
     public string $newNotes = '';
 
-    // Form đổi lịch: các dòng được chọn, dạng "APT006-Test"; thời gian / cơ sở mới riêng cho từng dòng
+    // Form đổi lịch: các dòng được chọn, dạng "APT006-Test"; thời gian mới riêng cho từng dòng
     public array $editKeys = [];
 
     public array $editTimes = [];
 
-    public array $editLocations = [];
-
     public function mount(Opportunity $opportunity): void
     {
-        abort_unless($opportunity->employee_id === $this->employeeId(), 404);
+        abort_unless(
+            Opportunity::query()->visibleTo(Auth::user()->employee)->whereKey($opportunity->getKey())->exists(),
+            404
+        );
 
-        $this->opportunity = $opportunity->load(['lead.branch:branch_id,branch_name,address', 'stage', 'student']);
+        $this->opportunity = $opportunity->load([
+            'lead.branch:branch_id,branch_name,address', 'stage', 'student', 'employee.team:team_id,team_name',
+        ]);
     }
 
     public function setTab(string $tab): void
@@ -99,7 +112,7 @@ class Show extends Component
 
     public function closeForm(): void
     {
-        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newLocations', 'newNotes', 'editKeys', 'editTimes', 'editLocations');
+        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newNotes', 'editKeys', 'editTimes');
         $this->resetValidation();
     }
 
@@ -221,6 +234,8 @@ class Show extends Component
      */
     public function markAppointment(string $appointmentId, string $type, string $status): void
     {
+        abort_unless($this->isOwner(), 403);
+
         $this->tab = 'appointments';
 
         if (! in_array($status, [Appointment::STATUS_SUCCESS, Appointment::STATUS_FAILED], true)) {
@@ -283,6 +298,10 @@ class Show extends Component
      */
     public function canCreateAppointment(): bool
     {
+        if (! $this->isOwner()) {
+            return false;
+        }
+
         $closed = $this->stages->firstWhere('stage_id', Stage::CLOSED);
 
         return $closed && $this->stageOrder() < $closed->sort_order;
@@ -316,28 +335,14 @@ class Show extends Component
     }
 
     /**
-     * Địa điểm lịch hẹn: chỉ chọn trong các cơ sở đang hoạt động, lưu dạng "Tên cơ sở - Địa chỉ".
+     * Địa điểm lịch hẹn: cố định là cơ sở của khách (Leads.branch_id) – "Tên cơ sở - Địa chỉ".
      */
     #[Computed]
-    public function branchOptions(): array
-    {
-        return Branch::query()
-            ->where('status', 'Active')
-            ->orderBy('branch_id')
-            ->get(['branch_name', 'address'])
-            ->map(fn ($b) => $b->branch_name.' - '.$b->address)
-            ->all();
-    }
-
-    /**
-     * Cơ sở mặc định: cơ sở của khách (nếu đang hoạt động), không thì cơ sở đầu tiên.
-     */
-    protected function defaultLocation(): string
+    public function appointmentPlace(): ?string
     {
         $branch = $this->opportunity->lead?->branch;
-        $own = $branch ? $branch->branch_name.' - '.$branch->address : null;
 
-        return in_array($own, $this->branchOptions, true) ? $own : ($this->branchOptions[0] ?? '');
+        return $branch ? $branch->branch_name.' - '.$branch->address : null;
     }
 
     public function startCreate(): void
@@ -371,18 +376,17 @@ class Show extends Component
     }
 
     /**
-     * Thời gian trống, cơ sở mặc định là cơ sở của khách – cho từng loại lịch hẹn.
+     * Thời gian trống cho từng loại lịch hẹn.
      */
     protected function fillNewDefaults(): void
     {
         $this->newTimes = array_fill_keys(Appointment::TYPES, '');
-        $this->newLocations = array_fill_keys(Appointment::TYPES, $this->defaultLocation());
     }
 
     /**
-     * Kiểm tra form lịch hẹn (newTypes, newTimes, newLocations, newNotes) – dùng cho cả
+     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) – dùng cho cả
      * nút "Tạo lịch hẹn" và form ghi nhận liên hệ thành công.
-     * Mỗi loại được chọn (Test / Tư vấn) có thời gian và cơ sở riêng.
+     * Mỗi loại được chọn (Test / Tư vấn) có thời gian riêng; địa điểm là cơ sở của khách.
      */
     protected function appointmentRules(array $allowedTypes): array
     {
@@ -394,7 +398,6 @@ class Show extends Component
 
         foreach (array_intersect(Appointment::TYPES, $this->newTypes) as $type) {
             $rules["newTimes.$type"] = ['required', 'date', 'after:now'];
-            $rules["newLocations.$type"] = ['required', Rule::in($this->branchOptions)];
         }
 
         return $rules;
@@ -407,7 +410,6 @@ class Show extends Component
             'newTypes.min'       => __('opportunities.apt_type_required'),
             'newTypes.*.in'      => __('opportunities.apt_type_not_allowed'),
             'newTimes.*.after'   => __('opportunities.apt_time_future'),
-            'newLocations.*.in'  => __('opportunities.apt_location_invalid'),
         ];
     }
 
@@ -418,14 +420,13 @@ class Show extends Component
         foreach (Appointment::TYPES as $type) {
             $name = __('opportunities.appointment_type_name.'.$type);
             $attributes["newTimes.$type"] = __('opportunities.appointment_time').' ('.$name.')';
-            $attributes["newLocations.$type"] = __('opportunities.location').' ('.$name.')';
         }
 
         return $attributes;
     }
 
     /**
-     * Ghi lịch hẹn mới từ form (mỗi loại một dòng, cùng mã, thời gian / cơ sở riêng). Lịch hẹn đầu tiên chuyển
+     * Ghi lịch hẹn mới từ form (mỗi loại một dòng, cùng mã, thời gian riêng). Lịch hẹn đầu tiên chuyển
      * "Data chưa tương tác" → "Data đã có lịch hẹn". Gọi trong transaction.
      * Trả về [mã lịch hẹn, đã chuyển stage hay chưa].
      */
@@ -437,7 +438,6 @@ class Show extends Component
             DB::table('Appointments')->insert([
                 'appointment_id'   => $id,
                 'appointment_type' => $type,
-                'location'         => $this->newLocations[$type],
                 'scheduled_time'   => Carbon::parse($this->newTimes[$type]),
                 'status'           => Appointment::STATUS_SCHEDULED,
                 'notes'            => trim($this->newNotes) ?: null,
@@ -502,7 +502,7 @@ class Show extends Component
     }
 
     /**
-     * Tick thêm lịch nào thì điền sẵn thời gian / cơ sở hiện tại của lịch đó.
+     * Tick thêm lịch nào thì điền sẵn thời gian hiện tại của lịch đó.
      */
     public function updatedEditKeys(): void
     {
@@ -521,8 +521,6 @@ class Show extends Component
 
         if ($row) {
             $this->editTimes[$key] = $row->scheduled_time->format('Y-m-d\TH:i');
-            // Lịch cũ ở địa điểm không còn trong danh sách cơ sở → gợi ý cơ sở của khách
-            $this->editLocations[$key] = in_array($row->location, $this->branchOptions, true) ? $row->location : $this->defaultLocation();
         }
     }
 
@@ -538,9 +536,7 @@ class Show extends Component
 
         foreach ($this->editKeys as $key) {
             $rules["editTimes.$key"] = ['required', 'date', 'after:now'];
-            $rules["editLocations.$key"] = ['required', Rule::in($this->branchOptions)];
             $attributes["editTimes.$key"] = __('opportunities.new_time').' ('.($options[$key] ?? $key).')';
-            $attributes["editLocations.$key"] = __('opportunities.new_location').' ('.($options[$key] ?? $key).')';
         }
 
         $this->validate($rules, [
@@ -548,7 +544,6 @@ class Show extends Component
             'editKeys.min'       => __('opportunities.apt_pick_required'),
             'editKeys.*.in'      => __('opportunities.apt_cannot_reschedule'),
             'editTimes.*.after'  => __('opportunities.apt_time_future'),
-            'editLocations.*.in' => __('opportunities.apt_location_invalid'),
         ], $attributes);
 
         DB::transaction(function () {
@@ -560,10 +555,7 @@ class Show extends Component
                     ->where('appointment_type', $type)
                     ->where('status', Appointment::STATUS_SCHEDULED)
                     ->where('scheduled_time', '>', now())
-                    ->update([
-                        'scheduled_time' => Carbon::parse($this->editTimes[$key]),
-                        'location'       => $this->editLocations[$key],
-                    ]);
+                    ->update(['scheduled_time' => Carbon::parse($this->editTimes[$key])]);
             }
         });
 
@@ -577,6 +569,96 @@ class Show extends Component
     protected function employeeId(): ?string
     {
         return Auth::user()->employee?->employee_id;
+    }
+
+    #[Computed]
+    public function routePrefix(): string
+    {
+        return (string) Auth::user()->role_name;
+    }
+
+    /**
+     * Salesperson đang phụ trách cơ hội – người duy nhất được thao tác.
+     */
+    public function isOwner(): bool
+    {
+        return $this->routePrefix === Role::SALESPERSON
+            && $this->opportunity->employee_id === $this->employeeId();
+    }
+
+    // ── Chuyển người phụ trách (Sale Leader) ──────────────────────────
+
+    /**
+     * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách),
+     * chỉ khi cơ hội chưa tới stage Chốt.
+     */
+    #[Computed]
+    public function reassignOptions(): Collection
+    {
+        $me = Auth::user()->employee;
+        $closed = $this->stages->firstWhere('stage_id', Stage::CLOSED);
+
+        if ($this->routePrefix !== Role::SALE_LEADER || ! $me?->team_id
+            || ! $closed || $this->stageOrder() >= $closed->sort_order) {
+            return collect();
+        }
+
+        return Employee::query()
+            ->where('team_id', $me->team_id)
+            ->where('status', 'Working')
+            ->where('employee_id', '!=', $this->opportunity->employee_id)
+            ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
+            ->orderBy('full_name')
+            ->get(['employee_id', 'full_name']);
+    }
+
+    public function startReassign(): void
+    {
+        $this->resetValidation('newOwner');
+        $this->reassigned = null;
+        $this->reassigning = $this->reassignOptions->isNotEmpty();
+        $this->newOwner = '';
+    }
+
+    public function cancelReassign(): void
+    {
+        $this->reset('reassigning', 'newOwner');
+        $this->resetValidation('newOwner');
+    }
+
+    public function reassign(): void
+    {
+        $options = $this->reassignOptions;
+        abort_unless($options->isNotEmpty(), 403);
+
+        $this->validate(
+            ['newOwner' => ['required', Rule::in($options->pluck('employee_id')->all())]],
+            ['newOwner.required' => __('opportunities.reassign_required'), 'newOwner.in' => __('opportunities.reassign_required')],
+        );
+
+        $from = $this->opportunity->employee?->full_name;
+
+        $moved = DB::transaction(function () {
+            // Lịch hẹn đang chờ chuyển sang người mới; lịch đã có kết quả và lịch sử chăm sóc giữ nguyên người thực hiện
+            $moved = DB::table('Appointments')
+                ->where('opportunity_id', $this->opportunity->opportunity_id)
+                ->where('status', Appointment::STATUS_SCHEDULED)
+                ->update(['employee_id' => $this->newOwner]);
+
+            $this->opportunity->update(['employee_id' => $this->newOwner]);
+
+            return $moved;
+        });
+
+        $this->opportunity->load('employee.team:team_id,team_name');
+        $this->cancelReassign();
+        $this->reassigned = ['from' => $from, 'to' => $this->opportunity->employee->full_name, 'moved' => $moved];
+        unset($this->reassignOptions, $this->appointments, $this->careResults);
+    }
+
+    public function closeReassigned(): void
+    {
+        $this->reassigned = null;
     }
 
     protected function stageOrder(): int
@@ -608,7 +690,10 @@ class Show extends Component
     #[Computed]
     public function careResults(): Collection
     {
-        return $this->opportunity->careResults()->with('activity')->orderByDesc('performed_at')->get();
+        return $this->opportunity->careResults()
+            ->with(['activity', 'employee:employee_id,full_name'])
+            ->orderByDesc('performed_at')
+            ->get();
     }
 
     /**
@@ -620,13 +705,14 @@ class Show extends Component
     {
         $now = now();
         $open = $this->canCreateAppointment();
+        $owner = $this->isOwner();
 
         return $this->opportunity->appointments()
             ->orderBy('scheduled_time')
             ->get()
-            ->each(function ($row) use ($now, $open) {
+            ->each(function ($row) use ($now, $open, $owner) {
                 $pending = $row->status === Appointment::STATUS_SCHEDULED;
-                $row->can_mark = $pending && $row->scheduled_time->lte($now);
+                $row->can_mark = $owner && $pending && $row->scheduled_time->lte($now);
                 $row->can_reschedule = $open && $pending && $row->scheduled_time->gt($now);
             })
             ->groupBy('appointment_id')
@@ -649,9 +735,12 @@ class Show extends Component
             ->get();
     }
 
+    /**
+     * Nút "Tạo báo giá": chỉ salesperson phụ trách, ở stage Chốt.
+     */
     public function canCreateQuotation(): bool
     {
-        return $this->opportunity->stage_id === Stage::CLOSED;
+        return $this->isOwner() && $this->opportunity->stage_id === Stage::CLOSED;
     }
 
     /**
@@ -659,7 +748,7 @@ class Show extends Component
      */
     public function showQuotations(): bool
     {
-        return $this->canCreateQuotation() || $this->quotations->isNotEmpty();
+        return $this->opportunity->stage_id === Stage::CLOSED || $this->quotations->isNotEmpty();
     }
 
     public function render()

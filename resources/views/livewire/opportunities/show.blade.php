@@ -15,11 +15,11 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ route('salesperson.opportunities') }}" class="vc-crumb__back">
+        <a href="{{ route($this->routePrefix.'.opportunities') }}" class="vc-crumb__back">
             <x-icon name="arrow-left" />{{ __('opportunities.back') }}
         </a>
         <span class="vc-crumb__path">
-            <a href="{{ route('salesperson.opportunities') }}">{{ __('opportunities.title') }}</a>
+            <a href="{{ route($this->routePrefix.'.opportunities') }}">{{ __('opportunities.title') }}</a>
             <x-icon name="chevron" />
             <span aria-current="page">{{ $opp->opportunity_id }}</span>
         </span>
@@ -31,6 +31,9 @@
             <div class="od-head__title">
                 <span class="vc-mono">{{ $opp->opportunity_id }}</span>
                 <h1>{{ $lead?->full_name ?? '—' }}</h1>
+                @unless ($this->isOwner())
+                    <span class="od-readonly"><x-icon name="info" />{{ __('opportunities.read_only') }}</span>
+                @endunless
             </div>
 
             @if ($this->canCreateQuotation())
@@ -147,6 +150,7 @@
                                 <h3 class="od-create__title">{{ __('opportunities.reschedule') }}</h3>
 
                                 <div class="vc-field od-create__wide">
+                                    <p class="od-place od-place--top"><x-icon name="tag" />{{ $this->appointmentPlace ?? '—' }}</p>
                                     <span class="vc-field__label">{{ __('opportunities.apt_pick') }} <span class="ld-req">*</span></span>
                                     <div class="od-picks">
                                         @foreach ($reschedulable as $key => $optionLabel)
@@ -163,15 +167,6 @@
                                                             <input type="datetime-local" wire:model="editTimes.{{ $key }}" min="{{ now()->format('Y-m-d\TH:i') }}"
                                                                 class="vc-control @error('editTimes.'.$key) is-invalid @enderror">
                                                             @error('editTimes.'.$key) <span class="ld-error">{{ $message }}</span> @enderror
-                                                        </label>
-                                                        <label class="vc-field">
-                                                            <span class="vc-field__label">{{ __('opportunities.new_location') }} <span class="ld-req">*</span></span>
-                                                            <select wire:model="editLocations.{{ $key }}" class="vc-control @error('editLocations.'.$key) is-invalid @enderror">
-                                                                @foreach ($this->branchOptions as $option)
-                                                                    <option value="{{ $option }}">{{ $option }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                            @error('editLocations.'.$key) <span class="ld-error">{{ $message }}</span> @enderror
                                                         </label>
                                                     </div>
                                                 @endif
@@ -202,6 +197,9 @@
                                     <strong>{{ __('opportunities.appointment_no', ['no' => $group['no']]) }}</strong>
                                     <span class="od-muted">{{ $group['id'] }}</span>
                                 </div>
+                                @if ($this->appointmentPlace)
+                                    <p class="od-place od-place--card"><x-icon name="tag" />{{ $this->appointmentPlace }}</p>
+                                @endif
 
                                 {{-- Từng loại: Test / Tư vấn – thời gian, địa điểm, kết quả riêng --}}
                                 <ul class="od-apt__rows">
@@ -218,9 +216,6 @@
 
                                             <ul class="od-apt__meta">
                                                 <li><x-icon name="calendar" />{{ $row->scheduled_time->format('d/m/Y H:i') }}</li>
-                                                @if ($row->location)
-                                                    <li><x-icon name="tag" />{{ $row->location }}</li>
-                                                @endif
                                             </ul>
 
                                             @if ($row->notes)
@@ -321,7 +316,8 @@
 
                         {{-- Lịch sử chăm sóc: các lần liên hệ, mới nhất lên đầu --}}
                         @forelse ($cares as $care)
-                            <div class="od-timeline__item od-res--{{ $care->result }}" wire:key="care-{{ $care->result_id }}">
+                            @php $byCurrent = $care->employee_id === $opp->employee_id; @endphp
+                            <div class="od-timeline__item od-res--{{ $care->result }} {{ $byCurrent ? '' : 'is-previous' }}" wire:key="care-{{ $care->result_id }}">
                                 <span class="od-timeline__dot"></span>
                                 <div class="od-timeline__body">
                                     <div class="od-timeline__head">
@@ -333,7 +329,13 @@
                                     @if ($care->notes)
                                         <p class="od-timeline__note">{{ $care->notes }}</p>
                                     @endif
-                                    <span class="od-muted">{{ $care->performed_at?->format('d/m/Y H:i') }}</span>
+                                    <div class="od-timeline__by">
+                                        <span class="od-muted">{{ $care->performed_at?->format('d/m/Y H:i') }}</span>
+                                        <span class="od-by {{ $byCurrent ? 'od-by--current' : 'od-by--previous' }}">
+                                            <x-icon name="user" />{{ $care->employee?->full_name ?? '—' }}
+                                            · {{ $byCurrent ? __('opportunities.by_current') : __('opportunities.by_previous') }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         @empty
@@ -350,7 +352,7 @@
                     <h2 class="od-title od-title--bar">{{ __('opportunities.quotations') }}</h2>
 
                     @if ($quotations->isEmpty())
-                        <p class="od-empty od-empty--pad">{{ __('opportunities.no_quotations_closed') }}</p>
+                        <p class="od-empty od-empty--pad">{{ $this->isOwner() ? __('opportunities.no_quotations_closed') : __('opportunities.no_quotations_yet') }}</p>
                     @else
                         <div class="vc-table-wrap">
                             <table class="vc-table vc-table--static">
@@ -434,6 +436,13 @@
             <section class="vc-card">
                 <h2 class="od-title">{{ __('opportunities.info') }}</h2>
                 <dl class="od-info">
+                    <dt>{{ __('opportunities.owner') }}</dt>
+                    <dd>
+                        {{ $opp->employee?->full_name ?? '—' }}
+                        @if ($opp->employee?->team)
+                            <span class="od-muted">· {{ $opp->employee->team->team_name }}</span>
+                        @endif
+                    </dd>
                     <dt>{{ __('opportunities.expected_value') }}</dt>
                     <dd><span class="vc-value">{{ $opp->displayValue() ?? __('opportunities.no_value') }}</span></dd>
                     <dt>{{ __('opportunities.stage') }}</dt>
@@ -448,7 +457,66 @@
                         </dd>
                     @endif
                 </dl>
+
+                {{-- Sale Leader: chuyển người phụ trách (chưa tới stage Chốt) --}}
+                @if ($this->reassignOptions->isNotEmpty())
+                    @if ($reassigning)
+                        <form class="od-reassign" wire:submit="reassign">
+                            <label class="vc-field">
+                                <span class="vc-field__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></span>
+                                <select wire:model="newOwner" class="vc-control @error('newOwner') is-invalid @enderror">
+                                    <option value="">{{ __('opportunities.reassign_choose') }}</option>
+                                    @foreach ($this->reassignOptions as $option)
+                                        <option value="{{ $option->employee_id }}">{{ $option->full_name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('newOwner') <span class="ld-error">{{ $message }}</span> @enderror
+                            </label>
+                            <p class="od-muted od-reassign__hint">{{ __('opportunities.reassign_hint') }}</p>
+                            <div class="od-resched__actions">
+                                <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
+                                <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
+                                    wire:confirm="{{ __('opportunities.reassign_confirm') }}">
+                                    <x-icon name="check" />{{ __('opportunities.reassign_save') }}
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        <button type="button" class="vc-btn vc-btn--ghost od-reassign__open" wire:click="startReassign">
+                            <x-icon name="users" />{{ __('opportunities.reassign') }}
+                        </button>
+                    @endif
+                @endif
             </section>
         </aside>
     </div>
+    {{-- Popup: chuyển người phụ trách thành công --}}
+    @if ($reassigned)
+        <div class="ld-modal" wire:key="modal-reassigned" x-data x-on:keydown.escape.window="$wire.closeReassigned()">
+            <div class="ld-modal__backdrop" wire:click="closeReassigned"></div>
+            <div class="ld-modal__dialog od-success" role="alertdialog" aria-modal="true" aria-labelledby="od-reassigned-title">
+                <div class="ld-modal__body od-success__body">
+                    <span class="od-success__icon"><x-icon name="check-circle" /></span>
+                    <h2 class="ld-modal__title" id="od-reassigned-title">{{ __('opportunities.reassigned_title') }}</h2>
+                    <p class="od-success__text">
+                        {!! __('opportunities.reassigned_text', [
+                            'code' => '<strong>'.e($opp->opportunity_id).'</strong>',
+                            'from' => '<strong>'.e($reassigned['from'] ?? '—').'</strong>',
+                            'to'   => '<strong>'.e($reassigned['to']).'</strong>',
+                        ]) !!}
+                    </p>
+                    <p class="od-muted">
+                        {{ $reassigned['moved']
+                            ? __('opportunities.reassigned_moved', ['count' => $reassigned['moved']])
+                            : __('opportunities.reassigned_no_pending') }}
+                    </p>
+                </div>
+                <footer class="ld-modal__foot od-success__foot">
+                    <button type="button" class="vc-btn vc-btn--primary" wire:click="closeReassigned" autofocus>
+                        {{ __('leads.close') }}
+                    </button>
+                </footer>
+            </div>
+        </div>
+    @endif
 </div>

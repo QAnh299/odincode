@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Opportunities;
 
+use App\Models\Employee;
 use App\Models\Opportunity;
+use App\Models\Role;
+use App\Models\SalesTeam;
 use App\Models\Stage;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -13,8 +16,12 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Quản lý Opportunity của Salesperson dạng Kanban (giống Odoo CRM):
- * mỗi cột là một Stage (theo sort_order), mỗi thẻ là một Opportunity do chính mình phụ trách.
+ * Quản lý Opportunity dạng Kanban (giống Odoo CRM): mỗi cột là một Stage (theo sort_order).
+ * Dùng chung cho Salesperson, Sale Leader, Giám đốc – phạm vi theo Opportunity::visibleTo():
+ *   - Salesperson: cơ hội do chính mình phụ trách.
+ *   - Sale Leader: cơ hội của đội mình; lọc được theo salesperson trong đội.
+ *   - Giám đốc: tất cả; lọc theo đội, chọn đội rồi mới lọc được theo salesperson của đội đó.
+ * Leader / Giám đốc thấy tên người phụ trách trên thẻ.
  * Không hiển thị trạng thái vì mỗi stage đã tương ứng một trạng thái.
  *
  * Bộ lọc theo ngày chuyển đổi (ngày Lead được chia cho salesperson):
@@ -34,6 +41,20 @@ class Kanban extends Component
     #[Url(except: '')]
     public string $to = '';
 
+    // Đội (Giám đốc) – '' = Tất cả đội; luôn đọc qua activeTeam
+    #[Url(except: '')]
+    public string $team = '';
+
+    // Salesperson (Sale Leader, Giám đốc) – '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
+    #[Url(except: '')]
+    public string $employee = '';
+
+    // Đổi đội thì bỏ chọn salesperson (danh sách salesperson phụ thuộc đội)
+    public function updatedTeam(): void
+    {
+        $this->employee = '';
+    }
+
     /**
      * Bấm nút chọn nhanh: điền Từ ngày – Đến ngày; '' = Tất cả.
      */
@@ -44,12 +65,75 @@ class Kanban extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('from', 'to');
+        $this->reset('from', 'to', 'team', 'employee');
     }
 
     public function hasFilters(): bool
     {
-        return $this->from !== '' || $this->to !== '';
+        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '';
+    }
+
+    // ── Phạm vi theo vai trò ──────────────────────────────────────────
+
+    #[Computed]
+    public function me(): ?Employee
+    {
+        return Auth::user()->employee;
+    }
+
+    #[Computed]
+    public function routePrefix(): string
+    {
+        return (string) Auth::user()->role_name;
+    }
+
+    public function isSalesperson(): bool
+    {
+        return $this->routePrefix === Role::SALESPERSON;
+    }
+
+    #[Computed]
+    public function canFilterTeam(): bool
+    {
+        return $this->routePrefix === Role::DIRECTOR;
+    }
+
+    #[Computed]
+    public function teams(): Collection
+    {
+        return $this->canFilterTeam
+            ? SalesTeam::query()->orderBy('team_name')->get(['team_id', 'team_name'])
+            : collect();
+    }
+
+    /**
+     * Đội đang xem: Giám đốc = đội đã chọn; Sale Leader = đội của mình.
+     */
+    #[Computed]
+    public function activeTeam(): ?SalesTeam
+    {
+        return match ($this->routePrefix) {
+            Role::DIRECTOR    => $this->teams->firstWhere('team_id', $this->team),
+            Role::SALE_LEADER => $this->me?->team_id ? SalesTeam::find($this->me->team_id) : null,
+            default           => null,
+        };
+    }
+
+    /**
+     * Salesperson của đội đang xem (cho bộ lọc).
+     */
+    #[Computed]
+    public function employeeOptions(): Collection
+    {
+        if ($this->isSalesperson() || ! $this->activeTeam) {
+            return collect();
+        }
+
+        return Employee::query()
+            ->where('team_id', $this->activeTeam->team_id)
+            ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
+            ->orderBy('full_name')
+            ->get(['employee_id', 'full_name', 'status']);
     }
 
     /**
@@ -102,10 +186,14 @@ class Kanban extends Component
     public function render()
     {
         $opportunities = Opportunity::query()
-            ->where('employee_id', Auth::user()->employee?->employee_id)
+            ->visibleTo($this->me)
+            ->when($this->activeTeam && $this->canFilterTeam,
+                fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id)))
+            ->when($this->employeeOptions->contains('employee_id', $this->employee),
+                fn ($q) => $q->where('employee_id', $this->employee))
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
-            ->with('lead:lead_id,full_name,phone,email,source_name,contact_method')
+            ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
             ->orderByDesc('conversion_date')
             ->get();
 

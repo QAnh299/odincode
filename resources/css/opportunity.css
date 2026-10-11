@@ -19,11 +19,19 @@
 /* ── Bộ lọc ngày chuyển đổi: nút chọn nhanh + Từ ngày – Đến ngày ───── */
 
 .ok-filter {
-    display: grid;
-    grid-template-columns: auto 170px 170px auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.85rem;
-    align-items: end;
-    justify-content: start;
+    align-items: flex-end;
+}
+
+.ok-filter > label.vc-field:not(.ok-filter__select) {
+    width: 170px;
+}
+
+/* Đội / Salesperson (Sale Leader, Giám đốc) */
+.ok-filter__select {
+    width: 200px;
 }
 
 .ok-presets {
@@ -219,6 +227,22 @@
     font-size: 0.75rem;
 }
 
+/* Người phụ trách (Sale Leader, Giám đốc) */
+.ok-card__owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--vc-ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.vc .ok-card__owner .odin-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--vc-muted);
+}
+
 .ok-card__date {
     display: inline-flex;
     align-items: center;
@@ -228,13 +252,14 @@
 }
 
 @media (max-width: 991.98px) {
-    .ok-filter {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .ok-filter > .vc-field:first-child {
+        flex-basis: 100%;
     }
 
-    .ok-filter > .vc-field:first-child,
-    .ok-filter > .vc-field--action {
-        grid-column: 1 / -1;
+    .ok-filter > label.vc-field,
+    .ok-filter > label.vc-field:not(.ok-filter__select) {
+        flex: 1 1 calc(50% - 0.85rem);
+        width: auto;
     }
 }
 
@@ -833,7 +858,7 @@
 /* Thời gian + cơ sở riêng cho từng loại lịch hẹn (Test / Tư vấn) */
 .od-slot {
     display: grid;
-    grid-template-columns: 130px 220px minmax(0, 1fr);
+    grid-template-columns: 130px minmax(0, 260px);
     gap: 0.75rem;
     align-items: end;
     padding: 0.75rem 0.85rem;
@@ -865,7 +890,7 @@
 
 .od-pick__fields {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 260px);
     gap: 0.75rem;
     margin-top: 0.65rem;
 }
@@ -875,4 +900,147 @@
     .od-pick__fields {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+
+/* ── Sale Leader / Giám đốc: chỉ xem, chuyển người phụ trách ─────────── */
+
+.od-readonly {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.vc .od-readonly .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.od-reassign__open {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.od-reassign {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+.od-reassign__hint {
+    margin: 0;
+}
+
+/* Lịch sử chăm sóc: người thực hiện (người phụ trách trước / hiện tại) */
+.od-timeline__by {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+}
+
+.od-by {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.vc .od-by .odin-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.od-by--current {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.od-by--previous {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Lần chăm sóc của người phụ trách trước: nhạt hơn */
+.od-timeline__item.is-previous .od-timeline__body {
+    opacity: 0.75;
+}
+
+/* Popup thành công */
+.od-success {
+    width: min(440px, 100%);
+}
+
+.od-success__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 1.75rem;
+    text-align: center;
+}
+
+.od-success__icon {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 0.25rem;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.vc .od-success__icon .odin-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.od-success__text {
+    margin: 0;
+}
+
+.od-success .od-muted {
+    margin: 0;
+}
+
+.od-success__foot {
+    justify-content: center;
+}
+
+/* Địa điểm lịch hẹn cố định: cơ sở của khách */
+.od-place {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.vc .od-place .odin-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--vc-primary);
+}
+
+.od-place--top {
+    margin-bottom: 0.6rem;
+}
+
+.od-place--card {
+    margin-top: 0.4rem;
+    color: var(--vc-muted);
+    font-weight: 500;
+    font-size: 0.85rem;
 }
