@@ -224,3 +224,28 @@
 .odin-topbar .lang-btn {
     height: 40px;
 }
+
+/* Dòng mô tả dưới tiêu đề + link cuối menu thông báo */
+.odin-notify-menu__sub {
+    display: block;
+    margin-top: 0.15rem;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.odin-notify-menu__footer {
+    display: block;
+    margin-top: 0.25rem;
+    padding: 0.6rem 0.75rem 0.35rem;
+    border-top: 1px solid var(--odin-border, #e2e8f0);
+    color: var(--odin-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.odin-notify-menu__footer:hover {
+    text-decoration: underline;
+}

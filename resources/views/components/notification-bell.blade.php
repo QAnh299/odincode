@@ -1,7 +1,8 @@
-@props(['notifications' => [], 'count' => 0])
+@props(['notifications' => [], 'count' => 0, 'subtitle' => null, 'footer' => null])
 
 {{-- Chuông thông báo. Dữ liệu thông báo sẽ truyền vào qua $notifications khi có bảng/chức năng thông báo:
-     mỗi phần tử gồm ['title' => ..., 'time' => ..., 'url' => ...] --}}
+     mỗi phần tử gồm ['title' => ..., 'time' => ..., 'url' => ...].
+     $subtitle: dòng mô tả dưới tiêu đề (tuỳ chọn); $footer: ['url' => ..., 'label' => ...] link cuối menu (tuỳ chọn). --}}
 <div class="dropdown">
     <button class="odin-icon-btn position-relative" type="button" data-bs-toggle="dropdown"
         data-bs-auto-close="outside" aria-expanded="false" aria-label="{{ __('topbar.notifications') }}"
@@ -19,6 +20,9 @@
     <div class="dropdown-menu dropdown-menu-end odin-notify-menu">
         <div class="odin-notify-menu__header">
             <span>{{ __('topbar.notifications') }}</span>
+            @if ($subtitle)
+                <small class="odin-notify-menu__sub">{{ $subtitle }}</small>
+            @endif
         </div>
 
         @forelse ($notifications as $notification)
@@ -36,5 +40,9 @@
                 <span>{{ __('topbar.no_notifications') }}</span>
             </div>
         @endforelse
+
+        @if ($footer)
+            <a href="{{ $footer['url'] }}" class="odin-notify-menu__footer">{{ $footer['label'] }}</a>
+        @endif
     </div>
 </div>

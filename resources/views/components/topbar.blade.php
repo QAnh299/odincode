@@ -32,7 +32,15 @@
 
         <x-language-switcher />
 
-        <x-notification-bell />
+        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai (App\Services\AppointmentReminders) --}}
+        @php
+            $employee = auth()->user()?->employee;
+            $reminders = \App\Services\AppointmentReminders::for($employee);
+            $isSalesperson = $employee?->role_name === \App\Models\Role::SALESPERSON;
+        @endphp
+        <x-notification-bell :notifications="$reminders" :count="$reminders->count()"
+            :subtitle="$isSalesperson ? __('appointments.reminder_header') : null"
+            :footer="$isSalesperson ? ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')] : null" />
 
         <span class="odin-topbar__divider d-none d-sm-block" aria-hidden="true"></span>
 

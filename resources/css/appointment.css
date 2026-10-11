@@ -1,0 +1,88 @@
+/* ── Trang Lịch hẹn của Salesperson (livewire/appointments/index) ──────
+   Nạp cùng voucher.css (bảng, thẻ thống kê) và opportunity.css (màu loại / trạng thái lịch hẹn);
+   phần riêng tiền tố .ap-. */
+
+/* Màu thẻ thống kê */
+.ap-tone--today { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
+.ap-tone--tomorrow { --tone: #0369a1; --tone-bg: #e0f2fe; }
+.ap-tone--week { --tone: #7c3aed; --tone-bg: #ede9fe; }
+.ap-tone--overdue { --tone: #b45309; --tone-bg: #fef3c7; }
+
+/* Lịch đã qua giờ hẹn mà chưa cập nhật kết quả */
+.od-apt--Overdue { --tone: #b45309; --tone-bg: #fef3c7; }
+
+.ap-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Bộ lọc: hàng 1 = lọc nhanh; hàng 2 = tìm kiếm + loại + xoá lọc */
+.ap-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.ap-filters__views {
+    grid-column: 1 / -1;
+}
+
+.ap-filters .vc-search {
+    min-height: 42px;
+    margin-bottom: 0;
+    border-radius: 12px;
+}
+
+/* Bảng */
+.ap-time {
+    display: block;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.ap-day,
+.ap-sub {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ap-sub.vc-mono {
+    display: inline-block;
+    font-size: 0.72rem;
+}
+
+.ap-name {
+    display: block;
+    font-weight: 600;
+}
+
+.ap-view {
+    white-space: nowrap;
+}
+
+/* Lịch hẹn hôm nay chưa diễn ra: nhấn nhẹ */
+.vc-table tbody tr.ap-row--today {
+    background: color-mix(in srgb, var(--vc-primary) 5%, #fff);
+}
+
+@media (max-width: 991.98px) {
+    .ap-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ap-filters {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .ap-filters__search {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ap-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

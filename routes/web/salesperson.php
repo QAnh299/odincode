@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Appointments\Index as AppointmentIndex;
 use App\Livewire\Courses\Index as CourseIndex;
 use App\Livewire\Courses\Show as CourseShow;
 use App\Livewire\Invoices\Index as InvoiceIndex;
@@ -20,6 +21,9 @@ Route::get('/', Home::class)->name('home');
 // Quản lý Opportunity – Kanban theo Stage (thay cho Quản lý Lead)
 Route::get('/opportunities', OpportunityKanban::class)->name('opportunities');
 Route::get('/opportunities/{opportunity}', OpportunityShow::class)->name('opportunities.show');
+
+// Lịch hẹn – các lịch hẹn mình phụ trách (menu Quản lý Opportunity → Lịch hẹn)
+Route::get('/appointments', AppointmentIndex::class)->name('appointments');
 
 // Báo giá – danh sách + tra cứu, chi tiết (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/quotations', QuotationIndex::class)->name('quotations');
