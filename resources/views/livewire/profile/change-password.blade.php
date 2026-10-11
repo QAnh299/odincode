@@ -23,6 +23,11 @@
         ['password', 'new', 'new-password', 'new_placeholder'],
         ['password_confirmation', 'confirm', 'new-password', 'confirm_placeholder'],
     ];
+
+    // Đang dùng mật khẩu tạm: ẩn ô mật khẩu hiện tại
+    if ($forced) {
+        array_shift($fields);
+    }
 @endphp
 
 <div class="pw">
@@ -31,7 +36,9 @@
         @vite('resources/css/password.css')
     @endassets
 
-    <a href="{{ route('profile') }}" class="pw-back">{!! $icon('arrow') !!}{{ __('change_password.back') }}</a>
+    @unless ($forced)
+        <a href="{{ route('profile') }}" class="pw-back">{!! $icon('arrow') !!}{{ __('change_password.back') }}</a>
+    @endunless
 
     <div class="pw-grid">
         {{-- ── Form đổi mật khẩu ────────────────────────────────────── --}}
@@ -40,9 +47,19 @@
                 <span class="pw-card__icon">{!! $icon('key') !!}</span>
                 <div>
                     <h1 class="pw-card__title">{{ __('change_password.title') }}</h1>
-                    <p class="pw-card__sub">{{ __('change_password.subtitle') }}</p>
+                    <p class="pw-card__sub">{{ __($forced ? 'change_password.forced_subtitle' : 'change_password.subtitle') }}</p>
                 </div>
             </header>
+
+            @if ($forced)
+                <div class="pw-alert pw-alert--warning" role="alert">
+                    <span class="pw-alert__icon">{!! $icon('alert') !!}</span>
+                    <div>
+                        <strong>{{ __('change_password.forced_title') }}</strong>
+                        <p>{{ __('change_password.forced_message') }}</p>
+                    </div>
+                </div>
+            @endif
 
             @if ($changed)
                 <div class="pw-alert pw-alert--success" role="status">
@@ -136,7 +153,9 @@
                 @endforeach
 
                 <div class="pw-actions">
-                    <a href="{{ route('profile') }}" class="pw-btn pw-btn--light">{{ __('change_password.cancel') }}</a>
+                    @unless ($forced)
+                        <a href="{{ route('profile') }}" class="pw-btn pw-btn--light">{{ __('change_password.cancel') }}</a>
+                    @endunless
                     <button type="submit" class="pw-btn pw-btn--primary" wire:loading.attr="disabled" wire:target="save">
                         <span wire:loading.remove wire:target="save">{!! $icon('shield') !!}</span>
                         <span wire:loading wire:target="save" class="spinner-border spinner-border-sm"

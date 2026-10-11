@@ -77,8 +77,13 @@
                 </div>
 
                 <div class="auth-form">
-                    <h1 class="auth-title">{{ __('auth.login') }}</h1>
-                    <p class="auth-subtitle">{{ __('auth.login_sub') }}</p>
+                    @if ($mode === 'forgot')
+                        <h1 class="auth-title">{{ __('forgot_password.title') }}</h1>
+                        <p class="auth-subtitle">{{ __('forgot_password.subtitle') }}</p>
+                    @else
+                        <h1 class="auth-title">{{ __('auth.login') }}</h1>
+                        <p class="auth-subtitle">{{ __('auth.login_sub') }}</p>
+                    @endif
 
                     @error('auth')
                         <div class="auth-alert" role="alert">
@@ -91,6 +96,56 @@
                         </div>
                     @enderror
 
+                    @if ($mode === 'forgot')
+                        {{-- ── Form quên mật khẩu ───────────────────────── --}}
+                        @if ($resetSent)
+                            <div class="auth-alert auth-alert--success" role="status">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M4 4h16v16H4z" />
+                                    <path d="m22 6-10 7L2 6" />
+                                </svg>
+                                <span>{{ __('forgot_password.sent') }}</span>
+                            </div>
+                        @endif
+
+                        <form wire:submit="sendTemporaryPassword" novalidate>
+                            <div class="mb-4">
+                                <label for="identifier" class="field-label">{{ __('forgot_password.identifier') }}</label>
+                                <div class="input-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M4 4h16v16H4z" />
+                                        <path d="m22 6-10 7L2 6" />
+                                    </svg>
+                                    <input type="text" id="identifier" autocomplete="username" autofocus
+                                        class="form-control @error('identifier') is-invalid @enderror"
+                                        wire:model="identifier"
+                                        placeholder="{{ __('forgot_password.identifier_placeholder') }}">
+                                </div>
+                                @error('identifier')
+                                    <div class="field-error">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="btn btn-odin w-100" wire:loading.attr="disabled"
+                                wire:target="sendTemporaryPassword">
+                                <span wire:loading.remove wire:target="sendTemporaryPassword">
+                                    {{ __('forgot_password.submit') }}
+                                </span>
+                                <span wire:loading wire:target="sendTemporaryPassword">
+                                    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                    {{ __('forgot_password.sending') }}
+                                </span>
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a href="#" class="forgot-link" wire:click.prevent="switchMode('login')">
+                                &larr; {{ __('forgot_password.back_to_login') }}
+                            </a>
+                        </div>
+                    @else
                     <form wire:submit="login" novalidate>
                         {{-- Tên đăng nhập --}}
                         <div class="mb-3">
@@ -115,8 +170,7 @@
                         <div class="mb-4" x-data="{ show: false }">
                             <div class="d-flex justify-content-between align-items-center">
                                 <label for="password" class="field-label">{{ __('auth.password_label') }}</label>
-                                {{-- Chỉ là giao diện, chức năng quên mật khẩu sẽ làm sau --}}
-                                <a href="#" class="forgot-link" @click.prevent>{{ __('auth.forgot_password') }}</a>
+                                <a href="#" class="forgot-link" wire:click.prevent="switchMode('forgot')">{{ __('auth.forgot_password') }}</a>
                             </div>
                             <div class="input-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -166,6 +220,7 @@
                             </span>
                         </button>
                     </form>
+                    @endif
 
                     <div class="role-note">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

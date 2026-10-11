@@ -466,6 +466,13 @@ body.auth-body {
     animation: shake 0.35s ease;
 }
 
+.auth-alert--success {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    animation: none;
+}
+
 .auth-alert svg {
     width: 18px;
     height: 18px;

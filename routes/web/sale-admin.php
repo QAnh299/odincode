@@ -7,6 +7,7 @@ use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Leads\Index as LeadIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
+use App\Livewire\Reports\LeadSources as LeadSourceReport;
 use App\Livewire\SalesTeams\Index as SalesTeamIndex;
 use App\Livewire\SaleAdmin\Home;
 use App\Livewire\Vouchers\Index as VoucherIndex;
@@ -38,3 +39,6 @@ Route::get('/vouchers/{voucher}', VoucherShow::class)->name('vouchers.show');
 // Khóa học – chỉ xem (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/courses', CourseIndex::class)->name('courses');
 Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
+
+// Báo cáo – Phân tích chất lượng nguồn Lead (chỉ Giám đốc, Sale Admin)
+Route::get('/reports/lead-sources', LeadSourceReport::class)->name('reports.lead-sources');

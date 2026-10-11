@@ -1,0 +1,392 @@
+/* ── Trang báo cáo (livewire/reports/*) ───────────────────────────────
+   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .rp-. */
+
+.rp {
+    --tone: var(--vc-primary);
+    --tone-bg: var(--vc-tint);
+}
+
+/* Bộ lọc chung: ngày, ngày, chi nhánh, kênh, xoá lọc */
+.rp-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+
+/* Tiêu đề 2 phần của trang */
+.rp-section {
+    margin: 1.75rem 0 0.15rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.rp-section__sub {
+    margin: 0 0 1rem;
+    color: var(--vc-muted);
+    font-size: 0.88rem;
+}
+
+/* ── Thẻ KPI ───────────────────────────────────────────────────────── */
+
+.rp-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.rp-kpi,
+.rp-kpi:hover {
+    cursor: default;
+    transform: none;
+    border-color: var(--vc-border);
+}
+
+.rp-kpi .vc-summary__value {
+    font-size: 1.3rem;
+    white-space: nowrap;
+}
+
+.rp-kpi__hint {
+    margin-top: 0.1rem;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Thẻ biểu đồ ───────────────────────────────────────────────────── */
+
+.rp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1.25rem;
+}
+
+.rp-card__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.rp-card__sub {
+    margin: 0.15rem 0 0.9rem;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.rp-chart {
+    position: relative;
+    width: 100%;
+}
+
+.rp-empty {
+    color: var(--vc-muted);
+    text-align: center;
+}
+
+.rp-empty--inline {
+    margin: 0;
+    padding: 2.5rem 1rem;
+    border: 1.5px dashed var(--vc-border);
+    border-radius: 14px;
+}
+
+/* ── Bảng số liệu ──────────────────────────────────────────────────── */
+
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.rp-table th,
+.rp-table td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--vc-border);
+    white-space: nowrap;
+}
+
+.rp-table thead th {
+    color: var(--vc-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+    background: #f8faf8;
+}
+
+.rp-table tbody th {
+    font-weight: 600;
+}
+
+.rp-table tfoot th,
+.rp-table tfoot td {
+    border-bottom: 0;
+    font-weight: 700;
+}
+
+.rp-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Thanh tỷ lệ nhỏ phía sau số % */
+.rp-bar {
+    display: inline-block;
+    min-width: 72px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 6px;
+    background: linear-gradient(to right, var(--vc-tint) var(--w), transparent var(--w));
+}
+
+/* ── Biểu đồ linh hoạt ─────────────────────────────────────────────── */
+
+.rp-builder {
+    display: grid;
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+    gap: 1.5rem;
+}
+
+.rp-builder__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    padding-right: 1.5rem;
+    border-right: 1px solid var(--vc-border);
+}
+
+.rp-builder__result {
+    min-width: 0;
+}
+
+.rp-builder__result .rp-card__title {
+    margin-bottom: 0.9rem;
+}
+
+.rp-step {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.rp-step__title {
+    margin-bottom: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--vc-ink);
+}
+
+.rp-step__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+/* Ô chọn loại biểu đồ */
+.rp-types {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.rp-type {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 0.25rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 12px;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.rp-type .odin-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.rp-type:hover {
+    border-color: color-mix(in srgb, var(--vc-primary) 40%, #fff);
+}
+
+.rp-type.is-current {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.rp-type:focus-within {
+    box-shadow: 0 0 0 4px var(--vc-tint);
+}
+
+/* Chỉ số + giá trị dạng chip bật/tắt */
+.rp-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+}
+
+.rp-metrics__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.rp-metrics__unit {
+    width: 100%;
+    color: var(--vc-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.rp-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.rp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 999px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.rp-chip:hover {
+    border-color: color-mix(in srgb, var(--vc-primary) 40%, #fff);
+}
+
+.rp-chip.is-on {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+    font-weight: 600;
+}
+
+.rp-chip:focus-within {
+    box-shadow: 0 0 0 3px var(--vc-tint);
+}
+
+.rp-chip__count {
+    color: var(--vc-muted);
+    font-size: 0.72rem;
+}
+
+.rp-hint {
+    margin: 0 0 0.4rem;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.rp-hint--pending {
+    margin: 0;
+    color: #b45309;
+}
+
+.rp-builder__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.rp-errors {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.85rem;
+}
+
+.rp-errors ul {
+    margin: 0;
+    padding-left: 1rem;
+}
+
+.rp-data {
+    margin-top: 1rem;
+}
+
+.rp-data summary {
+    color: var(--vc-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rp-data .table-responsive {
+    margin-top: 0.6rem;
+}
+
+/* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
+
+@media (max-width: 1199.98px) {
+    .rp-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .rp-builder {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rp-builder__form {
+        padding-right: 0;
+        padding-bottom: 1.25rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--vc-border);
+    }
+
+    .rp-types {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .rp-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rp-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .rp-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rp-types {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 479.98px) {
+    .rp-kpis,
+    .rp-filters,
+    .rp-step__row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

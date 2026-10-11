@@ -6,6 +6,7 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -73,5 +74,26 @@ class User extends Authenticatable
     public function canSignIn(): bool
     {
         return $this->isActive() && (bool) $this->employee?->isActive();
+    }
+
+    /**
+     * Cờ "bắt buộc đổi mật khẩu" sau khi được cấp mật khẩu tạm (quên mật khẩu).
+     * Bảng Accounts không có cột cho cờ này nên lưu trong cache file, không hết hạn.
+     */
+    public function mustChangePassword(): bool
+    {
+        return (bool) Cache::store('file')->get($this->mustChangePasswordKey());
+    }
+
+    public function setMustChangePassword(bool $value): void
+    {
+        $value
+            ? Cache::store('file')->forever($this->mustChangePasswordKey(), true)
+            : Cache::store('file')->forget($this->mustChangePasswordKey());
+    }
+
+    private function mustChangePasswordKey(): string
+    {
+        return 'must-change-password:'.$this->account_id;
     }
 }

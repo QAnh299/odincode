@@ -37,11 +37,26 @@ return [
         'lead_list'     => ['route' => 'leads'],
         'opportunity_list' => ['route' => 'opportunities'],
         'appointments'  => ['route' => 'appointments'],
+
+        // Menu con của Dashboard & Báo cáo – phân quyền theo vai trò:
+        //   Doanh thu & thanh toán:     tất cả vai trò
+        //   Hiệu quả chuyển đổi Lead:   trừ Kế toán
+        //   Hiệu quả nhân viên Sales:   trừ Kế toán, Salesperson
+        //   Chất lượng nguồn Lead:      chỉ Giám đốc, Sale Admin
+        'report_revenue'           => ['route' => 'reports.revenue'],
+        'report_lead_conversion'   => ['route' => 'reports.lead-conversion'],
+        'report_sales_performance' => ['route' => 'reports.sales-performance'],
+        'report_lead_sources'      => ['route' => 'reports.lead-sources'],
     ],
 
     'roles' => [
         'director' => [
-            'dashboard',
+            'dashboard' => [
+                'report_revenue',
+                'report_lead_conversion',
+                'report_sales_performance',
+                'report_lead_sources',
+            ],
             'leads',
             'employees' => ['employee_list', 'sales_teams'],
             'quotations',
@@ -61,7 +76,12 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => [
+                'report_revenue',
+                'report_lead_conversion',
+                'report_sales_performance',
+                'report_lead_sources',
+            ],
         ],
 
         'sale_leader' => [
@@ -73,7 +93,11 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => [
+                'report_revenue',
+                'report_lead_conversion',
+                'report_sales_performance',
+            ],
         ],
 
         'salesperson' => [
@@ -84,7 +108,10 @@ return [
             'students',
             'courses',
             'vouchers',
-            'dashboard',
+            'dashboard' => [
+                'report_revenue',
+                'report_lead_conversion',
+            ],
         ],
 
         'accountant' => [
@@ -92,7 +119,9 @@ return [
             'orders',
             'invoices',
             'students',
-            'dashboard',
+            'dashboard' => [
+                'report_revenue',
+            ],
         ],
     ],
 ];

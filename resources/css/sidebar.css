@@ -86,6 +86,20 @@
     padding: 1rem 0.75rem;
 }
 
+/* Ẩn thanh cuộn của menu (vẫn cuộn được bằng chuột / cảm ứng) */
+.odin-sidebar,
+.odin-sidebar__inner,
+.odin-sidebar__nav {
+    scrollbar-width: none;      /* Firefox */
+    -ms-overflow-style: none;   /* Edge cũ */
+}
+
+.odin-sidebar::-webkit-scrollbar,
+.odin-sidebar__inner::-webkit-scrollbar,
+.odin-sidebar__nav::-webkit-scrollbar {
+    display: none;              /* Chrome, Edge, Safari */
+}
+
 /* Danh sách mục menu */
 .odin-menu {
     list-style: none;

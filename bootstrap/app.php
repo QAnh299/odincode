@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Ngôn ngữ giao diện (vi / en / zh) lấy từ session
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            // Đang dùng mật khẩu tạm → chỉ được vào trang đổi mật khẩu
+            \App\Http\Middleware\ForcePasswordChange::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
