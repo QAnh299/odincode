@@ -1,0 +1,1183 @@
+/* ── Trang đơn hàng: danh sách (livewire/orders/index) ───────────────
+   Chỉ nạp ở trang này qua @assets. Mọi class dùng tiền tố .od- để không
+   đụng với menu dọc (sidebar.css), menu ngang (topbar.css) hay trang khác.
+   Màu chính lấy theo --odin-primary / --odin-accent nên đổi theo bộ chọn màu giao diện.
+   Bố cục giống trang báo giá (quotation.css): thẻ trạng thái + tổng tiền + thanh công cụ
+   gọn, dính khi cuộn; bộ lọc mở dạng panel (màn rộng) hoặc drawer toàn màn hình (màn hẹp). */
+
+.od {
+    --od-primary: var(--odin-primary, #005e12);
+    --od-on-primary: var(--odin-on-primary, #fff);
+    --od-accent: var(--odin-accent, #fcda43);
+    --od-tint: color-mix(in srgb, var(--od-primary) 9%, #fff);
+    --od-page: #f6f8f5;
+    --od-surface: #fff;
+    --od-border: #e6ebe4;
+    --od-ink: #1f2937;
+    --od-muted: #6b7280;
+    --od-danger: #b91c1c;
+    --od-warning: #b45309;
+    --od-radius: 18px;
+    --od-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --od-topbar: 64px; /* chiều cao menu ngang (topbar.css) – khối dính nằm ngay dưới */
+
+    max-width: 1280px;
+    margin: 0 auto;
+    color: var(--od-ink);
+    animation: od-in 0.3s ease-out both;
+}
+
+@keyframes od-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.od [x-cloak] {
+    display: none !important;
+}
+
+.od .odin-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Màu theo trạng thái đơn hàng: dùng chung cho thẻ thống kê, nhãn trạng thái, ô chọn trạng thái */
+.od-tone--all { --tone: var(--od-primary); --tone-bg: var(--od-tint); }
+.od-tone--progress { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+.od-tone--completed { --tone: #15803d; --tone-bg: #dcfce7; }
+
+/* ── Khối dính: tab trạng thái + thanh công cụ + chip ─────────────── */
+
+.od-sticky {
+    position: sticky;
+    top: var(--od-topbar);
+    z-index: 30;
+    /* Kéo sát mép trên và hai bên của <main> (py-4 px-4) để nền che danh sách khi cuộn */
+    margin: -1.5rem -1.5rem 1rem;
+    padding: 1rem 1.5rem 0.85rem;
+    background: var(--od-page);
+    border-bottom: 1px solid var(--od-border);
+}
+
+/* Tab trạng thái (thay cho 4 thẻ thống kê) */
+.od-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.od-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.od-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+    height: 38px;
+    padding: 0 0.5rem 0 0.85rem;
+    border: 1.5px solid var(--od-border);
+    border-radius: 999px;
+    background: var(--od-surface);
+    color: var(--od-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.od .od-tab .odin-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--tone);
+}
+
+.od-tab:hover {
+    border-color: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.od-tab:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 25%, transparent);
+}
+
+.od-tab__count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: var(--tone-bg);
+    color: var(--tone);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.od-tab.is-current {
+    border-color: var(--tone);
+    background: var(--tone-bg);
+    color: var(--tone);
+}
+
+.od-tab.is-current .od-tab__count {
+    background: var(--tone);
+    color: #fff;
+}
+
+/* Thanh công cụ: tìm kiếm + Bộ lọc + Xoá bộ lọc trên một hàng */
+.od-toolbar {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+}
+
+.od-search {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    height: 44px;
+    padding: 0 0.4rem 0 1rem;
+    border: 1.5px solid var(--od-border);
+    border-radius: 12px;
+    background: var(--od-surface);
+    color: var(--od-muted);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.od-search:focus-within {
+    border-color: var(--od-primary);
+    color: var(--od-primary);
+    box-shadow: 0 0 0 4px var(--od-tint);
+}
+
+.od-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--od-ink);
+    font-size: 0.92rem;
+}
+
+.od-search__spin {
+    color: var(--od-primary);
+}
+
+/* Icon (i) ở cuối ô tìm kiếm + popover hướng dẫn cú pháp */
+.od-hint {
+    position: relative;
+    display: inline-flex;
+}
+
+.od-hint__btn {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--od-muted);
+    cursor: pointer;
+}
+
+.od-hint__btn:hover,
+.od-hint__btn[aria-expanded="true"] {
+    background: var(--od-tint);
+    color: var(--od-primary);
+}
+
+.od .od-hint__btn .odin-icon {
+    width: 17px;
+    height: 17px;
+}
+
+.od-hint__pop {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 50;
+    width: min(440px, calc(100vw - 2rem));
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--od-border);
+    border-radius: 14px;
+    background: var(--od-surface);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    color: var(--od-ink);
+    font-size: 0.82rem;
+    text-align: left;
+}
+
+.od-hint__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+}
+
+.od-hint__item {
+    position: relative;
+    padding-left: 0.9rem;
+}
+
+.od-hint__item::before {
+    content: "";
+    position: absolute;
+    top: 0.55em;
+    left: 0.15rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--od-primary);
+}
+
+.od-hint__pop code {
+    padding: 0.05rem 0.35rem;
+    border-radius: 6px;
+    background: var(--od-tint);
+    color: var(--od-primary);
+    font-size: 0.8rem;
+}
+
+/* ── Nút ───────────────────────────────────────────────────────────── */
+
+.od-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    height: 44px;
+    padding: 0 1rem;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.od-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.od-btn--primary {
+    background: var(--od-primary);
+    color: var(--od-on-primary);
+}
+
+.od-btn--primary:hover {
+    background: color-mix(in srgb, var(--od-primary) 88%, #000);
+}
+
+.od-btn--ghost,
+.od-btn--filter {
+    background: var(--od-surface);
+    border-color: var(--od-border);
+    color: var(--od-ink);
+}
+
+.od-btn--ghost:not(:disabled):hover,
+.od-btn--filter:hover,
+.od-btn--filter.is-open {
+    border-color: var(--od-primary);
+    color: var(--od-primary);
+}
+
+.od-btn__badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--od-primary);
+    color: var(--od-on-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Chấm báo "đã đổi bộ lọc nhưng chưa áp dụng" (Livewire ẩn/hiện bằng wire:dirty) */
+.od-btn__dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--od-surface);
+    border-radius: 50%;
+    background: var(--od-warning);
+}
+
+/* ── Panel bộ lọc (thả xuống dưới nút Bộ lọc) ──────────────────────── */
+
+.od-filter {
+    position: relative;
+    display: flex;
+}
+
+.od-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 40;
+    width: min(680px, calc(100vw - 3rem));
+    border: 1px solid var(--od-border);
+    border-radius: 16px;
+    background: var(--od-surface);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+}
+
+.od-panel__form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+}
+
+.od-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--od-border);
+}
+
+.od-panel__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+}
+
+.od-panel__title .odin-icon {
+    color: var(--od-primary);
+}
+
+.od-panel__close {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--od-muted);
+    cursor: pointer;
+}
+
+.od-panel__close:hover {
+    background: var(--od-tint);
+    color: var(--od-primary);
+}
+
+.od-panel__body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem 1rem;
+    padding: 1rem 1.1rem;
+}
+
+.od-panel__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0.75rem 1.1rem;
+    border-top: 1px solid var(--od-border);
+}
+
+.od-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-right: auto;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--od-warning);
+}
+
+.od .od-pending .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+/* Ô nhập trong panel */
+.od-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    margin: 0;
+}
+
+fieldset.od-field {
+    padding: 0;
+    border: 0;
+}
+
+fieldset.od-field legend {
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    line-height: inherit;
+}
+
+.od-field__label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--od-muted);
+}
+
+.od-field__error {
+    font-size: 0.78rem;
+    color: var(--od-danger);
+}
+
+.od-control {
+    width: 100%;
+    height: 42px;
+    padding: 0 0.8rem;
+    border: 1.5px solid var(--od-border);
+    border-radius: 12px;
+    background-color: var(--od-surface);
+    color: var(--od-ink);
+    font-size: 0.9rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+select.od-control {
+    appearance: none;
+    padding-right: 2.2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.od-control:focus {
+    outline: none;
+    border-color: var(--od-primary);
+    box-shadow: 0 0 0 4px var(--od-tint);
+}
+
+.od-control.is-invalid {
+    border-color: var(--od-danger);
+}
+
+.od-control--sm {
+    width: auto;
+    height: 36px;
+    font-size: 0.85rem;
+}
+
+/* Cặp ngày từ – đến trong một nhóm */
+.od-range {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.od-range .od-control {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0.6rem;
+}
+
+.od-range__sep {
+    flex-shrink: 0;
+    color: var(--od-muted);
+}
+
+/* ── Chip bộ lọc đang áp dụng ──────────────────────────────────────── */
+
+.od-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+}
+
+.od-chips__title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--od-muted);
+}
+
+.od-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    padding: 0.2rem 0.3rem 0.2rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--od-primary) 25%, #fff);
+    border-radius: 999px;
+    background: var(--od-tint);
+    color: var(--od-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.od-chip__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.od-chip__remove {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.od-chip__remove:hover {
+    background: var(--od-primary);
+    color: var(--od-on-primary);
+}
+
+.od .od-chip__remove .odin-icon {
+    width: 13px;
+    height: 13px;
+}
+
+/* ── Danh sách đơn hàng ─────────────────────────────────────────────── */
+
+.od-card {
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--od-border);
+    border-radius: var(--od-radius);
+    background: var(--od-surface);
+    box-shadow: var(--od-shadow);
+}
+
+.od-results {
+    overflow: hidden;
+}
+
+.od-results__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--od-border);
+    font-size: 0.88rem;
+    color: var(--od-muted);
+}
+
+.od-results__bar strong {
+    color: var(--od-ink);
+}
+
+.od-results__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.od-results__loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--od-primary);
+}
+
+.od-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--od-muted);
+}
+
+.od-table-wrap {
+    overflow-x: auto;
+    transition: opacity 0.15s;
+}
+
+.od-table-wrap.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.od-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.od-table th {
+    padding: 0.6rem 1rem;
+    background: #f8faf8;
+    color: var(--od-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-align: left;
+}
+
+/* Dòng gọn để thấy được nhiều đơn hàng hơn trong màn hình đầu tiên */
+.od-table td {
+    padding: 0.55rem 1rem;
+    border-top: 1px solid var(--od-border);
+    vertical-align: middle;
+}
+
+.od-table tbody tr {
+    transition: background-color 0.12s;
+}
+
+.od-table tbody tr:hover {
+    background: color-mix(in srgb, var(--od-primary) 4%, #fff);
+}
+
+/* Mã đơn + ngày tạo */
+.od-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.od-code__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--od-tint);
+    color: var(--od-primary);
+}
+
+.od .od-code__icon .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.od-code__id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* Hai dòng: chính + phụ (mã + ngày tạo, khách hàng / mã cơ hội, hóa đơn / nhãn) */
+.od-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.od-stack__main {
+    font-weight: 600;
+}
+
+.od-stack__sub {
+    font-size: 0.75rem;
+    color: var(--od-muted);
+}
+
+.od-amount {
+    font-weight: 800;
+    color: var(--od-primary);
+    white-space: nowrap;
+}
+
+/* Nhãn trạng thái */
+.od-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    background: var(--tone-bg, #f1f5f9);
+    color: var(--tone, #475569);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.od-badge__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.od-mono {
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.od-muted {
+    color: var(--od-muted);
+}
+
+/* Đánh dấu từ khóa tìm kiếm */
+.od-mark {
+    padding: 0 0.1em;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--od-accent) 55%, #fff);
+    color: inherit;
+}
+
+/* Trống */
+.od-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.od-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 0.5rem;
+    border-radius: 50%;
+    background: var(--od-tint);
+    color: var(--od-primary);
+}
+
+.od-empty__icon .odin-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.od-empty__title {
+    margin: 0;
+    font-weight: 700;
+}
+
+.od-empty__sub {
+    margin: 0 0 0.75rem;
+    color: var(--od-muted);
+    font-size: 0.9rem;
+}
+
+/* Phân trang (giữ nguyên markup Bootstrap, chỉ đổi màu theo màu chính) */
+.od-pagination {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--od-border);
+}
+
+.od-pagination nav {
+    align-items: center;
+}
+
+.od-pagination .pagination {
+    margin: 0;
+    --bs-pagination-color: var(--od-ink);
+    --bs-pagination-border-radius: 10px;
+    --bs-pagination-hover-color: var(--od-primary);
+    --bs-pagination-focus-color: var(--od-primary);
+    --bs-pagination-focus-box-shadow: 0 0 0 4px var(--od-tint);
+    --bs-pagination-active-bg: var(--od-primary);
+    --bs-pagination-active-border-color: var(--od-primary);
+    --bs-pagination-active-color: var(--od-on-primary);
+}
+
+.od-pagination p {
+    margin: 0;
+    color: var(--od-muted);
+    font-size: 0.85rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+/* Bảng chuyển thành thẻ trên màn nhỏ */
+@media (max-width: 991.98px) {
+    .od-table thead {
+        display: none;
+    }
+
+    .od-table,
+    .od-table tbody,
+    .od-table tr,
+    .od-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .od-table tr {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--od-border);
+    }
+
+    .od-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.3rem 0;
+        border: 0;
+        text-align: right;
+    }
+
+    .od-table td[data-label]::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        color: var(--od-muted);
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .od-table td:first-child::before {
+        content: none;
+    }
+
+    .od-table td:first-child {
+        margin-bottom: 0.25rem;
+    }
+
+    .od-stack {
+        align-items: flex-end;
+    }
+}
+
+/* Màn hẹp: khối trên cùng không dính (tiết kiệm chiều cao), ô tìm kiếm một hàng riêng,
+   panel bộ lọc thành drawer toàn màn hình */
+@media (max-width: 767.98px) {
+    .od-sticky {
+        position: static;
+    }
+
+    .od-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .od-search {
+        flex-basis: 100%;
+    }
+
+    .od-filter,
+    .od-btn--clear {
+        flex: 1;
+    }
+
+    .od-btn--filter {
+        width: 100%;
+    }
+
+    .od-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 1060; /* trên menu ngang (1020) và menu dọc dạng offcanvas */
+        width: auto;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .od-panel__body {
+        flex: 1;
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        overflow-y: auto;
+    }
+
+    .od-pending {
+        flex-basis: 100%;
+    }
+
+    .od-panel__foot .od-btn {
+        flex: 1;
+    }
+
+    .od-results__bar {
+        flex-wrap: wrap;
+    }
+
+    .od-results__tools {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .od-control--sm {
+        max-width: 220px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .od,
+    .od * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+
+/* ── Phần riêng của trang đơn hàng ──────────────────────────────────── */
+
+.od-subtitle {
+    margin: 0 0 0.65rem;
+    font-size: 0.88rem;
+    color: var(--od-muted);
+}
+
+/* Dòng gợi ý cú pháp dưới ô tìm kiếm */
+.od-hintline {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.4rem 0 0;
+    font-size: 0.78rem;
+    color: var(--od-muted);
+}
+
+.od .od-hintline .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* Nút "Xóa tất cả bộ lọc" cuối dải chip */
+.od-chips__clear {
+    padding: 0.2rem 0.4rem;
+    border: 0;
+    background: transparent;
+    color: var(--od-danger);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Ghi chú nhỏ dưới ô lọc */
+.od-field__help {
+    font-size: 0.75rem;
+    color: var(--od-muted);
+}
+
+/* Nhóm ô chọn nhiều (trạng thái, phương thức) dạng viên thuốc */
+.od-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.od-check {
+    --tone: var(--od-primary);
+    --tone-bg: var(--od-tint);
+
+    position: relative;
+    display: inline-flex;
+    margin: 0;
+    cursor: pointer;
+}
+
+.od-check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.od-check span {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 0.85rem;
+    border: 1.5px solid var(--od-border);
+    border-radius: 999px;
+    background: var(--od-surface);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.od-check:hover span {
+    border-color: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.od-check input:checked + span {
+    border-color: var(--tone);
+    background: var(--tone-bg);
+    color: var(--tone);
+}
+
+.od-check input:focus-visible + span {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 25%, transparent);
+}
+
+/* Bảng: mã đơn + ngày tạo, mã cơ hội */
+.od-code .od-stack {
+    align-items: flex-start;
+}
+
+.od-stack__sub--mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (max-width: 991.98px) {
+    .od-code .od-stack {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .od-subtitle {
+        display: none;
+    }
+
+    .od-chips__clear {
+        margin-left: auto;
+    }
+}
+
+/* Link mã báo giá, số hóa đơn */
+.od-link {
+    color: var(--od-primary);
+    text-decoration: none;
+}
+
+.od-link:hover,
+.od-link:focus-visible {
+    text-decoration: underline;
+}
+
+a.od-mono.od-link {
+    background: var(--od-tint);
+}
+
+/* Hình thức thanh toán */
+.od-type {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.od-type--none {
+    color: var(--od-muted);
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* Đã thanh toán: số tiền + % + thanh tiến độ nhỏ */
+.od-progress {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 140px;
+}
+
+.od-progress__text {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.od-progress__value {
+    font-weight: 600;
+}
+
+.od-progress__pct {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--od-muted);
+}
+
+.od-progress__bar {
+    display: block;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+
+.od-progress__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--od-primary), color-mix(in srgb, var(--od-primary) 70%, var(--od-accent)));
+}
+
+.od-remaining {
+    font-weight: 700;
+    color: var(--od-warning);
+    white-space: nowrap;
+}
+
+.od-remaining.is-zero {
+    color: var(--od-muted);
+    font-weight: 600;
+}
+
+/* Hóa đơn: số hóa đơn + nhãn chờ thanh toán / quá hạn */
+.od-invoices {
+    align-items: flex-start;
+    white-space: nowrap;
+}
+
+.od-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.od-tag {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.od-tag--pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.od-tag--overdue {
+    background: #fee2e2;
+    color: var(--od-danger);
+}
+
+@media (max-width: 991.98px) {
+    .od-invoices {
+        align-items: flex-end;
+    }
+
+    .od-tags {
+        justify-content: flex-end;
+    }
+
+    .od-progress {
+        min-width: 160px;
+    }
+}

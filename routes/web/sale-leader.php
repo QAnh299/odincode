@@ -6,6 +6,7 @@ use App\Livewire\Employees\Index as EmployeeIndex;
 use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Leads\Index as LeadIndex;
+use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\SaleLeader\Home;
@@ -27,6 +28,9 @@ Route::get('/employees/{employee}', EmployeeShow::class)->name('employees.show')
 // Báo giá – danh sách + tra cứu, chi tiết (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/quotations', QuotationIndex::class)->name('quotations');
 Route::get('/quotations/{quotation}', QuotationShow::class)->name('quotations.show');
+
+// Đơn hàng – danh sách + tra cứu (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
+Route::get('/orders', OrderIndex::class)->name('orders');
 
 // Hóa đơn – danh sách + tra cứu (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
