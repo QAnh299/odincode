@@ -10,6 +10,15 @@ class CareActivity extends Model
 {
     use HasFactory, HasStringId;
 
+    // "Liên hệ ban đầu": liên hệ ở stage Data chưa tương tác
+    const INITIAL = 'ACT001';
+
+    // "Xếp lại lịch": liên hệ ở stage Data đã có lịch hẹn khi khách không đến
+    const RESCHEDULE = 'ACT002';
+
+    // "Chốt đăng ký": liên hệ ở stage Data đã xử lý
+    const DECISION = 'ACT003';
+
     protected $table = 'CareActivities';
 
     protected $primaryKey = 'activity_id';

@@ -19,7 +19,7 @@ class Stage extends Model
     // Stage "Data đã xử lý": đã test và/hoặc tư vấn xong (mọi loại lịch hẹn đều có lần khách đến)
     const PROCESSED = 'STG003';
 
-    // Stage "Chốt": chỉ Opportunity ở stage này mới được tạo báo giá
+    // Stage "Chốt": khách đã đồng ý đăng ký
     const CLOSED = 'STG004';
 
     protected $table = 'Stages';

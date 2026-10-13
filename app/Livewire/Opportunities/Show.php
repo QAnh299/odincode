@@ -31,16 +31,19 @@ use Livewire\Component;
  * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch – Tạo lịch hẹn.
  *   - Đổi lịch: chọn dòng muốn đổi (chưa tới giờ hẹn, chưa có kết quả) rồi nhập thời gian / địa điểm mới.
  *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
- *     đúng các loại đó. Lịch hẹn đầu tiên tạo khi ghi nhận liên hệ thành công. Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
+ *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Đặt lịch hẹn").
+ *     Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
  *   - Từ giờ hẹn trở đi: cập nhật từng dòng Khách đã đến (Success) / Khách không đến (Failed).
  *     Mọi loại đã hẹn đều có lần khách đến → tự chuyển sang "Data đã xử lý".
  *   - Không tạo / đổi lịch hẹn khi đã tới stage Chốt.
- * Lịch sử chăm sóc: liên hệ để chốt lịch hẹn – ghi nhận lần liên hệ tiếp theo (Liên hệ lần 1 → 4,
- * theo danh mục CareActivities) với thời gian, kết quả, ghi chú. Chỉ khi chưa tới stage Chốt và
- * chưa có lần liên hệ thành công. Liên hệ thành công = đã chốt lịch hẹn → bắt buộc nhập lịch hẹn đó,
- * lưu cùng lúc (lịch hẹn đầu tiên chỉ được tạo theo cách này).
+ * Lịch sử chăm sóc: ghi nhận lần liên hệ với thời gian, kết quả, ghi chú – "Liên hệ ban đầu" ở stage
+ * Data chưa tương tác (tối đa 4 lần không thành công), "Chốt đăng ký" ở Data đã xử lý (tối đa 3 lần),
+ * tính từ lúc Opportunity vào stage đó. Vẫn ghi tiếp được sau lần liên hệ thành công.
+ * Liên hệ thành công = nói chuyện được với khách (chưa chắc đã chốt). Sau đó: nút "Đặt lịch hẹn"
+ * (Data chưa tương tác, khách cần test / tư vấn) và nút "Tạo báo giá" (khách đăng ký).
  * Phần Báo giá chỉ hiện ở stage Chốt (hoặc khi đã có báo giá);
- * nút "Tạo báo giá" chỉ hiện ở stage Chốt (hiện chỉ hiển thị, chưa có chức năng).
+ * nút "Tạo báo giá" chỉ hiện ở stage Data chưa tương tác và Data đã xử lý, khi đã liên hệ thành công
+ * ở stage đó (hiện chỉ hiển thị, chưa có chức năng).
  */
 #[Layout('layouts.app')]
 class Show extends Component
@@ -118,19 +121,32 @@ class Show extends Component
 
     // ── Ghi nhận liên hệ (chăm sóc) ───────────────────────────────────
 
+    // Hoạt động liên hệ theo stage
+    const STAGE_ACTIVITIES = [
+        Stage::UNTOUCHED => CareActivity::INITIAL,
+        Stage::PROCESSED => CareActivity::DECISION,
+    ];
+
+    // Số lần liên hệ không thành công tối đa theo stage
+    const MAX_FAILED_CONTACTS = [
+        Stage::UNTOUCHED => 4,
+        Stage::PROCESSED => 3,
+    ];
+
     /**
-     * Lần liên hệ tiếp theo: hoạt động đầu tiên (theo mã) chưa ghi nhận cho Opportunity này.
+     * Hoạt động của lần liên hệ tiếp theo theo stage hiện tại: "Liên hệ ban đầu" (Data chưa tương tác)
+     * hoặc "Chốt đăng ký" (Data đã xử lý). Stage khác không ghi nhận liên hệ.
      */
     #[Computed]
     public function nextActivity(): ?CareActivity
     {
-        $done = $this->opportunity->careResults()->pluck('activity_id');
+        $id = self::STAGE_ACTIVITIES[$this->opportunity->stage_id] ?? null;
 
-        return CareActivity::query()->whereNotIn('activity_id', $done)->orderBy('activity_id')->first();
+        return $id ? CareActivity::find($id) : null;
     }
 
     /**
-     * Đã có lần liên hệ thành công (đã chốt được lịch hẹn).
+     * Đã có lần liên hệ thành công (nói chuyện được với khách, chưa chắc đã chốt lịch).
      */
     #[Computed]
     public function contactDone(): bool
@@ -139,29 +155,87 @@ class Show extends Component
     }
 
     /**
-     * Cần liên hệ: chưa tới stage Chốt và chưa có lần liên hệ thành công.
+     * Thời điểm Opportunity vào stage hiện tại: lần chuyển sang stage này gần nhất trong StagesHistory,
+     * hoặc ngày chuyển đổi nếu chưa có.
+     */
+    #[Computed]
+    public function stageSince(): Carbon
+    {
+        $changed = $this->opportunity->stagesHistory()
+            ->where('to_stage_id', $this->opportunity->stage_id)
+            ->max('changed_at');
+
+        // Làm tròn xuống phút: thời gian liên hệ chỉ nhập tới phút, lần liên hệ trong cùng phút vẫn tính vào stage này
+        return $changed ? Carbon::parse($changed)->startOfMinute() : $this->opportunity->conversion_date;
+    }
+
+    /**
+     * Các lần liên hệ của hoạt động theo stage hiện tại, kể từ lúc Opportunity vào stage này.
+     */
+    protected function stageContacts()
+    {
+        return $this->opportunity->careResults()
+            ->where('activity_id', $this->nextActivity?->activity_id)
+            ->where('performed_at', '>=', $this->stageSince);
+    }
+
+    /**
+     * Số lần liên hệ không thành công ở stage hiện tại.
+     */
+    #[Computed]
+    public function failedContacts(): int
+    {
+        return $this->stageContacts()->where('result', CareResult::RESULT_FAILED)->count();
+    }
+
+    /**
+     * Đã có lần liên hệ thành công ở stage hiện tại.
+     */
+    #[Computed]
+    public function stageContactDone(): bool
+    {
+        return $this->stageContacts()->where('result', CareResult::RESULT_SUCCESS)->exists();
+    }
+
+    public function maxFailedContacts(): int
+    {
+        return self::MAX_FAILED_CONTACTS[$this->opportunity->stage_id] ?? 0;
+    }
+
+    /**
+     * Cần liên hệ: salesperson phụ trách, Opportunity ở stage có hoạt động liên hệ
+     * (Data chưa tương tác / Data đã xử lý).
      */
     public function needsContact(): bool
     {
-        return $this->canCreateAppointment() && ! $this->contactDone;
+        return $this->canCreateAppointment() && $this->nextActivity !== null;
     }
 
     /**
-     * Được ghi nhận liên hệ: cần liên hệ và còn lần liên hệ (tối đa 4 lần).
+     * Nút "Đặt lịch hẹn" ở tab Lịch sử chăm sóc: stage "Data chưa tương tác", đã liên hệ thành công
+     * và còn loại lịch hẹn được đặt.
+     */
+    public function canBookFirst(): bool
+    {
+        return $this->opportunity->stage_id === Stage::UNTOUCHED && $this->rebookTypes !== [];
+    }
+
+    /**
+     * Được ghi nhận liên hệ: cần liên hệ và chưa đủ số lần liên hệ không thành công của stage.
      */
     public function canLogCare(): bool
     {
-        return $this->needsContact() && $this->nextActivity !== null;
+        return $this->needsContact() && $this->failedContacts < $this->maxFailedContacts();
     }
 
     /**
-     * Thời điểm sớm nhất được ghi: sau lần liên hệ trước và sau ngày chuyển đổi.
+     * Thời điểm sớm nhất được ghi: sau lần liên hệ trước và sau lúc vào stage hiện tại.
      */
     protected function earliestCareTime(): Carbon
     {
         $last = $this->opportunity->careResults()->max('performed_at');
 
-        return collect([$this->opportunity->conversion_date, $last ? Carbon::parse($last) : null])
+        return collect([$this->stageSince, $last ? Carbon::parse($last) : null])
             ->filter()
             ->max();
     }
@@ -176,8 +250,6 @@ class Show extends Component
 
         $this->form = 'care';
         $this->careTime = now()->format('Y-m-d\TH:i');
-        $this->newTypes = Appointment::TYPES;
-        $this->fillNewDefaults();
     }
 
     public function saveCare(): void
@@ -185,44 +257,42 @@ class Show extends Component
         abort_unless($this->canLogCare(), 403);
 
         $earliest = $this->earliestCareTime();
-        $success = $this->careResult === CareResult::RESULT_SUCCESS;
 
-        // Liên hệ thành công = đã chốt lịch hẹn với khách → bắt buộc nhập lịch hẹn đó
         $this->validate([
             'careTime'   => ['required', 'date', 'before_or_equal:now', 'after_or_equal:'.$earliest->format('Y-m-d H:i')],
             'careResult' => ['required', Rule::in([CareResult::RESULT_SUCCESS, CareResult::RESULT_FAILED])],
             'careNotes'  => ['nullable', 'string', 'max:1000'],
-        ] + ($success ? $this->appointmentRules(Appointment::TYPES) : []), [
+        ], [
             'careTime.before_or_equal' => __('opportunities.care_time_future'),
             'careTime.after_or_equal'  => __('opportunities.care_time_early', ['time' => $earliest->format('d/m/Y H:i')]),
             'careResult.required'      => __('opportunities.care_result_required'),
-        ] + $this->appointmentMessages(), [
+        ], [
             'careTime'  => __('opportunities.care_time'),
             'careNotes' => __('opportunities.notes'),
-        ] + $this->appointmentAttributes());
+        ]);
 
         $activity = $this->nextActivity;
 
-        [$appointmentId, $moved] = DB::transaction(function () use ($activity, $success) {
-            CareResult::create([
-                'performed_at'   => Carbon::parse($this->careTime),
-                'result'         => $this->careResult,
-                'notes'          => trim($this->careNotes) ?: null,
-                'activity_id'    => $activity->activity_id,
-                'opportunity_id' => $this->opportunity->opportunity_id,
-                'employee_id'    => $this->employeeId(),
-            ]);
+        CareResult::create([
+            'performed_at'   => Carbon::parse($this->careTime),
+            'result'         => $this->careResult,
+            'notes'          => trim($this->careNotes) ?: null,
+            'activity_id'    => $activity->activity_id,
+            'opportunity_id' => $this->opportunity->opportunity_id,
+            'employee_id'    => $this->employeeId(),
+        ]);
 
-            return $success ? $this->insertAppointment() : [null, false];
-        });
+        // Liên hệ thành công → gợi ý bước tiếp: Đặt lịch hẹn / Tạo báo giá (Data chưa tương tác),
+        // Tạo báo giá (Data đã xử lý)
+        $key = match (true) {
+            $this->careResult !== CareResult::RESULT_SUCCESS       => 'opportunities.care_saved',
+            $this->opportunity->stage_id === Stage::UNTOUCHED      => 'opportunities.care_saved_next',
+            default                                                => 'opportunities.care_saved_quote',
+        };
 
         $this->closeForm();
-        $this->notice = ['tone' => 'success', 'text' => match (true) {
-            $moved   => __('opportunities.care_saved_apt_moved', ['activity' => $activity->activity_name, 'id' => $appointmentId, 'stage' => $this->opportunity->stage->stage_name]),
-            $success => __('opportunities.care_saved_apt', ['activity' => $activity->activity_name, 'id' => $appointmentId]),
-            default  => __('opportunities.care_saved', ['activity' => $activity->activity_name]),
-        }];
-        unset($this->careResults, $this->nextActivity, $this->contactDone);
+        $this->notice = ['tone' => 'success', 'text' => __($key, ['activity' => $activity->activity_name])];
+        unset($this->careResults, $this->contactDone, $this->failedContacts, $this->stageContactDone);
         $this->refreshAppointments();
     }
 
@@ -285,10 +355,19 @@ class Show extends Component
             return false;
         }
 
-        $this->opportunity->update(['stage_id' => $processed->stage_id]);
+        $this->opportunity->moveToStage($processed->stage_id);
         $this->opportunity->setRelation('stage', $processed);
+        $this->refreshStage();
 
         return true;
+    }
+
+    /**
+     * Sau khi chuyển stage: tính lại hoạt động liên hệ và bộ đếm theo stage mới.
+     */
+    protected function refreshStage(): void
+    {
+        unset($this->nextActivity, $this->stageSince, $this->failedContacts, $this->stageContactDone);
     }
 
     // ── Tạo lịch hẹn ──────────────────────────────────────────────────
@@ -384,8 +463,8 @@ class Show extends Component
     }
 
     /**
-     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) – dùng cho cả
-     * nút "Tạo lịch hẹn" và form ghi nhận liên hệ thành công.
+     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) – dùng cho
+     * nút "Đặt lịch hẹn" / "Tạo lịch hẹn".
      * Mỗi loại được chọn (Test / Tư vấn) có thời gian riêng; địa điểm là cơ sở của khách.
      */
     protected function appointmentRules(array $allowedTypes): array
@@ -450,8 +529,9 @@ class Show extends Component
             return [$id, false];
         }
 
-        $this->opportunity->update(['stage_id' => Stage::APPOINTED]);
+        $this->opportunity->moveToStage(Stage::APPOINTED);
         $this->opportunity->setRelation('stage', $this->stages->firstWhere('stage_id', Stage::APPOINTED));
+        $this->refreshStage();
 
         return [$id, true];
     }
@@ -736,11 +816,14 @@ class Show extends Component
     }
 
     /**
-     * Nút "Tạo báo giá": chỉ salesperson phụ trách, ở stage Chốt.
+     * Nút "Tạo báo giá": chỉ salesperson phụ trách, khi đã có lần liên hệ thành công ở stage hiện tại –
+     * "Liên hệ ban đầu" ở Data chưa tương tác (khách đăng ký ngay) hoặc "Chốt đăng ký" ở Data đã xử lý.
      */
     public function canCreateQuotation(): bool
     {
-        return $this->isOwner() && $this->opportunity->stage_id === Stage::CLOSED;
+        return $this->isOwner()
+            && in_array($this->opportunity->stage_id, [Stage::UNTOUCHED, Stage::PROCESSED], true)
+            && $this->stageContactDone;
     }
 
     /**

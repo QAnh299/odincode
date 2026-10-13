@@ -814,47 +814,6 @@
     accent-color: var(--tone);
 }
 
-/* Phần lịch hẹn trong form liên hệ thành công */
-.od-subform {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 0.85rem;
-    margin: 0;
-    padding: 0.9rem 1rem 1rem;
-    border: 1px solid #bbf7d0;
-    border-radius: 12px;
-    background: #f0fdf4;
-}
-
-.od-subform__title {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    float: none;
-    width: auto;
-    margin: 0;
-    padding: 0;
-    color: #15803d;
-    font-size: 0.95rem;
-    font-weight: 700;
-}
-
-.vc .od-subform__title .odin-icon {
-    width: 16px;
-    height: 16px;
-}
-
-.od-subform__sub {
-    grid-column: 1 / -1;
-    margin: -0.5rem 0 0;
-}
-
-@media (max-width: 575.98px) {
-    .od-subform {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
 /* Thời gian + cơ sở riêng cho từng loại lịch hẹn (Test / Tư vấn) */
 .od-slot {
     display: grid;

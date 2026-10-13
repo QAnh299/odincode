@@ -6,6 +6,7 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Opportunity extends Model
 {
@@ -94,5 +95,33 @@ class Opportunity extends Model
     public function quotations()
     {
         return $this->hasMany(Quotation::class, 'opportunity_id', 'opportunity_id');
+    }
+
+    public function stagesHistory()
+    {
+        return $this->hasMany(StageHistory::class, 'opportunity_id', 'opportunity_id');
+    }
+
+    /**
+     * Chuyển sang stage khác và ghi một dòng StagesHistory trong cùng transaction.
+     * Không làm gì nếu đã ở stage đó.
+     */
+    public function moveToStage(string $stageId, ?string $notes = null): void
+    {
+        if ($this->stage_id === $stageId) {
+            return;
+        }
+
+        DB::transaction(function () use ($stageId, $notes) {
+            StageHistory::create([
+                'changed_at'     => now(),
+                'notes'          => $notes,
+                'opportunity_id' => $this->opportunity_id,
+                'from_stage_id'  => $this->stage_id,
+                'to_stage_id'    => $stageId,
+            ]);
+
+            $this->update(['stage_id' => $stageId]);
+        });
     }
 }
