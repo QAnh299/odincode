@@ -31,6 +31,15 @@
             <div class="od-head__title">
                 <span class="vc-mono">{{ $opp->opportunity_id }}</span>
                 <h1>{{ $lead?->full_name ?? '—' }}</h1>
+                {{-- Stage Lưu trữ: Từ chối (Lost) / Lưu trữ (Archived), kèm lý do --}}
+                @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
+                    <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
+                        <span class="vc-badge__dot"></span>{{ __('opportunities.status_name.'.$opp->status) }}
+                    </span>
+                    @if ($this->closeReason)
+                        <span class="od-muted">{{ $this->closeReason }}</span>
+                    @endif
+                @endif
                 @unless ($this->isOwner())
                     <span class="od-readonly"><x-icon name="info" />{{ __('opportunities.read_only') }}</span>
                 @endunless
@@ -348,7 +357,13 @@
                         @endif
                     </dd>
                     <dt>{{ __('opportunities.expected_value') }}</dt>
-                    <dd><span class="vc-value">{{ $opp->displayValue() ?? __('opportunities.no_value') }}</span></dd>
+                    <dd>
+                        @if ($value = $opp->displayValue())
+                            <span class="vc-value">{{ $value }}</span>
+                        @else
+                            {{ __('opportunities.no_value') }}
+                        @endif
+                    </dd>
                     <dt>{{ __('opportunities.stage') }}</dt>
                     <dd>{{ $opp->stage?->stage_name ?? '—' }}</dd>
                     <dt>{{ __('opportunities.conversion_date') }}</dt>

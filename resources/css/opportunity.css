@@ -185,6 +185,14 @@
     overflow-wrap: anywhere;
 }
 
+/* Trạng thái trong stage Lưu trữ: Từ chối (Lost) / Lưu trữ (Archived) */
+.ok-status--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
+.ok-status--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
+
+.ok-card .ok-status {
+    align-self: flex-start;
+}
+
 .ok-card__value {
     font-size: 0.92rem;
     font-weight: 700;

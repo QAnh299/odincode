@@ -108,9 +108,17 @@
                         <a href="{{ route($this->routePrefix.'.opportunities.show', $opp) }}" class="ok-card" wire:key="opp-{{ $opp->opportunity_id }}">
                             <span class="ok-card__name">{{ $opp->lead?->full_name ?? '—' }}</span>
 
-                            <span class="ok-card__value">
-                                {{ $opp->displayValue() ?? __('opportunities.no_value') }}
-                            </span>
+                            {{-- Stage Lưu trữ gồm 2 trạng thái: Từ chối (Lost) / Lưu trữ (Archived) --}}
+                            @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
+                                <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
+                                    <span class="vc-badge__dot"></span>{{ __('opportunities.status_name.'.$opp->status) }}
+                                </span>
+                            @endif
+
+                            {{-- Giá trị dự kiến: chỉ hiện khi đã có --}}
+                            @if ($value = $opp->displayValue())
+                                <span class="ok-card__value">{{ $value }}</span>
+                            @endif
 
                             <ul class="ok-card__meta">
                                 @if ($opp->lead?->phone)

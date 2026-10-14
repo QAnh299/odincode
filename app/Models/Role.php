@@ -22,7 +22,8 @@ class Role extends Model
         self::DIRECTOR    => 'director.home',
         self::SALE_ADMIN  => 'sale_admin.home',
         self::SALE_LEADER => 'sale_leader.home',
-        self::SALESPERSON => 'salesperson.home',
+        // Salesperson vào thẳng màn Kanban Opportunity
+        self::SALESPERSON => 'salesperson.opportunities',
         self::ACCOUNTANT  => 'accountant.home',
     ];
 

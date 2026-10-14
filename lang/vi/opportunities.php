@@ -32,6 +32,12 @@ return [
     'reassigned_no_pending' => 'Không có lịch hẹn đang chờ cần chuyển.',
 
     'status'             => 'Trạng thái',
+    'status_name' => [
+        'InProgress' => 'Đang xử lý',
+        'Won'        => 'Đã chốt',
+        'Lost'       => 'Từ chối',
+        'Archived'   => 'Lưu trữ',
+    ],
     'result_count'       => ':count Opportunity',
 
     // Bộ lọc ngày chuyển đổi

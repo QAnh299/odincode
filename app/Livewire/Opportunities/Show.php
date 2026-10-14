@@ -867,6 +867,18 @@ class Show extends Component
         unset($this->appointments, $this->rebookTypes, $this->reschedulable);
     }
 
+    /**
+     * Lý do kết thúc (Lost / Archived): ghi chú của lần chuyển sang stage Lưu trữ gần nhất.
+     */
+    #[Computed]
+    public function closeReason(): ?string
+    {
+        return $this->opportunity->stagesHistory()
+            ->where('to_stage_id', Stage::ARCHIVED)
+            ->orderByDesc('changed_at')
+            ->value('notes');
+    }
+
     #[Computed]
     public function stages(): Collection
     {

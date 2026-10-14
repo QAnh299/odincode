@@ -32,6 +32,12 @@ return [
     'reassigned_no_pending' => 'There were no pending appointments to move.',
 
     'status'             => 'Status',
+    'status_name' => [
+        'InProgress' => 'In progress',
+        'Won'        => 'Won',
+        'Lost'       => 'Lost',
+        'Archived'   => 'Archived',
+    ],
     'result_count'       => ':count opportunity(ies)',
 
     // Conversion date filter
