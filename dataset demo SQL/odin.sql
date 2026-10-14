@@ -202,7 +202,7 @@ CREATE TABLE `CareResults` (
   `opportunity_id` VARCHAR(10) NOT NULL,
   `employee_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`result_id`),
-  CHECK (`result` IN ('Success', 'Failed')),
+  CHECK (`result` IN ('Success', 'Failed', 'Unreachable')),
   CONSTRAINT `fk_careresults_activity_id` FOREIGN KEY (`activity_id`)
     REFERENCES `CareActivities` (`activity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_careresults_opportunity_id` FOREIGN KEY (`opportunity_id`)
@@ -586,10 +586,10 @@ INSERT INTO `CareResults`
   (`result_id`, `performed_at`, `result`, `notes`, `activity_id`, `opportunity_id`, `employee_id`)
 VALUES
   ('CARE001', '2026-09-03 10:15:00', 'Success', 'Khach quan tam khoa giao tiep, gui lich khai giang qua Zalo.', 'ACT001', 'OPP001', 'EMP004'),
-  ('CARE002', '2026-09-06 15:00:00', 'Failed', 'Khach khong nghe may.', 'ACT001', 'OPP002', 'EMP005'),
+  ('CARE002', '2026-09-06 15:00:00', 'Unreachable', 'Khach khong nghe may.', 'ACT001', 'OPP002', 'EMP005'),
   ('CARE003', '2026-09-07 09:30:00', 'Success', 'Khach can tu van muc tieu IELTS 6.5, hen goi lai.', 'ACT001', 'OPP002', 'EMP005'),
   ('CARE004', '2026-09-08 12:00:00', 'Success', 'Khach dong y dang ky IELTS Foundation.', 'ACT001', 'OPP003', 'EMP004'),
-  ('CARE005', '2026-09-09 10:00:00', 'Failed', 'Khach khong nghe may.', 'ACT001', 'OPP004', 'EMP007'),
+  ('CARE005', '2026-09-09 10:00:00', 'Unreachable', 'Khach khong nghe may.', 'ACT001', 'OPP004', 'EMP007'),
   ('CARE006', '2026-09-10 10:00:00', 'Failed', 'Khach tu choi, da dang ky trung tam khac.', 'ACT001', 'OPP004', 'EMP007'),
   ('CARE007', '2026-09-11 16:00:00', 'Success', 'Da gui thong tin khoa hoc va uu dai, cho phan hoi bao gia.', 'ACT001', 'OPP005', 'EMP007'),
   ('CARE008', '2026-09-13 14:00:00', 'Success', 'Khach xac nhan dang ky IELTS Intensive.', 'ACT001', 'OPP006', 'EMP005'),
@@ -597,7 +597,7 @@ VALUES
   -- STG002 Data đã có lịch hẹn
   ('CARE010', '2026-09-28 09:15:00', 'Success', 'Khách muốn đạt IELTS 7.0 trong 6 tháng, hẹn lên trung tâm kiểm tra đầu vào.', 'ACT001', 'OPP010', 'EMP004'),
   ('CARE011', '2026-10-01 10:00:00', 'Success', 'Khách đang ôn thi, cần tư vấn lộ trình IELTS Intensive. Đã hẹn tư vấn online.', 'ACT001', 'OPP015', 'EMP005'),
-  ('CARE012', '2026-09-30 17:30:00', 'Failed', 'Phụ huynh không nghe máy.', 'ACT001', 'OPP016', 'EMP005'),
+  ('CARE012', '2026-09-30 17:30:00', 'Unreachable', 'Phụ huynh không nghe máy.', 'ACT001', 'OPP016', 'EMP005'),
   ('CARE013', '2026-10-02 18:00:00', 'Success', 'Phụ huynh tìm khóa English for Kids cho con 8 tuổi, hẹn đưa bé đến test.', 'ACT001', 'OPP016', 'EMP005'),
   ('CARE014', '2026-10-06 19:00:00', 'Success', 'Học viên cũ (đã học Tiếng Anh giao tiếp) muốn học tiếp IELTS Intensive.', 'ACT001', 'OPP026', 'EMP005'),
   ('CARE015', '2026-09-30 10:30:00', 'Success', 'Khách là sinh viên năm 3, cần IELTS 6.5 để xét tốt nghiệp. Đã hẹn tư vấn.', 'ACT001', 'OPP022', 'EMP007'),
@@ -616,14 +616,14 @@ VALUES
   ('CARE026', '2026-09-17 10:00:00', 'Success', 'Phụ huynh có 2 con muốn học English for Kids.', 'ACT001', 'OPP024', 'EMP007'),
   ('CARE027', '2026-09-24 17:00:00', 'Success', 'Phụ huynh đồng ý đăng ký 2 suất English for Kids, nhờ gửi báo giá.', 'ACT003', 'OPP024', 'EMP007'),
   -- STG005 Lưu trữ
-  ('CARE028', '2026-09-17 11:00:00', 'Failed', 'Khách không nghe máy.', 'ACT001', 'OPP013', 'EMP004'),
-  ('CARE029', '2026-09-19 15:00:00', 'Failed', 'Khách bận, hẹn gọi lại.', 'ACT001', 'OPP013', 'EMP004'),
+  ('CARE028', '2026-09-17 11:00:00', 'Unreachable', 'Khách không nghe máy.', 'ACT001', 'OPP013', 'EMP004'),
+  ('CARE029', '2026-09-19 15:00:00', 'Success', 'Khách bận, hẹn gọi lại.', 'ACT001', 'OPP013', 'EMP004'),
   ('CARE030', '2026-09-23 10:00:00', 'Failed', 'Khách báo hiện chưa có nhu cầu học.', 'ACT001', 'OPP013', 'EMP004'),
-  ('CARE031', '2026-09-12 10:00:00', 'Failed', 'Thuê bao không liên lạc được.', 'ACT001', 'OPP019', 'EMP005'),
-  ('CARE032', '2026-09-14 14:00:00', 'Failed', 'Không nghe máy.', 'ACT001', 'OPP019', 'EMP005'),
-  ('CARE033', '2026-09-17 09:30:00', 'Failed', 'Không nghe máy, đã nhắn Zalo nhưng không phản hồi.', 'ACT001', 'OPP019', 'EMP005'),
-  ('CARE034', '2026-09-21 16:00:00', 'Failed', 'Vẫn không liên lạc được, đóng cơ hội.', 'ACT001', 'OPP019', 'EMP005'),
-  ('CARE035', '2026-09-13 10:00:00', 'Failed', 'Khách không nghe máy.', 'ACT001', 'OPP025', 'EMP007'),
+  ('CARE031', '2026-09-12 10:00:00', 'Unreachable', 'Thuê bao không liên lạc được.', 'ACT001', 'OPP019', 'EMP005'),
+  ('CARE032', '2026-09-14 14:00:00', 'Unreachable', 'Không nghe máy.', 'ACT001', 'OPP019', 'EMP005'),
+  ('CARE033', '2026-09-17 09:30:00', 'Unreachable', 'Không nghe máy, đã nhắn Zalo nhưng không phản hồi.', 'ACT001', 'OPP019', 'EMP005'),
+  ('CARE034', '2026-09-21 16:00:00', 'Unreachable', 'Vẫn không liên lạc được, đóng cơ hội.', 'ACT001', 'OPP019', 'EMP005'),
+  ('CARE035', '2026-09-13 10:00:00', 'Unreachable', 'Khách không nghe máy.', 'ACT001', 'OPP025', 'EMP007'),
   ('CARE036', '2026-09-15 11:00:00', 'Failed', 'Khách đã đăng ký học ở trung tâm khác.', 'ACT001', 'OPP025', 'EMP007'),
   ('CARE037', '2026-09-16 10:00:00', 'Success', 'Khách muốn học IELTS Foundation, hẹn test đầu vào.', 'ACT001', 'OPP027', 'EMP004'),
   ('CARE038', '2026-08-26 10:30:00', 'Success', 'Khách cần IELTS 6.5 để du học, hẹn test và tư vấn.', 'ACT001', 'OPP028', 'EMP005'),

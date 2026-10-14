@@ -275,6 +275,7 @@
 .od-apt--Success { --tone: #15803d; --tone-bg: #dcfce7; }
 .od-res--Failed,
 .od-apt--Failed { --tone: #b91c1c; --tone-bg: #fee2e2; }
+.od-res--Unreachable { --tone: #b45309; --tone-bg: #fef3c7; }
 .od-apt--Scheduled { --tone: #1d4ed8; --tone-bg: #dbeafe; }
 
 .od-muted {

@@ -10,9 +10,13 @@ class CareResult extends Model
 {
     use HasFactory, HasStringId;
 
-    // Kết quả liên hệ
+    // Kết quả liên hệ: Thành công (gọi được cho khách), Thất bại (khách từ chối),
+    // Không liên lạc được (không nghe máy, thuê bao)
     const RESULT_SUCCESS = 'Success';
     const RESULT_FAILED = 'Failed';
+    const RESULT_UNREACHABLE = 'Unreachable';
+
+    const RESULTS = [self::RESULT_SUCCESS, self::RESULT_FAILED, self::RESULT_UNREACHABLE];
 
     protected $table = 'CareResults';
 
