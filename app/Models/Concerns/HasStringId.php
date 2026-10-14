@@ -47,4 +47,21 @@ trait HasStringId
 
         return $prefix.str_pad((string) $number, $model->idLength, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Sinh liên tiếp $count mã tiếp theo (dùng khi tạo hàng loạt trong 1 transaction).
+     *
+     * @return string[]
+     */
+    public static function nextIds(int $count): array
+    {
+        $model = new static;
+        $prefix = $model->idPrefix;
+        $start = (int) substr(static::nextId(), strlen($prefix));
+
+        return array_map(
+            fn ($i) => $prefix.str_pad((string) ($start + $i), $model->idLength, '0', STR_PAD_LEFT),
+            range(0, max(0, $count - 1)),
+        );
+    }
 }

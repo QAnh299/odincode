@@ -18,7 +18,7 @@
         @vite(['resources/css/voucher.css', 'resources/css/lead.css'])
     @endassets
 
-    {{-- ── Tiêu đề + nút thao tác (Phân chia chưa có chức năng) ─────── --}}
+    {{-- ── Tiêu đề + nút thao tác ───────────────────────────────────── --}}
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('leads.title') }}</h1>
@@ -42,7 +42,7 @@
                         <x-icon name="upload" />{{ __('leads.import') }}
                     </button>
                 @endif
-                <button type="button" class="vc-btn vc-btn--primary">
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="$dispatchTo('leads.distribute', 'open-distribute')">
                     <x-icon name="share" />
                     {{ $this->routePrefix === Role::SALE_ADMIN ? __('leads.distribute_team') : __('leads.distribute_salesperson') }}
                 </button>
@@ -234,6 +234,10 @@
                                 <td data-label="{{ __('leads.owner') }}">
                                     @if ($owner)
                                         {{ $owner->full_name }}
+                                        {{-- Cơ hội trưởng nhóm đang giữ ở stage đầu = Lead của đội chờ phân cho Salesperson --}}
+                                        @if ($owner->ledTeam && $lead->latestOpportunity->stage_id === \App\Models\Stage::UNTOUCHED)
+                                            <span class="ld-sub">{{ __('leads.pending_team', ['team' => $owner->ledTeam->team_name]) }}</span>
+                                        @endif
                                     @else
                                         <span class="ld-sub">{{ __('leads.unassigned') }}</span>
                                     @endif
@@ -254,6 +258,11 @@
             @endif
         @endif
     </section>
+
+    {{-- ── Popup Phân bổ Lead (Sale Admin → đội, Sale Leader → Salesperson) ── --}}
+    @if ($this->canManage)
+        <livewire:leads.distribute :auto-open="request()->boolean('distribute')" />
+    @endif
 
     {{-- ── Popup Thêm Lead ──────────────────────────────────────────── --}}
     @if ($modal === 'create' && $this->canCreate)

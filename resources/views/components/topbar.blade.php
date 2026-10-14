@@ -32,15 +32,28 @@
 
         <x-language-switcher />
 
-        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai (App\Services\AppointmentReminders) --}}
+        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai (App\Services\AppointmentReminders)
+             Sale Leader: Lead Sale Admin vừa phân cho đội, chờ phân cho Salesperson (App\Services\LeadAssignmentNotices) --}}
         @php
             $employee = auth()->user()?->employee;
-            $reminders = \App\Services\AppointmentReminders::for($employee);
-            $isSalesperson = $employee?->role_name === \App\Models\Role::SALESPERSON;
+            $bell = match ($employee?->role_name) {
+                \App\Models\Role::SALESPERSON => [
+                    'items'    => \App\Services\AppointmentReminders::for($employee),
+                    'subtitle' => __('appointments.reminder_header'),
+                    'footer'   => ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')],
+                ],
+                \App\Models\Role::SALE_LEADER => [
+                    'items'    => $leadNotices = \App\Services\LeadAssignmentNotices::for($employee),
+                    'subtitle' => null,
+                    'footer'   => $leadNotices->isNotEmpty()
+                        ? ['url' => route('sale_leader.leads', ['distribute' => 1]), 'label' => __('leads.notice.action')]
+                        : null,
+                ],
+                default => ['items' => collect(), 'subtitle' => null, 'footer' => null],
+            };
         @endphp
-        <x-notification-bell :notifications="$reminders" :count="$reminders->count()"
-            :subtitle="$isSalesperson ? __('appointments.reminder_header') : null"
-            :footer="$isSalesperson ? ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')] : null" />
+        <x-notification-bell :notifications="$bell['items']" :count="$bell['items']->count()"
+            :subtitle="$bell['subtitle']" :footer="$bell['footer']" />
 
         <span class="odin-topbar__divider d-none d-sm-block" aria-hidden="true"></span>
 

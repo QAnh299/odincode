@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -27,8 +28,8 @@ use Livewire\WithPagination;
  *   - Giám đốc: chỉ xem, tất cả chi nhánh (lọc được theo chi nhánh).
  *   - Sale Admin: tất cả chi nhánh; có nút Thêm, Import Excel, Phân chia Lead cho Sale Team.
  *   - Sale Leader: chỉ Lead thuộc chi nhánh của mình; có nút Phân chia Lead cho Salesperson.
- * Thêm Lead (popup) và Import Excel (tải file mẫu, tải lên, trả file kết quả) đã có chức năng;
- * nút Phân chia hiện chỉ hiển thị.
+ * Thêm Lead (popup), Import Excel (tải file mẫu, tải lên, trả file kết quả);
+ * Phân chia Lead là popup riêng (Leads\Distribute), xong thì báo về qua sự kiện 'leads-distributed'.
  */
 #[Layout('layouts.app')]
 class Index extends Component
@@ -256,6 +257,16 @@ class Index extends Component
         return Storage::disk('local')->download($path, 'ket-qua-import-lead-'.now()->format('Ymd-His').'.xlsx');
     }
 
+    /**
+     * Popup Phân chia Lead báo đã phân xong.
+     */
+    #[On('leads-distributed')]
+    public function distributed(array $notice): void
+    {
+        $this->notice = $notice;
+        $this->resetPage();
+    }
+
     public function dismissNotice(): void
     {
         $this->notice = null;
@@ -378,7 +389,7 @@ class Index extends Component
     public function render()
     {
         $leads = $this->filtered(Lead::query())
-            ->with(['branch:branch_id,branch_name', 'latestOpportunity.employee:employee_id,full_name'])
+            ->with(['branch:branch_id,branch_name', 'latestOpportunity.employee:employee_id,full_name', 'latestOpportunity.employee.ledTeam:team_id,team_name,team_leader_id'])
             ->orderByDesc('created_at')
             ->orderByDesc('lead_id')
             ->paginate(self::PER_PAGE);
