@@ -370,6 +370,113 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* So với tháng trước, dưới thẻ KPI */
+.rp-delta {
+    margin-top: 0.1rem;
+    color: var(--vc-muted);
+    font-size: 0.74rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rp-delta--up {
+    color: #15803d;
+}
+
+.rp-delta--down {
+    color: #dc2626;
+}
+
+/* Hạng: top 3 có nền màu */
+.rp-rank {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    background: #f1f3f5;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.rp-rank--1 {
+    background: #fde68a;
+    color: #92400e;
+}
+
+.rp-rank--2 {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.rp-rank--3 {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+/* So với trung bình đội: xanh = tốt hơn, đỏ = kém hơn */
+.rp-cmp--up {
+    color: #15803d;
+    font-weight: 600;
+}
+
+.rp-cmp--down {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.rp-legend {
+    margin-left: 0.75rem;
+    white-space: nowrap;
+}
+
+/* Cột đang dùng để xếp hạng */
+.rp-table .is-sorted {
+    background: var(--vc-tint);
+}
+
+.rp-sort {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.rp-sort:hover {
+    color: var(--vc-primary);
+}
+
+/* Salesperson chưa có số liệu trong tháng */
+.rp-row--idle {
+    color: var(--vc-muted);
+}
+
+/* Đã đạt chỉ tiêu */
+.rp-bar--done {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+}
+
+/* Cách tính */
+.rp-method summary {
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rp-method ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.1rem;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.rp-method li + li {
+    margin-top: 0.35rem;
+}
+
 /* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {

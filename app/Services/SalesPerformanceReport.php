@@ -7,44 +7,51 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Số liệu cho báo cáo Phân tích hiệu quả Sales Team / Salesperson.
+ * Số liệu cho báo cáo Phân tích hiệu quả Sales Team / Salesperson theo tháng.
  *
  * Bảng Leads không có người phụ trách: Lead được giao cho salesperson khi chuyển thành Cơ hội
- * (Opportunities.employee_id, ngày giao = conversion_date). Vì vậy mỗi Cơ hội = 1 Lead được giao.
+ * (Opportunities.employee_id, ngày giao = conversion_date). Mỗi Cơ hội = 1 Lead được giao.
  *
- * Mỗi Cơ hội được gộp sẵn các chỉ số của nó (lần liên hệ, lịch sử stage, đơn hàng, báo giá)
- * rồi mới nhóm theo nhân viên / đội / tháng, nên không bị đếm trùng.
+ * Mỗi chỉ số được tính theo đúng thời điểm phát sinh của nó trong kỳ:
  *
- *   Lead đã xử lý        = đã có ít nhất 1 lần liên hệ (CareResults) hoặc đã rời stage đầu tiên
- *   Lead chuyển Stage    = có lịch sử chuyển stage hoặc stage hiện tại khác stage đầu tiên
- *   Stage đã đạt tới     = stage xa nhất trong phễu (đến Chốt) theo stage hiện tại + StagesHistory;
- *                          Cơ hội Won coi như đã tới Chốt; stage Lưu trữ không tính vào phễu
- *   Lead chốt            = Cơ hội Won
- *   Doanh thu / Đã thu   = SalesOrders.total_amount / paid_amount (SalesOrders → Quotations → Opportunities)
- *   Thời gian phản hồi   = từ lúc giao đến lần liên hệ đầu tiên (giờ)
- *   Thời gian chốt       = từ lúc giao đến lúc vào stage Chốt (StagesHistory), không có thì đến báo giá đầu tiên (ngày)
- *   Lead không liên hệ được = đã liên hệ nhưng chưa lần nào thành công
- *   Lead bị chuyển ngược = có lần chuyển về stage đứng trước trong phễu
+ *   A. Theo ngày giao Lead (nhóm Lead được giao trong kỳ – đo quy trình xử lý):
+ *      Lead được giao, Lead đã xử lý (đã liên hệ hoặc đã rời stage đầu), Lead chuyển Stage,
+ *      Stage đã đạt tới (phễu), thời gian phản hồi đầu tiên, số lần liên hệ,
+ *      Lead không liên hệ được (đã liên hệ nhưng chưa lần nào thành công), Lead bị chuyển ngược Stage.
+ *   B. Theo ngày chốt (Cơ hội Won / Lost có ngày đóng trong kỳ – đo kết quả):
+ *      Lead chốt, Lead thất bại, tỷ lệ thắng = Won / (Won + Lost), thời gian chốt.
+ *      Ngày đóng = lúc vào stage Chốt / Lưu trữ (StagesHistory); thiếu lịch sử thì lấy báo giá đầu tiên (Won),
+ *      lần liên hệ cuối, cuối cùng là ngày giao.
+ *   C. Theo ngày tạo đơn hàng: Doanh thu = SalesOrders.total_amount, Đã thu = paid_amount
+ *      (SalesOrders → Quotations → Opportunities, tính cho người phụ trách Cơ hội).
+ *   D. Theo ngày thành học viên: Học viên mới (Students.conversion_date).
  *
- * Bộ lọc thời gian áp dụng theo ngày giao (conversion_date): mọi chỉ số tính trên nhóm Lead được giao trong kỳ.
+ * Mọi truy vấn đều có cột event_at (thời điểm phát sinh) nên lọc / nhóm theo tháng dùng chung được.
  */
 class SalesPerformanceReport
 {
-    // Chiều nhóm → biểu thức SQL (o = Opportunities, e = Employees)
+    // Chiều nhóm → biểu thức SQL (o = dòng dữ liệu đã có employee_id + event_at, e = Employees)
     const DIMENSIONS = [
+        'all'      => "'all'",
         'employee' => 'o.employee_id',
         'team'     => 'e.team_id',
-        'month'    => "DATE_FORMAT(o.conversion_date, '%Y-%m')",
+        'month'    => "DATE_FORMAT(o.event_at, '%Y-%m')",
     ];
 
-    // Chỉ số gốc (cộng dồn được) – ép kiểu trong derive()
+    // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh
+    const TARGETS = [
+        'Revenue'     => 'revenue',
+        'NewStudents' => 'students',
+        'NewLeads'    => 'assigned',
+    ];
+
+    // Chỉ số gốc (cộng dồn được); FLOATS là số thực (tiền, giờ, ngày)
     const SUMMABLE = [
-        'assigned', 'processed', 'moved', 'won', 'lost', 'contacts', 'contacts_ok', 'unreachable', 'backward',
-        'revenue', 'paid', 'expected', 'response_hours', 'response_n', 'close_days', 'close_n',
+        'assigned', 'processed', 'moved', 'contacts', 'contacts_ok', 'unreachable', 'backward',
+        'response_hours', 'response_n', 'won', 'lost', 'close_days', 'close_n', 'revenue', 'paid', 'students',
     ];
 
-    // Chỉ số dạng số thực (tiền, giờ, ngày)
-    const FLOATS = ['revenue', 'paid', 'expected', 'response_hours', 'close_days'];
+    const FLOATS = ['response_hours', 'close_days', 'revenue', 'paid'];
 
     protected ?array $funnel = null;
 
@@ -68,39 +75,121 @@ class SalesPerformanceReport
     }
 
     /**
-     * Tổng hợp chỉ số theo 1 chiều.
+     * Tổng hợp đủ chỉ số theo 1 chiều.
      *
      * @param  array  $filters  from, to (Y-m-d), team, employee
-     * @return array<int, array> mỗi dòng: dim + đủ các chỉ số
+     * @return array<string, array> dim → dòng chỉ số
      */
     public function aggregate(array $filters, string $dimension): array
     {
-        $query = $this->base($filters)
-            ->selectRaw(self::DIMENSIONS[$dimension].' AS dim')
-            ->groupBy('dim');
+        $dim = self::DIMENSIONS[$dimension];
+        $stages = $this->funnelStages();
 
-        $this->selectMetrics($query);
+        $parts = [];
 
-        return $query->get()
-            ->map(fn ($row) => $this->derive(['dim' => (string) $row->dim] + (array) $row))
-            ->all();
+        // A. Theo ngày giao Lead
+        $cohort = $this->scoped($this->facts(), $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS assigned')
+            ->selectRaw('SUM(o.contacts > 0 OR o.left_first OR o.moves > 0) AS processed')
+            ->selectRaw('SUM(o.left_first OR o.moves > 0) AS moved')
+            ->selectRaw('SUM(o.contacts) AS contacts')
+            ->selectRaw('SUM(o.contacts_ok) AS contacts_ok')
+            ->selectRaw('SUM(o.contacts > 0 AND o.contacts_ok = 0) AS unreachable')
+            ->selectRaw('SUM(o.backward) AS backward')
+            ->selectRaw('SUM(o.response_hours) AS response_hours')
+            ->selectRaw('COUNT(o.response_hours) AS response_n');
+        foreach ($stages as $stage) {
+            $cohort->selectRaw("SUM(o.reached >= {$stage['order']}) AS reached_{$stage['order']}");
+        }
+        $parts[] = $cohort->get();
+
+        // B. Theo ngày chốt
+        $parts[] = $this->scoped($this->facts('closed_at')->whereIn('f.status', ['Won', 'Lost']), $filters)
+            ->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw("SUM(o.status = 'Won') AS won")
+            ->selectRaw("SUM(o.status = 'Lost') AS lost")
+            ->selectRaw("SUM(IF(o.status = 'Won', o.close_days, NULL)) AS close_days")
+            ->selectRaw("COUNT(IF(o.status = 'Won', o.close_days, NULL)) AS close_n")
+            ->get();
+
+        // C. Theo ngày tạo đơn hàng
+        $orders = DB::table('SalesOrders as so')
+            ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
+            ->join('Opportunities as op', 'op.opportunity_id', '=', 'q.opportunity_id')
+            ->select('op.employee_id', 'so.created_at as event_at', 'so.total_amount', 'so.paid_amount');
+        $parts[] = $this->scoped($orders, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('SUM(o.total_amount) AS revenue')
+            ->selectRaw('SUM(o.paid_amount) AS paid')
+            ->get();
+
+        // D. Theo ngày thành học viên
+        $students = DB::table('Students as st')
+            ->join('Opportunities as op', 'op.opportunity_id', '=', 'st.opportunity_id')
+            ->select('op.employee_id', 'st.conversion_date as event_at');
+        $parts[] = $this->scoped($students, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS students')
+            ->get();
+
+        // Gộp các phần theo dim
+        $rows = [];
+        foreach ($parts as $part) {
+            foreach ($part as $row) {
+                $row = (array) $row;
+                $key = (string) $row['dim'];
+                $rows[$key] = ($rows[$key] ?? []) + $row;
+            }
+        }
+
+        return array_map(fn ($row) => $this->derive($row), $rows);
     }
 
     /**
-     * Tổng chung (thẻ KPI, phễu chung).
+     * Tổng chung của phạm vi lọc.
      */
     public function totals(array $filters): array
     {
-        $query = $this->base($filters);
-        $this->selectMetrics($query);
-
-        return $this->derive((array) $query->first());
+        return $this->aggregate($filters, 'all')['all'] ?? $this->derive([]);
     }
 
     /**
-     * Opportunities (o) + Employees (e) + chỉ số đã gộp theo từng Cơ hội + bộ lọc chung.
+     * Chỉ tiêu của các đội trong 1 tháng: [team_id => ['revenue' => ..., 'students' => ..., 'assigned' => ...]].
      */
-    protected function base(array $filters): Builder
+    public function targets(string $month, ?array $teamIds = null): array
+    {
+        $rows = DB::table('TeamSalesTargets as t')
+            ->join('SalesTargets as s', 's.target_id', '=', 't.target_id')
+            ->whereIn('s.target_type', array_keys(self::TARGETS))
+            ->where('t.target_month', $month.'-01')
+            ->where('t.status', '<>', 'Cancelled')
+            ->when($teamIds !== null, fn ($q) => $q->whereIn('t.team_id', $teamIds))
+            ->get(['t.team_id', 's.target_type', 't.target_value']);
+
+        $targets = [];
+        foreach ($rows as $row) {
+            $targets[$row->team_id][self::TARGETS[$row->target_type]] = (float) $row->target_value;
+        }
+
+        return $targets;
+    }
+
+    /**
+     * Gắn Employees (e) + bộ lọc chung lên 1 truy vấn có employee_id, event_at.
+     */
+    protected function scoped(Builder $source, array $filters): Builder
+    {
+        return DB::query()
+            ->fromSub($source, 'o')
+            ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
+            ->when($filters['from'] ?? null, fn ($q, $from) => $q->whereDate('o.event_at', '>=', $from))
+            ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('o.event_at', '<=', $to))
+            ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
+            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
+    }
+
+    /**
+     * Mỗi Cơ hội 1 dòng với các chỉ số đã gộp; event_at = ngày giao hoặc ngày đóng.
+     */
+    protected function facts(string $event = 'conversion_date'): Builder
     {
         $stages = $this->funnelStages();
         $first = $stages[0]['order'] ?? 1;
@@ -114,6 +203,7 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(*) AS contacts')
             ->selectRaw("SUM(result = 'Success') AS contacts_ok")
             ->selectRaw('MIN(performed_at) AS first_contact')
+            ->selectRaw('MAX(performed_at) AS last_contact')
             ->groupBy('opportunity_id');
 
         $history = DB::table('StagesHistory as h')
@@ -123,7 +213,8 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(*) AS moves')
             ->selectRaw("MAX(ts.sort_order < fs.sort_order AND fs.sort_order <= $last) AS backward")
             ->selectRaw('MAX(GREATEST('.$inFunnel('fs.sort_order').', '.$inFunnel('ts.sort_order').')) AS reached')
-            ->selectRaw('MIN(IF(h.to_stage_id = ?, h.changed_at, NULL)) AS closed_at', [Stage::CLOSED])
+            ->selectRaw('MIN(IF(h.to_stage_id = ?, h.changed_at, NULL)) AS won_at', [Stage::CLOSED])
+            ->selectRaw("MIN(IF(ts.sort_order > $last, h.changed_at, NULL)) AS archived_at")
             ->groupBy('h.opportunity_id');
 
         $quotes = DB::table('Quotations')
@@ -131,73 +222,35 @@ class SalesPerformanceReport
             ->selectRaw('MIN(created_at) AS first_quote')
             ->groupBy('opportunity_id');
 
-        $orders = DB::table('SalesOrders as so')
-            ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
-            ->select('q.opportunity_id')
-            ->selectRaw('SUM(so.total_amount) AS revenue')
-            ->selectRaw('SUM(so.paid_amount) AS paid')
-            ->groupBy('q.opportunity_id');
-
-        $perOpportunity = DB::table('Opportunities as o')
+        $facts = DB::table('Opportunities as o')
             ->join('Stages as s', 's.stage_id', '=', 'o.stage_id')
             ->leftJoinSub($care, 'c', 'c.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($history, 'hs', 'hs.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($quotes, 'qt', 'qt.opportunity_id', '=', 'o.opportunity_id')
-            ->leftJoinSub($orders, 'rv', 'rv.opportunity_id', '=', 'o.opportunity_id')
             ->select('o.opportunity_id', 'o.employee_id', 'o.conversion_date', 'o.status')
-            ->selectRaw('COALESCE(o.expected_value, 0) AS expected')
             ->selectRaw('COALESCE(c.contacts, 0) AS contacts')
             ->selectRaw('COALESCE(c.contacts_ok, 0) AS contacts_ok')
             ->selectRaw('COALESCE(hs.moves, 0) AS moves')
             ->selectRaw('COALESCE(hs.backward, 0) AS backward')
-            ->selectRaw('COALESCE(rv.revenue, 0) AS revenue')
-            ->selectRaw('COALESCE(rv.paid, 0) AS paid')
             ->selectRaw('(o.stage_id <> ?) AS left_first', [$stages[0]['id'] ?? Stage::UNTOUCHED])
             ->selectRaw("GREATEST($first, ".$inFunnel('s.sort_order').", COALESCE(hs.reached, 0), IF(o.status = 'Won', $last, 0)) AS reached")
             ->selectRaw('GREATEST(0, TIMESTAMPDIFF(MINUTE, o.conversion_date, c.first_contact)) / 60 AS response_hours')
-            ->selectRaw("IF(o.status = 'Won', GREATEST(0, TIMESTAMPDIFF(MINUTE, o.conversion_date, COALESCE(hs.closed_at, qt.first_quote))) / 1440, NULL) AS close_days");
+            ->selectRaw("CASE o.status
+                WHEN 'Won' THEN COALESCE(hs.won_at, qt.first_quote, c.last_contact, o.conversion_date)
+                WHEN 'Lost' THEN COALESCE(hs.archived_at, c.last_contact, o.conversion_date)
+                END AS closed_at");
 
-        return DB::query()
-            ->fromSub($perOpportunity, 'o')
-            ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
-            ->when($filters['from'] ?? null, fn ($q, $from) => $q->whereDate('o.conversion_date', '>=', $from))
-            ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('o.conversion_date', '<=', $to))
-            ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
-            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
-    }
-
-    protected function selectMetrics(Builder $query): void
-    {
-        $query->selectRaw('COUNT(*) AS assigned')
-            ->selectRaw('SUM(o.contacts > 0 OR o.left_first OR o.moves > 0) AS processed')
-            ->selectRaw('SUM(o.left_first OR o.moves > 0) AS moved')
-            ->selectRaw("SUM(o.status = 'Won') AS won")
-            ->selectRaw("SUM(o.status = 'Lost') AS lost")
-            ->selectRaw('SUM(o.contacts) AS contacts')
-            ->selectRaw('SUM(o.contacts_ok) AS contacts_ok')
-            ->selectRaw('SUM(o.contacts > 0 AND o.contacts_ok = 0) AS unreachable')
-            ->selectRaw('SUM(o.backward) AS backward')
-            ->selectRaw('SUM(o.revenue) AS revenue')
-            ->selectRaw('SUM(o.paid) AS paid')
-            ->selectRaw('SUM(o.expected) AS expected')
-            ->selectRaw('SUM(o.response_hours) AS response_hours')
-            ->selectRaw('COUNT(o.response_hours) AS response_n')
-            ->selectRaw('SUM(o.close_days) AS close_days')
-            ->selectRaw('COUNT(o.close_days) AS close_n');
-
-        // Số Lead đã đạt tới từng stage của phễu
-        foreach ($this->funnelStages() as $stage) {
-            $query->selectRaw("SUM(o.reached >= {$stage['order']}) AS reached_{$stage['order']}");
-        }
+        // Bọc thêm 1 lớp để tính thời gian chốt và đặt event_at
+        return DB::query()->fromSub($facts, 'f')
+            ->select('f.*')
+            ->selectRaw("f.$event AS event_at")
+            ->selectRaw('GREATEST(0, TIMESTAMPDIFF(MINUTE, f.conversion_date, f.closed_at)) / 1440 AS close_days');
     }
 
     /**
      * Ép kiểu số + tính các chỉ số dẫn xuất (dùng lại được sau khi cộng gộp nhiều dòng):
-     *   processed_rate   = Lead đã xử lý / Lead được giao
-     *   moved_rate       = Lead chuyển Stage / Lead được giao
-     *   win_rate         = Lead chốt / Lead được giao
-     *   close_rate       = Won / (Won + Lost)
-     *   contacts_per_lead, contact_success_rate = lần liên hệ thành công / tổng lần liên hệ
+     *   processed_rate = Lead đã xử lý / Lead được giao      moved_rate = Lead chuyển Stage / Lead được giao
+     *   close_rate     = Won / (Won + Lost) đóng trong kỳ     contact_success_rate = liên hệ thành công / tổng liên hệ
      *   avg_response_hours, avg_close_days
      *   stages: [order => ['reached', 'rate' (so với stage trước), 'overall' (so với Lead được giao)]]
      */
@@ -207,16 +260,12 @@ class SalesPerformanceReport
             $row[$key] = in_array($key, self::FLOATS, true) ? (float) ($row[$key] ?? 0) : (int) ($row[$key] ?? 0);
         }
 
-        $assigned = $row['assigned'];
-        $closed = $row['won'] + $row['lost'];
-        $pct = fn ($a, $b) => $b ? round($a * 100 / $b, 1) : 0.0;
+        $pct = fn ($a, $b) => $b ? round($a * 100 / $b, 1) : null;
 
-        $row['processed_rate'] = $pct($row['processed'], $assigned);
-        $row['moved_rate'] = $pct($row['moved'], $assigned);
-        $row['win_rate'] = $pct($row['won'], $assigned);
-        $row['close_rate'] = $pct($row['won'], $closed);
+        $row['processed_rate'] = $pct($row['processed'], $row['assigned']);
+        $row['moved_rate'] = $pct($row['moved'], $row['assigned']);
+        $row['close_rate'] = $pct($row['won'], $row['won'] + $row['lost']);
         $row['contact_success_rate'] = $pct($row['contacts_ok'], $row['contacts']);
-        $row['contacts_per_lead'] = $assigned ? round($row['contacts'] / $assigned, 1) : 0.0;
         $row['avg_response_hours'] = $row['response_n'] ? round($row['response_hours'] / $row['response_n'], 1) : null;
         $row['avg_close_days'] = $row['close_n'] ? round($row['close_days'] / $row['close_n'], 1) : null;
 
@@ -228,11 +277,25 @@ class SalesPerformanceReport
             $row['stages'][$stage['order']] = [
                 'reached' => $reached,
                 'rate'    => $previous === null ? null : $pct($reached, $previous),
-                'overall' => $pct($reached, $assigned),
+                'overall' => $pct($reached, $row['assigned']),
             ];
             $previous = $reached;
         }
 
         return $row;
+    }
+
+    /**
+     * Cộng các chỉ số gốc của nhiều dòng rồi tính lại chỉ số dẫn xuất.
+     */
+    public function combine(array $rows): array
+    {
+        $keys = array_merge(self::SUMMABLE, array_map(fn ($s) => 'reached_'.$s['order'], $this->funnelStages()));
+        $sum = [];
+        foreach ($keys as $key) {
+            $sum[$key] = array_sum(array_column($rows, $key));
+        }
+
+        return $this->derive($sum);
     }
 }
