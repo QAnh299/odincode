@@ -132,7 +132,8 @@ class LeadImportService
             'phone'          => ['required', 'regex:/^0\d{9}$/'],
             'email'          => ['nullable', 'email', 'max:254'],
             'source_name'    => ['required', Rule::in(Lead::SOURCES)],
-            'source_url'     => ['nullable', 'url:http,https', 'max:2000'],
+            // Link nguồn hoặc SĐT/mô tả kênh liên hệ; bắt buộc trừ Workshop, Website ODIN
+            'source_url'     => ['nullable', 'required_unless:source_name,'.implode(',', Lead::SOURCES_LINK_OPTIONAL), 'string', 'max:2000'],
             'contact_method' => ['required', Rule::in(Lead::CONTACT_METHODS)],
             'branch_id'      => ['required', Rule::exists(Branch::class, 'branch_id')],
         ];
@@ -143,6 +144,7 @@ class LeadImportService
         return [
             'phone.regex'       => __('leads.form.phone_invalid'),
             'source_name.in'    => __('leads.form.source_invalid', ['values' => implode(', ', Lead::SOURCES)]),
+            'source_url.required_unless' => __('leads.form.source_url_required', ['values' => implode(', ', Lead::SOURCES_LINK_OPTIONAL)]),
             'contact_method.in' => __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]),
             'branch_id.exists'  => __('leads.form.branch_invalid'),
         ];

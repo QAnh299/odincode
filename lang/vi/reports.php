@@ -92,6 +92,84 @@ return [
         ],
     ],
 
+    // Phân tích hiệu quả Sales Team / Salesperson
+    'sales_performance' => [
+        'title'     => 'Phân tích hiệu quả nhân viên Sales',
+        'subtitle'  => 'Khả năng xử lý Lead, chuyển đổi qua từng stage và doanh thu mang lại của từng salesperson / đội',
+        'from'      => 'Giao Lead từ ngày',
+        'to'        => 'Đến ngày',
+        'team'      => 'Đội kinh doanh',
+        'all_teams' => 'Tất cả đội',
+        'employee'  => 'Salesperson',
+        'resigned'  => 'đã nghỉ',
+        'no_team'   => 'Chưa thuộc đội',
+        'hours'     => ':value giờ',
+        'days'      => ':value ngày',
+
+        'kpi' => [
+            'assigned'      => 'Lead được giao',
+            'won'           => 'Lead chốt',
+            'revenue'       => 'Doanh thu thực tế',
+            'response'      => 'Phản hồi đầu tiên TB',
+            'contacts'      => 'Số lần liên hệ',
+            'assigned_hint' => ':count đã xử lý (:rate)',
+            'won_hint'      => 'Tỷ lệ chốt :rate',
+            'revenue_hint'  => 'Đã thu :paid',
+            'response_hint' => 'Chốt TB sau :days',
+            'contacts_hint' => ':unreachable không liên hệ được · :backward chuyển ngược',
+        ],
+
+        'metric' => [
+            'assigned'           => 'Lead được giao',
+            'processed'          => 'Đã xử lý',
+            'moved'              => 'Chuyển Stage',
+            'won'                => 'Lead chốt',
+            'reached'            => 'Số Lead đạt tới stage',
+            'processed_rate'     => 'Tỷ lệ xử lý (%)',
+            'moved_rate'         => 'Tỷ lệ chuyển Stage',
+            'win_rate'           => 'Tỷ lệ chốt',
+            'close_rate'         => 'Tỷ lệ thắng / đã đóng (%)',
+            'revenue'            => 'Doanh thu',
+            'paid'               => 'Đã thu',
+            'avg_response_hours' => 'Phản hồi đầu TB',
+            'avg_close_days'     => 'Thời gian chốt TB',
+            'contacts'           => 'Lần liên hệ',
+            'unreachable'        => 'Không liên hệ được',
+            'backward'           => 'Chuyển ngược Stage',
+        ],
+
+        'chart' => [
+            'pipeline'     => 'Xử lý Lead theo salesperson',
+            'pipeline_sub' => 'Lead được giao → đã xử lý → chuyển Stage → chốt',
+            'rates'        => 'Tỷ lệ hiệu quả theo salesperson',
+            'rates_sub'    => 'Tỷ lệ xử lý, tỷ lệ chốt trên Lead được giao và tỷ lệ thắng trên Cơ hội đã đóng',
+            'revenue'      => 'Doanh thu thực tế theo salesperson',
+            'revenue_sub'  => 'Tổng giá trị đơn hàng và số tiền đã thu',
+            'contacts'     => 'Hoạt động liên hệ & chất lượng xử lý',
+            'contacts_sub' => 'Số lần liên hệ, Lead không liên hệ được và Lead bị chuyển ngược Stage',
+            'funnel'       => 'Phễu chuyển đổi theo Stage',
+            'funnel_sub'   => 'Số Lead đã đạt tới từng stage và tỷ lệ chuyển sang stage kế tiếp',
+            'trend'        => 'Xu hướng theo tháng giao Lead',
+            'trend_sub'    => 'Lead được giao, đã xử lý và chốt theo tháng',
+        ],
+
+        'table' => [
+            'title' => 'Bảng xếp hạng salesperson',
+            'sub'   => 'Sắp theo số Lead chốt, rồi doanh thu. Thời gian phản hồi tính từ lúc giao Lead đến lần liên hệ đầu tiên; thời gian chốt tính đến lúc vào stage Chốt.',
+            'total' => 'Tổng cộng',
+        ],
+
+        'stage_table' => [
+            'title' => 'Tỷ lệ chuyển đổi từng Stage theo salesperson',
+            'sub'   => 'Mỗi ô: số Lead đã đạt tới stage và tỷ lệ so với stage liền trước.',
+        ],
+
+        'team_table' => [
+            'title' => 'So sánh giữa các đội',
+            'sub'   => 'Sắp theo doanh thu.',
+        ],
+    ],
+
     // Biểu đồ linh hoạt
     'builder' => [
         'title'        => 'Biểu đồ tuỳ chọn',

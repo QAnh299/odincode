@@ -11,6 +11,7 @@ use App\Livewire\Opportunities\Show as OpportunityShow;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
+use App\Livewire\Reports\SalesPerformance as SalesPerformanceReport;
 use App\Livewire\SaleLeader\Home;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
@@ -51,6 +52,9 @@ Route::get('/vouchers/{voucher}', VoucherShow::class)->name('vouchers.show');
 // Khóa học – chỉ xem (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/courses', CourseIndex::class)->name('courses');
 Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
+
+// Báo cáo – Phân tích hiệu quả nhân viên Sales (Giám đốc, Sale Admin: tất cả đội; Sale Leader: đội mình)
+Route::get('/reports/sales-performance', SalesPerformanceReport::class)->name('reports.sales-performance');
 
 // Học viên – danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
 // Sale Leader, Salesperson được chỉnh sửa)

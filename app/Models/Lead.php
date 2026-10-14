@@ -20,6 +20,9 @@ class Lead extends Model
     // Nguồn Lead (theo ràng buộc CHECK source_name trong odin.sql)
     const SOURCES = ['Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok'];
 
+    // Nguồn không bắt buộc Link nguồn / SĐT; các nguồn còn lại phải có để Salesperson biết liên hệ qua đâu
+    const SOURCES_LINK_OPTIONAL = ['Workshop', 'Website ODIN'];
+
     protected $table = 'Leads';
 
     protected $primaryKey = 'lead_id';
@@ -50,6 +53,14 @@ class Lead extends Model
     public function branch()
     {
         return $this->belongsTo(Branch::class, 'branch_id', 'branch_id');
+    }
+
+    /**
+     * Link nguồn / SĐT là đường dẫn http(s) → hiển thị thành link.
+     */
+    public function sourceUrlIsLink(): bool
+    {
+        return (bool) preg_match('#^https?://#i', (string) $this->source_url);
     }
 
     public function opportunities()

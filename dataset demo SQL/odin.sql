@@ -121,6 +121,12 @@ CREATE TABLE `Leads` (
   `branch_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`lead_id`),
   CHECK (`source_name` IN ('Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok')),
+  -- source_url = link nguon hoac SDT/mo ta kenh lien he.
+  -- Workshop, Website ODIN: duoc phep NULL; cac nguon con lai bat buoc co de Salesperson biet lien he qua dau
+  CONSTRAINT `chk_leads_source_url` CHECK (
+    `source_name` IN ('Workshop', 'Website ODIN')
+    OR (`source_url` IS NOT NULL AND `source_url` <> '')
+  ),
   CHECK (`contact_method` IN ('Zalo', 'Phone', 'Facebook')),
   CHECK (`status` IN ('New', 'Converted')),
   CONSTRAINT `fk_leads_branch_id` FOREIGN KEY (`branch_id`)

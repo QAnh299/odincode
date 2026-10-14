@@ -340,6 +340,36 @@
     margin-top: 0.6rem;
 }
 
+/* ── Hiệu quả nhân viên Sales ──────────────────────────────────────── */
+
+/* Dòng phụ nhỏ trong ô bảng: tên đội dưới tên nhân viên, % dưới số lượng */
+.rp-sub {
+    display: block;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+/* Tỷ lệ chuyển giữa 2 stage liền nhau, dưới biểu đồ phễu */
+.rp-steps {
+    margin: 0.9rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.84rem;
+}
+
+.rp-steps li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    border-top: 1px solid var(--vc-border);
+}
+
+.rp-steps strong {
+    font-variant-numeric: tabular-nums;
+}
+
 /* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {

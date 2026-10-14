@@ -213,10 +213,13 @@
                                 </td>
                                 <td data-label="{{ __('leads.phone') }}" class="ld-nowrap">{{ $lead->phone }}</td>
                                 <td data-label="{{ __('leads.source') }}">
-                                    @if ($lead->source_url)
+                                    @if ($lead->sourceUrlIsLink())
                                         <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer">{{ $lead->source_name }}</a>
                                     @else
                                         {{ $lead->source_name }}
+                                        @if ($lead->source_url)
+                                            <span class="ld-sub">{{ $lead->source_url }}</span>
+                                        @endif
                                     @endif
                                 </td>
                                 <td data-label="{{ __('leads.contact_method') }}">
@@ -276,12 +279,11 @@
                             ['full_name', 'text', 'placeholder_name', true],
                             ['phone', 'tel', 'placeholder_phone', true],
                             ['email', 'email', 'placeholder_email', false],
-                            ['source_url', 'url', 'placeholder_url', false],
                         ];
                     @endphp
 
                     @foreach ($inputs as [$field, $type, $placeholder, $required])
-                        <label class="vc-field {{ $field === 'source_url' ? 'ld-form__wide' : '' }}">
+                        <label class="vc-field">
                             <span class="vc-field__label">
                                 {{ __('leads.field.'.$field) }}@if ($required)<span class="ld-req">*</span>@endif
                             </span>
@@ -294,13 +296,23 @@
 
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('leads.field.source_name') }}<span class="ld-req">*</span></span>
-                        <select wire:model="form.source_name" class="vc-control @error('source_name') is-invalid @enderror">
+                        <select wire:model.live="form.source_name" class="vc-control @error('source_name') is-invalid @enderror">
                             <option value="">{{ __('leads.form.choose_source') }}</option>
                             @foreach (Lead::SOURCES as $option)
                                 <option value="{{ $option }}">{{ $option }}</option>
                             @endforeach
                         </select>
                         @error('source_name')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    {{-- Bắt buộc trừ Workshop, Website ODIN: Salesperson cần biết liên hệ Lead qua đâu --}}
+                    <label class="vc-field ld-form__wide">
+                        <span class="vc-field__label">
+                            {{ __('leads.field.source_url') }}@if (! in_array($form['source_name'] ?? '', Lead::SOURCES_LINK_OPTIONAL, true))<span class="ld-req">*</span>@endif
+                        </span>
+                        <input type="text" wire:model="form.source_url" placeholder="{{ __('leads.form.placeholder_url') }}"
+                            class="vc-control @error('source_url') is-invalid @enderror">
+                        @error('source_url')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
                     <label class="vc-field">

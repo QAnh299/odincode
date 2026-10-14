@@ -420,10 +420,13 @@
                     </dd>
                     <dt>{{ __('leads.source') }}</dt>
                     <dd>
-                        @if ($lead?->source_url)
+                        @if ($lead?->sourceUrlIsLink())
                             <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer">{{ $lead->source_name }}</a>
                         @else
                             {{ $lead?->source_name ?? '—' }}
+                            @if ($lead?->source_url)
+                                · {{ $lead->source_url }}
+                            @endif
                         @endif
                     </dd>
                     <dt>{{ __('leads.branch') }}</dt>
