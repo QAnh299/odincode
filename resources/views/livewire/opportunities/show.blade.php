@@ -246,19 +246,23 @@
                             <p class="od-empty">{{ __('opportunities.no_appointments') }}</p>
                         @endforelse
                     @else
-                        {{-- Ghi nhận lần liên hệ tiếp theo: chỉ khi chưa tới stage Chốt và chưa liên hệ thành công --}}
+                        {{-- Ghi nhận lần liên hệ tiếp theo: ở stage Data chưa tương tác (Liên hệ ban đầu) và Data đã xử lý
+                             (Chốt đăng ký), kể cả sau lần liên hệ thành công; dừng khi đủ số lần không thành công của stage --}}
                         @if ($this->needsContact())
-                            @php $nextActivity = $this->nextActivity; @endphp
+                            @php
+                                $nextActivity = $this->nextActivity;
+                                $canLog = $this->canLogCare();
+                            @endphp
                             <div class="od-apt-bar">
                                 <span class="od-muted od-apt-bar__hint">
-                                    {{ $nextActivity ? '' : __('opportunities.care_hint_full') }}
+                                    {{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this->maxFailedContacts()]) }}
                                 </span>
-                                <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $nextActivity)>
+                                <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)>
                                     <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
                                 </button>
                             </div>
 
-                            @if ($form === 'care' && $nextActivity)
+                            @if ($form === 'care' && $canLog)
                                 <form class="od-create" wire:submit="saveCare">
                                     <h3 class="od-create__title">{{ __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) }}</h3>
                                     @if ($nextActivity->notes)
@@ -292,18 +296,6 @@
                                         @error('careNotes') <span class="ld-error">{{ $message }}</span> @enderror
                                     </label>
 
-                                    {{-- Liên hệ thành công = đã chốt lịch hẹn với khách → bắt buộc nhập lịch hẹn --}}
-                                    @if ($careResult === 'Success')
-                                        <fieldset class="od-create__wide od-subform">
-                                            <legend class="od-subform__title">
-                                                <x-icon name="calendar" />{{ __('opportunities.care_apt_title') }}
-                                            </legend>
-                                            <p class="od-muted od-subform__sub">{{ __('opportunities.care_apt_sub') }}</p>
-
-                                            @include('livewire.opportunities.partials.appointment-fields', ['allowedTypes' => \App\Models\Appointment::TYPES])
-                                        </fieldset>
-                                    @endif
-
                                     <div class="od-resched__actions">
                                         <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeForm">{{ __('leads.cancel') }}</button>
                                         <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="saveCare">
@@ -312,6 +304,17 @@
                                     </div>
                                 </form>
                             @endif
+                        @endif
+
+                        {{-- Đã liên hệ thành công ở stage Data chưa tương tác: Đặt lịch hẹn (khách cần test / tư vấn),
+                             hoặc nút Tạo báo giá ở đầu trang nếu khách đăng ký ngay --}}
+                        @if ($this->canBookFirst())
+                            <div class="od-apt-bar">
+                                <span class="od-muted od-apt-bar__hint">{{ __('opportunities.care_hint_book') }}</span>
+                                <button type="button" class="vc-btn vc-btn--primary" wire:click="startCreate">
+                                    <x-icon name="calendar" />{{ __('opportunities.book_appointment') }}
+                                </button>
+                            </div>
                         @endif
 
                         {{-- Lịch sử chăm sóc: các lần liên hệ, mới nhất lên đầu --}}
@@ -352,7 +355,7 @@
                     <h2 class="od-title od-title--bar">{{ __('opportunities.quotations') }}</h2>
 
                     @if ($quotations->isEmpty())
-                        <p class="od-empty od-empty--pad">{{ $this->isOwner() ? __('opportunities.no_quotations_closed') : __('opportunities.no_quotations_yet') }}</p>
+                        <p class="od-empty od-empty--pad">{{ $this->canCreateQuotation() ? __('opportunities.no_quotations_closed') : __('opportunities.no_quotations_yet') }}</p>
                     @else
                         <div class="vc-table-wrap">
                             <table class="vc-table vc-table--static">
