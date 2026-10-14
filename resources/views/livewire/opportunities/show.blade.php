@@ -37,8 +37,9 @@
             </div>
 
             @if ($this->canCreateQuotation())
-                {{-- Chỉ hiển thị, chưa có chức năng --}}
-                <button type="button" class="vc-btn vc-btn--primary">
+                {{-- Khách đồng ý đăng ký → chuyển sang stage Chốt để lập báo giá --}}
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="createQuotation"
+                    wire:confirm="{{ __('opportunities.confirm_quote') }}">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </button>
             @endif
@@ -247,7 +248,7 @@
                         @endforelse
                     @else
                         {{-- Ghi nhận lần liên hệ tiếp theo: ở stage Data chưa tương tác (Liên hệ ban đầu) và Data đã xử lý
-                             (Chốt đăng ký), kể cả sau lần liên hệ thành công; dừng khi đủ số lần không thành công của stage --}}
+                             (Chốt đăng ký), kể cả sau lần liên hệ thành công; dừng khi đủ số lần không liên lạc được của stage --}}
                         @if ($this->needsContact())
                             @php
                                 $nextActivity = $this->nextActivity;
@@ -255,7 +256,7 @@
                             @endphp
                             <div class="od-apt-bar">
                                 <span class="od-muted od-apt-bar__hint">
-                                    {{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this->maxFailedContacts()]) }}
+                                    {{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this->maxUnreachableContacts()]) }}
                                 </span>
                                 <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)>
                                     <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
@@ -279,7 +280,7 @@
                                     <div class="vc-field">
                                         <span class="vc-field__label">{{ __('opportunities.care_result_label') }} <span class="ld-req">*</span></span>
                                         <div class="od-checks od-results">
-                                            @foreach (['Success', 'Failed'] as $result)
+                                            @foreach (\App\Models\CareResult::RESULTS as $result)
                                                 <label class="od-check od-result od-res--{{ $result }} {{ $careResult === $result ? 'is-on' : '' }}">
                                                     <input type="radio" wire:model.live="careResult" value="{{ $result }}">
                                                     <span>{{ __('opportunities.care_result.'.$result) }}</span>
@@ -287,10 +288,19 @@
                                             @endforeach
                                         </div>
                                         @error('careResult') <span class="ld-error">{{ $message }}</span> @enderror
+                                        {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
+                                        @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
+                                            <span class="od-muted">
+                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_return') : __('opportunities.care_failed_lost') }}
+                                            </span>
+                                        @endif
                                     </div>
 
                                     <label class="vc-field od-create__wide">
-                                        <span class="vc-field__label">{{ __('opportunities.notes') }}</span>
+                                        <span class="vc-field__label">
+                                            {{ __('opportunities.notes') }}
+                                            @if ($careResult === \App\Models\CareResult::RESULT_FAILED) <span class="ld-req">*</span> @endif
+                                        </span>
                                         <textarea wire:model="careNotes" rows="3" maxlength="1000" class="vc-control od-textarea"
                                             placeholder="{{ __('opportunities.care_notes_placeholder') }}"></textarea>
                                         @error('careNotes') <span class="ld-error">{{ $message }}</span> @enderror
@@ -306,11 +316,13 @@
                             @endif
                         @endif
 
-                        {{-- Đã liên hệ thành công ở stage Data chưa tương tác: Đặt lịch hẹn (khách cần test / tư vấn),
-                             hoặc nút Tạo báo giá ở đầu trang nếu khách đăng ký ngay --}}
+                        {{-- Đã liên hệ thành công: Đặt lịch hẹn – Data chưa tương tác (khách cần test / tư vấn, hoặc nút
+                             Tạo báo giá ở đầu trang nếu khách đăng ký ngay), Data đã có lịch hẹn (khách đồng ý lịch mới) --}}
                         @if ($this->canBookFirst())
                             <div class="od-apt-bar">
-                                <span class="od-muted od-apt-bar__hint">{{ __('opportunities.care_hint_book') }}</span>
+                                <span class="od-muted od-apt-bar__hint">
+                                    {{ $opp->stage_id === \App\Models\Stage::APPOINTED ? __('opportunities.care_hint_rebook') : __('opportunities.care_hint_book') }}
+                                </span>
                                 <button type="button" class="vc-btn vc-btn--primary" wire:click="startCreate">
                                     <x-icon name="calendar" />{{ __('opportunities.book_appointment') }}
                                 </button>

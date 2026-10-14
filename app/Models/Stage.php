@@ -22,6 +22,9 @@ class Stage extends Model
     // Stage "Chốt": khách đã đồng ý đăng ký
     const CLOSED = 'STG004';
 
+    // Stage "Lưu trữ": kết thúc xử lý – trạng thái Lost (khách từ chối) hoặc Archived (không liên lạc được)
+    const ARCHIVED = 'STG005';
+
     protected $table = 'Stages';
 
     protected $primaryKey = 'stage_id';

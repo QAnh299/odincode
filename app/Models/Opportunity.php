@@ -12,7 +12,12 @@ class Opportunity extends Model
 {
     use HasFactory, HasStringId;
 
-    const STATUSES = ['InProgress', 'Won', 'Lost', 'Archived'];
+    const STATUS_IN_PROGRESS = 'InProgress';
+    const STATUS_WON = 'Won';
+    const STATUS_LOST = 'Lost';
+    const STATUS_ARCHIVED = 'Archived';
+
+    const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
 
     protected $table = 'Opportunities';
 
@@ -123,5 +128,38 @@ class Opportunity extends Model
 
             $this->update(['stage_id' => $stageId]);
         });
+    }
+
+    /**
+     * Kết thúc xử lý: xoá lịch hẹn chưa diễn ra, chuyển sang stage Lưu trữ (ghi lý do vào StagesHistory)
+     * và đổi trạng thái thành Lost (khách từ chối) hoặc Archived (không liên lạc được).
+     */
+    public function close(string $status, string $reason): void
+    {
+        DB::transaction(function () use ($status, $reason) {
+            $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->delete();
+            $this->moveToStage(Stage::ARCHIVED, $reason);
+            $this->update(['status' => $status]);
+        });
+    }
+
+    /**
+     * Quay về stage "Data chưa tương tác" (khách từ chối đăng ký ở stage Data đã xử lý):
+     * xoá lịch hẹn chưa diễn ra và ghi lý do vào StagesHistory.
+     */
+    public function returnToUntouched(string $reason): void
+    {
+        DB::transaction(function () use ($reason) {
+            $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->delete();
+            $this->moveToStage(Stage::UNTOUCHED, $reason);
+        });
+    }
+
+    /**
+     * Số lần Opportunity đã quay về stage "Data chưa tương tác".
+     */
+    public function returnsToUntouched(): int
+    {
+        return $this->stagesHistory()->where('to_stage_id', Stage::UNTOUCHED)->count();
     }
 }
