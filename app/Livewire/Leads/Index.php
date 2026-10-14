@@ -289,16 +289,12 @@ class Index extends Component
     }
 
     /**
-     * Nguồn Lead có trong phạm vi được xem (cho bộ lọc Nguồn).
+     * Nguồn Lead cho bộ lọc Nguồn.
      */
     #[Computed]
     public function sources(): array
     {
-        return $this->scoped(Lead::query())
-            ->distinct()
-            ->orderBy('source_name')
-            ->pluck('source_name')
-            ->all();
+        return Lead::SOURCES;
     }
 
     /**

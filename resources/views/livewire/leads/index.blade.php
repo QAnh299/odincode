@@ -276,7 +276,6 @@
                             ['full_name', 'text', 'placeholder_name', true],
                             ['phone', 'tel', 'placeholder_phone', true],
                             ['email', 'email', 'placeholder_email', false],
-                            ['source_name', 'text', 'placeholder_source', true],
                             ['source_url', 'url', 'placeholder_url', false],
                         ];
                     @endphp
@@ -292,6 +291,17 @@
                             @error($field)<span class="ld-error">{{ $message }}</span>@enderror
                         </label>
                     @endforeach
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('leads.field.source_name') }}<span class="ld-req">*</span></span>
+                        <select wire:model="form.source_name" class="vc-control @error('source_name') is-invalid @enderror">
+                            <option value="">{{ __('leads.form.choose_source') }}</option>
+                            @foreach (Lead::SOURCES as $option)
+                                <option value="{{ $option }}">{{ $option }}</option>
+                            @endforeach
+                        </select>
+                        @error('source_name')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
 
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('leads.field.contact_method') }}<span class="ld-req">*</span></span>

@@ -462,7 +462,7 @@ class LeadSources extends Component
     #[Computed]
     public function allSources(): array
     {
-        return Lead::query()->distinct()->orderBy('source_name')->pluck('source_name')->all();
+        return Lead::SOURCES;
     }
 
     /* ── Hỗ trợ ───────────────────────────────────────────────────────── */

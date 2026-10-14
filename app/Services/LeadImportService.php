@@ -55,7 +55,7 @@ class LeadImportService
             'full_name'      => preg_replace('/\s+/u', ' ', $value('full_name')),
             'phone'          => $this->normalizePhone($value('phone')),
             'email'          => $value('email') !== '' ? Str::lower($value('email')) : null,
-            'source_name'    => $value('source_name'),
+            'source_name'    => $this->normalizeSource($value('source_name')),
             'source_url'     => $value('source_url') !== '' ? $value('source_url') : null,
             'contact_method' => $this->normalizeMethod($value('contact_method')),
             // Ô chọn trong file mẫu có dạng "BR001 - Tên chi nhánh" → chỉ lấy mã
@@ -106,6 +106,22 @@ class LeadImportService
     }
 
     /**
+     * Cho phép nhập nguồn không phân biệt hoa thường, khoảng trắng (VD: "website odin", "Tiktok").
+     */
+    public function normalizeSource(string $source): string
+    {
+        $key = Str::lower(preg_replace('/\s+/u', '', Str::ascii($source)));
+
+        foreach (Lead::SOURCES as $option) {
+            if ($key === Str::lower(str_replace(' ', '', $option))) {
+                return $option;
+            }
+        }
+
+        return $source;
+    }
+
+    /**
      * Luật kiểm tra cho dữ liệu đã chuẩn hoá (theo ràng buộc bảng Leads trong odin.sql).
      */
     public function rules(): array
@@ -115,7 +131,7 @@ class LeadImportService
             // Không kiểm tra trùng: học viên đăng ký thêm khoá học → tạo Lead mới cùng thông tin
             'phone'          => ['required', 'regex:/^0\d{9}$/'],
             'email'          => ['nullable', 'email', 'max:254'],
-            'source_name'    => ['required', 'string', 'max:150'],
+            'source_name'    => ['required', Rule::in(Lead::SOURCES)],
             'source_url'     => ['nullable', 'url:http,https', 'max:2000'],
             'contact_method' => ['required', Rule::in(Lead::CONTACT_METHODS)],
             'branch_id'      => ['required', Rule::exists(Branch::class, 'branch_id')],
@@ -126,6 +142,7 @@ class LeadImportService
     {
         return [
             'phone.regex'       => __('leads.form.phone_invalid'),
+            'source_name.in'    => __('leads.form.source_invalid', ['values' => implode(', ', Lead::SOURCES)]),
             'contact_method.in' => __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]),
             'branch_id.exists'  => __('leads.form.branch_invalid'),
         ];
@@ -174,6 +191,12 @@ class LeadImportService
         }
 
         $writer->addRow(Row::fromValues(['']));
+        $writer->addRow(Row::fromValues([__('leads.excel.guide_sources')], $bold));
+        foreach (Lead::SOURCES as $source) {
+            $writer->addRow(Row::fromValues([$source]));
+        }
+
+        $writer->addRow(Row::fromValues(['']));
         $writer->addRow(Row::fromValues([__('leads.excel.guide_methods')], $bold));
         foreach (Lead::CONTACT_METHODS as $method) {
             $writer->addRow(Row::fromValues([$method, __('leads.method.'.$method)]));
@@ -183,24 +206,24 @@ class LeadImportService
         $writer->addRow(Row::fromValues([__('leads.excel.guide_branches')], $bold));
         $branches->each(fn ($branch) => $writer->addRow(Row::fromValues([$branch->branch_id, $branch->branch_name])));
 
-        // Sheet ẩn chứa danh sách giá trị cho ô chọn: cột A = kênh liên hệ, cột B = chi nhánh
+        // Sheet ẩn chứa danh sách giá trị cho ô chọn: cột A = kênh liên hệ, cột B = chi nhánh, cột C = nguồn
         $writer->addNewSheetAndMakeItCurrent()->setName(__('leads.excel.sheet_lists'));
-        for ($i = 0; $i < max(count(Lead::CONTACT_METHODS), count($branchLabels)); $i++) {
-            $writer->addRow(Row::fromValues([Lead::CONTACT_METHODS[$i] ?? '', $branchLabels[$i] ?? '']));
+        for ($i = 0; $i < max(count(Lead::CONTACT_METHODS), count($branchLabels), count(Lead::SOURCES)); $i++) {
+            $writer->addRow(Row::fromValues([Lead::CONTACT_METHODS[$i] ?? '', $branchLabels[$i] ?? '', Lead::SOURCES[$i] ?? '']));
         }
 
         $writer->close();
 
-        $this->addDropdowns($path, count(Lead::CONTACT_METHODS), count($branchLabels));
+        $this->addDropdowns($path, count(Lead::CONTACT_METHODS), count($branchLabels), count(Lead::SOURCES));
 
         return $path;
     }
 
     /**
-     * Thêm ô chọn (Data Validation dạng List) cho cột Kênh liên hệ, Mã chi nhánh của sheet nhập liệu
+     * Thêm ô chọn (Data Validation dạng List) cho cột Nguồn Lead, Kênh liên hệ, Mã chi nhánh của sheet nhập liệu
      * và ẩn sheet danh sách. OpenSpout chưa hỗ trợ nên sửa trực tiếp XML trong file .xlsx.
      */
-    protected function addDropdowns(string $path, int $methodCount, int $branchCount): void
+    protected function addDropdowns(string $path, int $methodCount, int $branchCount, int $sourceCount): void
     {
         $listSheet = __('leads.excel.sheet_lists');
         $ref = "'".str_replace("'", "''", $listSheet)."'";
@@ -213,7 +236,9 @@ class LeadImportService
             e(__('leads.field.'.$field)), e($error), $column($field), $lastRow, e($ref), $range,
         );
 
-        $xml = '<dataValidations count="2">'
+        $xml = '<dataValidations count="3">'
+            .$validation('source_name', '$C$1:$C$'.max($sourceCount, 1),
+                __('leads.form.source_invalid', ['values' => implode(', ', Lead::SOURCES)]))
             .$validation('contact_method', '$A$1:$A$'.max($methodCount, 1),
                 __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]))
             .$validation('branch_id', '$B$1:$B$'.max($branchCount, 1), __('leads.form.branch_invalid'))

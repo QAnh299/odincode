@@ -17,6 +17,9 @@ class Lead extends Model
 
     const CONTACT_METHODS = ['Zalo', 'Phone', 'Facebook'];
 
+    // Nguồn Lead (theo ràng buộc CHECK source_name trong odin.sql)
+    const SOURCES = ['Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok'];
+
     protected $table = 'Leads';
 
     protected $primaryKey = 'lead_id';
