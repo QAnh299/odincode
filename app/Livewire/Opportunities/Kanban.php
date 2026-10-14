@@ -185,8 +185,10 @@ class Kanban extends Component
 
     public function render()
     {
+        // Opportunity đã thanh toán đủ và trở thành học viên không còn trên Kanban – xem ở Chi tiết học viên
         $opportunities = Opportunity::query()
             ->visibleTo($this->me)
+            ->whereDoesntHave('student')
             ->when($this->activeTeam && $this->canFilterTeam,
                 fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id)))
             ->when($this->employeeOptions->contains('employee_id', $this->employee),

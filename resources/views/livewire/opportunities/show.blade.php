@@ -183,64 +183,7 @@
                         @endif
 
                         {{-- Lịch hẹn: mới nhất lên đầu; mỗi mã lịch hẹn gồm dòng Test và/hoặc Tư vấn --}}
-                        @forelse ($appointments as $group)
-                            @php
-                                $statuses = $group['rows']->pluck('status')->unique();
-                                $tone = $statuses->count() === 1 ? $statuses->first() : 'Mixed';
-                            @endphp
-                            <article class="od-apt od-apt--{{ $tone }}" wire:key="apt-{{ $group['id'] }}">
-                                <div class="od-apt__head">
-                                    <strong>{{ __('opportunities.appointment_no', ['no' => $group['no']]) }}</strong>
-                                    <span class="od-muted">{{ $group['id'] }}</span>
-                                </div>
-                                @if ($this->appointmentPlace)
-                                    <p class="od-place od-place--card"><x-icon name="tag" />{{ $this->appointmentPlace }}</p>
-                                @endif
-
-                                {{-- Từng loại: Test / Tư vấn – thời gian, địa điểm, kết quả riêng --}}
-                                <ul class="od-apt__rows">
-                                    @foreach ($group['rows'] as $row)
-                                        <li class="od-apt__row" wire:key="apt-{{ $group['id'] }}-{{ $row->appointment_type }}">
-                                            <div class="od-apt__type">
-                                                <span class="od-type od-type--{{ $row->appointment_type }}">
-                                                    {{ $label('opportunities.appointment_type_name', $row->appointment_type) }}
-                                                </span>
-                                                <span class="vc-badge od-apt--{{ $row->status }}">
-                                                    <span class="vc-badge__dot"></span>{{ $label('opportunities.appointment_status', $row->status) }}
-                                                </span>
-                                            </div>
-
-                                            <ul class="od-apt__meta">
-                                                <li><x-icon name="calendar" />{{ $row->scheduled_time->format('d/m/Y H:i') }}</li>
-                                            </ul>
-
-                                            @if ($row->notes)
-                                                <p class="od-apt__note">{{ $row->notes }}</p>
-                                            @endif
-
-                                            @if ($row->can_mark)
-                                                <div class="od-apt__actions">
-                                                    <button type="button" class="vc-btn od-btn--success"
-                                                        wire:click="markAppointment('{{ $row->appointment_id }}', '{{ $row->appointment_type }}', 'Success')"
-                                                        wire:confirm="{{ __('opportunities.confirm_attended') }}">
-                                                        <x-icon name="check" />{{ __('opportunities.mark_attended') }}
-                                                    </button>
-                                                    <button type="button" class="vc-btn od-btn--danger"
-                                                        wire:click="markAppointment('{{ $row->appointment_id }}', '{{ $row->appointment_type }}', 'Failed')"
-                                                        wire:confirm="{{ __('opportunities.confirm_absent') }}">
-                                                        <x-icon name="x" />{{ __('opportunities.mark_absent') }}
-                                                    </button>
-                                                </div>
-                                            @elseif ($row->status === 'Scheduled')
-                                                <p class="od-muted od-apt__wait"><x-icon name="clock" />{{ __('opportunities.apt_wait_hint') }}</p>
-                                            @endif
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </article>
-                        @empty
-                            <p class="od-empty">{{ __('opportunities.no_appointments') }}</p>
-                        @endforelse
+                        @include('livewire.opportunities.partials.appointment-list', ['appointments' => $appointments, 'place' => $this->appointmentPlace])
                     @else
                         {{-- Form ghi nhận lần liên hệ tiếp theo (mở từ nút trên hàng tab) --}}
                         @if ($this->needsContact())
@@ -297,42 +240,8 @@
                             @endif
                         @endif
 
-                        {{-- Lịch sử chăm sóc: tách theo hoạt động (Liên hệ ban đầu – Xếp lại lịch – Chốt đăng ký),
-                             trong mỗi nhóm mới nhất lên đầu, đánh số "Lần N" theo thời gian --}}
-                        @forelse ($cares->groupBy('activity_id')->sortKeys() as $activityId => $group)
-                            <section class="od-care-group" wire:key="care-group-{{ $activityId }}">
-                                <h3 class="od-care-group__title">
-                                    {{ $group->first()->activity?->activity_name ?? $activityId }}
-                                    <span class="od-tab__count">{{ $group->count() }}</span>
-                                </h3>
-
-                                <div class="od-care-group__list">
-                                    @foreach ($group as $care)
-                                        <div class="od-timeline__item od-res--{{ $care->result }}" wire:key="care-{{ $care->result_id }}">
-                                            <span class="od-timeline__dot"></span>
-                                            <div class="od-timeline__body">
-                                                <div class="od-timeline__head">
-                                                    <strong>{{ __('opportunities.care_no', ['no' => $group->count() - $loop->index]) }}</strong>
-                                                    <span class="vc-badge od-res--{{ $care->result }}">
-                                                        <span class="vc-badge__dot"></span>{{ __('opportunities.care_result.'.$care->result) }}
-                                                    </span>
-                                                </div>
-                                                @if ($care->notes)
-                                                    <p class="od-timeline__note">{{ $care->notes }}</p>
-                                                @endif
-                                                <div class="od-timeline__by">
-                                                    <span class="od-muted">{{ $care->performed_at?->format('d/m/Y H:i') }}</span>
-                                                    {{-- Nhân viên thực hiện lần liên hệ --}}
-                                                    <span class="od-by"><x-icon name="user" />{{ $care->employee?->full_name ?? '—' }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </section>
-                        @empty
-                            <p class="od-empty">{{ __('opportunities.no_care') }}</p>
-                        @endforelse
+                        {{-- Lịch sử chăm sóc: tách theo hoạt động, mới nhất lên đầu --}}
+                        @include('livewire.opportunities.partials.care-history', ['cares' => $cares])
                     @endif
                 </div>
             </section>

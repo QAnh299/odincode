@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Students;
 
+use App\Models\Appointment;
+use App\Models\Opportunity;
 use App\Models\Role;
 use App\Models\SalesOrder;
 use App\Models\Student;
@@ -39,6 +41,13 @@ class Show extends Component
 
     public ?string $notice = null;
 
+    // Lịch sử cơ hội: Opportunity đang mở (mặc định đóng hết) và tab đang xem
+    public ?string $openOpportunity = null;
+
+    public string $opportunityTab = 'care';
+
+    const OPPORTUNITY_TABS = ['care', 'appointments'];
+
     public function mount(Student $student): void
     {
         abort_unless(
@@ -47,7 +56,7 @@ class Show extends Component
         );
 
         $this->student = $student->load([
-            'opportunity.lead.branch:branch_id,branch_name',
+            'opportunity.lead.branch:branch_id,branch_name,address',
             'opportunity.employee.team:team_id,team_name',
             'opportunity.stage:stage_id,stage_name',
         ]);
@@ -102,6 +111,110 @@ class Show extends Component
             ->whereHas('opportunity', fn ($q) => $q->where('lead_id', $leadId))
             ->orderByDesc('conversion_date')
             ->get(['student_id', 'conversion_date', 'status', 'opportunity_id']);
+    }
+
+    // ── Lịch sử cơ hội ────────────────────────────────────────────────
+
+    /**
+     * Các lần khách hàng là Opportunity (cùng Lead), mới nhất lên đầu. Mỗi Opportunity kèm các khoá học
+     * (courses) lấy từ báo giá đã có đơn hàng, nếu chưa có thì báo giá mới nhất.
+     */
+    #[Computed]
+    public function opportunities(): Collection
+    {
+        $leadId = $this->student->opportunity?->lead_id;
+
+        if (! $leadId) {
+            return collect();
+        }
+
+        $opportunities = Opportunity::query()
+            ->visibleTo(Auth::user()->employee)
+            ->where('lead_id', $leadId)
+            ->with([
+                'stage:stage_id,stage_name',
+                'employee:employee_id,full_name',
+                'student:student_id,opportunity_id',
+                'quotations' => fn ($q) => $q->orderByDesc('created_at'),
+                'quotations.details.course:course_id,course_name',
+            ])
+            ->orderByDesc('conversion_date')
+            ->get();
+
+        $ordered = SalesOrder::query()
+            ->whereIn('quotation_id', $opportunities->flatMap->quotations->pluck('quotation_id'))
+            ->pluck('quotation_id')
+            ->all();
+
+        return $opportunities->each(function (Opportunity $opportunity) use ($ordered) {
+            $quotation = $opportunity->quotations->first(fn ($q) => in_array($q->quotation_id, $ordered, true))
+                ?? $opportunity->quotations->first();
+
+            $opportunity->courses = $quotation?->details->map(fn ($d) => $d->course?->course_name ?? $d->course_id)->all() ?? [];
+        });
+    }
+
+    /**
+     * Mở / đóng một Opportunity trong Lịch sử cơ hội (mở thì về tab Lịch sử chăm sóc).
+     */
+    public function toggleOpportunity(string $opportunityId): void
+    {
+        if (! $this->opportunities->contains('opportunity_id', $opportunityId)) {
+            return;
+        }
+
+        $this->openOpportunity = $this->openOpportunity === $opportunityId ? null : $opportunityId;
+        $this->opportunityTab = 'care';
+    }
+
+    public function setOpportunityTab(string $tab): void
+    {
+        $this->opportunityTab = in_array($tab, self::OPPORTUNITY_TABS, true) ? $tab : 'care';
+    }
+
+    /**
+     * Opportunity đang mở (chỉ trong phạm vi được xem).
+     */
+    protected function openedOpportunity(): ?Opportunity
+    {
+        return $this->openOpportunity
+            ? $this->opportunities->firstWhere('opportunity_id', $this->openOpportunity)
+            : null;
+    }
+
+    /**
+     * Lịch sử chăm sóc của Opportunity đang mở, mới nhất lên đầu.
+     */
+    #[Computed]
+    public function openCares(): Collection
+    {
+        return $this->openedOpportunity()?->careResults()
+            ->with(['activity', 'employee:employee_id,full_name'])
+            ->orderByDesc('performed_at')
+            ->get() ?? collect();
+    }
+
+    /**
+     * Lịch hẹn của Opportunity đang mở, gom theo mã (mới nhất lên đầu).
+     */
+    #[Computed]
+    public function openAppointments(): Collection
+    {
+        $opportunity = $this->openedOpportunity();
+
+        return $opportunity
+            ? Appointment::groupForDisplay($opportunity->appointments()->orderBy('scheduled_time')->get())
+            : collect();
+    }
+
+    /**
+     * Địa điểm lịch hẹn: cơ sở của khách – "Tên cơ sở - Địa chỉ".
+     */
+    public function appointmentPlace(): ?string
+    {
+        $branch = $this->student->opportunity?->lead?->branch;
+
+        return $branch ? $branch->branch_name.' - '.$branch->address : null;
     }
 
     /**

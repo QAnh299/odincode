@@ -11,9 +11,10 @@
 @endphp
 
 <div class="vc st">
-    {{-- voucher.css (khung, bảng, nhãn) + lead.css (popup, thông báo) + student.css (phần riêng) --}}
+    {{-- voucher.css (khung, bảng, nhãn) + lead.css (popup, thông báo) + opportunity.css (tab, lịch sử chăm sóc,
+         lịch hẹn của Lịch sử cơ hội) + student.css (phần riêng) --}}
     @assets
-        @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/student.css'])
+        @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/opportunity.css', 'resources/css/student.css'])
     @endassets
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
@@ -150,6 +151,63 @@
                     @endif
                 </section>
             @endif
+
+            {{-- ── Lịch sử cơ hội: các lần khách hàng là Opportunity (mỗi lần có thể nhiều khoá học);
+                 mở một Opportunity để xem 2 tab Lịch sử chăm sóc / Lịch hẹn ─────────────────────── --}}
+            <section class="vc-card vc-results">
+                <h2 class="st-title st-title--bar">{{ __('students.opportunities_title') }}</h2>
+
+                @forelse ($this->opportunities as $item)
+                    @php $isOpen = $openOpportunity === $item->opportunity_id; @endphp
+                    <div class="st-opp {{ $isOpen ? 'is-open' : '' }}" wire:key="opp-{{ $item->opportunity_id }}">
+                        <button type="button" class="st-opp__head" wire:click="toggleOpportunity('{{ $item->opportunity_id }}')"
+                            aria-expanded="{{ $isOpen ? 'true' : 'false' }}">
+                            <span class="st-opp__main">
+                                <span class="vc-mono">{{ $item->opportunity_id }}</span>
+                                <span class="st-sub st-sub--inline">{{ $item->conversion_date?->format('d/m/Y') }}</span>
+                                @if ($item->opportunity_id === $student->opportunity_id)
+                                    <span class="st-opp__current">{{ __('students.this_enrollment') }}</span>
+                                @endif
+                                <span class="vc-badge st-opp--{{ $item->status }}">
+                                    <span class="vc-badge__dot"></span>{{ __('students.opportunity_status.'.$item->status) }}
+                                </span>
+                            </span>
+                            <span class="st-opp__courses">{{ $item->courses ? implode(', ', $item->courses) : __('students.no_courses') }}</span>
+                            <span class="st-sub">{{ $item->stage?->stage_name }} · {{ $item->employee?->full_name ?? '—' }}</span>
+                            <span class="st-opp__chevron"><x-icon name="chevron" /></span>
+                        </button>
+
+                        @if ($isOpen)
+                            @php
+                                $cares = $this->openCares;
+                                $appointments = $this->openAppointments;
+                            @endphp
+                            <div class="st-opp__body">
+                                <div class="od-tabs" role="tablist">
+                                    @foreach (['care' => $cares->count(), 'appointments' => $appointments->count()] as $key => $count)
+                                        <button type="button" role="tab" wire:click="setOpportunityTab('{{ $key }}')"
+                                            class="od-tab {{ $opportunityTab === $key ? 'is-active' : '' }}"
+                                            aria-selected="{{ $opportunityTab === $key ? 'true' : 'false' }}">
+                                            {{ __('opportunities.tab.'.$key) }}
+                                            <span class="od-tab__count">{{ $count }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+
+                                <div class="od-tabpanel">
+                                    @if ($opportunityTab === 'appointments')
+                                        @include('livewire.opportunities.partials.appointment-list', ['appointments' => $appointments, 'place' => $this->appointmentPlace()])
+                                    @else
+                                        @include('livewire.opportunities.partials.care-history', ['cares' => $cares])
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <p class="st-empty">{{ __('students.no_opportunities') }}</p>
+                @endforelse
+            </section>
         </div>
 
         {{-- ── Cột phải: thông tin học viên, cơ hội, lần đăng ký khác ─ --}}

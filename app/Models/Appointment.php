@@ -6,6 +6,7 @@ use App\Models\Concerns\HasCompositeKey;
 use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 /**
  * Lịch hẹn. Một lịch hẹn (cùng mã) có thể gồm cả test và tư vấn: mỗi loại một dòng,
@@ -60,5 +61,22 @@ class Appointment extends Model
     public function opportunity()
     {
         return $this->belongsTo(Opportunity::class, 'opportunity_id', 'opportunity_id');
+    }
+
+    /**
+     * Gom các dòng lịch hẹn (đã sắp theo thời gian tăng dần) theo mã để hiển thị: mới nhất lên đầu,
+     * "lần N" đánh theo thời gian. Mỗi nhóm: id, no, rows (Test trước, Tư vấn sau).
+     */
+    public static function groupForDisplay(Collection $rows): Collection
+    {
+        return $rows->groupBy('appointment_id')
+            ->values()
+            ->map(fn (Collection $group, int $i) => [
+                'id'   => $group->first()->appointment_id,
+                'no'   => $i + 1,
+                'rows' => $group->sortBy(fn ($r) => array_search($r->appointment_type, self::TYPES))->values(),
+            ])
+            ->reverse()
+            ->values();
     }
 }

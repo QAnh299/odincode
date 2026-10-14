@@ -893,23 +893,16 @@ class Show extends Component
         $open = $this->canCreateAppointment();
         $owner = $this->isOwner();
 
-        return $this->opportunity->appointments()
-            ->orderBy('scheduled_time')
-            ->get()
-            ->each(function ($row) use ($now, $open, $owner) {
-                $pending = $row->status === Appointment::STATUS_SCHEDULED;
-                $row->can_mark = $owner && $pending && $row->scheduled_time->lte($now);
-                $row->can_reschedule = $open && $pending && $row->scheduled_time->gt($now);
-            })
-            ->groupBy('appointment_id')
-            ->values()
-            ->map(fn (Collection $rows, int $i) => [
-                'id'   => $rows->first()->appointment_id,
-                'no'   => $i + 1,
-                'rows' => $rows->sortBy(fn ($r) => array_search($r->appointment_type, Appointment::TYPES))->values(),
-            ])
-            ->reverse()
-            ->values();
+        return Appointment::groupForDisplay(
+            $this->opportunity->appointments()
+                ->orderBy('scheduled_time')
+                ->get()
+                ->each(function ($row) use ($now, $open, $owner) {
+                    $pending = $row->status === Appointment::STATUS_SCHEDULED;
+                    $row->can_mark = $owner && $pending && $row->scheduled_time->lte($now);
+                    $row->can_reschedule = $open && $pending && $row->scheduled_time->gt($now);
+                })
+        );
     }
 
     #[Computed]

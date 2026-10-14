@@ -188,6 +188,76 @@
     overflow-wrap: anywhere;
 }
 
+/* Lịch sử cơ hội: mỗi Opportunity một dòng, mở ra để xem Lịch sử chăm sóc / Lịch hẹn */
+.st-opp--InProgress { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+.st-opp--Won { --tone: #15803d; --tone-bg: #dcfce7; }
+.st-opp--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
+.st-opp--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
+
+.st-opp + .st-opp {
+    border-top: 1px solid var(--vc-border);
+}
+
+.st-opp__head {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    width: 100%;
+    padding: 0.9rem 3rem 0.9rem 1.25rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.st-opp__head:hover,
+.st-opp.is-open .st-opp__head {
+    background: var(--vc-tint);
+}
+
+.st-opp__main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.st-opp__main .vc-badge {
+    margin-left: auto;
+}
+
+.st-opp__current {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--vc-primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.st-opp__courses {
+    font-weight: 600;
+}
+
+.st-opp__chevron {
+    position: absolute;
+    top: 50%;
+    right: 1.25rem;
+    display: inline-flex;
+    color: var(--vc-muted);
+    transform: translateY(-50%);
+    transition: transform 0.15s;
+}
+
+.st-opp.is-open .st-opp__chevron {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.st-opp__body {
+    border-top: 1px solid var(--vc-border);
+}
+
 /* Các lần đăng ký khác */
 .st-others {
     display: grid;
