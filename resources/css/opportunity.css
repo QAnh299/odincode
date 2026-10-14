@@ -451,6 +451,24 @@
     gap: 0.5rem;
 }
 
+/* Lịch sử chăm sóc tách theo hoạt động: Liên hệ ban đầu – Xếp lại lịch – Chốt đăng ký */
+.od-care-group + .od-care-group {
+    margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed var(--vc-border);
+}
+
+.vc .od-care-group__title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.7rem;
+    color: var(--vc-ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
 .od-timeline__note {
     margin: 0.3rem 0 0.2rem;
     font-size: 0.9rem;
@@ -904,34 +922,19 @@
     gap: 0.35rem 0.75rem;
 }
 
+/* Tên nhân viên liên hệ: canh phải dòng thời gian */
 .od-by {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.1rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.76rem;
-    font-weight: 600;
+    margin-left: auto;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
 }
 
 .vc .od-by .odin-icon {
     width: 12px;
     height: 12px;
-}
-
-.od-by--current {
-    background: var(--vc-tint);
-    color: var(--vc-primary);
-}
-
-.od-by--previous {
-    background: #f1f5f9;
-    color: #64748b;
-}
-
-/* Lần chăm sóc của người phụ trách trước: nhạt hơn */
-.od-timeline__item.is-previous .od-timeline__body {
-    opacity: 0.75;
 }
 
 /* Popup thành công */

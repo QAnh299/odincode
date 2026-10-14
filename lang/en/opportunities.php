@@ -30,8 +30,6 @@ return [
     'reassigned_text'       => 'Opportunity :code has been reassigned from :from to :to.',
     'reassigned_moved'      => ':count pending appointment(s) moved to the new owner.',
     'reassigned_no_pending' => 'There were no pending appointments to move.',
-    'by_current'            => 'Current owner',
-    'by_previous'           => 'Previous owner',
 
     'status'             => 'Status',
     'result_count'       => ':count opportunity(ies)',
@@ -67,6 +65,7 @@ return [
 
     'care_history'       => 'Care history',
     'no_care'            => 'No care activities yet.',
+    'care_no'            => 'Attempt #:no',
     'care_log'               => 'Log :activity',
     'care_log_short'         => 'Log contact',
     'care_hint_full'         => 'The customer could not be reached :max times.',

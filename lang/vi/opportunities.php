@@ -30,8 +30,6 @@ return [
     'reassigned_text'       => 'Cơ hội :code đã được chuyển từ :from sang :to.',
     'reassigned_moved'      => ':count lịch hẹn đang chờ đã chuyển cho người phụ trách mới.',
     'reassigned_no_pending' => 'Không có lịch hẹn đang chờ cần chuyển.',
-    'by_current'            => 'Người phụ trách hiện tại',
-    'by_previous'           => 'Người phụ trách trước',
 
     'status'             => 'Trạng thái',
     'result_count'       => ':count Opportunity',
@@ -67,6 +65,7 @@ return [
 
     'care_history'       => 'Lịch sử chăm sóc',
     'no_care'            => 'Chưa có hoạt động chăm sóc nào.',
+    'care_no'            => 'Lần :no',
     'care_log'               => 'Ghi nhận :activity',
     'care_log_short'         => 'Ghi nhận liên hệ',
     'care_hint_full'         => 'Đã đủ :max lần không liên lạc được với khách.',
