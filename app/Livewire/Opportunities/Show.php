@@ -31,7 +31,7 @@ use Livewire\Component;
  * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch – Tạo lịch hẹn.
  *   - Đổi lịch: chọn dòng muốn đổi (chưa tới giờ hẹn, chưa có kết quả) rồi nhập thời gian / địa điểm mới.
  *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
- *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Đặt lịch hẹn").
+ *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Tạo lịch hẹn" ở tab Lịch hẹn).
  *     Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
  *   - Từ giờ hẹn trở đi: cập nhật từng dòng Khách đã đến (Success) / Khách không đến (Failed).
  *     Mọi loại đã hẹn đều có lần khách đến → tự chuyển sang "Data đã xử lý".
@@ -40,9 +40,9 @@ use Livewire\Component;
  * Opportunity vào stage (StagesHistory). Kết quả: Thành công (gọi được) / Thất bại (khách từ chối – bắt buộc
  * ghi lý do) / Không liên lạc được (không nghe máy, thuê bao).
  *   - Data chưa tương tác – "Liên hệ ban đầu": Thất bại → Lost; đủ 4 lần không liên lạc được → Archived;
- *     Thành công → nút "Đặt lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
+ *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
  *   - Data đã có lịch hẹn – "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
- *     7 ngày từ buổi khách không đến → Archived; Thành công → nút "Đặt lịch hẹn".
+ *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
  *   - Data đã xử lý – "Chốt đăng ký": Thành công → nút "Tạo báo giá" (→ Chốt); Thất bại → quay về
  *     Data chưa tương tác (quá 3 lần → Archived); không liên lạc được quá 14 ngày từ lần liên hệ đầu tiên
  *     ở stage → Archived.
@@ -224,27 +224,6 @@ class Show extends Component
     }
 
     /**
-     * Nút "Đặt lịch hẹn" ở tab Lịch sử chăm sóc: còn loại lịch hẹn được đặt và
-     *   - Data chưa tương tác: đã liên hệ thành công ở stage này;
-     *   - Data đã có lịch hẹn: đã liên hệ thành công (xếp lại lịch) sau buổi khách không đến.
-     */
-    public function canBookFirst(): bool
-    {
-        if ($this->rebookTypes === []) {
-            return false;
-        }
-
-        return match ($this->opportunity->stage_id) {
-            Stage::UNTOUCHED => true,
-            Stage::APPOINTED => ($noShow = $this->lastNoShow()) !== null && $this->stageContacts()
-                ->where('result', CareResult::RESULT_SUCCESS)
-                ->where('performed_at', '>=', $noShow)
-                ->exists(),
-            default => false,
-        };
-    }
-
-    /**
      * Được ghi nhận liên hệ: cần liên hệ và (ở Data chưa tương tác) chưa đủ số lần không liên lạc được.
      */
     public function canLogCare(): bool
@@ -328,7 +307,6 @@ class Show extends Component
      *   - Thất bại (khách từ chối): Data đã xử lý → quay về Data chưa tương tác (quá 3 lần → Archived);
      *     stage khác → Lost.
      *   - Không liên lạc được: vượt giới hạn của stage → Archived.
-     *   - Thành công: gợi ý bước tiếp theo (Đặt lịch hẹn / Tạo báo giá).
      */
     protected function applyCareOutcome(string $result, Carbon $time, string $notes, string $activity): string
     {
@@ -359,19 +337,11 @@ class Show extends Component
             ]);
         }
 
-        if ($result === CareResult::RESULT_UNREACHABLE) {
-            $reason = $this->unreachableReason($time);
+        $reason = $result === CareResult::RESULT_UNREACHABLE ? $this->unreachableReason($time) : null;
 
-            return $reason
-                ? $this->closeOpportunity(Opportunity::STATUS_ARCHIVED, $reason, 'opportunities.care_closed_unreachable', $params)
-                : __('opportunities.care_saved', $params);
-        }
-
-        return __(match ($this->opportunity->stage_id) {
-            Stage::UNTOUCHED => 'opportunities.care_saved_next',
-            Stage::APPOINTED => 'opportunities.care_saved_rebook',
-            default          => 'opportunities.care_saved_quote',
-        }, $params);
+        return $reason
+            ? $this->closeOpportunity(Opportunity::STATUS_ARCHIVED, $reason, 'opportunities.care_closed_unreachable', $params)
+            : __('opportunities.care_saved', $params);
     }
 
     /**
@@ -466,7 +436,6 @@ class Show extends Component
         $this->closeForm();
         $this->notice = match (true) {
             $this->advanceStageIfDone() => ['tone' => 'success', 'text' => __('opportunities.apt_stage_moved', ['stage' => $this->opportunity->stage->stage_name])],
-            $status === Appointment::STATUS_FAILED && $this->canCreateAppointment() => ['tone' => 'success', 'text' => __('opportunities.apt_marked_failed')],
             default => ['tone' => 'success', 'text' => __('opportunities.apt_marked')],
         };
 
@@ -602,7 +571,7 @@ class Show extends Component
 
     /**
      * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) – dùng cho
-     * nút "Đặt lịch hẹn" / "Tạo lịch hẹn".
+     * nút "Tạo lịch hẹn".
      * Mỗi loại được chọn (Test / Tư vấn) có thời gian riêng; địa điểm là cơ sở của khách.
      */
     protected function appointmentRules(array $allowedTypes): array

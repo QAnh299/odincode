@@ -72,9 +72,15 @@
             @php
                 $cares = $this->careResults;
                 $appointments = $this->appointments;
+                $nextActivity = $this->nextActivity;
+                $canLog = $this->canLogCare();
+                $rebookTypes = $this->rebookTypes;
+                $reschedulable = $this->reschedulable;
             @endphp
 
             <section class="vc-card vc-results">
+                {{-- Hàng tab + nút thao tác của tab đang mở: Ghi nhận liên hệ (Lịch sử chăm sóc),
+                     Đổi lịch – Tạo lịch hẹn (Lịch hẹn, không còn ở stage Chốt / Lưu trữ) --}}
                 <div class="od-tabs" role="tablist">
                     @foreach (['care' => $cares->count(), 'appointments' => $appointments->count()] as $key => $count)
                         <button type="button" role="tab" wire:click="setTab('{{ $key }}')"
@@ -84,6 +90,26 @@
                             <span class="od-tab__count">{{ $count }}</span>
                         </button>
                     @endforeach
+
+                    <div class="od-tabs__actions">
+                        @if ($tab === 'care' && $this->needsContact())
+                            <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)
+                                title="{{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this::MAX_UNREACHABLE_CONTACTS]) }}">
+                                <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
+                            </button>
+                        @elseif ($tab === 'appointments' && $this->canCreateAppointment())
+                            <button type="button" class="vc-btn vc-btn--ghost {{ $form === 'reschedule' ? 'is-on' : '' }}"
+                                wire:click="startReschedule" @disabled(! $reschedulable)
+                                title="{{ $reschedulable ? '' : __('opportunities.apt_hint_no_reschedule') }}">
+                                <x-icon name="calendar" />{{ __('opportunities.reschedule') }}
+                            </button>
+                            <button type="button" class="vc-btn vc-btn--primary"
+                                wire:click="startCreate" @disabled(! $rebookTypes)
+                                title="{{ $rebookTypes ? '' : __('opportunities.apt_hint_no_create') }}">
+                                <x-icon name="plus" />{{ __('opportunities.create_appointment') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="od-tabpanel" role="tabpanel" wire:loading.class="is-loading" wire:target="setTab, markAppointment, startCreate, startReschedule, startCare">
@@ -98,37 +124,6 @@
                     @endif
 
                     @if ($tab === 'appointments')
-                        @php
-                            $rebookTypes = $this->rebookTypes;
-                            $reschedulable = $this->reschedulable;
-                            $canBook = $this->canCreateAppointment();
-                        @endphp
-
-                        {{-- Hàng nút: Đổi lịch – Tạo lịch hẹn (không còn ở stage Chốt / Lưu trữ) --}}
-                        @if ($canBook)
-                            <div class="od-apt-bar">
-                                <span class="od-muted od-apt-bar__hint">
-                                    @if ($rebookTypes && $appointments->isNotEmpty())
-                                        {{ __('opportunities.apt_hint_rebook') }}
-                                    @elseif ($appointments->isEmpty() && ! $rebookTypes)
-                                        {{ __('opportunities.apt_hint_first') }}
-                                    @elseif (! $rebookTypes)
-                                        {{ __('opportunities.apt_hint_no_create') }}
-                                    @endif
-                                </span>
-                                <button type="button" class="vc-btn vc-btn--ghost {{ $form === 'reschedule' ? 'is-on' : '' }}"
-                                    wire:click="startReschedule" @disabled(! $reschedulable)
-                                    title="{{ $reschedulable ? '' : __('opportunities.apt_hint_no_reschedule') }}">
-                                    <x-icon name="calendar" />{{ __('opportunities.reschedule') }}
-                                </button>
-                                <button type="button" class="vc-btn vc-btn--primary"
-                                    wire:click="startCreate" @disabled(! $rebookTypes)
-                                    title="{{ $rebookTypes ? '' : __('opportunities.apt_hint_no_create') }}">
-                                    <x-icon name="plus" />{{ __('opportunities.create_appointment') }}
-                                </button>
-                            </div>
-                        @endif
-
                         {{-- Form tạo lịch hẹn: chỉ các loại cần hẹn (lần đầu / hẹn lại sau khi khách không đến) --}}
                         @if ($form === 'create')
                             <form class="od-create" wire:submit="saveAppointment">
@@ -247,22 +242,8 @@
                             <p class="od-empty">{{ __('opportunities.no_appointments') }}</p>
                         @endforelse
                     @else
-                        {{-- Ghi nhận lần liên hệ tiếp theo: ở stage Data chưa tương tác (Liên hệ ban đầu) và Data đã xử lý
-                             (Chốt đăng ký), kể cả sau lần liên hệ thành công; dừng khi đủ số lần không liên lạc được của stage --}}
+                        {{-- Form ghi nhận lần liên hệ tiếp theo (mở từ nút trên hàng tab) --}}
                         @if ($this->needsContact())
-                            @php
-                                $nextActivity = $this->nextActivity;
-                                $canLog = $this->canLogCare();
-                            @endphp
-                            <div class="od-apt-bar">
-                                <span class="od-muted od-apt-bar__hint">
-                                    {{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this->maxUnreachableContacts()]) }}
-                                </span>
-                                <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)>
-                                    <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
-                                </button>
-                            </div>
-
                             @if ($form === 'care' && $canLog)
                                 <form class="od-create" wire:submit="saveCare">
                                     <h3 class="od-create__title">{{ __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) }}</h3>
@@ -314,19 +295,6 @@
                                     </div>
                                 </form>
                             @endif
-                        @endif
-
-                        {{-- Đã liên hệ thành công: Đặt lịch hẹn – Data chưa tương tác (khách cần test / tư vấn, hoặc nút
-                             Tạo báo giá ở đầu trang nếu khách đăng ký ngay), Data đã có lịch hẹn (khách đồng ý lịch mới) --}}
-                        @if ($this->canBookFirst())
-                            <div class="od-apt-bar">
-                                <span class="od-muted od-apt-bar__hint">
-                                    {{ $opp->stage_id === \App\Models\Stage::APPOINTED ? __('opportunities.care_hint_rebook') : __('opportunities.care_hint_book') }}
-                                </span>
-                                <button type="button" class="vc-btn vc-btn--primary" wire:click="startCreate">
-                                    <x-icon name="calendar" />{{ __('opportunities.book_appointment') }}
-                                </button>
-                            </div>
                         @endif
 
                         {{-- Lịch sử chăm sóc: các lần liên hệ, mới nhất lên đầu --}}

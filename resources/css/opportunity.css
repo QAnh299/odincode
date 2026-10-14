@@ -493,10 +493,11 @@
 
 .od-tabs {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.25rem;
     padding: 0 1rem;
     border-bottom: 1px solid var(--vc-border);
-    overflow-x: auto;
 }
 
 .od-tab {
@@ -681,25 +682,22 @@
 
 /* ── Hàng nút Đổi lịch – Tạo lịch hẹn + form ──────────────────────── */
 
-.od-apt-bar {
+/* Nút thao tác của tab đang mở, nằm cùng hàng với tên tab (bên phải) */
+.od-tabs__actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    margin-left: auto;
+    padding: 0.5rem 0;
 }
 
-.od-apt-bar__hint {
-    flex: 1 1 220px;
-}
-
-.od-apt-bar .vc-btn {
+.od-tabs__actions .vc-btn {
     height: 38px;
     font-size: 0.86rem;
 }
 
-.od-apt-bar .vc-btn--ghost.is-on {
+.od-tabs__actions .vc-btn--ghost.is-on {
     border-color: var(--vc-primary);
     color: var(--vc-primary);
 }
