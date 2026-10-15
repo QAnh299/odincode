@@ -9,6 +9,7 @@ use App\Livewire\Opportunities\Show as OpportunityShow;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
+use App\Livewire\Reports\LeadConversion as LeadConversionReport;
 use App\Livewire\Salesperson\Home;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
@@ -44,6 +45,9 @@ Route::get('/vouchers/{voucher}', VoucherShow::class)->name('vouchers.show');
 // Khóa học – chỉ xem (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/courses', CourseIndex::class)->name('courses');
 Route::get('/courses/{course}', CourseShow::class)->name('courses.show');
+
+// Báo cáo – Phân tích hiệu quả chuyển đổi Lead (Giám đốc, Sale Admin: toàn bộ Lead; Sale Leader: Lead của đội; Salesperson: Lead mình phụ trách)
+Route::get('/reports/lead-conversion', LeadConversionReport::class)->name('reports.lead-conversion');
 
 // Học viên – danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
 // Sale Leader, Salesperson được chỉnh sửa)

@@ -1,8 +1,10 @@
 // Vẽ biểu đồ cho trang báo cáo bằng Chart.js.
 // Dùng: <div x-data="odinChart(@js($spec))"><canvas x-ref="canvas"></canvas></div>
 // spec (dựng sẵn ở PHP): { type, unit, labels, series: [{ label, data, color | colors }] }
-//   type: bar | bar_h | stacked | stacked_h | line | area | pie | doughnut
+//   type: bar | bar_h | stacked | stacked_h | line | area | pie | doughnut | scatter
 //   unit: count | percent | money
+//   scatter: mỗi dãy là 1 nhóm điểm, data = [{ x, y }]; unit là đơn vị trục dọc,
+//            xUnit đơn vị trục ngang; xLabel / yLabel là tên trục.
 // Đổi dữ liệu → đổi wire:key của khối chứa để Alpine dựng lại biểu đồ.
 
 import { Chart, registerables } from "chart.js";
@@ -39,6 +41,10 @@ function buildConfig(spec) {
     const stacked = spec.type === "stacked" || spec.type === "stacked_h";
     const line = spec.type === "line" || spec.type === "area";
     const unit = spec.unit;
+
+    if (spec.type === "scatter") {
+        return scatterConfig(spec);
+    }
 
     const datasets = spec.series.map((s) => {
         if (round) {
@@ -148,6 +154,57 @@ function buildConfig(spec) {
             interaction: { mode: "index", intersect: false, axis: horizontal ? "y" : "x" },
             scales: horizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis },
             plugins: { legend, tooltip },
+        },
+    };
+}
+
+function scatterConfig(spec) {
+    const axis = (unit, label) => ({
+        beginAtZero: true,
+        grid: { color: grid },
+        border: { display: false },
+        ticks: { callback: (v) => format(unit, v, true), maxTicksLimit: 6 },
+        title: { display: Boolean(label), text: label, color: muted },
+    });
+
+    return {
+        type: "scatter",
+        data: {
+            datasets: spec.series.map((s) => ({
+                label: s.label,
+                data: s.data,
+                backgroundColor: s.color,
+                borderColor: "#fff",
+                borderWidth: 1.5,
+                pointRadius: 7,
+                pointHoverRadius: 9,
+            })),
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: axis(spec.xUnit, spec.xLabel),
+                y: { ...axis(spec.unit, spec.yLabel), ...(spec.unit === "percent" ? { suggestedMax: 100 } : {}) },
+            },
+            plugins: {
+                legend: {
+                    display: spec.series.length > 1,
+                    position: "bottom",
+                    labels: { usePointStyle: true, boxWidth: 10, boxHeight: 10, color: ink, padding: 14 },
+                },
+                tooltip: {
+                    backgroundColor: "#111827",
+                    padding: 10,
+                    cornerRadius: 8,
+                    boxPadding: 4,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${spec.xLabel} ${format(spec.xUnit, ctx.parsed.x)} · `
+                            + `${spec.yLabel} ${format(spec.unit, ctx.parsed.y)}`,
+                    },
+                },
+            },
         },
     };
 }

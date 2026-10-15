@@ -477,6 +477,115 @@
     margin-top: 0.35rem;
 }
 
+/* ── Hiệu quả chuyển đổi Lead ──────────────────────────────────────── */
+
+/* Bộ lọc nhiều ô: tự xuống dòng */
+.rp-filters--wide {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.rp-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0 0 1.25rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.rp-tab {
+    margin-bottom: -1px;
+    padding: 0.8rem 0.7rem 0.7rem;
+    border: 0;
+    border-bottom: 2.5px solid transparent;
+    background: transparent;
+    color: var(--vc-muted);
+    font-size: 0.93rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.rp-tab:hover {
+    color: var(--vc-ink);
+}
+
+.rp-tab.is-active {
+    border-bottom-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+/* Thẻ chiếm cả hàng trong .rp-grid */
+.rp-card--wide {
+    grid-column: 1 / -1;
+}
+
+/* Tiêu đề thẻ có ô chọn bên phải */
+.rp-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.rp-sub--inline {
+    display: inline;
+}
+
+.rp-row--total th,
+.rp-row--total td {
+    background: var(--vc-tint);
+}
+
+/* Bản đồ nhiệt & cohort: nền đậm dần theo --a (0–100%) */
+.rp-heat {
+    border-collapse: separate;
+    border-spacing: 3px;
+    font-size: 0.74rem;
+}
+
+.rp-heat th {
+    padding: 0.25rem 0.4rem;
+    color: var(--vc-muted);
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.rp-heat tbody th {
+    text-align: left;
+}
+
+.rp-heat td {
+    min-width: 46px;
+    padding: 0.3rem 0.2rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--vc-primary) var(--a, 0%), transparent);
+    color: var(--vc-ink);
+    font-weight: 600;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+}
+
+.rp-heat td span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 400;
+    opacity: 0.75;
+}
+
+.rp-heat td.is-empty,
+.rp-cohort td.is-empty {
+    background: #f6f7f9;
+}
+
+.rp-cohort__cell {
+    background: color-mix(in srgb, var(--vc-primary) calc(var(--a, 0%) * 0.4), transparent);
+}
+
 /* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
