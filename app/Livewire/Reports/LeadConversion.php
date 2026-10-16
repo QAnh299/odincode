@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Services\LeadConversionReport;
+use App\Services\ReportExcelWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -140,6 +141,15 @@ class LeadConversion extends Component
 
     #[Computed]
     public function canFilterTeam(): bool
+    {
+        return in_array(Auth::user()->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true);
+    }
+
+    /**
+     * Xuất Excel: chỉ Giám đốc, Sale Admin.
+     */
+    #[Computed]
+    public function canExport(): bool
     {
         return in_array(Auth::user()->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
@@ -614,10 +624,22 @@ class LeadConversion extends Component
         return $metric === 'converted' && ! $this->seesAll ? 'won' : $metric;
     }
 
+    /**
+     * Các chỉ số cohort xem được: "thành Cơ hội" chỉ có nghĩa khi xem toàn bộ Lead.
+     */
+    public function cohortMetrics(): array
+    {
+        return array_values(array_filter(self::COHORT_METRICS, fn ($m) => $m !== 'converted' || $this->seesAll));
+    }
+
     #[Computed]
     public function cohort(): array
     {
-        $metric = $this->activeCohortMetric();
+        return $this->cohortFor($this->activeCohortMetric());
+    }
+
+    protected function cohortFor(string $metric): array
+    {
         $now = $this->monthIndex(time());
 
         $cohorts = [];
@@ -667,6 +689,335 @@ class LeadConversion extends Component
                 'series' => array_map(fn ($r, $i) => ['label' => $r['label'], 'color' => self::PALETTE[$i % count(self::PALETTE)],
                     'data' => array_values($r['cells'])], $lines, array_keys($lines))],
         ];
+    }
+
+    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+
+    /**
+     * Xuất báo cáo theo bộ lọc và phạm vi đang xem: mỗi tab 1 sheet + sheet danh sách Lead (không kèm SĐT / email).
+     */
+    public function export(ReportExcelWriter $writer)
+    {
+        abort_unless($this->canExport, 403);
+
+        $path = $writer->write([
+            $this->overviewSheet(),
+            $this->sourcesSheet(),
+            $this->velocitySheet(),
+            $this->careSheet(),
+            $this->cohortSheet(),
+            $this->leadListSheet(),
+        ]);
+
+        return response()
+            ->download($path, 'bao-cao-chuyen-doi-lead-'.now()->format('Ymd-His').'.xlsx')
+            ->deleteFileAfterSend();
+    }
+
+    /**
+     * Mô tả phạm vi đang xem (dùng ở tiêu đề trang và file xuất).
+     */
+    public function scopeLabel(): string
+    {
+        $label = fn ($key, $params = []) => __('reports.lead_conversion.scope.'.$key, $params);
+
+        return match (true) {
+            $this->seesAll                => $label('all'),
+            ! $this->canFilterEmployee    => $label('mine'),
+            $this->employeeScope !== null => $label('employee', [
+                'name' => $this->employeeOptions->firstWhere('employee_id', $this->employeeScope)?->full_name ?? $this->employeeScope]),
+            (bool) $this->teamScope       => $label('team', [
+                'team' => $this->teams->firstWhere('team_id', $this->teamScope)?->team_name ?? $this->teamScope]),
+            default                       => $label('none'),
+        };
+    }
+
+    protected function overviewSheet(): array
+    {
+        $s = $this->summary;
+        $o = $this->overview;
+        $prev = $this->previous;
+        $p = $prev['summary'] ?? [];
+        $metric = fn ($key) => __('reports.lead_conversion.metric.'.$key);
+        $kpi = fn ($key) => __('reports.lead_conversion.kpi.'.$key);
+
+        // [nhãn, khoá trong summary, kiểu]
+        $kpis = [[$kpi($this->seesAll ? 'leads' : 'assigned'), 'leads', 'int']];
+        if ($this->seesAll) {
+            $kpis[] = [__('reports.lead_conversion.overview.step_opportunities'), 'opportunities', 'int'];
+            $kpis[] = [$metric('conversion_rate'), 'conversion_rate', 'percent'];
+        }
+        $kpis[] = [$metric('contact_rate'), 'contact_rate', 'percent'];
+        $kpis[] = [$metric('won'), 'won', 'int'];
+        $kpis[] = [$metric('win_rate'), 'win_rate', 'percent'];
+        $kpis[] = [$metric('close_rate'), 'close_rate', 'percent'];
+        $kpis[] = [$kpi('students'), 'students', 'int'];
+        $kpis[] = [$this->exportLabel('student_rate'), 'student_rate', 'percent'];
+        $kpis[] = [$this->exportLabel('order_avg'), 'order_avg', 'money'];
+
+        $columns = [[$this->exportLabel('metric'), 'text'], [$this->exportLabel('value'), 'mixed']];
+        if ($prev) {
+            $columns[] = [$this->exportLabel('previous', ['period' => $prev['label']]), 'mixed'];
+        }
+        $rows = array_map(fn ($k) => array_merge([$k[0], [$s[$k[1]], $k[2]]], $prev ? [[$p[$k[1]] ?? null, $k[2]]] : []), $kpis);
+        $rows[] = array_merge([$metric('revenue'), [$this->revenue, 'money']], $prev ? [[$prev['revenue'], 'money']] : []);
+
+        $outcomes = array_values(array_filter(LeadConversionReport::OUTCOMES, fn ($key) => $key !== LeadConversionReport::OUTCOME_NEW || $this->seesAll));
+
+        return $this->sheet('overview', [
+            ['title' => $this->exportLabel('kpis'), 'columns' => $columns, 'rows' => $rows],
+            ['title' => __('reports.lead_conversion.overview.funnel'),
+                'columns' => [[$this->exportLabel('step'), 'text'], [$metric('leads'), 'int'],
+                    [$this->exportLabel('rate_previous'), 'percent'], [$this->exportLabel('rate_total'), 'percent']],
+                'rows' => array_map(fn ($f) => [$f['name'], $f['value'], $f['rate'], $f['overall']], $o['funnel'])],
+            ['title' => __('reports.lead_conversion.overview.outcomes'),
+                'columns' => [[$this->exportLabel('outcome'), 'text'], [$metric('leads'), 'int'], [$this->exportLabel('share'), 'percent']],
+                'rows' => array_map(fn ($key) => [__('reports.lead_conversion.outcome.'.$key), $s[$key],
+                    LeadConversionReport::pct($s[$key], $s['leads'])], $outcomes)],
+            $this->specBlock($this->exportLabel('trend', ['period' => $this->periodText()]),
+                $this->exportLabel('period'), $o['charts']['trend_count'], $o['charts']['trend_rate']),
+            $this->specBlock(__('reports.lead_conversion.overview.revenue', ['period' => $this->periodText()]),
+                $this->exportLabel('period'), $o['charts']['revenue']),
+        ]);
+    }
+
+    protected function sourcesSheet(): array
+    {
+        $d = $this->bySource;
+        $metric = fn ($key) => __('reports.lead_conversion.metric.'.$key);
+
+        // [tiêu đề, khoá, kiểu]
+        $fields = [[$metric('leads'), 'leads', 'int']];
+        if ($this->seesAll) {
+            $fields[] = [__('reports.lead_conversion.overview.step_opportunities'), 'opportunities', 'int'];
+            $fields[] = [$metric('conversion_rate'), 'conversion_rate', 'percent'];
+        }
+        array_push($fields,
+            [$metric('contact_rate'), 'contact_rate', 'percent'],
+            [$metric('won'), 'won', 'int'],
+            [$metric('win_rate'), 'win_rate', 'percent'],
+            [$metric('close_rate'), 'close_rate', 'percent'],
+            [$this->exportLabel('close_median_days'), 'close_median', 'decimal'],
+            [$metric('revenue'), 'revenue', 'money'],
+            [$metric('revenue_per_lead'), 'revenue_per_lead', 'money'],
+        );
+        $columns = array_map(fn ($f) => [$f[0], $f[2]], $fields);
+        $values = fn ($row) => array_map(fn ($f) => $row[$f[1]] ?? null, $fields);
+
+        return $this->sheet('sources', [
+            ['title' => __('reports.lead_conversion.sources.table'),
+                'columns' => array_merge([[__('reports.dimension.source'), 'text']], $columns),
+                'rows' => array_map(fn ($r) => array_merge([$r['name']], $values($r)), $d['rows']),
+                'total' => array_merge([__('reports.lead_conversion.total')], $values($d['total']))],
+            ['title' => __('reports.lead_conversion.sources.chart.methods'),
+                'columns' => array_merge([[__('reports.dimension.method'), 'text']], $columns),
+                'rows' => array_map(fn ($r) => array_merge([$r['name']], $values($r)), $d['methods'])],
+        ]);
+    }
+
+    protected function velocitySheet(): array
+    {
+        $s = $this->summary;
+        $v = $this->velocity;
+        $label = fn ($key) => __('reports.lead_conversion.velocity.'.$key);
+        $kpi = fn ($key) => __('reports.lead_conversion.kpi.'.$key);
+        $stuck = $this->report()->stuck($this->facts);
+
+        return $this->sheet('velocity', [
+            ['title' => $this->exportLabel('kpis'),
+                'columns' => [[$this->exportLabel('metric'), 'text'], [$this->exportLabel('value'), 'mixed']],
+                'rows' => [
+                    [$this->exportLabel('response_median_hours'), [$s['response_median'], 'decimal']],
+                    [$this->exportLabel('response_avg_hours'), [$s['response_avg'], 'decimal']],
+                    [$kpi('within24'), [$v['within24'], 'percent']],
+                    [$this->exportLabel('close_median_days'), [$s['close_median'], 'decimal']],
+                    [$this->exportLabel('close_avg_days'), [$s['close_avg'], 'decimal']],
+                    [$kpi('open'), [$v['open'], 'int']],
+                    [$this->exportLabel('untouched'), [$v['untouched'], 'int']],
+                    [$kpi('stuck'), [count($stuck), 'int']],
+                ]],
+            ['title' => $label('steps'),
+                'columns' => [[$label('step'), 'text'], [$label('count'), 'int'], [$this->exportLabel('median_hours'), 'decimal'],
+                    [$this->exportLabel('avg_hours'), 'decimal'], [$this->exportLabel('p90_hours'), 'decimal'], [$this->exportLabel('median_days'), 'decimal']],
+                'rows' => array_map(fn ($step) => [$step['name'], $step['count'], $step['median'], $step['avg'], $step['p90'],
+                    $step['median'] === null ? null : round($step['median'] / 24, 1)], $v['steps'])],
+            $this->specBlock($label('chart.response_count'), $this->exportLabel('response_group'),
+                $v['charts']['response_count'], $v['charts']['response_rate']),
+            $this->specBlock($label('chart.close'), $this->exportLabel('close_group'), $v['charts']['close']),
+            ['title' => $label('stuck'),
+                'columns' => [[$this->exportLabel('lead_id'), 'text'], [$this->exportLabel('lead_name'), 'text'],
+                    [__('reports.dimension.source'), 'text'], [$label('stage'), 'text'], [$this->exportLabel('owner'), 'text'],
+                    [$this->exportLabel('stage_since'), 'datetime'], [$this->exportLabel('days_in_stage'), 'decimal'],
+                    [$this->exportLabel('limit_days'), 'int'], [$label('contacts'), 'int'], [$label('last_contact'), 'datetime']],
+                'rows' => array_map(fn ($f) => [$f['id'], $f['name'], $f['source'], $f['stage_name'], $f['employee_name'],
+                    $f['stage_since'], round($f['days'], 1), $f['limit'], $f['contacts'], $f['last_contact']], $stuck)],
+        ]);
+    }
+
+    protected function careSheet(): array
+    {
+        $c = $this->care;
+        $label = fn ($key, $params = []) => __('reports.lead_conversion.care.'.$key, $params);
+        $kpi = fn ($key) => __('reports.lead_conversion.kpi.'.$key);
+        $results = CareResult::RESULTS;
+        $hours = $c['heat_hours'];
+        $heat = fn (string $field, string $type) => [
+            'columns' => array_merge([[$this->exportLabel('weekday'), 'text']], array_map(fn ($h) => [$h.'h', $type], $hours)),
+            'rows' => array_map(fn ($day) => array_merge([__('reports.lead_conversion.weekday.'.$day)],
+                array_map(fn ($h) => $c['heat'][$day][$h][$field] ?? null, $hours)), range(1, 7)),
+        ];
+
+        return $this->sheet('care', [
+            ['title' => $this->exportLabel('kpis'),
+                'columns' => [[$this->exportLabel('metric'), 'text'], [$this->exportLabel('value'), 'mixed']],
+                'rows' => [
+                    [$kpi('contacts'), [$c['total'], 'int']],
+                    [$this->exportLabel('success_rate'), [$c['success_rate'], 'percent']],
+                    [$kpi('unreachable'), [$c['unreachable_rate'], 'percent']],
+                    [$kpi('per_won'), [$c['per_won'], 'decimal']],
+                    [$kpi('per_lost'), [$c['per_lost'], 'decimal']],
+                    [$kpi('appointments'), [$c['appointment_rate'], 'percent']],
+                ]],
+            ['title' => $label('activity_table'),
+                'columns' => array_merge([[$label('activity'), 'text'], [$label('total'), 'int']],
+                    ...array_map(fn ($r) => [[$label('result.'.$r), 'int'], [$label('result.'.$r).' (%)', 'percent']], $results)),
+                'rows' => array_map(fn ($a) => array_merge([$a['name'], $a['total']],
+                    ...array_map(fn ($r) => [$a[$r], $a['rate'][$r]], $results)), $c['activities'])],
+            ['title' => $label('touches'),
+                'columns' => [[$this->exportLabel('touches'), 'text'], [$this->exportLabel('closed_leads'), 'int'],
+                    [__('reports.lead_conversion.metric.won'), 'int'], [__('reports.lead_conversion.metric.close_rate'), 'percent']],
+                'rows' => array_map(fn ($t) => [$t['name'], $t['leads'], $t['won'], $t['close_rate']], $c['touches'])],
+            ['title' => $label('appointments'),
+                'columns' => [[$label('type'), 'text'], [$label('total'), 'int'], [__('appointments.status.Success'), 'int'],
+                    [__('appointments.status.Failed'), 'int'], [__('appointments.status.Scheduled'), 'int'], [$label('show_rate'), 'percent']],
+                'rows' => array_map(fn ($type, $t) => [__('opportunities.appointment_type_name.'.$type), $t['total'], $t['Success'],
+                    $t['Failed'], $t['Scheduled'], $t['rate']], array_keys($c['types']), $c['types'])],
+            ['title' => $this->exportLabel('heat_count')] + $heat('total', 'int'),
+            ['title' => $this->exportLabel('heat_rate')] + $heat('rate', 'percent'),
+        ]);
+    }
+
+    protected function cohortSheet(): array
+    {
+        $blocks = [];
+        foreach ($this->cohortMetrics() as $metric) {
+            $co = $this->cohortFor($metric);
+            $blocks[] = [
+                'title'   => __('reports.lead_conversion.cohort.title_'.$metric),
+                'columns' => array_merge(
+                    [[__('reports.lead_conversion.cohort.month'), 'text'], [__('reports.lead_conversion.metric.leads'), 'int']],
+                    array_map(fn ($m) => ['M'.$m, 'percent'], range(0, $co['width'])),
+                    [[__('reports.lead_conversion.cohort.to_date'), 'percent']]),
+                'rows'    => array_map(fn ($r) => array_merge([$r['label'], $r['leads']], array_values($r['cells']), [$r['total']]), $co['rows']),
+            ];
+        }
+
+        return $this->sheet('cohort', $blocks, [__('reports.lead_conversion.cohort.sub')]);
+    }
+
+    /**
+     * Mỗi Lead 1 dòng – không kèm số điện thoại / email.
+     */
+    protected function leadListSheet(): array
+    {
+        $branches = $this->branches->pluck('branch_name', 'branch_id');
+        $teams = $this->teams->pluck('team_name', 'team_id');
+        $hours = fn ($from, $to) => $from && $to ? round(max(0, $to - $from) / 3600, 1) : null;
+        $col = fn ($key) => $this->exportLabel('list.'.$key);
+
+        return $this->sheet('list', [[
+            'title'   => null,
+            'columns' => [
+                [$col('id'), 'text'], [$col('name'), 'text'], [$col('created'), 'datetime'], [$col('source'), 'text'],
+                [$col('method'), 'text'], [$col('branch'), 'text'], [$col('owner'), 'text'], [$col('team'), 'text'],
+                [$col('opportunity'), 'text'], [$col('stage'), 'text'], [$col('outcome'), 'text'], [$col('assigned'), 'datetime'],
+                [$col('first_contact'), 'datetime'], [$col('response_hours'), 'decimal'], [$col('contacts'), 'int'],
+                [$col('contacts_ok'), 'int'], [$col('appointments_ok'), 'int'], [$col('appointments_failed'), 'int'],
+                [$col('won_at'), 'datetime'], [$col('close_days'), 'decimal'], [$col('student'), 'text'], [$col('order_total'), 'money'],
+            ],
+            'rows' => array_map(fn ($f) => [
+                $f['id'], $f['name'], $f['created'], $f['source'], __('leads.method.'.$f['method']),
+                $branches[$f['branch']] ?? $f['branch'], $f['employee_name'], $teams[$f['team']] ?? $f['team'],
+                $f['opportunity'], $f['stage_name'], __('reports.lead_conversion.outcome.'.$f['outcome']), $f['converted_at'],
+                $f['first_contact'], $hours($f['created'], $f['first_contact']), $f['contacts'],
+                $f['contacts_ok'], $f['appointments_ok'], $f['appointments_failed'],
+                $f['won_at'], $f['won_at'] ? round(max(0, $f['won_at'] - $f['created']) / 86400, 1) : null,
+                $f['student'] ? __('reports.lead_conversion.export.yes') : null, $f['order_total'] ?: null,
+            ], $this->facts),
+        ]], [], true);
+    }
+
+    /**
+     * 1 sheet của file xuất: tên tab + phần đầu chung (phạm vi, khoảng ngày, bộ lọc, người xuất).
+     */
+    protected function sheet(string $tab, array $blocks, array $notes = [], bool $list = false): array
+    {
+        return [
+            'name'   => $tab === 'list' ? $this->exportLabel('sheet_list') : __('reports.lead_conversion.tab.'.$tab),
+            'title'  => __('reports.lead_conversion.title').' – '
+                .($tab === 'list' ? $this->exportLabel('sheet_list') : __('reports.lead_conversion.tab.'.$tab)),
+            'meta'   => array_merge($this->exportMeta(), $notes),
+            'blocks' => $blocks,
+            'list'   => $list,
+        ];
+    }
+
+    protected function exportMeta(): array
+    {
+        $f = $this->filterValues();
+        $date = fn ($d) => CarbonImmutable::parse($d)->format('d/m/Y');
+        $range = match (true) {
+            $f['from'] && $f['to'] => $this->exportLabel('range_between', ['from' => $date($f['from']), 'to' => $date($f['to'])]),
+            (bool) $f['from']      => $this->exportLabel('range_from', ['from' => $date($f['from'])]),
+            (bool) $f['to']        => $this->exportLabel('range_to', ['to' => $date($f['to'])]),
+            default                => $this->exportLabel('range_all'),
+        };
+
+        $filters = array_filter([
+            $f['branch'] ? __('reports.branch').': '.($this->branches->firstWhere('branch_id', $f['branch'])?->branch_name ?? $f['branch']) : null,
+            $f['source'] ? __('reports.dimension.source').': '.$f['source'] : null,
+        ]);
+
+        return array_values(array_filter([
+            $this->exportLabel('meta_scope', ['scope' => $this->scopeLabel()]),
+            $this->exportLabel('meta_leads', ['range' => $range]),
+            $this->exportLabel('meta_revenue', ['range' => $range]),
+            $filters ? $this->exportLabel('meta_filters', ['filters' => implode(' · ', $filters)]) : null,
+            $this->exportLabel('meta_by', ['name' => $this->me?->full_name ?? '', 'time' => now()->format('d/m/Y H:i')]),
+        ]));
+    }
+
+    /**
+     * Bảng từ 1 hay nhiều cấu hình biểu đồ cùng nhãn trục: cột đầu là nhãn, mỗi dãy 1 cột.
+     */
+    protected function specBlock(string $title, string $labelHeader, array ...$specs): array
+    {
+        $types = ['count' => 'int', 'percent' => 'percent', 'money' => 'money'];
+        $columns = [[$labelHeader, 'text']];
+        $data = [];
+        foreach ($specs as $spec) {
+            foreach ($spec['series'] as $series) {
+                $columns[] = [$series['label'], $types[$spec['unit']] ?? 'decimal'];
+                $data[] = $series['data'];
+            }
+        }
+
+        $rows = [];
+        foreach ($specs[0]['labels'] as $i => $label) {
+            $rows[] = array_merge([$label], array_map(fn ($series) => $series[$i] ?? null, $data));
+        }
+
+        return ['title' => $title, 'columns' => $columns, 'rows' => $rows];
+    }
+
+    protected function exportLabel(string $key, array $params = []): string
+    {
+        return __('reports.lead_conversion.export.'.$key, $params);
+    }
+
+    protected function periodText(): string
+    {
+        return __('reports.lead_conversion.period.'.$this->period);
     }
 
     /* ── Hỗ trợ ───────────────────────────────────────────────────────── */

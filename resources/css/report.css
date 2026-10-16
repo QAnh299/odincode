@@ -479,6 +479,13 @@
 
 /* ── Hiệu quả chuyển đổi Lead ──────────────────────────────────────── */
 
+/* Góc phải tiêu đề: trạng thái tải + nút xuất Excel */
+.rp-head__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
 /* Bộ lọc nhiều ô: tự xuống dòng */
 .rp-filters--wide {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

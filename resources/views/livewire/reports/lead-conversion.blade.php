@@ -38,14 +38,6 @@
         return [($change > 0 ? '▲ ' : '▼ ').$text, $change * $dir > 0 ? 'up' : 'down'];
     };
 
-    $scopeText = match (true) {
-        $seesAll                                  => $L('scope.all'),
-        ! $this->canFilterEmployee                => $L('scope.mine'),
-        $this->employeeScope !== null             => $L('scope.employee', ['name' => $this->employeeOptions->firstWhere('employee_id', $this->employeeScope)?->full_name]),
-        $this->teamScope                          => $L('scope.team', ['team' => $this->teams->firstWhere('team_id', $this->teamScope)?->team_name ?? $this->teamScope]),
-        default                                   => $L('scope.none'),
-    };
-
     $hasData = $s['leads'] > 0 || $this->revenue > 0;
 @endphp
 
@@ -58,12 +50,23 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ $L('title') }}</h1>
-            <p class="vc-head__sub">{{ $L('subtitle') }} · <strong>{{ $scopeText }}</strong></p>
+            <p class="vc-head__sub">{{ $L('subtitle') }} · <strong>{{ $this->scopeLabel() }}</strong></p>
         </div>
-        <span class="vc-results__loading" wire:loading.delay>
-            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-            {{ __('reports.loading') }}
-        </span>
+        <div class="rp-head__actions">
+            <span class="vc-results__loading" wire:loading.delay wire:target.except="export">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                {{ __('reports.loading') }}
+            </span>
+            {{-- Xuất Excel theo bộ lọc đang chọn (Giám đốc, Sale Admin): mỗi tab 1 sheet + danh sách Lead --}}
+            @if ($this->canExport)
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="export" wire:loading.attr="disabled" wire:target="export"
+                    @disabled(! $hasData)>
+                    <span wire:loading.remove wire:target="export"><x-icon name="file" /></span>
+                    <span class="spinner-border spinner-border-sm" wire:loading wire:target="export" aria-hidden="true"></span>
+                    {{ $L('export.button') }}
+                </button>
+            @endif
+        </div>
     </header>
 
     {{-- ── Bộ lọc ──────────────────────────────────────────────────────── --}}
