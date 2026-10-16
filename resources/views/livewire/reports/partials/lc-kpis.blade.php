@@ -1,19 +1,19 @@
-{{-- Thẻ KPI báo cáo chuyển đổi Lead: $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh --}}
+{{-- Thẻ KPI báo cáo chuyển đổi Lead: $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh.
+     Bố cục dọc: icon + tên → số lớn → chú thích neo đáy thẻ (các thẻ cùng hàng cao bằng nhau, chú thích thẳng hàng). --}}
 <div class="rp-kpis">
     @foreach ($kpis as [$key, $icon, $value, $hint, $change])
-        <div class="vc-summary__item rp-kpi">
-            <span class="vc-summary__icon"><x-icon :name="$icon" /></span>
-            <span class="vc-summary__text">
-                <span class="vc-summary__label">{{ __('reports.lead_conversion.kpi.'.$key) }}</span>
-                <span class="vc-summary__value">{{ $value }}</span>
-                <span class="rp-kpi__hint" title="{{ $hint }}">{{ $hint }}</span>
-                @if ($change)
-                    <span class="rp-delta {{ $change[1] ? 'rp-delta--'.$change[1] : '' }}"
-                        title="{{ __('reports.lead_conversion.delta_vs', ['period' => $prevLabel]) }}">
-                        {{ $change[0] }} {{ __('reports.lead_conversion.delta_vs', ['period' => $prevLabel]) }}
-                    </span>
-                @endif
-            </span>
+        <div class="rp-stat">
+            <div class="rp-stat__head">
+                <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
+                <span>{{ __('reports.lead_conversion.kpi.'.$key) }}</span>
+            </div>
+            <div class="rp-stat__value">{{ $value }}</div>
+            @if ($change)
+                <div class="rp-delta {{ $change[1] ? 'rp-delta--'.$change[1] : '' }}">
+                    {{ $change[0] }} {{ __('reports.lead_conversion.delta_vs', ['period' => $prevLabel]) }}
+                </div>
+            @endif
+            <div class="rp-stat__hint">{{ $hint }}</div>
         </div>
     @endforeach
 </div>
