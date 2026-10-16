@@ -8,10 +8,11 @@
     --odin-accent: #fcda43;
     --odin-ink: #222222;
     --odin-border: #e2e8f0;
+    --font-inter: "Inter";
 }
 
 body {
-    font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     color: var(--odin-ink);
 }
 

@@ -1,11 +1,3 @@
-// Vẽ biểu đồ cho trang báo cáo bằng Chart.js.
-// Dùng: <div x-data="odinChart(@js($spec))"><canvas x-ref="canvas"></canvas></div>
-// spec (dựng sẵn ở PHP): { type, unit, labels, series: [{ label, data, color | colors }] }
-//   type: bar | bar_h | stacked | stacked_h | line | area | pie | doughnut | scatter
-//   unit: count | percent | money
-//   scatter: mỗi dãy là 1 nhóm điểm, data = [{ x, y }]; unit là đơn vị trục dọc,
-//            xUnit đơn vị trục ngang; xLabel / yLabel là tên trục.
-// Đổi dữ liệu → đổi wire:key của khối chứa để Alpine dựng lại biểu đồ.
 
 import { Chart, registerables } from "chart.js";
 
@@ -16,7 +8,8 @@ const ink = "#1f2937";
 const muted = "#6b7280";
 const grid = "#eef1f4";
 
-Chart.defaults.font.family = "'Be Vietnam Pro', system-ui, sans-serif";
+
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 Chart.defaults.font.size = 12;
 Chart.defaults.color = muted;
 
