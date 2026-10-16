@@ -220,7 +220,6 @@ return [
             'overview' => 'Funnel overview',
             'sources'  => 'By lead source',
             'velocity' => 'Conversion speed',
-            'staff'    => 'Staff performance',
             'care'     => 'Care quality',
             'cohort'   => 'Monthly cohorts',
         ],
@@ -246,9 +245,6 @@ return [
             'win_rate'         => 'Lead → Won',
             'close_rate'       => 'Win rate',
             'contact_rate'     => 'Contacted',
-            'appointment_rate' => 'Appointments attended',
-            'processed_rate'   => 'Processed',
-            'response_median'  => 'First response (median)',
             'close_median'     => 'Time to close (median)',
             'revenue_per_lead' => 'Revenue / lead',
         ],
@@ -371,19 +367,6 @@ return [
             'limit'        => 'limit :days days',
         ],
 
-        'staff' => [
-            'teams'         => 'By sales team',
-            'teams_sub'     => 'Leads count for the team of the latest opportunity owner',
-            'employees'     => 'By salesperson',
-            'employees_sub' => 'Ranked by won leads, then Lead → Won. Revenue by payment date.',
-            'chart'         => [
-                'volume'     => 'Assigned and won leads',
-                'volume_sub' => 'By salesperson',
-                'rates'      => 'Conversion rates by salesperson',
-                'rates_sub'  => 'Lead → Won and win rate on closed opportunities',
-            ],
-        ],
-
         'care' => [
             'touches_n'          => ':n contacts',
             'touches_more'       => ':n+ contacts',
@@ -433,17 +416,6 @@ return [
             'to_date'          => 'To date',
             'chart'            => 'Conversion curves',
             'chart_sub'        => 'Most recent cohorts – the earlier a curve rises, the faster leads convert',
-        ],
-
-        'method' => [
-            'title'    => 'How metrics are calculated',
-            'scope'    => 'Scope: Directors and Sale Admins see all leads (including those without an opportunity); Sale Leaders see their team\'s leads; Salespeople see their own. A lead belongs to the owner of its latest opportunity; when viewing by team / person only assigned leads are included, so there is no Lead → Opportunity step.',
-            'cohort'   => 'Conversion rates use the lead creation date: leads created in the selected range, with their results to date. Recent leads have had less time, so their rates are usually lower.',
-            'revenue'  => 'Collected revenue uses the payment date: paid invoices within the selected range, attributed to the lead\'s source and the opportunity owner of the order (regardless of when the lead was created).',
-            'outcome'  => 'Lead outcome: won if it has a Won opportunity; in progress if an opportunity is still open; otherwise lost (declined) or archived (unreachable).',
-            'rates'    => 'Lead → Opportunity = leads with an opportunity ÷ leads; Lead → Won = won ÷ leads; Win rate = won ÷ (won + lost + archived); Processed = leads that reached the Processed stage ÷ leads.',
-            'stages'   => 'Funnel: a lead has reached a stage if it is in, was in, or has passed that stage. Stage entry times come from stage history; when missing they are estimated (appointed = first successful contact, processed = first attended appointment, won = close date).',
-            'velocity' => 'First response = from lead creation to first contact (including time waiting for assignment). Time to close = from lead creation to close.',
         ],
     ],
 

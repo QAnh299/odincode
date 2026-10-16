@@ -25,14 +25,14 @@ use Livewire\Component;
  * Phạm vi theo vai trò: Giám đốc, Sale Admin xem toàn bộ Lead (lọc được theo đội / salesperson);
  * Sale Leader xem Lead của đội mình; Salesperson xem Lead mình phụ trách.
  *
- * 6 tab: Tổng quan phễu, Hiệu quả theo nguồn, Tốc độ chuyển đổi, Hiệu suất nhân viên,
+ * 5 tab: Tổng quan phễu, Hiệu quả theo nguồn, Tốc độ chuyển đổi,
  * Chất lượng chăm sóc, Cohort theo tháng. Mỗi tab chỉ tính số liệu khi được mở.
  * Tỷ lệ tính theo ngày tạo Lead, doanh thu theo ngày thanh toán – xem App\Services\LeadConversionReport.
  */
 #[Layout('layouts.app')]
 class LeadConversion extends Component
 {
-    const TABS = ['overview', 'sources', 'velocity', 'staff', 'care', 'cohort'];
+    const TABS = ['overview', 'sources', 'velocity', 'care', 'cohort'];
 
     // Bảng màu phân loại dùng chung các trang báo cáo; màu đi theo thực thể / chỉ số
     const PALETTE = LeadSources::PALETTE;
@@ -501,87 +501,7 @@ class LeadConversion extends Component
         ];
     }
 
-    /* ── Tab 4: Hiệu suất nhân viên / đội ─────────────────────────────── */
-
-    #[Computed]
-    public function staff(): array
-    {
-        $revenue = $this->sumPayments('employee');
-        $groups = $this->groupFacts(fn ($f) => $f['employee']);
-        unset($groups['']);
-
-        // Người trong phạm vi chưa có số liệu vẫn hiện (đang làm việc)
-        $names = [];
-        $teamOf = [];
-        foreach ($this->employeeOptions as $option) {
-            $names[$option->employee_id] = $option->full_name;
-            $teamOf[$option->employee_id] = $option->team_id;
-            if ($option->isActive() && ($this->employeeScope === null || $this->employeeScope === $option->employee_id)) {
-                $groups[$option->employee_id] ??= [];
-            }
-        }
-        foreach (array_keys($revenue) as $id) {
-            if ($id !== '' && ($this->employeeScope === null || $this->employeeScope === $id)) {
-                $groups[$id] ??= [];
-            }
-        }
-        $missing = array_diff(array_keys($groups), array_keys($names));
-        if ($missing) {
-            foreach (Employee::query()->whereIn('employee_id', $missing)->get(['employee_id', 'full_name', 'team_id']) as $e) {
-                $names[$e->employee_id] = $e->full_name;
-                $teamOf[$e->employee_id] = $e->team_id;
-            }
-        }
-        $teamNames = $this->teams->pluck('team_name', 'team_id');
-
-        $rows = [];
-        foreach ($groups as $id => $facts) {
-            $row = $this->withRevenue($this->report()->summarize($facts), $revenue[$id] ?? 0);
-            $teamId = $teamOf[$id] ?? null;
-            $rows[] = $row + [
-                'id'      => (string) $id,
-                'name'    => $names[$id] ?? (string) $id,
-                'team_id' => $teamId,
-                'team'    => $teamNames[$teamId] ?? null,
-                'active'  => $row['leads'] > 0 || $row['revenue'] > 0,
-            ];
-        }
-        usort($rows, fn ($a, $b) => [$b['active'], $b['won'], $b['win_rate'] ?? -1, $b['leads'], $a['name']]
-            <=> [$a['active'], $a['won'], $a['win_rate'] ?? -1, $a['leads'], $b['name']]);
-        $rank = 0;
-        foreach ($rows as &$row) {
-            $row['rank'] = $row['active'] ? ++$rank : null;
-        }
-        unset($row);
-
-        // Theo đội (Giám đốc / Sale Admin xem tất cả đội)
-        $teams = [];
-        if ($this->canFilterTeam && $this->teamScope === '' && $this->employeeScope === null) {
-            $teamRevenue = $this->sumPayments('team');
-            $teamGroups = $this->groupFacts(fn ($f) => $f['team']);
-            foreach ($this->teams as $team) {
-                $teams[] = $this->withRevenue($this->report()->summarize($teamGroups[$team->team_id] ?? []), $teamRevenue[$team->team_id] ?? 0)
-                    + ['name' => $team->team_name];
-            }
-            usort($teams, fn ($a, $b) => [$b['won'], $b['win_rate'] ?? -1] <=> [$a['won'], $a['win_rate'] ?? -1]);
-        }
-
-        $active = array_values(array_filter($rows, fn ($r) => $r['active']));
-
-        return [
-            'rows'   => $rows,
-            'teams'  => $teams,
-            'total'  => $this->withRevenue($this->summary, $this->revenue),
-            'charts' => count($active) > 1 ? [
-                'volume' => ['type' => 'bar', 'unit' => 'count', 'labels' => array_column($active, 'name'),
-                    'series' => $this->series($active, ['leads', 'won'])],
-                'rates'  => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($active, 'name'),
-                    'series' => $this->series($active, ['win_rate', 'close_rate'])],
-            ] : [],
-        ];
-    }
-
-    /* ── Tab 5: Chất lượng chăm sóc ───────────────────────────────────── */
+    /* ── Tab 4: Chất lượng chăm sóc ───────────────────────────────────── */
 
     #[Computed]
     public function care(): array
@@ -685,7 +605,7 @@ class LeadConversion extends Component
         ];
     }
 
-    /* ── Tab 6: Cohort theo tháng tạo Lead ────────────────────────────── */
+    /* ── Tab 5: Cohort theo tháng tạo Lead ────────────────────────────── */
 
     public function activeCohortMetric(): string
     {
@@ -774,7 +694,8 @@ class LeadConversion extends Component
         return [
             'from'     => $this->validDate($this->from) ? $this->from : null,
             'to'       => $this->validDate($this->to) ? $this->to : null,
-            'branch'   => $this->branches->contains('branch_id', $this->branch) ? $this->branch : null,
+            // Salesperson chỉ thuộc 1 chi nhánh, nhận Lead của chi nhánh đó → không lọc chi nhánh
+            'branch'   => $this->canFilterEmployee && $this->branches->contains('branch_id', $this->branch) ? $this->branch : null,
             'source'   => in_array($this->source, $this->sources, true) ? $this->source : null,
             'team'     => $this->teamScope === null ? '__none__' : ($this->teamScope ?: null),
             'employee' => $this->employeeScope,

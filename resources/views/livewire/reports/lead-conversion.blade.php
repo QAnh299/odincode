@@ -76,15 +76,17 @@
             <span class="vc-field__label">{{ $L('to') }}</span>
             <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
         </label>
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('reports.branch') }}</span>
-            <select wire:model.live="branch" class="vc-control">
-                <option value="">{{ __('reports.all_branches') }}</option>
-                @foreach ($this->branches as $option)
-                    <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
-                @endforeach
-            </select>
-        </label>
+        @if ($this->canFilterEmployee)
+            <label class="vc-field">
+                <span class="vc-field__label">{{ __('reports.branch') }}</span>
+                <select wire:model.live="branch" class="vc-control">
+                    <option value="">{{ __('reports.all_branches') }}</option>
+                    @foreach ($this->branches as $option)
+                        <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
+                    @endforeach
+                </select>
+            </label>
+        @endif
         <label class="vc-field">
             <span class="vc-field__label">{{ __('reports.dimension.source') }}</span>
             <select wire:model.live="source" class="vc-control">
@@ -374,119 +376,7 @@
                 </section>
                 @break
 
-            {{-- ══ 4. HIỆU SUẤT NHÂN VIÊN / ĐỘI ═══════════════════════════ --}}
-            @case('staff')
-                @php
-                    $st = $this->staff;
-                    $columns = [
-                        'leads'            => $num,
-                        'contact_rate'     => $pct,
-                        'appointment_rate' => $pct,
-                        'processed_rate'   => $pct,
-                        'won'              => $num,
-                        'win_rate'         => $pct,
-                        'close_rate'       => $pct,
-                        'response_median'  => $dur,
-                        'close_median'     => $days,
-                        'revenue'          => $money,
-                    ];
-                @endphp
-
-                @if ($st['teams'])
-                    <section class="vc-card rp-card">
-                        <h3 class="rp-card__title">{{ $L('staff.teams') }}</h3>
-                        <p class="rp-card__sub">{{ $L('staff.teams_sub') }}</p>
-                        <div class="table-responsive">
-                            <table class="rp-table">
-                                <thead>
-                                    <tr>
-                                        <th>{{ __('reports.sales_performance.team') }}</th>
-                                        @foreach ($columns as $key => $format)
-                                            <th class="rp-num">{{ $L('metric.'.$key) }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($st['teams'] as $row)
-                                        <tr wire:key="team-{{ md5($row['name']) }}">
-                                            <th scope="row">{{ $row['name'] }}</th>
-                                            @foreach ($columns as $key => $format)
-                                                <td class="rp-num">{{ $format($row[$key]) }}</td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                @endif
-
-                <section class="vc-card rp-card">
-                    <h3 class="rp-card__title">{{ $L('staff.employees') }}</h3>
-                    <p class="rp-card__sub">{{ $L('staff.employees_sub') }}</p>
-                    @if (! $st['rows'])
-                        <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
-                    @else
-                        <div class="table-responsive">
-                            <table class="rp-table">
-                                <thead>
-                                    <tr>
-                                        <th>{{ __('reports.sales_performance.rank') }}</th>
-                                        <th>{{ __('reports.sales_performance.employee') }}</th>
-                                        @foreach ($columns as $key => $format)
-                                            <th class="rp-num">{{ $L('metric.'.$key) }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($st['rows'] as $row)
-                                        <tr wire:key="emp-{{ $row['id'] }}" class="{{ $row['active'] ? '' : 'rp-row--idle' }}">
-                                            <td>
-                                                @if ($row['rank'])
-                                                    <span class="rp-rank rp-rank--{{ $row['rank'] }}">{{ $row['rank'] }}</span>
-                                                @else
-                                                    —
-                                                @endif
-                                            </td>
-                                            <th scope="row">
-                                                {{ $row['name'] }}
-                                                @if ($row['team'])
-                                                    <span class="rp-sub">{{ $row['team'] }}</span>
-                                                @endif
-                                            </th>
-                                            @foreach ($columns as $key => $format)
-                                                <td class="rp-num">{{ $format($row[$key]) }}</td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                                @if (count($st['rows']) > 1)
-                                    <tfoot>
-                                        <tr>
-                                            <td></td>
-                                            <th scope="row">{{ $L('total') }}</th>
-                                            @foreach ($columns as $key => $format)
-                                                <td class="rp-num">{{ $format($st['total'][$key]) }}</td>
-                                            @endforeach
-                                        </tr>
-                                    </tfoot>
-                                @endif
-                            </table>
-                        </div>
-                    @endif
-                </section>
-
-                @if ($st['charts'])
-                    <div class="rp-grid">
-                        @foreach (['volume', 'rates'] as $key)
-                            @include('livewire.reports.partials.chart-card', ['id' => 'lc-staff-'.$key, 'spec' => $st['charts'][$key],
-                                'title' => $L('staff.chart.'.$key), 'sub' => $L('staff.chart.'.$key.'_sub')])
-                        @endforeach
-                    </div>
-                @endif
-                @break
-
-            {{-- ══ 5. CHẤT LƯỢNG CHĂM SÓC ═════════════════════════════════ --}}
+            {{-- ══ 4. CHẤT LƯỢNG CHĂM SÓC ═════════════════════════════════ --}}
             @case('care')
                 @php
                     $c = $this->care;
@@ -616,7 +506,7 @@
                 </section>
                 @break
 
-            {{-- ══ 6. COHORT THEO THÁNG ═══════════════════════════════════ --}}
+            {{-- ══ 5. COHORT THEO THÁNG ═══════════════════════════════════ --}}
             @case('cohort')
                 @php $co = $this->cohort; @endphp
 
@@ -679,14 +569,4 @@
                 @break
         @endswitch
     @endif
-
-    {{-- Cách tính --}}
-    <details class="vc-card rp-card rp-method">
-        <summary>{{ $L('method.title') }}</summary>
-        <ul>
-            @foreach (['scope', 'cohort', 'revenue', 'outcome', 'rates', 'stages', 'velocity'] as $key)
-                <li>{{ $L('method.'.$key) }}</li>
-            @endforeach
-        </ul>
-    </details>
 </div>

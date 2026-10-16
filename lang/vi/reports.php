@@ -224,7 +224,6 @@ return [
             'overview' => 'Tổng quan phễu',
             'sources'  => 'Theo nguồn Lead',
             'velocity' => 'Tốc độ chuyển đổi',
-            'staff'    => 'Hiệu suất nhân viên',
             'care'     => 'Chất lượng chăm sóc',
             'cohort'   => 'Cohort theo tháng',
         ],
@@ -250,9 +249,6 @@ return [
             'win_rate'         => 'Lead → Chốt',
             'close_rate'       => 'Tỷ lệ thắng',
             'contact_rate'     => 'Đã liên hệ',
-            'appointment_rate' => 'Hẹn thành công',
-            'processed_rate'   => 'Đã xử lý',
-            'response_median'  => 'Phản hồi đầu (trung vị)',
             'close_median'     => 'Thời gian chốt (trung vị)',
             'revenue_per_lead' => 'Doanh thu / Lead',
         ],
@@ -375,19 +371,6 @@ return [
             'limit'        => 'ngưỡng :days ngày',
         ],
 
-        'staff' => [
-            'teams'         => 'Theo đội kinh doanh',
-            'teams_sub'     => 'Lead tính cho đội của người phụ trách Cơ hội mới nhất',
-            'employees'     => 'Theo salesperson',
-            'employees_sub' => 'Xếp hạng theo số Lead chốt, rồi tỷ lệ Lead → Chốt. Doanh thu tính theo ngày thanh toán.',
-            'chart'         => [
-                'volume'     => 'Lead được giao và Lead chốt',
-                'volume_sub' => 'Theo salesperson',
-                'rates'      => 'Tỷ lệ chuyển đổi theo salesperson',
-                'rates_sub'  => 'Lead → Chốt và tỷ lệ thắng trên Cơ hội đã đóng',
-            ],
-        ],
-
         'care' => [
             'touches_n'          => ':n lần',
             'touches_more'       => ':n+ lần',
@@ -437,17 +420,6 @@ return [
             'to_date'          => 'Tới nay',
             'chart'            => 'Đường cong chuyển đổi',
             'chart_sub'        => 'Các cohort gần nhất – đường càng dốc lên sớm, Lead chuyển đổi càng nhanh',
-        ],
-
-        'method' => [
-            'title'    => 'Cách tính các chỉ số',
-            'scope'    => 'Phạm vi: Giám đốc, Sale Admin xem toàn bộ Lead (gồm Lead chưa có Cơ hội); Sale Leader xem Lead của đội; Salesperson xem Lead mình phụ trách. Lead thuộc người phụ trách Cơ hội mới nhất của nó; khi xem theo đội / người, chỉ gồm Lead đã giao nên không có bước Lead → Cơ hội.',
-            'cohort'   => 'Tỷ lệ chuyển đổi tính theo ngày tạo Lead: lấy các Lead tạo trong khoảng ngày đã chọn rồi xem kết quả của chúng tới hiện tại. Lead tạo gần đây chưa đủ thời gian nên tỷ lệ thường thấp hơn.',
-            'revenue'  => 'Doanh thu thực thu tính theo ngày thanh toán: tổng hoá đơn đã thanh toán trong khoảng ngày đã chọn, tính cho nguồn của Lead và người phụ trách Cơ hội của đơn hàng (không phụ thuộc Lead tạo khi nào).',
-            'outcome'  => 'Kết quả của Lead: chốt nếu có Cơ hội Won; đang xử lý nếu còn Cơ hội đang mở; còn lại là thất bại (khách từ chối) hoặc lưu trữ (không liên lạc được).',
-            'rates'    => 'Lead → Cơ hội = Lead có Cơ hội ÷ Lead; Lead → Chốt = Lead chốt ÷ Lead; Tỷ lệ thắng = chốt ÷ (chốt + thất bại + lưu trữ); Đã xử lý = Lead đã tới stage Đã xử lý ÷ Lead.',
-            'stages'   => 'Phễu: Lead tính là đã tới 1 stage nếu đang ở, đã từng ở hoặc đã vượt qua stage đó. Thời điểm vào stage lấy từ lịch sử chuyển stage; thiếu lịch sử thì ước tính (đã có lịch hẹn = lần liên hệ thành công đầu tiên, đã xử lý = buổi hẹn thành công đầu tiên, chốt = ngày chốt).',
-            'velocity' => 'Phản hồi đầu tiên = từ lúc tạo Lead đến lần liên hệ đầu tiên (gồm cả thời gian chờ phân bổ). Thời gian chốt = từ lúc tạo Lead đến lúc chốt.',
         ],
     ],
 
