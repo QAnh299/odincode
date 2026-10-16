@@ -104,7 +104,7 @@
                 <span class="vc-field__label">{{ __('reports.sales_performance.team') }}</span>
                 <select wire:model.live="team" class="vc-control">
                     <option value="">{{ __('reports.sales_performance.all_teams') }}</option>
-                    @foreach ($this->teams as $option)
+                    @foreach ($this->teamOptions as $option)
                         <option value="{{ $option->team_id }}">{{ $option->team_name }}</option>
                     @endforeach
                 </select>

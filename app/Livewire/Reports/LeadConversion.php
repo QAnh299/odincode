@@ -163,7 +163,46 @@ class LeadConversion extends Component
     #[Computed]
     public function teams(): Collection
     {
-        return SalesTeam::query()->orderBy('team_name')->get(['team_id', 'team_name']);
+        return SalesTeam::query()->with('leader:employee_id,branch_id')->orderBy('team_name')
+            ->get(['team_id', 'team_name', 'team_leader_id']);
+    }
+
+    /**
+     * Chi nhánh đang lọc (đã kiểm tra). Salesperson chỉ thuộc 1 chi nhánh, nhận Lead của chi nhánh đó → không lọc.
+     */
+    #[Computed]
+    public function branchScope(): ?string
+    {
+        return $this->canFilterEmployee && $this->branches->contains('branch_id', $this->branch) ? $this->branch : null;
+    }
+
+    /**
+     * Đội chọn được ở bộ lọc: mỗi đội thuộc 1 chi nhánh (SalesTeam::branchId) → đang lọc chi nhánh thì chỉ còn đội của chi nhánh đó.
+     */
+    #[Computed]
+    public function teamOptions(): Collection
+    {
+        if ($this->branchScope === null) {
+            return $this->teams;
+        }
+
+        return $this->teams->filter(fn ($team) => $team->branchId() === $this->branchScope)->values();
+    }
+
+    /**
+     * Đổi chi nhánh: bỏ đội / salesperson không còn thuộc chi nhánh mới.
+     */
+    public function updatedBranch(): void
+    {
+        unset($this->branchScope, $this->teamOptions, $this->teamScope, $this->employeeOptions);
+
+        if ($this->team !== '' && ! $this->teamOptions->contains('team_id', $this->team)) {
+            $this->team = '';
+            unset($this->teamScope, $this->employeeOptions);
+        }
+        if ($this->employee !== '' && ! $this->employeeOptions->contains('employee_id', $this->employee)) {
+            $this->employee = '';
+        }
     }
 
     /**
@@ -174,7 +213,7 @@ class LeadConversion extends Component
     public function teamScope(): ?string
     {
         if ($this->canFilterTeam) {
-            return $this->teams->contains('team_id', $this->team) ? $this->team : '';
+            return $this->teamOptions->contains('team_id', $this->team) ? $this->team : '';
         }
 
         return $this->canFilterEmployee ? $this->me?->team_id : '';
@@ -196,6 +235,7 @@ class LeadConversion extends Component
         return Employee::query()
             ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
             ->when($this->teamScope !== '', fn ($q) => $q->where('team_id', $this->teamScope))
+            ->when($this->branchScope !== null, fn ($q) => $q->where('branch_id', $this->branchScope))
             ->orderBy('full_name')
             ->get(['employee_id', 'full_name', 'team_id', 'status']);
     }
@@ -883,8 +923,7 @@ class LeadConversion extends Component
         return [
             'from'     => $this->validDate($this->from) ? $this->from : null,
             'to'       => $this->validDate($this->to) ? $this->to : null,
-            // Salesperson chỉ thuộc 1 chi nhánh, nhận Lead của chi nhánh đó → không lọc chi nhánh
-            'branch'   => $this->canFilterEmployee && $this->branches->contains('branch_id', $this->branch) ? $this->branch : null,
+            'branch'   => $this->branchScope,
             'source'   => in_array($this->source, $this->sources, true) ? $this->source : null,
             'team'     => $this->teamScope === null ? '__none__' : ($this->teamScope ?: null),
             'employee' => $this->employeeScope,
