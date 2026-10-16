@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * POST /api/login – cấp token Sanctum.
+     * POST /api/login - cấp token Sanctum.
      */
     public function login(Request $request): JsonResponse
     {
@@ -48,7 +48,7 @@ class AuthController extends Controller
     }
 
     /**
-     * POST /api/logout – thu hồi token hiện tại.
+     * POST /api/logout - thu hồi token hiện tại.
      */
     public function logout(Request $request): JsonResponse
     {
@@ -58,7 +58,7 @@ class AuthController extends Controller
     }
 
     /**
-     * GET /api/me – thông tin tài khoản đang đăng nhập.
+     * GET /api/me - thông tin tài khoản đang đăng nhập.
      */
     public function me(Request $request): JsonResponse
     {

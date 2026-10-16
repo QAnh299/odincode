@@ -180,7 +180,7 @@
                                     <input type="text" inputmode="numeric" wire:model="form.amountFrom" maxlength="25" placeholder="0"
                                         @class(['iv-control', 'is-invalid' => $errors->has('form.amountFrom')])
                                         aria-label="{{ __('invoices.amount_from') }}" title="{{ __('invoices.amount_from') }}">
-                                    <span class="iv-range__sep" aria-hidden="true">–</span>
+                                    <span class="iv-range__sep" aria-hidden="true">-</span>
                                     <input type="text" inputmode="numeric" wire:model="form.amountTo" maxlength="25"
                                         @class(['iv-control', 'is-invalid' => $errors->has('form.amountTo')])
                                         aria-label="{{ __('invoices.amount_to') }}" title="{{ __('invoices.amount_to') }}">
@@ -200,7 +200,7 @@
                                     <div class="iv-range">
                                         <input type="date" wire:model="form.{{ $from }}" class="iv-control" max="{{ $form[$to] }}"
                                             aria-label="{{ __('invoices.'.$group.'_from') }}" title="{{ __('invoices.'.$group.'_from') }}">
-                                        <span class="iv-range__sep" aria-hidden="true">–</span>
+                                        <span class="iv-range__sep" aria-hidden="true">-</span>
                                         <input type="date" wire:model="form.{{ $to }}" min="{{ $form[$from] }}"
                                             @class(['iv-control', 'is-invalid' => $errors->has('form.'.$to)])
                                             aria-label="{{ __('invoices.'.$group.'_to') }}" title="{{ __('invoices.'.$group.'_to') }}">
@@ -236,7 +236,7 @@
                                 </label>
                             @endif
 
-                            {{-- Công tắc: hàng đợi duyệt tiền mặt của kế toán (Chờ thanh toán + Tiền mặt, HĐ30 – HĐ32) --}}
+                            {{-- Công tắc: hàng đợi duyệt tiền mặt của kế toán (Chờ thanh toán + Tiền mặt, HĐ30 - HĐ32) --}}
                             <label class="iv-switch iv-field--wide">
                                 <input type="checkbox" role="switch" wire:model="form.cashPending">
                                 <span class="iv-switch__track" aria-hidden="true"><span class="iv-switch__thumb"></span></span>

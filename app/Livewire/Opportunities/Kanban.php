@@ -17,7 +17,7 @@ use Livewire\Component;
 
 /**
  * Quản lý Opportunity dạng Kanban (giống Odoo CRM): mỗi cột là một Stage (theo sort_order).
- * Dùng chung cho Salesperson, Sale Leader, Giám đốc – phạm vi theo Opportunity::visibleTo():
+ * Dùng chung cho Salesperson, Sale Leader, Giám đốc - phạm vi theo Opportunity::visibleTo():
  *   - Salesperson: cơ hội do chính mình phụ trách.
  *   - Sale Leader: cơ hội của đội mình; lọc được theo salesperson trong đội.
  *   - Giám đốc: tất cả; lọc theo đội, chọn đội rồi mới lọc được theo salesperson của đội đó.
@@ -25,7 +25,7 @@ use Livewire\Component;
  * Không hiển thị trạng thái vì mỗi stage đã tương ứng một trạng thái.
  *
  * Bộ lọc theo ngày chuyển đổi (ngày Lead được chia cho salesperson):
- * nút chọn nhanh (Hôm nay, Hôm qua, 7 ngày qua, Tháng này) chỉ điền sẵn Từ ngày – Đến ngày,
+ * nút chọn nhanh (Hôm nay, Hôm qua, 7 ngày qua, Tháng này) chỉ điền sẵn Từ ngày - Đến ngày,
  * nút đang sáng được suy ra từ khoảng ngày nên không cần lưu thêm trạng thái.
  * Hiện chỉ xem; chưa kéo thả đổi stage.
  */
@@ -34,18 +34,18 @@ class Kanban extends Component
 {
     const PRESETS = ['today', 'yesterday', 'last7', 'month'];
 
-    // Khoảng ngày chuyển đổi (Y-m-d) – có thể bị sửa từ client nên luôn kiểm tra qua validDate()
+    // Khoảng ngày chuyển đổi (Y-m-d) - có thể bị sửa từ client nên luôn kiểm tra qua validDate()
     #[Url(except: '')]
     public string $from = '';
 
     #[Url(except: '')]
     public string $to = '';
 
-    // Đội (Giám đốc) – '' = Tất cả đội; luôn đọc qua activeTeam
+    // Đội (Giám đốc) - '' = Tất cả đội; luôn đọc qua activeTeam
     #[Url(except: '')]
     public string $team = '';
 
-    // Salesperson (Sale Leader, Giám đốc) – '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
+    // Salesperson (Sale Leader, Giám đốc) - '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
     #[Url(except: '')]
     public string $employee = '';
 
@@ -56,7 +56,7 @@ class Kanban extends Component
     }
 
     /**
-     * Bấm nút chọn nhanh: điền Từ ngày – Đến ngày; '' = Tất cả.
+     * Bấm nút chọn nhanh: điền Từ ngày - Đến ngày; '' = Tất cả.
      */
     public function applyPreset(string $preset): void
     {
@@ -185,7 +185,7 @@ class Kanban extends Component
 
     public function render()
     {
-        // Opportunity đã thanh toán đủ và trở thành học viên không còn trên Kanban – xem ở Chi tiết học viên
+        // Opportunity đã thanh toán đủ và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
         $opportunities = Opportunity::query()
             ->visibleTo($this->me)
             ->whereDoesntHave('student')

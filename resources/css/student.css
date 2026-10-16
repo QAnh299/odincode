@@ -168,7 +168,7 @@
     color: #15803d;
 }
 
-/* Nhãn – giá trị */
+/* Nhãn - giá trị */
 .st-info {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);

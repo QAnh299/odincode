@@ -17,7 +17,7 @@ return [
     'mail_failed'            => 'Unable to send the email right now. Please try again later or contact the administrator.',
 
     'mail' => [
-        'subject'       => 'ODIN CRM – Your temporary password',
+        'subject'       => 'ODIN CRM - Your temporary password',
         'greeting'      => 'Hello :name,',
         'intro'         => 'We received a request to reset the password for your account. Your old password no longer works, please sign in with the details below:',
         'temp_password' => 'Temporary password',

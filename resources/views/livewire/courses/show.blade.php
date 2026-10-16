@@ -7,7 +7,7 @@
     $stats = $this->stats;
     $state = $course->state();
 
-    // Màu theo trạng thái (class tiện ích Bootstrap 5.3) – luôn đi kèm chữ, không chỉ dựa vào màu
+    // Màu theo trạng thái (class tiện ích Bootstrap 5.3) - luôn đi kèm chữ, không chỉ dựa vào màu
     $tones = [
         Quotation::STATUS_DRAFT     => 'secondary',
         Quotation::STATUS_CONFIRMED => 'success',

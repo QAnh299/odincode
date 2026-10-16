@@ -121,7 +121,7 @@ return [
         'paid'         => 'Ngày thanh toán',
         'team'         => 'Đội',
         'employee'     => 'Nhân viên',
-        'range'        => ':from – :to',
+        'range'        => ':from - :to',
         'from'         => 'từ :value',
         'to'           => 'đến :value',
     ],

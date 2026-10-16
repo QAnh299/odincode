@@ -51,6 +51,6 @@ return [
 
     // Notification bell
     'reminder_title'     => ':types appointment with :name',
-    'reminder_header'    => 'Appointments today & tomorrow – remind your customers',
+    'reminder_header'    => 'Appointments today & tomorrow - remind your customers',
     'view_all'           => 'View all appointments',
 ];

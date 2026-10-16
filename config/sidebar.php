@@ -38,7 +38,7 @@ return [
         'opportunity_list' => ['route' => 'opportunities'],
         'appointments'  => ['route' => 'appointments'],
 
-        // Menu con của Dashboard & Báo cáo – phân quyền theo vai trò:
+        // Menu con của Dashboard & Báo cáo - phân quyền theo vai trò:
         //   Doanh thu & thanh toán:     tất cả vai trò
         //   Hiệu quả chuyển đổi Lead:   trừ Kế toán
         //   Hiệu quả nhân viên Sales:   trừ Kế toán, Salesperson

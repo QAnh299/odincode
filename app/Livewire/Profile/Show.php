@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Trang thông tin tài khoản cá nhân – dùng chung cho mọi vai trò.
+ * Trang thông tin tài khoản cá nhân - dùng chung cho mọi vai trò.
  * Mỗi người chỉ xem được tài khoản của chính mình; chỉ được tự sửa email và số điện thoại.
  */
 #[Layout('layouts.app')]

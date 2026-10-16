@@ -546,7 +546,7 @@
     background: var(--vc-tint);
 }
 
-/* Bản đồ nhiệt & cohort: nền đậm dần theo --a (0–100%) */
+/* Bản đồ nhiệt & cohort: nền đậm dần theo --a (0-100%) */
 .rp-heat {
     border-collapse: separate;
     border-spacing: 3px;

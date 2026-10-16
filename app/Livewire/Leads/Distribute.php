@@ -22,7 +22,7 @@ use RuntimeException;
  *   - Sale Leader: phân Lead đội đang giữ cho Salesperson trong đội (tối đa 50 Lead đang xử lý/người).
  * Chọn phương thức trước (dropdown) rồi mới hiện chi nhánh / nguồn / kênh liên hệ / danh sách nhận Lead.
  * Chia tự động: chia đều, chỉ khi có Lead dư mới hiện tiêu chí hiệu suất (tháng trước) để chọn Top 2.
- * Chia thủ công: bảng đội / salesperson – số lượng nhập tay.
+ * Chia thủ công: bảng đội / salesperson - số lượng nhập tay.
  * Chia thủ công cho Salesperson mà có người vượt 50 → bước 'overflow' để phân lại phần vượt.
  */
 class Distribute extends Component

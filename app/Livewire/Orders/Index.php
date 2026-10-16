@@ -21,7 +21,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Danh sách đơn hàng + tìm kiếm nâng cao + bộ lọc. Chỉ xem: đơn được tạo khi xác nhận báo giá (HĐ16 – HĐ17),
+ * Danh sách đơn hàng + tìm kiếm nâng cao + bộ lọc. Chỉ xem: đơn được tạo khi xác nhận báo giá (HĐ16 - HĐ17),
  * hóa đơn tạo từ đơn (HĐ18) và ghi nhận thanh toán làm ở bước sau. Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán.
  *
@@ -275,7 +275,7 @@ class Index extends Component
     }
 
     /**
-     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán – các vai trò xem toàn bộ đơn hàng).
+     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán - các vai trò xem toàn bộ đơn hàng).
      */
     #[Computed]
     public function canFilterTeam(): bool

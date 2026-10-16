@@ -1,7 +1,7 @@
 {{--
     Các ô nhập lịch hẹn mới (dùng trong form Tạo lịch hẹn và form ghi nhận liên hệ thành công).
     Mỗi loại được tick (Test / Tư vấn) có thời gian riêng; địa điểm cố định là cơ sở của khách.
-    Tham số: $allowedTypes – các loại được chọn.
+    Tham số: $allowedTypes - các loại được chọn.
 --}}
 <div class="vc-field od-create__wide">
     <span class="vc-field__label">{{ __('opportunities.appointment_type') }} <span class="ld-req">*</span></span>

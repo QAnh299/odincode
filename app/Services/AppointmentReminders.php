@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 /**
  * Nhắc lịch hẹn cho Salesperson (hiển thị ở chuông thông báo trên topbar):
  * lịch hẹn "Scheduled" do mình phụ trách, diễn ra hôm nay (chưa tới giờ) hoặc ngày mai
- * – tức nhắc trước 1 ngày để salesperson kịp nhắc khách hàng.
+ * - tức nhắc trước 1 ngày để salesperson kịp nhắc khách hàng.
  * Một mã lịch hẹn (Test + Tư vấn) gom thành một thông báo, lấy giờ sớm nhất.
  */
 class AppointmentReminders

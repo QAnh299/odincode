@@ -89,7 +89,7 @@
 
             <section class="vc-card vc-results">
                 {{-- Hàng tab + nút thao tác của tab đang mở: Ghi nhận liên hệ (Lịch sử chăm sóc),
-                     Đổi lịch – Tạo lịch hẹn (Lịch hẹn, không còn ở stage Chốt / Lưu trữ) --}}
+                     Đổi lịch - Tạo lịch hẹn (Lịch hẹn, không còn ở stage Chốt / Lưu trữ) --}}
                 <div class="od-tabs" role="tablist">
                     @foreach (['care' => $cares->count(), 'appointments' => $appointments->count()] as $key => $count)
                         <button type="button" role="tab" wire:click="setTab('{{ $key }}')"
@@ -255,7 +255,7 @@
                 </div>
             </section>
 
-            {{-- Báo giá: chỉ ở stage Chốt (stage 1–3 chưa có báo giá) --}}
+            {{-- Báo giá: chỉ ở stage Chốt (stage 1-3 chưa có báo giá) --}}
             @if ($this->showQuotations())
                 @php $quotations = $this->quotations; @endphp
                 <section class="vc-card vc-results">

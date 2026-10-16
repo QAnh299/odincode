@@ -89,7 +89,7 @@ return [
         'expiry'   => 'Hết hạn',
         'team'     => 'Đội',
         'employee' => 'Nhân viên',
-        'range'    => ':from – :to',
+        'range'    => ':from - :to',
         'from'     => 'từ :value',
         'to'       => 'đến :value',
     ],
@@ -100,7 +100,7 @@ return [
     'detail' => [
         'back'              => 'Quay lại danh sách',
         'expires_on'        => 'Hết hạn :date',
-        // Thanh thao tác (HĐ7, HĐ10, HĐ12, HĐ16) – chưa có chức năng
+        // Thanh thao tác (HĐ7, HĐ10, HĐ12, HĐ16) - chưa có chức năng
         'actions'           => 'Thao tác',
         'edit'              => 'Chỉnh sửa',
         'export_pdf'        => 'Xuất PDF',

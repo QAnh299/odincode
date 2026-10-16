@@ -17,7 +17,7 @@ return [
     'mail_failed'            => 'Không gửi được email lúc này. Vui lòng thử lại sau hoặc liên hệ quản trị viên.',
 
     'mail' => [
-        'subject'       => 'ODIN CRM – Mật khẩu tạm của bạn',
+        'subject'       => 'ODIN CRM - Mật khẩu tạm của bạn',
         'greeting'      => 'Xin chào :name,',
         'intro'         => 'Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Mật khẩu cũ không còn sử dụng được, hãy đăng nhập bằng thông tin dưới đây:',
         'temp_password' => 'Mật khẩu tạm',

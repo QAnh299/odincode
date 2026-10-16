@@ -15,9 +15,9 @@ use Livewire\Component;
 /**
  * Dashboard & Báo cáo → Phân tích chất lượng nguồn Lead (Giám đốc, Sale Admin).
  *
- * Phần 1 – biểu đồ cố định: thẻ KPI, Lead theo nguồn, tỷ lệ chuyển đổi theo nguồn,
+ * Phần 1 - biểu đồ cố định: thẻ KPI, Lead theo nguồn, tỷ lệ chuyển đổi theo nguồn,
  *          cơ cấu doanh thu theo nguồn, xu hướng Lead theo thời gian, bảng xếp hạng nguồn.
- * Phần 2 – biểu đồ linh hoạt: người dùng chọn loại biểu đồ, chiều phân tích, chia nhóm,
+ * Phần 2 - biểu đồ linh hoạt: người dùng chọn loại biểu đồ, chiều phân tích, chia nhóm,
  *          chỉ số và các giá trị cần vẽ, bấm "Vẽ biểu đồ" để vẽ.
  * Bộ lọc chung (thời gian, chi nhánh, kênh liên hệ) áp dụng cho cả 2 phần.
  */
@@ -457,7 +457,7 @@ class LeadSources extends Component
     }
 
     /**
-     * Toàn bộ nguồn (không theo bộ lọc), sắp theo tên – làm khoá màu cố định cho từng nguồn.
+     * Toàn bộ nguồn (không theo bộ lọc), sắp theo tên - làm khoá màu cố định cho từng nguồn.
      */
     #[Computed]
     public function allSources(): array

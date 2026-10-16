@@ -16,7 +16,7 @@ use Livewire\Component;
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán (Kế toán chỉ xem).
  *
  * Phạm vi xem theo Quotation::visibleTo(): ngoài phạm vi hoặc không tồn tại → 404 (giống Opportunities\Show).
- * Thanh thao tác (Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối – HĐ7, HĐ10, HĐ12, HĐ16) chỉ hiện với
+ * Thanh thao tác (Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối - HĐ7, HĐ10, HĐ12, HĐ16) chỉ hiện với
  * Salesperson lập báo giá và báo giá còn Nháp; các nút CHƯA có chức năng (làm ở bước sau).
  */
 #[Layout('layouts.app')]
@@ -82,9 +82,9 @@ class Show extends Component
 
         $all = [
             ['key' => 'edit', 'icon' => 'edit', 'action' => 'edit', 'tone' => 'ghost'],              // HĐ10
-            ['key' => 'export_pdf', 'icon' => 'file', 'action' => 'exportPdf', 'tone' => 'ghost'],  // HĐ7 – HĐ8
-            ['key' => 'confirm', 'icon' => 'check-circle', 'action' => 'confirm', 'tone' => 'primary'], // HĐ16 – HĐ17
-            ['key' => 'reject', 'icon' => 'x', 'action' => 'reject', 'tone' => 'danger'],           // HĐ12 – HĐ13
+            ['key' => 'export_pdf', 'icon' => 'file', 'action' => 'exportPdf', 'tone' => 'ghost'],  // HĐ7 - HĐ8
+            ['key' => 'confirm', 'icon' => 'check-circle', 'action' => 'confirm', 'tone' => 'primary'], // HĐ16 - HĐ17
+            ['key' => 'reject', 'icon' => 'x', 'action' => 'reject', 'tone' => 'danger'],           // HĐ12 - HĐ13
         ];
 
         return $this->quotation->isExpired()

@@ -11,11 +11,11 @@ class CheckRole
 {
     /**
      * Roles hệ thống CRM:
-     *   director     – Giám đốc
-     *   sale_admin   – Sale Admin
-     *   sale_leader  – Sale Leader
-     *   salesperson  – Salesperson
-     *   accountant   – Kế toán
+     *   director     - Giám đốc
+     *   sale_admin   - Sale Admin
+     *   sale_leader  - Sale Leader
+     *   salesperson  - Salesperson
+     *   accountant   - Kế toán
      *
      * Dùng chung cho web (session) và API (Sanctum). Với /api/*, lỗi 403
      * được trả về dạng JSON (cấu hình trong bootstrap/app.php).

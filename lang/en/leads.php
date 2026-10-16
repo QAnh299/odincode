@@ -14,7 +14,7 @@ return [
     'close'                  => 'Close',
     'cancel'                 => 'Cancel',
 
-    // Field names – used by the Add lead popup, the Excel template headers and error messages
+    // Field names - used by the Add lead popup, the Excel template headers and error messages
     'field' => [
         'full_name'      => 'Full name',
         'phone'          => 'Phone',
@@ -39,7 +39,7 @@ return [
         'choose_branch'      => '— Choose a branch —',
         'save'               => 'Save lead',
         'saving'             => 'Saving…',
-        'created'            => 'Lead :id – :name added.',
+        'created'            => 'Lead :id - :name added.',
         'phone_invalid'      => 'The phone number must have 10 digits and start with 0.',
         'source_invalid'     => 'The lead source must be one of: :values.',
         'source_url_required' => 'Please enter a source link / phone so the salesperson knows where to reach the lead (only :values may be left empty).',
@@ -70,8 +70,8 @@ return [
         'error_too_many'   => 'The file has more than :max data rows. Please split it.',
 
         'done_all'       => 'All :count leads imported successfully.',
-        'done_partial'   => 'Imported :success/:total leads. :failed rows failed – download the result file for details.',
-        'done_none'      => 'Import failed: all :count rows have errors – download the result file for details.',
+        'done_partial'   => 'Imported :success/:total leads. :failed rows failed - download the result file for details.',
+        'done_none'      => 'Import failed: all :count rows have errors - download the result file for details.',
         'result_title'   => 'Import result',
         'result_total'   => 'Total rows',
         'result_success' => 'Imported',
@@ -98,7 +98,7 @@ return [
         'guide_branches' => 'Valid branch codes',
         'guide' => [
             'full_name'      => 'Required, up to 150 characters.',
-            'phone'          => 'Required, 10 digits starting with 0 (may repeat an existing lead – a student registering for another course). Format the cell as Text to keep the leading 0.',
+            'phone'          => 'Required, 10 digits starting with 0 (may repeat an existing lead - a student registering for another course). Format the cell as Text to keep the leading 0.',
             'email'          => 'Optional, a valid email address.',
             'source_name'    => 'Required, pick from the list: Facebook, Workshop, Website ODIN, Zalo, Instagram or TikTok.',
             'source_url'     => 'Required for Facebook, Zalo, Instagram, TikTok (may be empty for Workshop, Website ODIN). Enter a profile/post link (http:// or https://) or a phone number / contact note (e.g. Zalo 0912345678).',
@@ -111,7 +111,7 @@ return [
 
     // Bell notifications for Sale Leaders (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin assigned :count leads to team :team – waiting for you to distribute',
+        'title'  => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
         'action' => 'Distribute leads to salespeople',
     ],
 

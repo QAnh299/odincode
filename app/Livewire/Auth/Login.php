@@ -147,7 +147,7 @@ class Login extends Component
     }
 
     /**
-     * Đếm số lần yêu cầu bằng cache file – không phụ thuộc bảng `cache` trong DB.
+     * Đếm số lần yêu cầu bằng cache file - không phụ thuộc bảng `cache` trong DB.
      */
     private function limiter(): RateLimiter
     {

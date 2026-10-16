@@ -51,6 +51,6 @@ return [
 
     // Chuông thông báo
     'reminder_title'     => 'Lịch hẹn :types với :name',
-    'reminder_header'    => 'Lịch hẹn hôm nay & ngày mai – nhớ nhắc khách',
+    'reminder_header'    => 'Lịch hẹn hôm nay & ngày mai - nhớ nhắc khách',
     'view_all'           => 'Xem tất cả lịch hẹn',
 ];

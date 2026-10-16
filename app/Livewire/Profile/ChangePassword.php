@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Đổi mật khẩu cho tài khoản đang đăng nhập – dùng chung cho mọi vai trò.
+ * Đổi mật khẩu cho tài khoản đang đăng nhập - dùng chung cho mọi vai trò.
  */
 #[Layout('layouts.app')]
 class ChangePassword extends Component
@@ -110,7 +110,7 @@ class ChangePassword extends Component
     }
 
     /**
-     * Đếm số lần nhập sai bằng cache file – không phụ thuộc bảng `cache` trong DB.
+     * Đếm số lần nhập sai bằng cache file - không phụ thuộc bảng `cache` trong DB.
      */
     private function limiter(): RateLimiter
     {

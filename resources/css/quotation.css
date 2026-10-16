@@ -19,7 +19,7 @@
     --qt-warning: #b45309;
     --qt-radius: 18px;
     --qt-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-    --qt-topbar: 64px; /* chiều cao menu ngang (topbar.css) – khối dính nằm ngay dưới */
+    --qt-topbar: 64px; /* chiều cao menu ngang (topbar.css) - khối dính nằm ngay dưới */
 
     max-width: 1280px;
     margin: 0 auto;
@@ -489,7 +489,7 @@ select.qt-control {
     font-size: 0.85rem;
 }
 
-/* Cặp ngày từ – đến trong một nhóm */
+/* Cặp ngày từ - đến trong một nhóm */
 .qt-range {
     display: flex;
     align-items: center;
@@ -1247,7 +1247,7 @@ select.qt-control {
     margin: 0;
 }
 
-/* Thông tin dạng nhãn – giá trị */
+/* Thông tin dạng nhãn - giá trị */
 .qt-info {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,6 +1,6 @@
 {{--
-    Danh sách lịch hẹn của một Opportunity – dùng chung cho chi tiết Opportunity và chi tiết học viên.
-    $appointments: nhóm theo mã lịch hẹn, mới nhất lên đầu – mỗi nhóm ['id', 'no', 'rows' (Test trước, Tư vấn sau)].
+    Danh sách lịch hẹn của một Opportunity - dùng chung cho chi tiết Opportunity và chi tiết học viên.
+    $appointments: nhóm theo mã lịch hẹn, mới nhất lên đầu - mỗi nhóm ['id', 'no', 'rows' (Test trước, Tư vấn sau)].
     $place: địa điểm (cơ sở của khách). Dòng có can_mark (chỉ ở chi tiết Opportunity) hiện nút Khách đã đến / không đến.
 --}}
 @php
@@ -21,7 +21,7 @@
             <p class="od-place od-place--card"><x-icon name="tag" />{{ $place }}</p>
         @endif
 
-        {{-- Từng loại: Test / Tư vấn – thời gian, kết quả riêng --}}
+        {{-- Từng loại: Test / Tư vấn - thời gian, kết quả riêng --}}
         <ul class="od-apt__rows">
             @foreach ($group['rows'] as $row)
                 <li class="od-apt__row" wire:key="apt-{{ $group['id'] }}-{{ $row->appointment_type }}">

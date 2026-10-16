@@ -261,7 +261,7 @@
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.voucher_validity') }}</dt>
-                            <dd>{{ $voucher->start_date?->format('d/m/Y') }} – {{ $voucher->end_date?->format('d/m/Y') }}</dd>
+                            <dd>{{ $voucher->start_date?->format('d/m/Y') }} - {{ $voucher->end_date?->format('d/m/Y') }}</dd>
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.status_label') }}</dt>

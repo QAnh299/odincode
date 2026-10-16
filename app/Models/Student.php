@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Học viên: Opportunity đã thanh toán toàn bộ học phí (đơn hàng Hoàn tất).
- * Mỗi Opportunity tối đa một học viên (UNIQUE opportunity_id) – học viên cũ đăng ký khoá mới
+ * Mỗi Opportunity tối đa một học viên (UNIQUE opportunity_id) - học viên cũ đăng ký khoá mới
  * qua Opportunity mới sẽ là một bản ghi học viên mới.
  */
 class Student extends Model
@@ -63,7 +63,7 @@ class Student extends Model
     }
 
     /**
-     * Đơn hàng đã thanh toán đủ (Hoàn tất) của Opportunity – căn cứ để trở thành học viên.
+     * Đơn hàng đã thanh toán đủ (Hoàn tất) của Opportunity - căn cứ để trở thành học viên.
      */
     public function paidOrder(): ?SalesOrder
     {

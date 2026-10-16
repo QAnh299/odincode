@@ -84,15 +84,15 @@ class SalesPerformance extends Component
 
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
-    // Tháng đánh giá (Y-m) – luôn đọc qua activeMonth
+    // Tháng đánh giá (Y-m) - luôn đọc qua activeMonth
     #[Url(except: '')]
     public string $month = '';
 
-    // Đội (Giám đốc, Sale Admin) – '' = Tất cả đội
+    // Đội (Giám đốc, Sale Admin) - '' = Tất cả đội
     #[Url(except: '')]
     public string $team = '';
 
-    // Salesperson – '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
+    // Salesperson - '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
     #[Url(except: '')]
     public string $employee = '';
 

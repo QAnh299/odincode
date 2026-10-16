@@ -108,7 +108,7 @@ return [
         'created'  => 'Created',
         'team'     => 'Team',
         'employee' => 'Employee',
-        'range'    => ':from – :to',
+        'range'    => ':from - :to',
         'from'     => 'from :value',
         'to'       => 'to :value',
     ],

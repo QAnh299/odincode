@@ -41,11 +41,11 @@ class Show extends Component
     #[Url]
     public ?string $status = null;
 
-    // Đội (Sale Admin) – '' = Tất cả đội
+    // Đội (Sale Admin) - '' = Tất cả đội
     #[Url(except: '')]
     public string $team = '';
 
-    // Nhân viên (Sale Admin, Sale Leader) – '' = Tất cả nhân viên
+    // Nhân viên (Sale Admin, Sale Leader) - '' = Tất cả nhân viên
     #[Url(except: '')]
     public string $employee = '';
 

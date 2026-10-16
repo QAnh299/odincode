@@ -84,7 +84,7 @@ class SalesOrder extends Model
     }
 
     /**
-     * Phần trăm đã thanh toán = đã thanh toán ÷ tổng tiền, làm tròn (tổng = 0 thì 0), giới hạn 0 – 100.
+     * Phần trăm đã thanh toán = đã thanh toán ÷ tổng tiền, làm tròn (tổng = 0 thì 0), giới hạn 0 - 100.
      */
     public function progressPercent(): int
     {

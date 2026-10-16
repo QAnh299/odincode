@@ -49,7 +49,7 @@ class Index extends Component
     // Tình trạng hạn (chỉ xét hóa đơn chưa thanh toán: Unpaid + Overdue)
     const DEADLINES = ['valid', 'soon', 'overdue'];
 
-    // "Sắp đến hạn": còn 0 – SOON_DAYS ngày
+    // "Sắp đến hạn": còn 0 - SOON_DAYS ngày
     const SOON_DAYS = 3;
 
     // Giá trị bộ lọc phương thức cho hóa đơn chưa chọn phương thức (payment_method IS NULL)
@@ -143,7 +143,7 @@ class Index extends Component
     #[Url(except: '')]
     public $employee = '';
 
-    // Tiền mặt chờ kế toán duyệt (Unpaid + Cash, HĐ30 – HĐ32)
+    // Tiền mặt chờ kế toán duyệt (Unpaid + Cash, HĐ30 - HĐ32)
     #[Url(as: 'cash_pending', except: false)]
     public $cashPending = false;
 
@@ -301,7 +301,7 @@ class Index extends Component
     }
 
     /**
-     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán – các vai trò xem toàn bộ hóa đơn).
+     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán - các vai trò xem toàn bộ hóa đơn).
      */
     #[Computed]
     public function canFilterTeam(): bool
@@ -821,7 +821,7 @@ class Index extends Component
             $query->where('Invoices.created_by_employee_id', $this->activeEmployee->employee_id);
         }
 
-        // Hàng đợi duyệt tiền mặt của kế toán (HĐ30 – HĐ32)
+        // Hàng đợi duyệt tiền mặt của kế toán (HĐ30 - HĐ32)
         if ($this->cashPending) {
             $query->where('Invoices.status', Invoice::STATUS_UNPAID)
                 ->where('Invoices.payment_method', Invoice::METHOD_CASH);
@@ -848,7 +848,7 @@ class Index extends Component
 
     /**
      * Tình trạng hạn, chỉ xét hóa đơn chưa thanh toán (Unpaid + Overdue):
-     * Còn hạn (Unpaid, hạn ≥ hôm nay), Sắp đến hạn (Unpaid, còn 0 – SOON_DAYS ngày),
+     * Còn hạn (Unpaid, hạn ≥ hôm nay), Sắp đến hạn (Unpaid, còn 0 - SOON_DAYS ngày),
      * Quá hạn (Overdue, hoặc hạn < hôm nay).
      */
     private function applyDeadline(Builder $query): void

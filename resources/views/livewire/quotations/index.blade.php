@@ -134,7 +134,7 @@
                                 <div class="qt-range">
                                     <input type="date" wire:model="form.createdFrom" class="qt-control" max="{{ $form['createdTo'] }}"
                                         aria-label="{{ __('quotations.created_from') }}" title="{{ __('quotations.created_from') }}">
-                                    <span class="qt-range__sep" aria-hidden="true">–</span>
+                                    <span class="qt-range__sep" aria-hidden="true">-</span>
                                     <input type="date" wire:model="form.createdTo" min="{{ $form['createdFrom'] }}"
                                         @class(['qt-control', 'is-invalid' => $errors->has('form.createdTo')])
                                         aria-label="{{ __('quotations.created_to') }}" title="{{ __('quotations.created_to') }}">
@@ -149,7 +149,7 @@
                                 <div class="qt-range">
                                     <input type="date" wire:model="form.expiryFrom" class="qt-control" max="{{ $form['expiryTo'] }}"
                                         aria-label="{{ __('quotations.expiry_from') }}" title="{{ __('quotations.expiry_from') }}">
-                                    <span class="qt-range__sep" aria-hidden="true">–</span>
+                                    <span class="qt-range__sep" aria-hidden="true">-</span>
                                     <input type="date" wire:model="form.expiryTo" min="{{ $form['expiryFrom'] }}"
                                         @class(['qt-control', 'is-invalid' => $errors->has('form.expiryTo')])
                                         aria-label="{{ __('quotations.expiry_to') }}" title="{{ __('quotations.expiry_to') }}">

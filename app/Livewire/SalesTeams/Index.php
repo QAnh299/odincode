@@ -72,7 +72,7 @@ class Index extends Component
     }
 
     /**
-     * Tạo / sửa đội và gắn trưởng nhóm – chỉ Sale Admin.
+     * Tạo / sửa đội và gắn trưởng nhóm - chỉ Sale Admin.
      */
     #[Computed]
     public function canManage(): bool

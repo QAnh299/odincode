@@ -208,7 +208,7 @@ class Show extends Component
     }
 
     /**
-     * Địa điểm lịch hẹn: cơ sở của khách – "Tên cơ sở - Địa chỉ".
+     * Địa điểm lịch hẹn: cơ sở của khách - "Tên cơ sở - Địa chỉ".
      */
     public function appointmentPlace(): ?string
     {

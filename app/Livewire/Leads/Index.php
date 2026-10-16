@@ -52,7 +52,7 @@ class Index extends Component
     #[Url(except: '')]
     public string $method = '';
 
-    // Chi nhánh (Giám đốc, Sale Admin) – '' = Tất cả
+    // Chi nhánh (Giám đốc, Sale Admin) - '' = Tất cả
     #[Url(except: '')]
     public string $branch = '';
 
@@ -122,7 +122,7 @@ class Index extends Component
     }
 
     /**
-     * Có nút Thêm Lead / Import Excel – chỉ Sale Admin.
+     * Có nút Thêm Lead / Import Excel - chỉ Sale Admin.
      */
     #[Computed]
     public function canCreate(): bool

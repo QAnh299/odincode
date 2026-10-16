@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * Tài khoản đăng nhập – bảng `Accounts` trong odin.sql.
+ * Tài khoản đăng nhập - bảng `Accounts` trong odin.sql.
  */
 class User extends Authenticatable
 {

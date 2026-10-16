@@ -89,7 +89,7 @@ return [
         'expiry'   => 'Expires',
         'team'     => 'Team',
         'employee' => 'Employee',
-        'range'    => ':from – :to',
+        'range'    => ':from - :to',
         'from'     => 'from :value',
         'to'       => 'to :value',
     ],
@@ -100,7 +100,7 @@ return [
     'detail' => [
         'back'              => 'Back to list',
         'expires_on'        => 'Expires :date',
-        // Action bar (steps 7, 10, 12, 16) – not functional yet
+        // Action bar (steps 7, 10, 12, 16) - not functional yet
         'actions'           => 'Actions',
         'edit'              => 'Edit',
         'export_pdf'        => 'Export PDF',

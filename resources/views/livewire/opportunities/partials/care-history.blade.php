@@ -1,7 +1,7 @@
 {{--
-    Lịch sử chăm sóc của một Opportunity – dùng chung cho chi tiết Opportunity và chi tiết học viên.
+    Lịch sử chăm sóc của một Opportunity - dùng chung cho chi tiết Opportunity và chi tiết học viên.
     $cares: các lần liên hệ, mới nhất lên đầu (kèm activity, employee).
-    Tách theo hoạt động (Liên hệ ban đầu – Xếp lại lịch – Chốt đăng ký), trong mỗi nhóm đánh số "Lần N" theo thời gian.
+    Tách theo hoạt động (Liên hệ ban đầu - Xếp lại lịch - Chốt đăng ký), trong mỗi nhóm đánh số "Lần N" theo thời gian.
 --}}
 @forelse ($cares->groupBy('activity_id')->sortKeys() as $activityId => $group)
     <section class="od-care-group" wire:key="care-group-{{ $activityId }}">

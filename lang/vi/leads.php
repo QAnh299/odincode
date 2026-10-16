@@ -14,7 +14,7 @@ return [
     'close'                  => 'Đóng',
     'cancel'                 => 'Huỷ',
 
-    // Tên trường – dùng cho popup Thêm Lead, tiêu đề cột file Excel mẫu và thông báo lỗi
+    // Tên trường - dùng cho popup Thêm Lead, tiêu đề cột file Excel mẫu và thông báo lỗi
     'field' => [
         'full_name'      => 'Họ và tên',
         'phone'          => 'Số điện thoại',
@@ -39,7 +39,7 @@ return [
         'choose_branch'      => '— Chọn chi nhánh —',
         'save'               => 'Lưu Lead',
         'saving'             => 'Đang lưu…',
-        'created'            => 'Đã thêm Lead :id – :name.',
+        'created'            => 'Đã thêm Lead :id - :name.',
         'phone_invalid'      => 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.',
         'source_invalid'     => 'Nguồn Lead chỉ nhận một trong các giá trị: :values.',
         'source_url_required' => 'Vui lòng nhập Link nguồn / SĐT để Salesperson biết liên hệ qua đâu (chỉ :values được để trống).',
@@ -70,8 +70,8 @@ return [
         'error_too_many'   => 'File vượt quá :max dòng dữ liệu. Vui lòng chia nhỏ file.',
 
         'done_all'       => 'Import thành công toàn bộ :count Lead.',
-        'done_partial'   => 'Đã import :success/:total Lead. :failed dòng bị lỗi – tải file kết quả để xem lý do.',
-        'done_none'      => 'Import thất bại: cả :count dòng đều lỗi – tải file kết quả để xem lý do.',
+        'done_partial'   => 'Đã import :success/:total Lead. :failed dòng bị lỗi - tải file kết quả để xem lý do.',
+        'done_none'      => 'Import thất bại: cả :count dòng đều lỗi - tải file kết quả để xem lý do.',
         'result_title'   => 'Kết quả import',
         'result_total'   => 'Tổng dòng',
         'result_success' => 'Thành công',
@@ -98,7 +98,7 @@ return [
         'guide_branches' => 'Mã chi nhánh hợp lệ',
         'guide' => [
             'full_name'      => 'Bắt buộc, tối đa 150 ký tự.',
-            'phone'          => 'Bắt buộc, 10 chữ số, bắt đầu bằng 0 (được phép trùng với Lead đã có – học viên đăng ký thêm khoá học). Nên định dạng ô là Text để giữ số 0 đầu.',
+            'phone'          => 'Bắt buộc, 10 chữ số, bắt đầu bằng 0 (được phép trùng với Lead đã có - học viên đăng ký thêm khoá học). Nên định dạng ô là Text để giữ số 0 đầu.',
             'email'          => 'Không bắt buộc, đúng định dạng email.',
             'source_name'    => 'Bắt buộc, chọn từ danh sách: Facebook, Workshop, Website ODIN, Zalo, Instagram hoặc TikTok.',
             'source_url'     => 'Bắt buộc với Facebook, Zalo, Instagram, TikTok (Workshop, Website ODIN được để trống). Nhập link trang cá nhân/bài viết (http:// hoặc https://) hoặc SĐT/mô tả kênh liên hệ (VD: Zalo 0912345678).',
@@ -111,7 +111,7 @@ return [
 
     // Thông báo chuông cho Sale Leader (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin đã phân :count Lead cho đội :team – chờ bạn phân cho Salesperson',
+        'title'  => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
         'action' => 'Phân chia Lead cho Salesperson',
     ],
 

@@ -14,26 +14,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Director ─────────────────────────────────────────────────────
     Route::middleware('role:director')->prefix('director')->group(function () {
-        // Placeholder – sẽ bổ sung sau
+        // Placeholder - sẽ bổ sung sau
     });
 
     // ── Sale Admin ───────────────────────────────────────────────────
     Route::middleware('role:sale_admin')->prefix('sale-admin')->group(function () {
-        // Placeholder – sẽ bổ sung sau
+        // Placeholder - sẽ bổ sung sau
     });
 
     // ── Sale Leader ──────────────────────────────────────────────────
     Route::middleware('role:sale_leader')->prefix('sale-leader')->group(function () {
-        // Placeholder – sẽ bổ sung sau
+        // Placeholder - sẽ bổ sung sau
     });
 
     // ── Salesperson ──────────────────────────────────────────────────
     Route::middleware('role:salesperson')->prefix('salesperson')->group(function () {
-        // Placeholder – sẽ bổ sung sau
+        // Placeholder - sẽ bổ sung sau
     });
 
     // ── Accountant ───────────────────────────────────────────────────
     Route::middleware('role:accountant')->prefix('accountant')->group(function () {
-        // Placeholder – sẽ bổ sung sau
+        // Placeholder - sẽ bổ sung sau
     });
 });

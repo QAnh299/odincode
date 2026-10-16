@@ -356,9 +356,9 @@
                                     <option value="{{ $option->employee_id }}">
                                         {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '—' }}
                                         @if ($option->employee_id === $currentLeader?->employee_id)
-                                            – {{ __('employees.teams.form.current') }}
+                                            - {{ __('employees.teams.form.current') }}
                                         @elseif ($option->team)
-                                            – {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
+                                            - {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
                                         @endif
                                     </option>
                                 @endforeach

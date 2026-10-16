@@ -36,7 +36,7 @@
     @endassets
 
     {{-- Tiêu đề hiển thị ở thanh trên cùng; giữ thẻ h1 ẩn cho trình đọc màn hình.
-         Không có nút Thêm mới: đơn hàng được tạo khi xác nhận báo giá (HĐ16 – HĐ17). --}}
+         Không có nút Thêm mới: đơn hàng được tạo khi xác nhận báo giá (HĐ16 - HĐ17). --}}
     <h1 class="visually-hidden">{{ __('orders.title') }}</h1>
 
     {{-- ── Khối dính khi cuộn: thẻ trạng thái + tổng tiền + thanh công cụ + chip bộ lọc ── --}}
@@ -166,7 +166,7 @@
                                     <input type="text" inputmode="numeric" wire:model="form.amountFrom" maxlength="25" placeholder="0"
                                         @class(['od-control', 'is-invalid' => $errors->has('form.amountFrom')])
                                         aria-label="{{ __('orders.amount_from') }}" title="{{ __('orders.amount_from') }}">
-                                    <span class="od-range__sep" aria-hidden="true">–</span>
+                                    <span class="od-range__sep" aria-hidden="true">-</span>
                                     <input type="text" inputmode="numeric" wire:model="form.amountTo" maxlength="25"
                                         @class(['od-control', 'is-invalid' => $errors->has('form.amountTo')])
                                         aria-label="{{ __('orders.amount_to') }}" title="{{ __('orders.amount_to') }}">
@@ -185,7 +185,7 @@
                                 <div class="od-range">
                                     <input type="date" wire:model="form.createdFrom" class="od-control" max="{{ $form['createdTo'] }}"
                                         aria-label="{{ __('orders.created_from') }}" title="{{ __('orders.created_from') }}">
-                                    <span class="od-range__sep" aria-hidden="true">–</span>
+                                    <span class="od-range__sep" aria-hidden="true">-</span>
                                     <input type="date" wire:model="form.createdTo" min="{{ $form['createdFrom'] }}"
                                         @class(['od-control', 'is-invalid' => $errors->has('form.createdTo')])
                                         aria-label="{{ __('orders.created_to') }}" title="{{ __('orders.created_to') }}">

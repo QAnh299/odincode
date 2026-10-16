@@ -22,13 +22,13 @@ use Livewire\Component;
 /**
  * Chi tiết Opportunity: thanh giai đoạn, thông tin khách hàng,
  * 2 tab Lịch sử chăm sóc (mặc định) / Lịch hẹn, và báo giá.
- * Dùng chung cho Salesperson, Sale Leader, Giám đốc – xem được theo Opportunity::visibleTo().
+ * Dùng chung cho Salesperson, Sale Leader, Giám đốc - xem được theo Opportunity::visibleTo().
  * Mọi thao tác (liên hệ, lịch hẹn, báo giá) chỉ dành cho salesperson đang phụ trách;
  * Sale Leader / Giám đốc chỉ xem. Sale Leader được chuyển người phụ trách sang salesperson khác
- * trong đội (khi cơ hội chưa tới stage Chốt) – lịch hẹn đang chờ chuyển theo.
+ * trong đội (khi cơ hội chưa tới stage Chốt) - lịch hẹn đang chờ chuyển theo.
  *
- * Lịch hẹn: mỗi mã lịch hẹn gồm 1–2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
- * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch – Tạo lịch hẹn.
+ * Lịch hẹn: mỗi mã lịch hẹn gồm 1-2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
+ * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch - Tạo lịch hẹn.
  *   - Đổi lịch: chọn dòng muốn đổi (chưa tới giờ hẹn, chưa có kết quả) rồi nhập thời gian / địa điểm mới.
  *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
  *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Tạo lịch hẹn" ở tab Lịch hẹn).
@@ -37,13 +37,13 @@ use Livewire\Component;
  *     Mọi loại đã hẹn đều có lần khách đến → tự chuyển sang "Data đã xử lý".
  *   - Không tạo / đổi lịch hẹn khi đã tới stage Chốt.
  * Lịch sử chăm sóc: ghi nhận lần liên hệ (thời gian, kết quả, ghi chú) với hoạt động theo stage, đếm từ lúc
- * Opportunity vào stage (StagesHistory). Kết quả: Thành công (gọi được) / Thất bại (khách từ chối – bắt buộc
+ * Opportunity vào stage (StagesHistory). Kết quả: Thành công (gọi được) / Thất bại (khách từ chối - bắt buộc
  * ghi lý do) / Không liên lạc được (không nghe máy, thuê bao).
- *   - Data chưa tương tác – "Liên hệ ban đầu": Thất bại → Lost; đủ 4 lần không liên lạc được → Archived;
+ *   - Data chưa tương tác - "Liên hệ ban đầu": Thất bại → Lost; đủ 4 lần không liên lạc được → Archived;
  *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
- *   - Data đã có lịch hẹn – "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
+ *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
  *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
- *   - Data đã xử lý – "Chốt đăng ký": Thành công → nút "Tạo báo giá" (→ Chốt); Thất bại → quay về
+ *   - Data đã xử lý - "Chốt đăng ký": Thành công → nút "Tạo báo giá" (→ Chốt); Thất bại → quay về
  *     Data chưa tương tác (quá 3 lần → Archived); không liên lạc được quá 14 ngày từ lần liên hệ đầu tiên
  *     ở stage → Archived.
  * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
@@ -262,7 +262,7 @@ class Show extends Component
 
         $earliest = $this->earliestCareTime();
 
-        // Thất bại (khách từ chối) bắt buộc ghi lý do – lý do được lưu vào lịch sử chuyển stage
+        // Thất bại (khách từ chối) bắt buộc ghi lý do - lý do được lưu vào lịch sử chuyển stage
         $this->validate([
             'careTime'   => ['required', 'date', 'before_or_equal:now', 'after_or_equal:'.$earliest->format('Y-m-d H:i')],
             'careResult' => ['required', Rule::in(CareResult::RESULTS)],
@@ -396,7 +396,7 @@ class Show extends Component
     {
         abort_unless($this->canCreateQuotation(), 403);
 
-        $this->opportunity->moveToStage(Stage::CLOSED, 'Khách đồng ý đăng ký – lập báo giá.');
+        $this->opportunity->moveToStage(Stage::CLOSED, 'Khách đồng ý đăng ký - lập báo giá.');
         $this->refreshStage();
 
         $this->closeForm();
@@ -521,7 +521,7 @@ class Show extends Component
     }
 
     /**
-     * Địa điểm lịch hẹn: cố định là cơ sở của khách (Leads.branch_id) – "Tên cơ sở - Địa chỉ".
+     * Địa điểm lịch hẹn: cố định là cơ sở của khách (Leads.branch_id) - "Tên cơ sở - Địa chỉ".
      */
     #[Computed]
     public function appointmentPlace(): ?string
@@ -570,7 +570,7 @@ class Show extends Component
     }
 
     /**
-     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) – dùng cho
+     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) - dùng cho
      * nút "Tạo lịch hẹn".
      * Mỗi loại được chọn (Test / Tư vấn) có thời gian riêng; địa điểm là cơ sở của khách.
      */
@@ -764,7 +764,7 @@ class Show extends Component
     }
 
     /**
-     * Salesperson đang phụ trách cơ hội – người duy nhất được thao tác.
+     * Salesperson đang phụ trách cơ hội - người duy nhất được thao tác.
      */
     public function isOwner(): bool
     {
@@ -927,7 +927,7 @@ class Show extends Component
     }
 
     /**
-     * Nút "Tạo báo giá": chỉ salesperson phụ trách, khi đã có lần liên hệ thành công ở stage hiện tại –
+     * Nút "Tạo báo giá": chỉ salesperson phụ trách, khi đã có lần liên hệ thành công ở stage hiện tại -
      * "Liên hệ ban đầu" ở Data chưa tương tác (khách đăng ký ngay) hoặc "Chốt đăng ký" ở Data đã xử lý.
      */
     public function canCreateQuotation(): bool
@@ -938,7 +938,7 @@ class Show extends Component
     }
 
     /**
-     * Stage 1–3 chưa có báo giá nên ẩn phần Báo giá.
+     * Stage 1-3 chưa có báo giá nên ẩn phần Báo giá.
      */
     public function showQuotations(): bool
     {

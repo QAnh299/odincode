@@ -35,7 +35,7 @@ Mỗi nhân viên đăng nhập sẽ thấy giao diện và menu theo **vai trò
 
 ### 1.1. Kiến trúc tổng quan
 
-Hệ thống chia làm 3 phần: **Frontend** (giao diện), **Backend** (xử lý nghiệp vụ, cung cấp API) và **Xác thực – phân quyền**. Frontend không truy cập CSDL trực tiếp mà chỉ gọi API của Backend.
+Hệ thống chia làm 3 phần: **Frontend** (giao diện), **Backend** (xử lý nghiệp vụ, cung cấp API) và **Xác thực - phân quyền**. Frontend không truy cập CSDL trực tiếp mà chỉ gọi API của Backend.
 
 ```
 ┌──────────────────────┐   HTTP + JSON (RESTful API)   ┌──────────────────────────┐        ┌─────────┐
@@ -57,7 +57,7 @@ Hệ thống chia làm 3 phần: **Frontend** (giao diện), **Backend** (xử l
 |---|---|---|
 | Frontend ReactJS | Chưa bắt đầu. Trong lúc chờ, giao diện web đang được làm bằng **Livewire + Blade + Bootstrap** (chạy song song, dùng chung Backend) | `resources/views`, `resources/css`, `resources/js` (xem [mục 5](#5-code-giao-diện--frontend-nằm-ở-đâu)) |
 | Backend Laravel + Eloquent | Model cho toàn bộ bảng trong `odin.sql` (kèm quan hệ giữa các bảng); API đăng nhập | `app/Models`, `app/Http/Controllers/Api`, `routes/api.php` |
-| Xác thực – phân quyền | Đăng nhập bằng token Sanctum (API) và session (web); middleware `role:` chặn truy cập sai vai trò | `app/Http/Middleware/CheckRole.php`, `config/sanctum.php` |
+| Xác thực - phân quyền | Đăng nhập bằng token Sanctum (API) và session (web); middleware `role:` chặn truy cập sai vai trò | `app/Http/Middleware/CheckRole.php`, `config/sanctum.php` |
 
 > **Vì sao chọn Sanctum thay vì Passport?** Passport cài đặt đầy đủ chuẩn OAuth2, phù hợp khi cho ứng dụng bên thứ ba đăng nhập. Hệ thống chỉ có frontend của chính mình gọi API, nên Sanctum (token đơn giản, nhẹ hơn) là đủ.
 

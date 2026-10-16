@@ -44,7 +44,7 @@ class Index extends Component
     // Tình trạng hạn (chỉ xét báo giá Nháp)
     const DEADLINES = ['valid', 'soon', 'overdue'];
 
-    // "Sắp hết hạn": còn 0 – SOON_DAYS ngày
+    // "Sắp hết hạn": còn 0 - SOON_DAYS ngày
     const SOON_DAYS = 3;
 
     const ORDER_STATES = ['with', 'without'];
@@ -246,7 +246,7 @@ class Index extends Component
     }
 
     /**
-     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán – các vai trò xem toàn bộ báo giá).
+     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán - các vai trò xem toàn bộ báo giá).
      */
     #[Computed]
     public function canFilterTeam(): bool
@@ -687,7 +687,7 @@ class Index extends Component
     }
 
     /**
-     * Tình trạng hạn, chỉ xét báo giá Nháp: Còn hạn (hết hạn ≥ hôm nay), Sắp hết hạn (còn 0 – SOON_DAYS ngày),
+     * Tình trạng hạn, chỉ xét báo giá Nháp: Còn hạn (hết hạn ≥ hôm nay), Sắp hết hạn (còn 0 - SOON_DAYS ngày),
      * Quá hạn (hết hạn < hôm nay).
      */
     private function applyDeadline(Builder $query): void

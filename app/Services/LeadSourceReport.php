@@ -135,7 +135,7 @@ class LeadSourceReport
      * Ép kiểu số + tính các chỉ số dẫn xuất:
      *   conversion_rate = Lead đã chuyển thành Cơ hội / Lead
      *   win_rate        = Lead chốt thành công (Won) / Lead
-     *   close_rate      = Won / (Won + Lost) – tỷ lệ thắng trên các Cơ hội đã có kết quả
+     *   close_rate      = Won / (Won + Lost) - tỷ lệ thắng trên các Cơ hội đã có kết quả
      *   revenue_per_lead = Doanh thu / Lead
      */
     public function derive(array $row): array

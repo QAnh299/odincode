@@ -14,11 +14,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Mỗi chỉ số được tính theo đúng thời điểm phát sinh của nó trong kỳ:
  *
- *   A. Theo ngày giao Lead (nhóm Lead được giao trong kỳ – đo quy trình xử lý):
+ *   A. Theo ngày giao Lead (nhóm Lead được giao trong kỳ - đo quy trình xử lý):
  *      Lead được giao, Lead đã xử lý (đã liên hệ hoặc đã rời stage đầu), Lead chuyển Stage,
  *      Stage đã đạt tới (phễu), thời gian phản hồi đầu tiên, số lần liên hệ,
  *      Lead không liên hệ được (đã liên hệ nhưng chưa lần nào thành công), Lead bị chuyển ngược Stage.
- *   B. Theo ngày chốt (Cơ hội Won / Lost có ngày đóng trong kỳ – đo kết quả):
+ *   B. Theo ngày chốt (Cơ hội Won / Lost có ngày đóng trong kỳ - đo kết quả):
  *      Lead chốt, Lead thất bại, tỷ lệ thắng = Won / (Won + Lost), thời gian chốt.
  *      Ngày đóng = lúc vào stage Chốt / Lưu trữ (StagesHistory); thiếu lịch sử thì lấy báo giá đầu tiên (Won),
  *      lần liên hệ cuối, cuối cùng là ngày giao.

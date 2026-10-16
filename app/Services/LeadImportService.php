@@ -21,7 +21,7 @@ use Throwable;
 use ZipArchive;
 
 /**
- * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 – HĐ6, PhanLead.docx).
+ * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 - HĐ6, PhanLead.docx).
  *
  * - Dùng chung bộ kiểm tra dữ liệu cho popup Thêm Lead và từng dòng Excel.
  * - Import ghi nhận các dòng hợp lệ, bỏ qua dòng lỗi và trả về file kết quả
