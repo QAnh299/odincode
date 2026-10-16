@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  * - Doanh thu tính theo ngày thanh toán: hoá đơn đã thanh toán (Invoices.status = Paid) trong kỳ,
  *   tính cho nguồn của Lead và người phụ trách Cơ hội của đơn hàng.
  *
- * Mỗi Lead 1 dòng (fact): Lead có nhiều Cơ hội thì gộp lại – kết quả ưu tiên Won > đang xử lý > Lost / Archived,
+ * Mỗi Lead 1 dòng (fact): Lead có nhiều Cơ hội thì gộp lại - kết quả ưu tiên Won > đang xử lý > Lost / Archived,
  * người phụ trách = người phụ trách Cơ hội mới nhất. Lead chưa có Cơ hội chưa thuộc salesperson nào,
  * chỉ có trong phạm vi xem toàn bộ Lead (Giám đốc, Sale Admin không lọc đội / nhân viên).
  *
@@ -142,12 +142,16 @@ class LeadConversionReport
         $rows = [];
         foreach (array_chunk($opportunityIds, self::CHUNK) as $chunk) {
             foreach (DB::table('CareResults')->whereIn('opportunity_id', $chunk)
-                ->get(['opportunity_id', 'activity_id', 'result', 'performed_at']) as $row) {
+                ->orderBy('performed_at')
+                ->get(['result_id', 'opportunity_id', 'activity_id', 'result', 'performed_at', 'employee_id', 'notes']) as $row) {
                 $rows[] = [
+                    'id'          => $row->result_id,
                     'opportunity' => $row->opportunity_id,
                     'activity'    => $row->activity_id,
                     'result'      => $row->result,
                     'at'          => strtotime($row->performed_at),
+                    'employee'    => $row->employee_id,
+                    'notes'       => $row->notes,
                 ];
             }
         }
@@ -163,8 +167,17 @@ class LeadConversionReport
         $rows = [];
         foreach (array_chunk($opportunityIds, self::CHUNK) as $chunk) {
             foreach (DB::table('Appointments')->whereIn('opportunity_id', $chunk)
-                ->get(['appointment_type', 'status']) as $row) {
-                $rows[] = ['type' => $row->appointment_type, 'status' => $row->status];
+                ->orderBy('scheduled_time')
+                ->get(['appointment_id', 'appointment_type', 'status', 'scheduled_time', 'opportunity_id', 'employee_id', 'notes']) as $row) {
+                $rows[] = [
+                    'id'          => $row->appointment_id,
+                    'type'        => $row->appointment_type,
+                    'status'      => $row->status,
+                    'at'          => strtotime($row->scheduled_time),
+                    'opportunity' => $row->opportunity_id,
+                    'employee'    => $row->employee_id,
+                    'notes'       => $row->notes,
+                ];
             }
         }
 
@@ -278,7 +291,7 @@ class LeadConversionReport
     }
 
     /**
-     * Phân vị p (0–100), nội suy tuyến tính.
+     * Phân vị p (0-100), nội suy tuyến tính.
      */
     public static function percentile(array $values, float $p): ?float
     {
