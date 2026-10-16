@@ -1,6 +1,6 @@
 {{-- Thẻ KPI báo cáo chuyển đổi Lead: $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh.
      Bố cục dọc: icon + tên → số lớn → chú thích neo đáy thẻ (các thẻ cùng hàng cao bằng nhau, chú thích thẳng hàng). --}}
-<div class="rp-kpis">
+<div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
     @foreach ($kpis as [$key, $icon, $value, $hint, $change])
         <div class="rp-stat">
             <div class="rp-stat__head">

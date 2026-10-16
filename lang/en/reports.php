@@ -197,7 +197,7 @@ return [
     // Lead conversion analysis
     'lead_conversion' => [
         'title'        => 'Lead conversion analysis',
-        'subtitle'     => 'Conversion rates by lead creation date, revenue by payment date',
+        'subtitle'     => 'Conversion rates by lead creation date',
         'from'         => 'Leads created from',
         'to'           => 'To',
         'total'        => 'Total',
@@ -240,13 +240,11 @@ return [
         'metric' => [
             'leads'            => 'Leads',
             'won'              => 'Won leads',
-            'revenue'          => 'Collected revenue',
             'conversion_rate'  => 'Lead → Opportunity',
             'win_rate'         => 'Lead → Won',
             'close_rate'       => 'Win rate',
             'contact_rate'     => 'Contacted',
             'close_median'     => 'Time to close (median)',
-            'revenue_per_lead' => 'Revenue / lead',
         ],
 
         'kpi' => [
@@ -262,8 +260,6 @@ return [
             'win_hint'          => ':count won · win rate :rate',
             'students'          => 'New students',
             'students_hint'     => ':rate of won leads enrolled',
-            'revenue'           => 'Collected revenue',
-            'revenue_hint'      => 'Average order :value',
             'response'          => 'First response',
             'response_hint'     => 'Median · average :value',
             'within24'          => 'Contacted within 24h',
@@ -302,20 +298,16 @@ return [
             'trend_count_sub'    => 'Leads created in each period and how many are won to date',
             'trend_rate'         => 'Conversion rates by creation :period',
             'trend_rate_sub'     => 'Recent periods are usually lower as leads have had less time to close',
-            'revenue'            => 'Collected revenue by payment :period',
-            'revenue_sub'        => 'Paid invoices, by payment date',
         ],
 
         'sources' => [
             'table'     => 'Performance by lead source',
-            'table_sub' => 'Sorted by leads. Revenue = money collected in the period from the source\'s leads (by payment date).',
+            'table_sub' => 'Sorted by leads.',
             'chart'     => [
                 'scatter'     => 'Source volume × quality',
                 'scatter_sub' => 'Bottom right: many leads but low win rate',
                 'rates'       => 'Conversion rates by source',
                 'rates_sub'   => 'Compare conversion steps across sources',
-                'revenue'     => 'Collected revenue by source',
-                'revenue_sub' => 'Money collected in the period',
                 'methods'     => 'Conversion rates by contact channel',
                 'methods_sub' => 'The channel the customer prefers',
             ],
@@ -417,8 +409,6 @@ return [
                 'students'         => 'Students',
                 'response_median'  => 'First response - median (hours)',
                 'close_median'     => 'Time to close - median (days)',
-                'revenue'          => 'Collected revenue',
-                'revenue_per_lead' => 'Revenue / lead',
             ],
             'leads' => [
                 'id'                  => 'Lead ID',
@@ -445,7 +435,6 @@ return [
                 'won_at'              => 'Won at',
                 'close_days'          => 'Created → won (days)',
                 'student'             => 'Enrolled',
-                'order_total'         => 'Order value',
             ],
             'care' => [
                 'at'          => 'Time',

@@ -487,6 +487,11 @@
 
 /* ── Hiệu quả chuyển đổi Lead ──────────────────────────────────────── */
 
+/* Hàng thẻ KPI chia đều theo số thẻ (--n); màn hình nhỏ dùng số cột ở phần cuối file */
+.rp-kpis--fit {
+    grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+}
+
 /* Thẻ KPI dạng dọc: icon + tên → số lớn → chú thích neo đáy (thẻ cùng hàng cao bằng nhau) */
 .rp-stat {
     display: flex;

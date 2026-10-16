@@ -201,7 +201,7 @@ return [
     // Phân tích hiệu quả chuyển đổi Lead
     'lead_conversion' => [
         'title'        => 'Phân tích hiệu quả chuyển đổi Lead',
-        'subtitle'     => 'Tỷ lệ chuyển đổi tính theo ngày tạo Lead, doanh thu theo ngày thanh toán',
+        'subtitle'     => 'Tỷ lệ chuyển đổi tính theo ngày tạo Lead',
         'from'         => 'Lead tạo từ ngày',
         'to'           => 'Đến ngày',
         'total'        => 'Tổng cộng',
@@ -244,13 +244,11 @@ return [
         'metric' => [
             'leads'            => 'Số Lead',
             'won'              => 'Lead chốt',
-            'revenue'          => 'Doanh thu thực thu',
             'conversion_rate'  => 'Lead → Cơ hội',
             'win_rate'         => 'Lead → Chốt',
             'close_rate'       => 'Tỷ lệ thắng',
             'contact_rate'     => 'Đã liên hệ',
             'close_median'     => 'Thời gian chốt (trung vị)',
-            'revenue_per_lead' => 'Doanh thu / Lead',
         ],
 
         'kpi' => [
@@ -266,8 +264,6 @@ return [
             'win_hint'          => ':count Lead chốt · tỷ lệ thắng :rate',
             'students'          => 'Học viên mới',
             'students_hint'     => ':rate Lead chốt đã thành học viên',
-            'revenue'           => 'Doanh thu thực thu',
-            'revenue_hint'      => 'Giá trị đơn trung bình :value',
             'response'          => 'Phản hồi đầu tiên',
             'response_hint'     => 'Trung vị · trung bình :value',
             'within24'          => 'Liên hệ trong 24 giờ',
@@ -306,20 +302,16 @@ return [
             'trend_count_sub'    => 'Số Lead tạo trong mỗi kỳ và số đã chốt tới hiện tại',
             'trend_rate'         => 'Tỷ lệ chuyển đổi theo :period tạo',
             'trend_rate_sub'     => 'Kỳ gần đây thường thấp hơn vì Lead chưa đủ thời gian để chốt',
-            'revenue'            => 'Doanh thu thực thu theo :period thanh toán',
-            'revenue_sub'        => 'Tổng tiền hoá đơn đã thanh toán, theo ngày thanh toán',
         ],
 
         'sources' => [
             'table'     => 'Hiệu quả theo nguồn Lead',
-            'table_sub' => 'Sắp theo số Lead. Doanh thu = tiền đã thu trong kỳ từ Lead của nguồn (theo ngày thanh toán).',
+            'table_sub' => 'Sắp theo số Lead.',
             'chart'     => [
                 'scatter'     => 'Số lượng × chất lượng nguồn',
                 'scatter_sub' => 'Góc phải dưới: nguồn nhiều Lead nhưng tỷ lệ chốt thấp',
                 'rates'       => 'Tỷ lệ chuyển đổi theo nguồn',
                 'rates_sub'   => 'So sánh các bước chuyển đổi giữa các nguồn',
-                'revenue'     => 'Doanh thu thực thu theo nguồn',
-                'revenue_sub' => 'Tiền đã thu trong kỳ',
                 'methods'     => 'Tỷ lệ chuyển đổi theo kênh liên hệ',
                 'methods_sub' => 'Kênh khách hàng muốn được liên hệ',
             ],
@@ -421,8 +413,6 @@ return [
                 'students'         => 'Học viên',
                 'response_median'  => 'Phản hồi đầu - trung vị (giờ)',
                 'close_median'     => 'Thời gian chốt - trung vị (ngày)',
-                'revenue'          => 'Doanh thu thực thu',
-                'revenue_per_lead' => 'Doanh thu / Lead',
             ],
             'leads' => [
                 'id'                  => 'Mã Lead',
@@ -449,7 +439,6 @@ return [
                 'won_at'              => 'Ngày chốt',
                 'close_days'          => 'Tạo → chốt (ngày)',
                 'student'             => 'Thành học viên',
-                'order_total'         => 'Giá trị đơn hàng',
             ],
             'care' => [
                 'at'          => 'Thời gian',

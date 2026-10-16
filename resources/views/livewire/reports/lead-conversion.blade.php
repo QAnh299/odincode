@@ -8,7 +8,6 @@
     $seesAll = $this->seesAll;
 
     $L = fn (string $key, array $params = []) => __('reports.lead_conversion.'.$key, $params);
-    $money = fn ($v) => $v === null ? '—' : number_format((float) $v, 0, ',', '.').' ₫';
     $num = fn ($v) => number_format((float) $v, 0, ',', '.');
     $dec = fn ($v) => number_format((float) $v, 1, ',', '.');
     $pct = fn ($v) => $v === null ? '—' : $dec($v).'%';
@@ -38,7 +37,7 @@
         return [($change > 0 ? '▲ ' : '▼ ').$text, $change * $dir > 0 ? 'up' : 'down'];
     };
 
-    $hasData = $s['leads'] > 0 || $this->revenue > 0;
+    $hasData = $s['leads'] > 0;
 @endphp
 
 <div class="vc rp">
@@ -163,8 +162,6 @@
                             $delta($s['win_rate'], $ps['win_rate'] ?? null, 1, true)],
                         ['students', 'user-check', $num($s['students']), $L('kpi.students_hint', ['rate' => $pct($s['student_rate'])]),
                             $delta($s['students'], $ps['students'] ?? null)],
-                        ['revenue', 'cash', $money($this->revenue), $L('kpi.revenue_hint', ['value' => $money($s['order_avg'])]),
-                            $delta($this->revenue, $prev['revenue'] ?? null)],
                     ];
                 @endphp
 
@@ -195,8 +192,6 @@
                         'title' => $L('overview.trend_count', ['period' => $L('period.'.$this->period)]), 'sub' => $L('overview.trend_count_sub')])
                     @include('livewire.reports.partials.chart-card', ['id' => 'lc-trend-rate', 'spec' => $o['charts']['trend_rate'],
                         'title' => $L('overview.trend_rate', ['period' => $L('period.'.$this->period)]), 'sub' => $L('overview.trend_rate_sub')])
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-revenue', 'spec' => $o['charts']['revenue'], 'wide' => true,
-                        'title' => $L('overview.revenue', ['period' => $L('period.'.$this->period)]), 'sub' => $L('overview.revenue_sub')])
                 </div>
                 @break
 
@@ -221,8 +216,6 @@
                                     <th class="rp-num">{{ $L('metric.win_rate') }}</th>
                                     <th class="rp-num">{{ $L('metric.close_rate') }}</th>
                                     <th class="rp-num">{{ $L('metric.close_median') }}</th>
-                                    <th class="rp-num">{{ $L('metric.revenue') }}</th>
-                                    <th class="rp-num">{{ $L('metric.revenue_per_lead') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -241,8 +234,6 @@
                                         <td class="rp-num"><span class="rp-bar" style="--w: {{ min(100, $row['win_rate'] ?? 0) }}%">{{ $pct($row['win_rate']) }}</span></td>
                                         <td class="rp-num">{{ $pct($row['close_rate']) }}</td>
                                         <td class="rp-num">{{ $days($row['close_median']) }}</td>
-                                        <td class="rp-num">{{ $money($row['revenue']) }}</td>
-                                        <td class="rp-num">{{ $money($row['revenue_per_lead']) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -259,8 +250,6 @@
                                     <td class="rp-num">{{ $pct($t['win_rate']) }}</td>
                                     <td class="rp-num">{{ $pct($t['close_rate']) }}</td>
                                     <td class="rp-num">{{ $days($t['close_median']) }}</td>
-                                    <td class="rp-num">{{ $money($t['revenue']) }}</td>
-                                    <td class="rp-num">{{ $money($t['revenue_per_lead']) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -268,10 +257,10 @@
                 </section>
 
                 <div class="rp-grid">
-                    @foreach (['scatter', 'rates', 'revenue', 'methods'] as $key)
+                    @foreach (['scatter', 'rates', 'methods'] as $key)
                         @include('livewire.reports.partials.chart-card', ['id' => 'lc-src-'.$key, 'spec' => $d['charts'][$key],
                             'title' => $L('sources.chart.'.$key), 'sub' => $L('sources.chart.'.$key.'_sub'),
-                            'height' => $key === 'revenue' ? max(220, count($d['charts'][$key]['labels']) * 40 + 40) : 320])
+                            'height' => 320, 'wide' => $key === 'methods'])
                     @endforeach
                 </div>
                 @break

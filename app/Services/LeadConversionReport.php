@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Invoice;
 use App\Models\Stage;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -10,9 +9,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Số liệu cho báo cáo Phân tích hiệu quả chuyển đổi Lead.
  *
- * - Tỷ lệ chuyển đổi tính theo ngày tạo Lead: nhóm Lead tạo trong kỳ, theo dõi kết quả tới hiện tại.
- * - Doanh thu tính theo ngày thanh toán: hoá đơn đã thanh toán (Invoices.status = Paid) trong kỳ,
- *   tính cho nguồn của Lead và người phụ trách Cơ hội của đơn hàng.
+ * Tỷ lệ chuyển đổi tính theo ngày tạo Lead: nhóm Lead tạo trong kỳ, theo dõi kết quả tới hiện tại.
+ * Doanh thu không thuộc báo cáo này (xem module Doanh thu & thanh toán).
  *
  * Mỗi Lead 1 dòng (fact): Lead có nhiều Cơ hội thì gộp lại - kết quả ưu tiên Won > đang xử lý > Lost / Archived,
  * người phụ trách = người phụ trách Cơ hội mới nhất. Lead chưa có Cơ hội chưa thuộc salesperson nào,
@@ -100,41 +98,6 @@ class LeadConversionReport
     }
 
     /**
-     * Hoá đơn đã thanh toán trong kỳ (theo ngày thanh toán) + nguồn Lead, người phụ trách Cơ hội.
-     */
-    public function payments(array $filters): array
-    {
-        if (($filters['team'] ?? null) === '__none__' || ($filters['employee'] ?? null) === '__none__') {
-            return [];
-        }
-
-        return DB::table('Invoices as i')
-            ->join('SalesOrders as so', 'so.order_id', '=', 'i.order_id')
-            ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
-            ->join('Opportunities as o', 'o.opportunity_id', '=', 'q.opportunity_id')
-            ->join('Leads as l', 'l.lead_id', '=', 'o.lead_id')
-            ->leftJoin('Employees as e', 'e.employee_id', '=', 'o.employee_id')
-            ->where('i.status', Invoice::STATUS_PAID)
-            ->whereNotNull('i.payment_date')
-            ->when($filters['from'] ?? null, fn ($q, $from) => $q->whereDate('i.payment_date', '>=', $from))
-            ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('i.payment_date', '<=', $to))
-            ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('l.branch_id', $branch))
-            ->when($filters['source'] ?? null, fn ($q, $source) => $q->where('l.source_name', $source))
-            ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
-            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee))
-            ->get(['i.payment_amount', 'i.payment_date', 'o.employee_id', 'e.team_id', 'l.source_name', 'l.contact_method'])
-            ->map(fn ($row) => [
-                'amount'   => (float) $row->payment_amount,
-                'paid_at'  => strtotime($row->payment_date),
-                'employee' => $row->employee_id,
-                'team'     => $row->team_id,
-                'source'   => $row->source_name,
-                'method'   => $row->contact_method,
-            ])
-            ->all();
-    }
-
-    /**
      * Các lần chăm sóc của những Cơ hội đã cho.
      */
     public function contacts(array $opportunityIds): array
@@ -210,7 +173,6 @@ class LeadConversionReport
 
         $response = [];
         $close = [];
-        $orders = [];
         $sums = ['contacted' => 0, 'students' => 0, 'contacts' => 0, 'contacts_ok' => 0, 'appointments_ok' => 0, 'appointments_failed' => 0];
         foreach ($facts as $f) {
             if ($f['first_contact']) {
@@ -219,9 +181,6 @@ class LeadConversionReport
             }
             if ($f['won_at']) {
                 $close[] = max(0, $f['won_at'] - $f['created']) / 86400;
-            }
-            if ($f['order_total'] > 0) {
-                $orders[] = $f['order_total'];
             }
             $sums['students'] += (int) $f['student'];
             $sums['contacts'] += $f['contacts'];
@@ -252,7 +211,6 @@ class LeadConversionReport
             'response_median'  => self::percentile($response, 50),
             'close_avg'        => self::avg($close),
             'close_median'     => self::percentile($close, 50),
-            'order_avg'        => self::avg($orders),
         ];
     }
 
@@ -373,12 +331,6 @@ class LeadConversionReport
             ->selectRaw('MIN(created_at) AS first_quote')
             ->groupBy('opportunity_id');
 
-        $orders = DB::table('SalesOrders as so')
-            ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
-            ->select('q.opportunity_id')
-            ->selectRaw('SUM(so.total_amount) AS order_total')
-            ->groupBy('q.opportunity_id');
-
         $query = DB::table('Opportunities as o')
             ->joinSub($leadIds, 'fl', 'fl.lead_id', '=', 'o.lead_id')
             ->join('Stages as s', 's.stage_id', '=', 'o.stage_id')
@@ -388,7 +340,6 @@ class LeadConversionReport
             ->leftJoinSub($history, 'hs', 'hs.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($appointments, 'ap', 'ap.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($quotes, 'qt', 'qt.opportunity_id', '=', 'o.opportunity_id')
-            ->leftJoinSub($orders, 'od', 'od.opportunity_id', '=', 'o.opportunity_id')
             ->select('o.opportunity_id', 'o.lead_id', 'o.employee_id', 'o.conversion_date', 'o.status', 'o.stage_id',
                 's.stage_name', 's.sort_order', 'e.full_name as employee_name', 'e.team_id',
                 'c.first_contact', 'c.last_contact', 'c.first_ok', 'ap.first_appt_ok', 'hs.last_move', 'hs.archived_at')
@@ -397,7 +348,6 @@ class LeadConversionReport
             ->selectRaw('COALESCE(c.contacts_ok, 0) AS contacts_ok')
             ->selectRaw('COALESCE(ap.appointments_ok, 0) AS appointments_ok')
             ->selectRaw('COALESCE(ap.appointments_failed, 0) AS appointments_failed')
-            ->selectRaw('COALESCE(od.order_total, 0) AS order_total')
             ->selectRaw("GREATEST($first, ".$inFunnel('s.sort_order').", COALESCE(hs.reached, 0), IF(o.status = 'Won', $last, 0)) AS reached")
             ->selectRaw("IF(o.status = 'Won', COALESCE(hs.entered_$last, qt.first_quote, c.last_contact, o.conversion_date), NULL) AS won_at");
         foreach ($stages as $stage) {
@@ -438,7 +388,6 @@ class LeadConversionReport
             'appointments_ok' => 0,
             'appointments_failed' => 0,
             'student'     => false,
-            'order_total' => 0.0,
             'stage'       => null,
             'stage_name'  => null,
             'stage_since' => null,
@@ -499,7 +448,6 @@ class LeadConversionReport
             'appointments_ok' => (int) $opportunities->sum('appointments_ok'),
             'appointments_failed' => (int) $opportunities->sum('appointments_failed'),
             'student'       => $opportunities->contains(fn ($o) => (bool) $o->student),
-            'order_total'   => (float) $opportunities->sum('order_total'),
             'stage'         => $main->stage_id,
             'stage_name'    => $main->stage_name,
             'stage_since'   => $ts($main->last_move) ?? $entries[(int) $main->sort_order] ?? $ts($main->conversion_date),

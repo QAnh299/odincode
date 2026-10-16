@@ -46,7 +46,6 @@ class LeadConversion extends Component
         'lost'             => '#e34948',
         'archived'         => '#9ca3af',
         'new'              => '#c3cad5',
-        'revenue'          => '#2a78d6',
         'conversion_rate'  => '#6250d6',
         'win_rate'         => '#1baf7a',
         'close_rate'       => '#eda100',
@@ -292,18 +291,6 @@ class LeadConversion extends Component
         return $this->report()->summarize($this->facts);
     }
 
-    #[Computed]
-    public function payments(): array
-    {
-        return $this->report()->payments($this->filterValues());
-    }
-
-    #[Computed]
-    public function revenue(): float
-    {
-        return array_sum(array_column($this->payments, 'amount'));
-    }
-
     /**
      * Kỳ liền trước cùng độ dài (chỉ khi chọn đủ Từ ngày và Đến ngày).
      */
@@ -324,7 +311,6 @@ class LeadConversion extends Component
         return [
             'label'   => CarbonImmutable::parse($filters['from'])->format('d/m').'-'.CarbonImmutable::parse($filters['to'])->format('d/m/Y'),
             'summary' => $this->report()->summarize($this->report()->leads($filters)),
-            'revenue' => array_sum(array_column($this->report()->payments($filters), 'amount')),
         ];
     }
 
@@ -334,7 +320,7 @@ class LeadConversion extends Component
     #[Computed]
     public function period(): string
     {
-        $times = array_merge(array_column($this->facts, 'created'), array_column($this->payments, 'paid_at'));
+        $times = array_column($this->facts, 'created');
         if (! $times) {
             return 'month';
         }
@@ -381,14 +367,6 @@ class LeadConversion extends Component
 
         $rateMetrics = $this->seesAll ? ['conversion_rate', 'win_rate'] : ['win_rate', 'close_rate'];
 
-        // Doanh thu theo kỳ thanh toán
-        $paid = [];
-        foreach ($this->payments as $p) {
-            $key = $this->periodKey($p['paid_at']);
-            $paid[$key] = ($paid[$key] ?? 0) + $p['amount'];
-        }
-        $paidKeys = $this->periodKeys(array_column($this->payments, 'paid_at'));
-
         return [
             'funnel' => $funnel,
             'charts' => [
@@ -402,9 +380,6 @@ class LeadConversion extends Component
                     'series' => $this->series($rows, ['leads', 'won'])],
                 'trend_rate' => ['type' => 'line', 'unit' => 'percent', 'labels' => $labels,
                     'series' => $this->series($rows, $rateMetrics)],
-                'revenue' => ['type' => 'bar', 'unit' => 'money', 'labels' => array_map(fn ($k) => $this->periodLabel($k), $paidKeys),
-                    'series' => [['label' => __('reports.lead_conversion.metric.revenue'), 'color' => self::COLORS['revenue'],
-                        'data' => array_map(fn ($k) => $paid[$k] ?? 0, $paidKeys)]]],
             ],
         ];
     }
@@ -414,31 +389,18 @@ class LeadConversion extends Component
     #[Computed]
     public function bySource(): array
     {
-        $revenue = $this->sumPayments('source');
-        $groups = $this->groupFacts(fn ($f) => $f['source']);
-
-        // Nguồn chỉ có doanh thu (Lead tạo ngoài kỳ) vẫn hiện
-        foreach (array_keys($revenue) as $source) {
-            $groups[$source] ??= [];
-        }
-
         $rows = [];
-        foreach ($groups as $source => $facts) {
-            $rows[] = $this->withRevenue($this->report()->summarize($facts), $revenue[$source] ?? 0) + ['name' => (string) $source];
+        foreach ($this->groupFacts(fn ($f) => $f['source']) as $source => $facts) {
+            $rows[] = $this->report()->summarize($facts) + ['name' => (string) $source];
         }
-        usort($rows, fn ($a, $b) => [$b['leads'], $b['revenue']] <=> [$a['leads'], $a['revenue']]);
+        usort($rows, fn ($a, $b) => [$b['leads'], $b['won']] <=> [$a['leads'], $a['won']]);
 
         $colors = $this->colorMap($this->sources, array_column($rows, 'name'));
-        $withLeads = array_values(array_filter($rows, fn ($r) => $r['leads'] > 0));
-        $withRevenue = array_values(array_filter($rows, fn ($r) => $r['revenue'] > 0));
-        usort($withRevenue, fn ($a, $b) => $b['revenue'] <=> $a['revenue']);
 
         // Theo kênh liên hệ
-        $methodRevenue = $this->sumPayments('method');
         $methods = [];
         foreach ($this->groupFacts(fn ($f) => $f['method']) as $method => $facts) {
-            $methods[] = $this->withRevenue($this->report()->summarize($facts), $methodRevenue[$method] ?? 0)
-                + ['name' => __('leads.method.'.$method)];
+            $methods[] = $this->report()->summarize($facts) + ['name' => __('leads.method.'.$method)];
         }
         usort($methods, fn ($a, $b) => $b['leads'] <=> $a['leads']);
 
@@ -447,7 +409,7 @@ class LeadConversion extends Component
         return [
             'rows'    => $rows,
             'methods' => $methods,
-            'total'   => $this->withRevenue($this->summary, $this->revenue),
+            'total'   => $this->summary,
             'charts'  => [
                 // Số Lead (trục ngang) × tỷ lệ chốt (trục dọc): nguồn nhiều nhưng kém chất lượng nằm góc phải dưới
                 'scatter' => ['type' => 'scatter', 'unit' => 'percent', 'xUnit' => 'count',
@@ -455,12 +417,9 @@ class LeadConversion extends Component
                     'yLabel' => __('reports.lead_conversion.metric.win_rate'),
                     'labels' => [],
                     'series' => array_map(fn ($r) => ['label' => $r['name'], 'color' => $colors[$r['name']],
-                        'data' => [['x' => $r['leads'], 'y' => $r['win_rate'] ?? 0]]], $withLeads)],
-                'rates'   => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($withLeads, 'name'),
-                    'series' => $this->series($withLeads, $rateMetrics)],
-                'revenue' => ['type' => 'bar_h', 'unit' => 'money', 'labels' => array_column($withRevenue, 'name'),
-                    'series' => [['label' => __('reports.lead_conversion.metric.revenue'), 'color' => self::COLORS['revenue'],
-                        'data' => array_column($withRevenue, 'revenue')]]],
+                        'data' => [['x' => $r['leads'], 'y' => $r['win_rate'] ?? 0]]], $rows)],
+                'rates'   => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rows, 'name'),
+                    'series' => $this->series($rows, $rateMetrics)],
                 'methods' => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($methods, 'name'),
                     'series' => $this->series($methods, $rateMetrics)],
             ],
@@ -776,7 +735,7 @@ class LeadConversion extends Component
             'leads' => 'int', 'opportunities' => 'int', 'conversion_rate' => 'percent', 'contact_rate' => 'percent',
             'appointment_rate' => 'percent', 'open' => 'int', 'won' => 'int', 'lost' => 'int', 'archived' => 'int',
             'win_rate' => 'percent', 'close_rate' => 'percent', 'students' => 'int', 'response_median' => 'decimal',
-            'close_median' => 'decimal', 'revenue' => 'money', 'revenue_per_lead' => 'money',
+            'close_median' => 'decimal',
         ];
         $values = fn (array $row) => array_map(fn ($key) => $row[$key] ?? null, array_keys($fields));
 
@@ -808,7 +767,7 @@ class LeadConversion extends Component
             'stage' => 'text', 'stage_since' => 'datetime', 'days_in_stage' => 'decimal', 'stuck' => 'text',
             'assigned' => 'datetime', 'first_contact' => 'datetime', 'response_hours' => 'decimal', 'contacts' => 'int',
             'contacts_ok' => 'int', 'appointments_ok' => 'int', 'appointments_failed' => 'int', 'won_at' => 'datetime',
-            'close_days' => 'decimal', 'student' => 'text', 'order_total' => 'money',
+            'close_days' => 'decimal', 'student' => 'text',
         ];
 
         return [
@@ -824,7 +783,7 @@ class LeadConversion extends Component
                 $f['converted_at'], $f['first_contact'], $hours($f['created'], $f['first_contact']), $f['contacts'],
                 $f['contacts_ok'], $f['appointments_ok'], $f['appointments_failed'], $f['won_at'],
                 $f['won_at'] ? round(max(0, $f['won_at'] - $f['created']) / 86400, 1) : null,
-                $f['student'] ? $yes : null, $f['order_total'] ?: null,
+                $f['student'] ? $yes : null,
             ], $this->facts),
         ];
     }
@@ -946,27 +905,6 @@ class LeadConversion extends Component
         }
 
         return $groups;
-    }
-
-    /**
-     * Cộng doanh thu (theo ngày thanh toán) theo 1 cột của payments().
-     */
-    protected function sumPayments(string $key): array
-    {
-        $sums = [];
-        foreach ($this->payments as $p) {
-            $sums[(string) $p[$key]] = ($sums[(string) $p[$key]] ?? 0) + $p['amount'];
-        }
-
-        return $sums;
-    }
-
-    protected function withRevenue(array $row, float $revenue): array
-    {
-        return $row + [
-            'revenue'          => $revenue,
-            'revenue_per_lead' => $row['leads'] ? round($revenue / $row['leads']) : null,
-        ];
     }
 
     /**
