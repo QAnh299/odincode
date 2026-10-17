@@ -64,6 +64,8 @@ G. Ghi nhận thanh toán
 - HĐ39 HT: đơn Completed, ẩn thao tác tạo hóa đơn. Khách mua thêm thì SP quay lại HĐ1.
 
 ### 0.3. Các điểm nhóm CHƯA chốt (không được tự quyết, nếu gặp trong khi làm thì báo lại)
-- Cột SalesOrders.payment_type trong odin.sql đang NOT NULL, nhưng quy trình để "chưa xác định" lúc tạo đơn.
 - Trạng thái hóa đơn Overdue chưa có bước nào chuyển sang.
 - Cơ hội đã Lost mà khách quay lại: tạo cơ hội mới hay mở lại cơ hội.
+
+### 0.4. Các điểm đã chốt sau khi thống nhất quy trình
+- 17/10/2026: cột SalesOrders.payment_type cho phép NULL (= chưa xác định). Đơn tạo ở HĐ17 có payment_type NULL; hóa đơn đầu tiên (HĐ21 – HĐ22) ghi Full hoặc Installment cho đơn. CHECK vẫn chỉ nhận Full / Installment khi cột có giá trị.
