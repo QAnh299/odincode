@@ -1253,3 +1253,440 @@ select.iv-control {
         margin-left: auto;
     }
 }
+
+/* ── Chi tiết / tạo hóa đơn (livewire/invoices/show, form) – khung dùng lại quotation.css ── */
+
+.iv-row-link {
+    cursor: pointer;
+}
+
+.iv-row-link .iv-code {
+    color: inherit;
+    text-decoration: none;
+}
+
+.iv-row-link:hover .iv-code__id {
+    color: var(--iv-primary);
+}
+
+.qt-notice--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Khối trạng thái thanh toán: màu theo trạng thái hóa đơn */
+.iv-pay {
+    border-left: 4px solid var(--tone, var(--iv-border));
+}
+
+.iv-pay--unpaid { --tone: #b45309; }
+.iv-pay--paid { --tone: #15803d; }
+.iv-pay--overdue { --tone: #b91c1c; }
+
+.iv-pay__state {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+}
+
+.iv-pay__state .odin-icon {
+    color: var(--tone);
+}
+
+.iv-pay .qt-actions__buttons:empty {
+    display: none;
+}
+
+.iv-qr__img {
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto 0.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--iv-border);
+}
+
+.iv-current {
+    background: var(--iv-tint);
+}
+
+.iv-form-block {
+    margin-bottom: 1rem;
+}
+
+.iv-form-type {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 1rem;
+    font-weight: 600;
+    color: var(--iv-muted);
+}
+
+.iv-profile__form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.iv-profile__form .qt-field {
+    flex: 1;
+}
+
+.qt-order-actions {
+    margin-top: 1rem;
+}
+
+.qt-order-actions a.qt-btn,
+.iv-pay a.qt-btn {
+    text-decoration: none;
+}
+
+@media (max-width: 767.98px) {
+    .iv-profile__form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ── Khung phiếu hóa đơn (components/invoice-receipt) – một khung như phiếu thu ODIN ── */
+
+.iv-doc {
+    margin-bottom: 1.25rem;
+    padding: 1.75rem 2rem;
+    border: 1px solid var(--iv-border);
+    border-radius: var(--iv-radius);
+    background: var(--iv-surface);
+    box-shadow: var(--iv-shadow);
+}
+
+.iv-doc__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--iv-primary);
+}
+
+.iv-doc__logo {
+    height: 56px;
+    width: auto;
+}
+
+.iv-doc__branch {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--iv-muted);
+}
+
+.iv-doc__branch strong {
+    color: var(--iv-ink);
+    font-size: 0.88rem;
+}
+
+.iv-doc__title {
+    margin: 1.25rem 0 1rem;
+    text-align: center;
+}
+
+.iv-doc__title h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--iv-primary);
+}
+
+.iv-doc__date {
+    margin: 0.3rem 0 0.15rem;
+    font-style: italic;
+    color: var(--iv-muted);
+}
+
+.iv-doc__no {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+/* Cặp nhãn – giá trị hai cột như phiếu thu */
+.iv-doc__info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem 2rem;
+    margin: 0 0 1.25rem;
+    padding: 0.9rem 1.1rem;
+    border-radius: 12px;
+    background: #f7f9f6;
+}
+
+.iv-doc__info > div {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
+.iv-doc__info dt {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--iv-muted);
+}
+
+.iv-doc__info dt::after {
+    content: ":";
+}
+
+.iv-doc__info dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Bảng khóa học / các kỳ */
+.iv-doc__lines {
+    overflow-x: auto;
+}
+
+.iv-doc__lines table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.iv-doc__lines th {
+    padding: 0.55rem 0.75rem;
+    background: var(--iv-primary);
+    color: var(--iv-on-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.iv-doc__lines td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--iv-border);
+    vertical-align: top;
+}
+
+.iv-doc__lines td small {
+    display: block;
+    color: var(--iv-muted);
+    font-size: 0.75rem;
+}
+
+.iv-doc__lines .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.iv-doc__lines tr.iv-current td {
+    background: var(--iv-tint);
+}
+
+/* Tổng đơn / đã đóng / còn lại – căn phải */
+.iv-doc__sum {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    margin: 0.9rem 0 0;
+}
+
+.iv-doc__sum > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    width: min(380px, 100%);
+}
+
+.iv-doc__sum dt {
+    color: var(--iv-muted);
+    font-weight: 500;
+}
+
+.iv-doc__sum dd {
+    margin: 0;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.iv-doc__sum .is-discount dd {
+    color: var(--iv-danger);
+}
+
+.iv-doc__sum .is-total {
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--iv-ink);
+}
+
+.iv-doc__sum .is-total dt,
+.iv-doc__sum .is-total dd {
+    color: var(--iv-ink);
+    font-weight: 800;
+}
+
+.iv-doc__sum .is-remaining dd {
+    font-size: 1.1rem;
+    color: var(--iv-warning);
+}
+
+/* Phần riêng: nhập kỳ thanh toán / thanh toán kỳ này */
+.iv-doc__part {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 2px dashed var(--iv-border);
+}
+
+.iv-doc__part-title {
+    margin: 0 0 0.9rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.iv-doc__part-title:not(:first-child) {
+    margin-top: 1.25rem;
+}
+
+.iv-doc__pay.has-qr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.iv-doc__info--pay {
+    margin-bottom: 0;
+}
+
+.iv-doc__info--pay .is-amount dd {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--iv-primary);
+}
+
+.iv-qr {
+    text-align: center;
+}
+
+.iv-qr__img {
+    width: 100%;
+    max-width: 240px;
+    margin: 0 auto 0.5rem;
+}
+
+.iv-qr__meta {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--iv-muted);
+}
+
+.iv-doc__note {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.9rem 0 0;
+    font-size: 0.83rem;
+    color: var(--iv-muted);
+}
+
+.iv-doc__note a {
+    color: var(--iv-primary);
+}
+
+.iv-amount-input.is-locked {
+    background: var(--iv-tint);
+    font-weight: 700;
+    color: var(--iv-primary);
+}
+
+.iv-doc__actions {
+    margin: 1.25rem 0 0;
+}
+
+.iv-doc__sign {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.75rem;
+    text-align: center;
+}
+
+.iv-doc__sign > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 90px;
+}
+
+.iv-doc__sign span {
+    font-size: 0.8rem;
+    color: var(--iv-muted);
+}
+
+.iv-doc__sign em {
+    margin-top: auto;
+    font-style: normal;
+    font-weight: 600;
+}
+
+@media (max-width: 767.98px) {
+    .iv-doc {
+        padding: 1.1rem;
+    }
+
+    .iv-doc__top {
+        flex-direction: column;
+    }
+
+    .iv-doc__branch {
+        text-align: left;
+    }
+
+    .iv-doc__info,
+    .iv-doc__pay.has-qr {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .iv-doc__info > div {
+        grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .iv-doc__lines thead {
+        display: none;
+    }
+
+    .iv-doc__lines tr,
+    .iv-doc__lines td {
+        display: block;
+        width: 100%;
+    }
+
+    .iv-doc__lines tr {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--iv-border);
+    }
+
+    .iv-doc__lines td {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.2rem 0;
+        border: 0;
+        text-align: right;
+    }
+
+    .iv-doc__lines td[data-label]::before {
+        content: attr(data-label);
+        color: var(--iv-muted);
+        font-size: 0.8rem;
+        text-align: left;
+    }
+}

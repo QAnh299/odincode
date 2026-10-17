@@ -61,6 +61,7 @@ return [
     'detail_title'       => 'Opportunity :code',
     'back'               => 'Back to Kanban',
     'create_quotation'   => 'Create quotation',
+    'undecided'          => 'Undecided · :days day(s) left',
     'stage'              => 'Stage',
     'customer'           => 'Customer',
     'email'              => 'Email',
@@ -153,7 +154,8 @@ return [
     'expiry_date'          => 'Valid until',
     'voucher'              => 'Voucher',
     'quotation_total'      => 'Total',
-    'total_hint'           => 'Total is the sum of course lines (VAT included), before voucher discount.',
+    'total_hint'           => 'Total = sum of course lines (VAT included) minus the voucher discount. Click a quotation to see its details.',
+    'view_quotation'       => 'View quotation details',
 
     'student_status' => [
         'Studying'  => 'Studying',

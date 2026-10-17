@@ -94,20 +94,105 @@ return [
         'to'       => 'đến :value',
     ],
 
+    // ── Lập / sửa báo giá (livewire/quotations/form) ──
+    'form' => [
+        'create_title'     => 'Lập báo giá',
+        'edit_title'       => 'Sửa báo giá :code',
+        'back_opportunity' => 'Quay lại cơ hội',
+        'back_quotation'   => 'Quay lại báo giá',
+        'blocked_title'    => 'Không thể lập báo giá',
+        // HĐ2 không đạt
+        'blocked' => [
+            'not_owner'     => 'Chỉ Salesperson đang phụ trách cơ hội mới được lập báo giá.',
+            'not_closed'    => 'Cơ hội chưa ở giai đoạn Chốt.',
+            'closed_status' => 'Cơ hội đã Thất bại hoặc đã Lưu trữ nên không lập được báo giá.',
+            'has_draft'     => 'Cơ hội đang có một báo giá Nháp. Hãy sửa, xác nhận hoặc từ chối báo giá đó trước.',
+        ],
+        'courses'          => 'Khóa học',
+        'course'           => 'khóa học',
+        'pick_course'      => 'Chọn khóa học đang mở…',
+        'all_courses_added' => 'Đã chọn hết các khóa học đang mở',
+        'no_lines'         => 'Chưa có khóa học nào. Chọn khóa học ở ô phía trên để thêm vào báo giá.',
+        'remove'           => 'Bỏ khóa học',
+        'quantity'         => 'số lượng',
+        'expiry_date'      => 'Ngày hết hạn',
+        'expiry_help'      => 'Mặc định :days ngày kể từ ngày lập; không được trước ngày lập.',
+        'voucher'          => 'Voucher',
+        'no_voucher'       => 'Không áp dụng voucher',
+        'voucher_until'    => 'đến :date',
+        'voucher_help'     => 'Chỉ hiện voucher đang hoạt động và còn trong thời gian áp dụng.',
+        'notes'            => 'Ghi chú',
+        'created_date'     => 'Ngày lập',
+        'cancel'           => 'Hủy',
+        'save_draft'       => 'Lưu báo giá Nháp',
+        'save_changes'     => 'Lưu thay đổi',
+        'created'          => 'Đã lập báo giá :code (Nháp). Xuất PDF để gửi cho khách hàng.',
+        'updated'          => 'Đã lưu thay đổi báo giá :code. Xuất lại PDF để gửi bản mới cho khách hàng.',
+    ],
+
+    // Nhắc báo giá Nháp chờ khách phản hồi ở chuông thông báo của Salesperson (HĐ11)
+    'reminder' => [
+        'header'   => 'Lịch hẹn & báo giá cần theo dõi hôm nay, ngày mai',
+        'today'    => 'Báo giá :code · :name hết hạn hôm nay',
+        'tomorrow' => 'Báo giá :code · :name hết hạn ngày mai',
+        'overdue'  => 'Báo giá :code · :name đã quá hạn, sẽ tự từ chối',
+        'time'     => 'Hết hạn :date · liên hệ khách để chốt',
+    ],
+
+    // Lý do ghi vào lịch sử cơ hội khi báo giá quá hạn tự từ chối (HĐ15)
+    'expired_reason'     => 'Báo giá :code quá hạn, khách không phản hồi.',
+
+    // ── Mẫu PDF báo giá (pdf/quotation) ──
+    'pdf' => [
+        'title'           => 'Báo giá',
+        'company'         => 'ODIN Language Academy',
+        'number'          => 'Số',
+        'date'            => 'Ngày lập',
+        'valid_until'     => 'Hiệu lực đến',
+        'customer'        => 'Khách hàng',
+        'consultant'      => 'Nhân viên tư vấn',
+        'footer'          => 'Báo giá có hiệu lực đến hết ngày :date. Học phí đã gồm VAT (nếu có).',
+        'customer_sign'   => 'Khách hàng',
+        'consultant_sign' => 'Nhân viên tư vấn',
+    ],
+
     // ── Trang chi tiết (livewire/quotations/show) ──
     'detail_title'       => 'Báo giá :code',
 
     'detail' => [
         'back'              => 'Quay lại danh sách',
+        'back_opportunity'  => 'Quay lại cơ hội :code',
         'expires_on'        => 'Hết hạn :date',
-        // Thanh thao tác (HĐ7, HĐ10, HĐ12, HĐ16) - chưa có chức năng
+        // Thanh thao tác (HĐ7, HĐ10, HĐ12, HĐ16)
         'actions'           => 'Thao tác',
         'edit'              => 'Chỉnh sửa',
         'export_pdf'        => 'Xuất PDF',
         'confirm'           => 'Xác nhận báo giá',
         'reject'            => 'Từ chối báo giá',
         'coming_soon'       => 'Chức năng sẽ có ở bước sau',
+        'confirm_hint'      => 'Bấm Xác nhận khi khách đồng ý: hệ thống tạo đơn hàng, sau đó bạn tạo hóa đơn cho khách.',
+        'confirm_confirm'   => 'Khách đã đồng ý báo giá :code? Xác nhận sẽ tạo đơn hàng và không sửa hay từ chối báo giá được nữa.',
+        'confirmed_done'    => 'Đã xác nhận báo giá :code và tạo đơn hàng :order. Bấm "Tạo hóa đơn" ở khối Đơn hàng để lập hóa đơn cho khách.',
+        // HĐ17 không đạt
+        'confirm_blocked'   => [
+            'not_author'      => 'Chỉ Salesperson lập báo giá mới được xác nhận.',
+            'not_draft'       => 'Báo giá không còn ở trạng thái Nháp.',
+            'expired'         => 'Báo giá đã quá hạn, không xác nhận được. Lập báo giá mới cho khách.',
+            'voucher_invalid' => 'Voucher của báo giá không còn hiệu lực. Sửa báo giá (bỏ hoặc đổi voucher) rồi xác nhận lại.',
+            'has_order'       => 'Báo giá đã có đơn hàng.',
+            'no_lines'        => 'Báo giá chưa có khóa học nào.',
+        ],
+        'reject_confirm'    => 'Từ chối báo giá :code? Báo giá đã từ chối không sửa hay xác nhận được nữa.',
+        'rejected_done'     => 'Đã từ chối báo giá :code.',
         'expired_warning'   => 'Báo giá đã quá hạn; không thể xuất PDF hoặc xác nhận',
+        // HĐ14: sau khi từ chối
+        'followup_title'    => 'Báo giá đã bị từ chối. Khách hàng còn nhu cầu không?',
+        'followup_new'      => 'Còn nhu cầu – lập báo giá mới',
+        'followup_close'    => 'Không còn nhu cầu',
+        'followup_close_confirm' => 'Kết thúc cơ hội? Cơ hội đang xử lý sẽ chuyển sang Thất bại (đã Thành công thì giữ nguyên).',
+        'close_reason'      => 'Khách không còn nhu cầu sau khi từ chối báo giá :code.',
+        'opportunity_lost'  => 'Đã chuyển cơ hội sang Thất bại.',
+        'opportunity_kept'  => 'Cơ hội đã Thành công nên giữ nguyên.',
         // Tiến trình
         'progress'          => 'Tiến trình',
         'step_quotation'    => 'Báo giá',
@@ -165,6 +250,8 @@ return [
         'paid'              => 'Đã thanh toán',
         'remaining'         => 'Còn lại',
         'invoices'          => 'Số hóa đơn',
+        'create_invoice'    => 'Tạo hóa đơn',
+        'create_next_invoice' => 'Tạo hóa đơn kỳ tiếp',
     ],
 
     // Trạng thái cơ hội (Opportunity::STATUSES)

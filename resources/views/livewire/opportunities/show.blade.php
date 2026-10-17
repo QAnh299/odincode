@@ -40,17 +40,26 @@
                         <span class="od-muted">{{ $this->closeReason }}</span>
                     @endif
                 @endif
+                {{-- HĐ11: nhãn tính ra từ báo giá Nháp còn hạn (không lưu trong CSDL) --}}
+                @if ($this->undecidedDays !== null)
+                    <span class="vc-badge od-undecided"><x-icon name="hourglass" />{{ __('opportunities.undecided', ['days' => $this->undecidedDays]) }}</span>
+                @endif
                 @unless ($this->isOwner())
                     <span class="od-readonly"><x-icon name="info" />{{ __('opportunities.read_only') }}</span>
                 @endunless
             </div>
 
             @if ($this->canCreateQuotation())
-                {{-- Khách đồng ý đăng ký → chuyển sang stage Chốt để lập báo giá --}}
+                {{-- Khách đồng ý đăng ký → chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1) --}}
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="createQuotation"
                     wire:confirm="{{ __('opportunities.confirm_quote') }}">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </button>
+            @elseif ($this->canStartQuotation())
+                {{-- Đã ở stage Chốt, đủ điều kiện HĐ2 → mở biểu mẫu lập báo giá --}}
+                <a href="{{ route('salesperson.quotations.create', $opp) }}" class="vc-btn vc-btn--primary">
+                    <x-icon name="file" />{{ __('opportunities.create_quotation') }}
+                </a>
             @endif
         </div>
 
@@ -262,7 +271,7 @@
                     <h2 class="od-title od-title--bar">{{ __('opportunities.quotations') }}</h2>
 
                     @if ($quotations->isEmpty())
-                        <p class="od-empty od-empty--pad">{{ $this->canCreateQuotation() ? __('opportunities.no_quotations_closed') : __('opportunities.no_quotations_yet') }}</p>
+                        <p class="od-empty od-empty--pad">{{ $this->canCreateQuotation() || $this->canStartQuotation() ? __('opportunities.no_quotations_closed') : __('opportunities.no_quotations_yet') }}</p>
                     @else
                         <div class="vc-table-wrap">
                             <table class="vc-table vc-table--static">
@@ -277,24 +286,46 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php $quoteRoute = $this->routePrefix.'.quotations.show'; $canOpen = \Illuminate\Support\Facades\Route::has($quoteRoute); @endphp
                                     @foreach ($quotations as $quo)
-                                        <tr wire:key="quo-{{ $quo->quotation_id }}">
+                                        @php
+                                            // Mở chi tiết báo giá kèm from=opportunity để nút "Quay lại" trở về cơ hội này
+                                            $quoUrl = $canOpen ? route($quoteRoute, ['quotation' => $quo->quotation_id, 'from' => 'opportunity']) : null;
+                                            $isDraft = $quo->status === \App\Models\Quotation::STATUS_DRAFT;
+                                            $daysLeft = $isDraft ? $quo->daysUntilExpiry() : null;
+                                        @endphp
+                                        {{-- Bấm cả dòng mở chi tiết báo giá; dùng bàn phím: Tab tới mã báo giá rồi Enter --}}
+                                        <tr wire:key="quo-{{ $quo->quotation_id }}" @if ($quoUrl) class="od-row-link" onclick="window.location='{{ $quoUrl }}'" @endif>
                                             <td data-label="{{ __('opportunities.quotation_id') }}">
-                                                <span class="vc-mono">{{ $quo->quotation_id }}</span>
+                                                @if ($quoUrl)
+                                                    <a href="{{ $quoUrl }}" class="vc-mono od-link" onclick="event.stopPropagation()"
+                                                        title="{{ __('opportunities.view_quotation') }}">{{ $quo->quotation_id }}</a>
+                                                @else
+                                                    <span class="vc-mono">{{ $quo->quotation_id }}</span>
+                                                @endif
                                             </td>
                                             <td data-label="{{ __('opportunities.created_at') }}" class="ld-nowrap">
                                                 {{ $quo->created_at?->format('d/m/Y') }}
                                             </td>
                                             <td data-label="{{ __('opportunities.expiry_date') }}" class="ld-nowrap">
-                                                {{ $quo->expiry_date?->format('d/m/Y') }}
+                                                <span class="od-quo-expiry">
+                                                    {{ $quo->expiry_date?->format('d/m/Y') }}
+                                                    {{-- Báo giá Nháp: số ngày còn lại / quá hạn (nhãn tính ra) --}}
+                                                    @if ($isDraft)
+                                                        <small @class(['od-quo-days', 'is-over' => $daysLeft < 0])>
+                                                            {{ $daysLeft < 0 ? __('quotations.overdue') : __('quotations.days_left', ['days' => $daysLeft]) }}
+                                                        </small>
+                                                    @endif
+                                                </span>
                                             </td>
                                             <td data-label="{{ __('opportunities.voucher') }}">{{ $quo->voucher_id ?? '—' }}</td>
                                             <td data-label="{{ __('opportunities.quotation_total') }}" class="text-lg-end">
-                                                <span class="vc-value">{{ $money($quo->total) }}</span>
+                                                {{-- computed_total = tạm tính − voucher (cùng công thức trang chi tiết báo giá, Quotation::totalSql) --}}
+                                                <span class="vc-value">{{ $money($quo->computed_total) }}</span>
                                             </td>
                                             <td data-label="{{ __('opportunities.status') }}">
                                                 <span class="vc-badge vc-q--{{ strtolower($quo->status) }}">
-                                                    <span class="vc-badge__dot"></span>{{ $label('courses.quotation_status', $quo->status) }}
+                                                    <span class="vc-badge__dot"></span>{{ $label('quotations.status', $quo->status) }}
                                                 </span>
                                             </td>
                                         </tr>

@@ -94,20 +94,105 @@ return [
         'to'       => 'to :value',
     ],
 
+    // ── Create / edit quotation (livewire/quotations/form) ──
+    'form' => [
+        'create_title'     => 'New quotation',
+        'edit_title'       => 'Edit quotation :code',
+        'back_opportunity' => 'Back to opportunity',
+        'back_quotation'   => 'Back to quotation',
+        'blocked_title'    => 'Cannot create a quotation',
+        // Step 2 not met
+        'blocked' => [
+            'not_owner'     => 'Only the salesperson in charge of this opportunity can create a quotation.',
+            'not_closed'    => 'The opportunity is not at the Closed stage yet.',
+            'closed_status' => 'The opportunity is Lost or Archived, so no quotation can be created.',
+            'has_draft'     => 'The opportunity already has a draft quotation. Edit, confirm or reject it first.',
+        ],
+        'courses'          => 'Courses',
+        'course'           => 'course',
+        'pick_course'      => 'Pick an active course…',
+        'all_courses_added' => 'All active courses have been added',
+        'no_lines'         => 'No courses yet. Pick a course above to add it to the quotation.',
+        'remove'           => 'Remove course',
+        'quantity'         => 'quantity',
+        'expiry_date'      => 'Expiry date',
+        'expiry_help'      => 'Defaults to :days days after the creation date; cannot be before it.',
+        'voucher'          => 'Voucher',
+        'no_voucher'       => 'No voucher',
+        'voucher_until'    => 'until :date',
+        'voucher_help'     => 'Only active vouchers within their validity period are listed.',
+        'notes'            => 'Notes',
+        'created_date'     => 'Created',
+        'cancel'           => 'Cancel',
+        'save_draft'       => 'Save draft quotation',
+        'save_changes'     => 'Save changes',
+        'created'          => 'Quotation :code created (Draft). Export the PDF to send it to the customer.',
+        'updated'          => 'Quotation :code saved. Export the PDF again to send the new version.',
+    ],
+
+    // Draft quotations awaiting a reply, in the salesperson's notification bell (step 11)
+    'reminder' => [
+        'header'   => 'Appointments & quotations to follow up today and tomorrow',
+        'today'    => 'Quotation :code · :name expires today',
+        'tomorrow' => 'Quotation :code · :name expires tomorrow',
+        'overdue'  => 'Quotation :code · :name has expired and will be auto-rejected',
+        'time'     => 'Expires :date · contact the customer',
+    ],
+
+    // Reason written to the opportunity history when an expired quotation is auto-rejected (step 15)
+    'expired_reason'     => 'Quotation :code expired without a reply from the customer.',
+
+    // ── Quotation PDF (pdf/quotation) ──
+    'pdf' => [
+        'title'           => 'Quotation',
+        'company'         => 'ODIN Language Academy',
+        'number'          => 'No.',
+        'date'            => 'Date',
+        'valid_until'     => 'Valid until',
+        'customer'        => 'Customer',
+        'consultant'      => 'Consultant',
+        'footer'          => 'This quotation is valid until the end of :date. Fees include VAT where applicable.',
+        'customer_sign'   => 'Customer',
+        'consultant_sign' => 'Consultant',
+    ],
+
     // ── Detail page (livewire/quotations/show) ──
     'detail_title'       => 'Quotation :code',
 
     'detail' => [
         'back'              => 'Back to list',
+        'back_opportunity'  => 'Back to opportunity :code',
         'expires_on'        => 'Expires :date',
-        // Action bar (steps 7, 10, 12, 16) - not functional yet
+        // Action bar (steps 7, 10, 12, 16)
         'actions'           => 'Actions',
         'edit'              => 'Edit',
         'export_pdf'        => 'Export PDF',
         'confirm'           => 'Confirm quotation',
         'reject'            => 'Reject quotation',
         'coming_soon'       => 'This feature will be available in a later step',
+        'confirm_hint'      => 'Click Confirm when the customer agrees: the system creates the order, then you create an invoice.',
+        'confirm_confirm'   => 'Has the customer accepted quotation :code? Confirming creates the order; the quotation can no longer be edited or rejected.',
+        'confirmed_done'    => 'Quotation :code confirmed and order :order created. Click "Create invoice" in the Order block to bill the customer.',
+        // Step 17 not met
+        'confirm_blocked'   => [
+            'not_author'      => 'Only the salesperson who created the quotation can confirm it.',
+            'not_draft'       => 'The quotation is no longer a draft.',
+            'expired'         => 'The quotation has expired and cannot be confirmed. Create a new quotation.',
+            'voucher_invalid' => 'The quotation\'s voucher is no longer valid. Edit the quotation (remove or change the voucher) and confirm again.',
+            'has_order'       => 'The quotation already has an order.',
+            'no_lines'        => 'The quotation has no courses.',
+        ],
+        'reject_confirm'    => 'Reject quotation :code? A rejected quotation can no longer be edited or confirmed.',
+        'rejected_done'     => 'Quotation :code rejected.',
         'expired_warning'   => 'This quotation has expired; it cannot be exported to PDF or confirmed',
+        // Step 14: after rejecting
+        'followup_title'    => 'The quotation was rejected. Is the customer still interested?',
+        'followup_new'      => 'Still interested – new quotation',
+        'followup_close'    => 'No longer interested',
+        'followup_close_confirm' => 'Close the opportunity? An in-progress opportunity becomes Lost (a Won one stays Won).',
+        'close_reason'      => 'Customer no longer interested after quotation :code was rejected.',
+        'opportunity_lost'  => 'The opportunity is now Lost.',
+        'opportunity_kept'  => 'The opportunity is already Won, so it stays Won.',
         // Progress
         'progress'          => 'Progress',
         'step_quotation'    => 'Quotation',
@@ -165,6 +250,8 @@ return [
         'paid'              => 'Paid',
         'remaining'         => 'Remaining',
         'invoices'          => 'Invoices',
+        'create_invoice'    => 'Create invoice',
+        'create_next_invoice' => 'Create next invoice',
     ],
 
     // Opportunity status (Opportunity::STATUSES)

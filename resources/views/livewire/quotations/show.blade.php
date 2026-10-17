@@ -54,13 +54,18 @@
         @vite('resources/css/quotation.css')
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
+    {{-- ── Điều hướng: mở từ cơ hội thì quay lại cơ hội, ngược lại về danh sách báo giá ── --}}
+    @php $backToOpportunity = $fromOpportunity && $opportunityUrl; @endphp
     <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="qt-crumb__back">
-            <x-icon name="arrow-left" />{{ __('quotations.detail.back') }}
+        <a href="{{ $backToOpportunity ? $opportunityUrl : $listUrl }}" class="qt-crumb__back">
+            <x-icon name="arrow-left" />{{ $backToOpportunity ? __('quotations.detail.back_opportunity', ['code' => $opportunity->opportunity_id]) : __('quotations.detail.back') }}
         </a>
         <span class="qt-crumb__path">
-            <a href="{{ $listUrl }}">{{ __('quotations.title') }}</a>
+            @if ($backToOpportunity)
+                <a href="{{ $opportunityUrl }}">{{ __('quotations.detail.opportunity') }} {{ $opportunity->opportunity_id }}</a>
+            @else
+                <a href="{{ $listUrl }}">{{ __('quotations.title') }}</a>
+            @endif
             <x-icon name="chevron" />
             <span aria-current="page">{{ $quotation->quotation_id }}</span>
         </span>
@@ -87,21 +92,58 @@
         @endif
     </header>
 
-    {{-- ── Thanh thao tác (chỉ SP lập báo giá + báo giá Nháp). CHƯA có chức năng:
-         ở bước sau bỏ disabled và gắn wire:click="{{ action }}" theo $button['action'] ── --}}
+    {{-- Thông báo sau thao tác (lưu, từ chối, kết thúc cơ hội) --}}
+    @if ($notice)
+        <p @class(['qt-notice', 'qt-notice--'.$notice['tone']]) role="status">
+            <x-icon :name="$notice['tone'] === 'success' ? 'check-circle' : 'info'" />{{ $notice['text'] }}
+        </p>
+    @endif
+
+    {{-- ── Thanh thao tác (chỉ SP lập báo giá + báo giá Nháp): Sửa (HĐ10), Xuất PDF (HĐ7 – HĐ8),
+         Xác nhận (HĐ16 – HĐ17: tạo đơn hàng), Từ chối (HĐ12 – HĐ13) ── --}}
     @if ($this->actions !== [])
         <section class="qt-actions" aria-label="{{ __('quotations.detail.actions') }}">
             <div class="qt-actions__buttons">
                 @foreach ($this->actions as $button)
-                    <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" disabled
-                        title="{{ __('quotations.detail.coming_soon') }}" data-action="{{ $button['action'] }}">
-                        <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
-                    </button>
+                    @if (isset($button['url']))
+                        <a href="{{ $button['url'] }}" class="qt-btn qt-btn--{{ $button['tone'] }}">
+                            <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
+                        </a>
+                    @elseif (isset($button['disabled']))
+                        <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" disabled title="{{ $button['disabled'] }}">
+                            <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
+                        </button>
+                    @else
+                        <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" wire:click="{{ $button['action'] }}"
+                            wire:confirm="{{ $button['confirm'] }}" wire:loading.attr="disabled" wire:target="{{ $button['action'] }}">
+                            <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
+                        </button>
+                    @endif
                 @endforeach
             </div>
             @if ($isExpired)
                 <p class="qt-actions__warning"><x-icon name="alert" />{{ __('quotations.detail.expired_warning') }}</p>
+            @else
+                <p class="qt-actions__hint"><x-icon name="info" />{{ __('quotations.detail.confirm_hint') }}</p>
             @endif
+        </section>
+    @endif
+
+    {{-- ── HĐ14: báo giá đã bị từ chối – khách còn nhu cầu không? ── --}}
+    @if ($this->showFollowUp)
+        <section class="qt-actions qt-followup" aria-label="{{ __('quotations.detail.followup_title') }}">
+            <p class="qt-followup__title"><x-icon name="info" />{{ __('quotations.detail.followup_title') }}</p>
+            <div class="qt-actions__buttons">
+                @if ($this->canCreateNew)
+                    <a href="{{ route('salesperson.quotations.create', $quotation->opportunity_id) }}" class="qt-btn qt-btn--primary">
+                        <x-icon name="plus" />{{ __('quotations.detail.followup_new') }}
+                    </a>
+                @endif
+                <button type="button" class="qt-btn qt-btn--danger" wire:click="closeOpportunity"
+                    wire:confirm="{{ __('quotations.detail.followup_close_confirm') }}" wire:loading.attr="disabled" wire:target="closeOpportunity">
+                    <x-icon name="x" />{{ __('quotations.detail.followup_close') }}
+                </button>
+            </div>
         </section>
     @endif
 
@@ -309,9 +351,23 @@
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.invoices') }}</dt>
-                            <dd>{{ $invoiceCount }}</dd>
+                            <dd>
+                                @if ($invoiceCount > 0 && Route::has($prefix.'.invoices'))
+                                    <a href="{{ route($prefix.'.invoices', ['q' => $order->order_id]) }}">{{ $invoiceCount }}</a>
+                                @else
+                                    {{ $invoiceCount }}
+                                @endif
+                            </dd>
                         </div>
                     </dl>
+                    {{-- HĐ18: SP lập báo giá tạo hóa đơn từ đơn còn nợ (InvoiceService::blockerFor) --}}
+                    @if ($this->canCreateInvoice)
+                        <div class="qt-order-actions">
+                            <a href="{{ route('salesperson.invoices.create', $order) }}" class="qt-btn qt-btn--primary">
+                                <x-icon name="plus" />{{ $invoiceCount > 0 ? __('quotations.detail.create_next_invoice') : __('quotations.detail.create_invoice') }}
+                            </a>
+                        </div>
+                    @endif
                 </section>
             @endif
         </div>

@@ -33,13 +33,18 @@
         <x-language-switcher />
 
         {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai (App\Services\AppointmentReminders)
+             + báo giá Nháp sắp hết hạn / quá hạn chờ khách phản hồi (App\Services\QuotationReminders), xếp theo thời điểm
              Sale Leader: Lead Sale Admin vừa phân cho đội, chờ phân cho Salesperson (App\Services\LeadAssignmentNotices) --}}
         @php
             $employee = auth()->user()?->employee;
             $bell = match ($employee?->role_name) {
                 \App\Models\Role::SALESPERSON => [
-                    'items'    => \App\Services\AppointmentReminders::for($employee),
-                    'subtitle' => __('appointments.reminder_header'),
+                    'items'    => \App\Services\InvoiceNotices::for($employee)->sortByDesc('at')
+                        ->concat(\App\Services\AppointmentReminders::for($employee)
+                            ->concat(\App\Services\QuotationReminders::for($employee))
+                            ->sortBy('at'))
+                        ->values(),
+                    'subtitle' => __('quotations.reminder.header'),
                     'footer'   => ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')],
                 ],
                 \App\Models\Role::SALE_LEADER => [
@@ -48,6 +53,12 @@
                     'footer'   => $leadNotices->isNotEmpty()
                         ? ['url' => route('sale_leader.leads', ['distribute' => 1]), 'label' => __('leads.notice.action')]
                         : null,
+                ],
+                // Kế toán: hóa đơn tiền mặt chờ duyệt + hóa đơn vừa thanh toán (App\Services\InvoiceNotices)
+                \App\Models\Role::ACCOUNTANT => [
+                    'items'    => \App\Services\InvoiceNotices::for($employee),
+                    'subtitle' => __('invoices.notice.header', ['count' => \App\Services\InvoiceNotices::cashQueueCount()]),
+                    'footer'   => ['url' => route('accountant.invoices', ['cash_pending' => 1]), 'label' => __('invoices.notice.view_queue')],
                 ],
                 default => ['items' => collect(), 'subtitle' => null, 'footer' => null],
             };

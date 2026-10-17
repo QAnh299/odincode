@@ -6,6 +6,7 @@ use App\Livewire\Director\Home;
 use App\Livewire\Employees\Index as EmployeeIndex;
 use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Invoices\Index as InvoiceIndex;
+use App\Livewire\Invoices\Show as InvoiceShow;
 use App\Livewire\Leads\Index as LeadIndex;
 use App\Livewire\Opportunities\Kanban as OpportunityKanban;
 use App\Livewire\Opportunities\Show as OpportunityShow;
@@ -50,6 +51,7 @@ Route::get('/orders', OrderIndex::class)->name('orders');
 
 // Hóa đơn - danh sách + tra cứu (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
+Route::get('/invoices/{invoice}', InvoiceShow::class)->name('invoices.show');
 
 // Voucher (dùng chung với các vai trò khác, trừ Kế toán)
 Route::get('/vouchers', VoucherIndex::class)->name('vouchers');

@@ -2,6 +2,7 @@
 
 use App\Livewire\Accountant\Home;
 use App\Livewire\Invoices\Index as InvoiceIndex;
+use App\Livewire\Invoices\Show as InvoiceShow;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
@@ -22,6 +23,7 @@ Route::get('/orders', OrderIndex::class)->name('orders');
 
 // Hóa đơn - danh sách + tra cứu (chỉ xem; kế toán xem tất cả hóa đơn)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
+Route::get('/invoices/{invoice}', InvoiceShow::class)->name('invoices.show');
 
 // Học viên - danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
 // Sale Leader, Salesperson được chỉnh sửa)

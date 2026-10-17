@@ -8,7 +8,9 @@ use App\Models\CareResult;
 use App\Models\Employee;
 use App\Models\Opportunity;
 use App\Models\Role;
+use App\Models\Quotation;
 use App\Models\Stage;
+use App\Services\QuotationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -390,18 +392,38 @@ class Show extends Component
     // ── Tạo báo giá ───────────────────────────────────────────────────
 
     /**
-     * Khách đồng ý đăng ký: chuyển sang stage Chốt để lập báo giá.
+     * Khách đồng ý đăng ký: chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1 → HĐ2).
      */
-    public function createQuotation(): void
+    public function createQuotation()
     {
         abort_unless($this->canCreateQuotation(), 403);
 
         $this->opportunity->moveToStage(Stage::CLOSED, 'Khách đồng ý đăng ký - lập báo giá.');
-        $this->refreshStage();
 
-        $this->closeForm();
-        $this->notice = ['tone' => 'success', 'text' => __('opportunities.quote_stage_moved', ['stage' => $this->opportunity->stage->stage_name])];
-        $this->refreshAppointments();
+        return $this->redirectRoute('salesperson.quotations.create', $this->opportunity, navigate: false);
+    }
+
+    /**
+     * Nút "Lập báo giá" ở stage Chốt: salesperson phụ trách, đủ điều kiện HĐ2
+     * (Chốt; InProgress hoặc Won; không còn báo giá Nháp) - QuotationService::blockerFor().
+     */
+    public function canStartQuotation(): bool
+    {
+        return $this->isOwner()
+            && $this->opportunity->stage_id === Stage::CLOSED
+            && app(QuotationService::class)->blockerFor($this->opportunity, Auth::user()->employee) === null;
+    }
+
+    /**
+     * Nhãn "Phân vân · còn N ngày" (HĐ11): số ngày còn lại của báo giá Nháp chưa hết hạn; không có thì null.
+     * Chỉ là nhãn tính ra, không phải trạng thái cơ hội.
+     */
+    #[Computed]
+    public function undecidedDays(): ?int
+    {
+        $draft = $this->quotations->first(fn ($q) => $q->status === Quotation::STATUS_DRAFT && ! $q->isExpired());
+
+        return $draft?->daysUntilExpiry();
     }
 
     // ── Cập nhật kết quả lịch hẹn ─────────────────────────────────────
@@ -920,9 +942,11 @@ class Show extends Component
     #[Computed]
     public function quotations(): Collection
     {
+        // withTotal(): cột computed_total = tạm tính − voucher, cùng công thức với trang chi tiết báo giá
         return $this->opportunity->quotations()
-            ->withSum('details as total', 'line_total')
+            ->withTotal()
             ->orderByDesc('created_at')
+            ->orderByDesc('quotation_id')
             ->get();
     }
 

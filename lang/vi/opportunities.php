@@ -61,6 +61,7 @@ return [
     'detail_title'       => 'Opportunity :code',
     'back'               => 'Quay lại Kanban',
     'create_quotation'   => 'Tạo báo giá',
+    'undecided'          => 'Phân vân · còn :days ngày',
     'stage'              => 'Giai đoạn',
     'customer'           => 'Thông tin khách hàng',
     'email'              => 'Email',
@@ -153,7 +154,8 @@ return [
     'expiry_date'          => 'Hiệu lực đến',
     'voucher'              => 'Voucher',
     'quotation_total'      => 'Tổng tiền',
-    'total_hint'           => 'Tổng tiền là tổng các dòng khóa học (đã gồm VAT), chưa trừ voucher.',
+    'total_hint'           => 'Tổng tiền = tổng các dòng khóa học (đã gồm VAT) trừ giảm giá voucher. Bấm vào một báo giá để xem chi tiết.',
+    'view_quotation'       => 'Xem chi tiết báo giá',
 
     'student_status' => [
         'Studying'  => 'Đang học',

@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BankWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Tất cả route trong file này có tiền tố /api
 
 // ── Auth ──────────────────────────────────────────────────────────────
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+
+// ── Webhook giao dịch chuyển khoản từ ngân hàng / cổng QR (HĐ29) - xác thực bằng X-Webhook-Secret ──
+Route::post('/payments/bank-webhook', BankWebhookController::class)->middleware('throttle:60,1')->name('api.payments.bank-webhook');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

@@ -115,6 +115,13 @@
                                 </span>
                             @endif
 
+                            {{-- HĐ11: báo giá Nháp còn hạn đang chờ khách phản hồi (nhãn tính ra, không phải trạng thái cơ hội) --}}
+                            @if ($opp->draft_expiry)
+                                <span class="vc-badge od-undecided">
+                                    <x-icon name="hourglass" />{{ __('opportunities.undecided', ['days' => (int) today()->diffInDays(\Illuminate\Support\Carbon::parse($opp->draft_expiry), false)]) }}
+                                </span>
+                            @endif
+
                             {{-- Giá trị dự kiến: chỉ hiện khi đã có --}}
                             @if ($value = $opp->displayValue())
                                 <span class="ok-card__value">{{ $value }}</span>

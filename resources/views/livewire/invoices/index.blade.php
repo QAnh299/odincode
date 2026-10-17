@@ -357,18 +357,18 @@
                                 $daysLeft = $isPaid ? null : $invoice->daysUntilDue();
                                 $order = $invoice->order;
                                 $lead = $order?->quotation?->opportunity?->lead;
+                                $url = route($this->routePrefix.'.invoices.show', $invoice);
                             @endphp
-                            {{-- Chưa có trang chi tiết hóa đơn: khi có route {vai trò}.invoices.show thì gắn link vào mã hóa đơn
-                                 và cho bấm cả dòng (giống danh sách báo giá) --}}
-                            <tr wire:key="invoice-{{ $invoice->invoice_id }}">
+                            {{-- Bấm cả dòng mở chi tiết hóa đơn (giống danh sách báo giá); dùng bàn phím: Tab tới mã hóa đơn rồi Enter --}}
+                            <tr wire:key="invoice-{{ $invoice->invoice_id }}" class="iv-row-link" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('invoices.code') }}">
-                                    <span class="iv-code">
+                                    <a href="{{ $url }}" class="iv-code" onclick="event.stopPropagation()">
                                         <span class="iv-code__icon"><x-icon name="file" /></span>
                                         <span class="iv-stack">
                                             <span class="iv-code__id">{{ $this->highlight($invoice->invoice_id) }}</span>
                                             <span class="iv-stack__sub">{{ __('invoices.installment', ['number' => $invoice->payment_installment]) }}</span>
                                         </span>
-                                    </span>
+                                    </a>
                                 </td>
                                 <td data-label="{{ __('invoices.customer') }}">
                                     <span class="iv-stack">

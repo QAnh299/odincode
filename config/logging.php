@@ -73,6 +73,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Giao dịch thanh toán (chuyển khoản khớp / không khớp, lỗi gửi email hóa đơn) - CSDL chưa có bảng giao dịch
+        'payments' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/payments.log'),
+            'level' => 'info',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

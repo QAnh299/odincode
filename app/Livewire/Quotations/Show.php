@@ -2,27 +2,40 @@
 
 namespace App\Livewire\Quotations;
 
+use App\Models\Opportunity;
 use App\Models\Quotation;
 use App\Models\Role;
+use App\Services\InvoiceService;
+use App\Services\QuotationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Chi tiết một báo giá (chỉ xem): thông tin chung, khách hàng, cơ hội, khóa học, tổng tiền,
+ * Chi tiết một báo giá: thông tin chung, khách hàng, cơ hội, khóa học, tổng tiền,
  * voucher, đơn hàng và tiến trình Báo giá → Đơn hàng → Hóa đơn → Thanh toán.
  * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán (Kế toán chỉ xem).
  *
  * Phạm vi xem theo Quotation::visibleTo(): ngoài phạm vi hoặc không tồn tại → 404 (giống Opportunities\Show).
- * Thanh thao tác (Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối - HĐ7, HĐ10, HĐ12, HĐ16) chỉ hiện với
- * Salesperson lập báo giá và báo giá còn Nháp; các nút CHƯA có chức năng (làm ở bước sau).
+ * Thanh thao tác chỉ hiện với Salesperson lập báo giá và báo giá còn Nháp:
+ *   - Chỉnh sửa (HĐ10) → trang sửa; Xuất PDF (HĐ7 – HĐ8) → tải file; Từ chối (HĐ12 – HĐ13).
+ *   - Xác nhận (HĐ16 – HĐ17): một giao dịch gồm báo giá → Đã xác nhận + tạo đơn hàng (hình thức chưa xác định).
+ * Sau khi từ chối: hỏi khách còn nhu cầu không (HĐ14) – lập báo giá mới, hoặc kết thúc cơ hội (Lost / giữ Won).
  */
 #[Layout('layouts.app')]
 class Show extends Component
 {
     public Quotation $quotation;
+
+    // Thông báo sau thao tác: ['tone' => success|info, 'text' => ...]
+    public ?array $notice = null;
+
+    // Mở từ trang chi tiết cơ hội (?from=opportunity): nút "Quay lại" trở về cơ hội thay vì danh sách báo giá
+    #[Locked]
+    public bool $fromOpportunity = false;
 
     public function mount(Quotation $quotation): void
     {
@@ -31,18 +44,13 @@ class Show extends Component
             404
         );
 
-        // Nạp sẵn mọi quan hệ cần hiển thị (tránh N+1); tạm tính nạp bằng loadSum để subtotal() không truy vấn lại
-        $this->quotation = $quotation
-            ->load([
-                'details' => fn ($q) => $q->orderBy('course_id'),
-                'details.course',
-                'voucher',
-                'order.invoices',
-                'employee.team',
-                'opportunity.lead',
-                'opportunity.stage',
-            ])
-            ->loadSum('details as details_subtotal', 'line_total');
+        $this->fromOpportunity = request()->query('from') === 'opportunity';
+
+        if ($text = session('quotation_notice')) {
+            $this->notice = ['tone' => 'success', 'text' => $text];
+        }
+
+        $this->loadQuotation($quotation);
     }
 
     /**
@@ -61,17 +69,14 @@ class Show extends Component
     #[Computed]
     public function canAct(): bool
     {
-        return $this->routePrefix === Role::SALESPERSON
-            && $this->quotation->employee_id === Auth::user()->employee?->employee_id
-            && $this->quotation->status === Quotation::STATUS_DRAFT;
+        return $this->isAuthor() && $this->quotation->status === Quotation::STATUS_DRAFT;
     }
 
     /**
      * Nút trên thanh thao tác theo quy trình. Draft còn hạn: đủ 4 nút; Draft quá hạn: chỉ Từ chối
-     * (HĐ8 và HĐ17 yêu cầu chưa hết hạn).
-     * 'action' là tên hàm Livewire sẽ gắn wire:click ở bước sau (hiện các nút đều disabled).
+     * (HĐ8 và HĐ17 yêu cầu chưa hết hạn). 'url' = link, 'action' = hàm Livewire, 'disabled' = lý do khóa.
      *
-     * @return array<int, array{key: string, icon: string, action: string, tone: string}>
+     * @return array<int, array{key: string, icon: string, tone: string, url?: string, action?: string, confirm?: string, disabled?: string}>
      */
     #[Computed]
     public function actions(): array
@@ -80,11 +85,13 @@ class Show extends Component
             return [];
         }
 
+        $code = $this->quotation->quotation_id;
+
         $all = [
-            ['key' => 'edit', 'icon' => 'edit', 'action' => 'edit', 'tone' => 'ghost'],              // HĐ10
-            ['key' => 'export_pdf', 'icon' => 'file', 'action' => 'exportPdf', 'tone' => 'ghost'],  // HĐ7 - HĐ8
-            ['key' => 'confirm', 'icon' => 'check-circle', 'action' => 'confirm', 'tone' => 'primary'], // HĐ16 - HĐ17
-            ['key' => 'reject', 'icon' => 'x', 'action' => 'reject', 'tone' => 'danger'],           // HĐ12 - HĐ13
+            ['key' => 'edit', 'icon' => 'edit', 'tone' => 'ghost', 'url' => route('salesperson.quotations.edit', $code)],       // HĐ10
+            ['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)],  // HĐ7 - HĐ8
+            ['key' => 'confirm', 'icon' => 'check-circle', 'tone' => 'primary', 'action' => 'confirm', 'confirm' => __('quotations.detail.confirm_confirm', ['code' => $code])], // HĐ16 - HĐ17
+            ['key' => 'reject', 'icon' => 'x', 'tone' => 'danger', 'action' => 'reject', 'confirm' => __('quotations.detail.reject_confirm', ['code' => $code])], // HĐ12 - HĐ13
         ];
 
         return $this->quotation->isExpired()
@@ -92,9 +99,130 @@ class Show extends Component
             : $all;
     }
 
+    /**
+     * HĐ14: hiện câu hỏi "khách còn nhu cầu?" khi Salesperson lập báo giá vừa bị từ chối, cơ hội vẫn đang xử lý
+     * ở stage Chốt, không còn báo giá Nháp và đây là báo giá mới nhất của cơ hội.
+     */
+    #[Computed]
+    public function showFollowUp(): bool
+    {
+        $opportunity = $this->quotation->opportunity;
+
+        return $this->isAuthor()
+            && $this->quotation->status === Quotation::STATUS_REJECTED
+            && $opportunity?->status === Opportunity::STATUS_IN_PROGRESS
+            && ! $opportunity->quotations()->where('status', Quotation::STATUS_DRAFT)->exists()
+            && $opportunity->quotations()->latest('created_at')->latest('quotation_id')->value('quotation_id') === $this->quotation->quotation_id;
+    }
+
+    /**
+     * Còn lập được báo giá mới cho cơ hội này không (điều kiện HĐ2).
+     */
+    #[Computed]
+    public function canCreateNew(): bool
+    {
+        $opportunity = $this->quotation->opportunity;
+
+        return $opportunity !== null
+            && app(QuotationService::class)->blockerFor($opportunity, Auth::user()->employee) === null;
+    }
+
+    /**
+     * HĐ18: nút "Tạo hóa đơn" ở khối Đơn hàng – Salesperson lập báo giá, đơn còn phần nợ chưa lập hóa đơn
+     * (gồm cả trường hợp khách thiếu email: biểu mẫu hóa đơn cho bổ sung ngay – HĐ20).
+     */
+    #[Computed]
+    public function canCreateInvoice(): bool
+    {
+        $order = $this->quotation->order;
+
+        return $order !== null
+            && in_array(app(InvoiceService::class)->blockerFor($order, Auth::user()->employee), [null, 'missing_profile'], true);
+    }
+
+    /**
+     * HĐ16 → HĐ17: Salesperson xác nhận báo giá khi khách đồng ý. Không đạt điều kiện thì báo lý do, không đổi gì;
+     * đạt thì một giao dịch: báo giá → Đã xác nhận + tạo đơn hàng, rồi gợi ý tạo hóa đơn (HĐ18).
+     */
+    public function confirm(QuotationService $service): void
+    {
+        abort_unless($this->canAct, 403);
+
+        if ($reason = $service->confirmBlocker($this->quotation, Auth::user()->employee)) {
+            $this->notice = ['tone' => 'danger', 'text' => __('quotations.detail.confirm_blocked.'.$reason)];
+
+            return;
+        }
+
+        $order = $service->confirm($this->quotation, Auth::user()->employee);
+
+        $this->reloadQuotation();
+        unset($this->canCreateInvoice);
+        $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.confirmed_done', ['code' => $this->quotation->quotation_id, 'order' => $order->order_id])];
+    }
+
+    /**
+     * HĐ12 → HĐ13: Salesperson từ chối báo giá Nháp; cơ hội giữ nguyên, chuyển sang câu hỏi HĐ14.
+     */
+    public function reject(QuotationService $service): void
+    {
+        abort_unless($this->canAct, 403);
+
+        $service->reject($this->quotation, Auth::user()->employee);
+
+        $this->reloadQuotation();
+        $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.rejected_done', ['code' => $this->quotation->quotation_id])];
+    }
+
+    /**
+     * HĐ14 – khách không còn nhu cầu: cơ hội đang xử lý → Lost; đã Won → giữ Won.
+     */
+    public function closeOpportunity(QuotationService $service): void
+    {
+        abort_unless($this->showFollowUp, 403);
+
+        $closed = $service->closeOpportunity(
+            $this->quotation->opportunity,
+            __('quotations.detail.close_reason', ['code' => $this->quotation->quotation_id], 'vi')
+        );
+
+        $this->reloadQuotation();
+        $this->notice = ['tone' => 'info', 'text' => __($closed ? 'quotations.detail.opportunity_lost' : 'quotations.detail.opportunity_kept')];
+    }
+
     public function render()
     {
         return view('livewire.quotations.show')
             ->title(__('quotations.detail_title', ['code' => $this->quotation->quotation_id]));
+    }
+
+    private function isAuthor(): bool
+    {
+        return $this->routePrefix === Role::SALESPERSON
+            && $this->quotation->employee_id === Auth::user()->employee?->employee_id;
+    }
+
+    private function reloadQuotation(): void
+    {
+        $this->loadQuotation($this->quotation->fresh());
+        unset($this->canAct, $this->actions, $this->showFollowUp, $this->canCreateNew);
+    }
+
+    /**
+     * Nạp sẵn mọi quan hệ cần hiển thị (tránh N+1); tạm tính nạp bằng loadSum để subtotal() không truy vấn lại.
+     */
+    private function loadQuotation(Quotation $quotation): void
+    {
+        $this->quotation = $quotation
+            ->load([
+                'details' => fn ($q) => $q->orderBy('course_id'),
+                'details.course',
+                'voucher',
+                'order.invoices',
+                'employee.team',
+                'opportunity.lead',
+                'opportunity.stage',
+            ])
+            ->loadSum('details as details_subtotal', 'line_total');
     }
 }

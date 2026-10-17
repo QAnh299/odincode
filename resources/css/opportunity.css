@@ -1013,3 +1013,53 @@
     font-weight: 500;
     font-size: 0.85rem;
 }
+
+/* Nhãn "Phân vân · còn N ngày" (HĐ11, tính ra từ báo giá Nháp còn hạn) + link mã báo giá */
+.od-undecided {
+    gap: 0.3rem;
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.od-undecided .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.od-link {
+    color: var(--vc-primary);
+    text-decoration: none;
+}
+
+.od-link:hover {
+    text-decoration: underline;
+}
+
+/* Bảng báo giá trong cơ hội: bấm cả dòng mở chi tiết báo giá; số ngày còn lại của báo giá Nháp */
+.vc-table tbody tr.od-row-link {
+    cursor: pointer;
+}
+
+.vc-table tbody tr.od-row-link:hover {
+    background: color-mix(in srgb, var(--vc-primary) 6%, #fff);
+}
+
+.od-row-link:hover .od-link {
+    text-decoration: underline;
+}
+
+.od-quo-expiry {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.od-quo-days {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.od-quo-days.is-over {
+    color: #b91c1c;
+}

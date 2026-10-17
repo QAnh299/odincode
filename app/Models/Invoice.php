@@ -88,6 +88,22 @@ class Invoice extends Model
     }
 
     /**
+     * Ảnh QR chuyển khoản theo chuẩn VietQR (HĐ27): tài khoản nhận cấu hình ở services.vietqr,
+     * đúng số tiền, nội dung = mã hóa đơn (để hệ thống so khớp giao dịch ở HĐ29).
+     */
+    public function qrUrl(): string
+    {
+        $config = config('services.vietqr');
+
+        return sprintf('https://img.vietqr.io/image/%s-%s-%s.png', $config['bank_id'], $config['account_no'], $config['template'])
+            .'?'.http_build_query([
+                'amount'      => (int) round((float) $this->payment_amount),
+                'addInfo'     => $this->invoice_id,
+                'accountName' => $config['account_name'],
+            ]);
+    }
+
+    /**
      * Hóa đơn chưa thanh toán đã trễ hạn: trạng thái Overdue, hoặc Unpaid mà hạn đã qua
      * (nhãn tính ra, không đổi dữ liệu; chưa có bước nào chuyển Unpaid → Overdue).
      */

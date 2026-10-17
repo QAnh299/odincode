@@ -4,6 +4,7 @@ namespace App\Livewire\Opportunities;
 
 use App\Models\Employee;
 use App\Models\Opportunity;
+use App\Models\Quotation;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Models\Stage;
@@ -196,6 +197,10 @@ class Kanban extends Component
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
             ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
+            // Nhãn "Phân vân · còn N ngày" (HĐ11): hạn của báo giá Nháp còn hạn, nạp sẵn trong cùng truy vấn
+            ->withMin(['quotations as draft_expiry' => fn ($q) => $q
+                ->where('status', Quotation::STATUS_DRAFT)
+                ->whereDate('expiry_date', '>=', today()->toDateString())], 'expiry_date')
             ->orderByDesc('conversion_date')
             ->get();
 
