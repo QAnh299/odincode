@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ExportPeriod;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\SalesTeam;
+use App\Services\ReportDocumentWriter;
 use App\Services\SalesPerformanceReport;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -29,6 +31,8 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class SalesPerformance extends Component
 {
+    use ExportPeriod;
+
     // Màu cố định theo chỉ số (bảng màu chung của trang báo cáo)
     const COLORS = [
         'assigned'             => '#2a78d6',
@@ -247,7 +251,11 @@ class SalesPerformance extends Component
     #[Computed]
     public function byEmployee(): array
     {
-        $filters = $this->filterValues($this->activeMonth);
+        return $this->employeeRows($this->filterValues($this->activeMonth));
+    }
+
+    protected function employeeRows(array $filters): array
+    {
         $rows = $this->report()->aggregate($filters, 'employee');
 
         if (! $filters['employee']) {
@@ -284,12 +292,20 @@ class SalesPerformance extends Component
     #[Computed]
     public function byTeam(): array
     {
+        return $this->teamRows($this->filterValues($this->activeMonth), $this->byEmployee, $this->targets);
+    }
+
+    /**
+     * $people = dòng salesperson cùng kỳ (đếm số thành viên), $targets = chỉ tiêu cùng kỳ theo đội.
+     */
+    protected function teamRows(array $filters, array $people, array $targets): array
+    {
         if ($this->employee !== '' || $this->scopeTeams->isEmpty()) {
             return [];
         }
 
-        $data = $this->report()->aggregate($this->filterValues($this->activeMonth), 'team');
-        $members = collect($this->byEmployee)->groupBy('team_id');
+        $data = $this->report()->aggregate($filters, 'team');
+        $members = collect($people)->groupBy('team_id');
 
         $rows = [];
         foreach ($this->scopeTeams as $team) {
@@ -297,7 +313,7 @@ class SalesPerformance extends Component
             $row['id'] = $team->team_id;
             $row['name'] = $team->team_name;
             $row['members'] = count($members[$team->team_id] ?? []);
-            $row['target'] = $this->targets[$team->team_id] ?? [];
+            $row['target'] = $targets[$team->team_id] ?? [];
             foreach (SalesPerformanceReport::TARGETS as $metric) {
                 $goal = $row['target'][$metric] ?? null;
                 $row['attain'][$metric] = $goal ? round($row[$metric] * 100 / $goal, 1) : null;
@@ -328,13 +344,30 @@ class SalesPerformance extends Component
     #[Computed]
     public function trend(): array
     {
-        $end = CarbonImmutable::parse($this->activeMonth.'-01');
+        return $this->trendRows($this->trailingMonths($this->activeMonth));
+    }
+
+    /**
+     * TREND_MONTHS tháng liên tiếp kết thúc ở $month.
+     */
+    protected function trailingMonths(string $month): array
+    {
+        $end = CarbonImmutable::parse($month.'-01');
         $months = [];
         for ($i = self::TREND_MONTHS - 1; $i >= 0; $i--) {
             $months[] = $end->subMonths($i)->format('Y-m');
         }
 
-        $filters = ['from' => $months[0].'-01', 'to' => $end->endOfMonth()->toDateString()] + $this->filterValues($this->activeMonth);
+        return $months;
+    }
+
+    /**
+     * Chỉ số từng tháng (Y-m liên tiếp) kèm tổng chỉ tiêu doanh thu của các đội đang xem.
+     */
+    protected function trendRows(array $months): array
+    {
+        $end = CarbonImmutable::parse(end($months).'-01');
+        $filters = $this->filterRange($months[0].'-01', $end->endOfMonth()->toDateString());
         $data = $this->report()->aggregate($filters, 'month');
 
         return array_map(fn ($m) => ($data[$m] ?? $this->report()->derive([])) + [
@@ -393,6 +426,165 @@ class SalesPerformance extends Component
         $charts['trend_revenue'] = ['type' => 'bar', 'unit' => 'money', 'labels' => $months, 'series' => $revenueSeries];
 
         return $charts;
+    }
+
+    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+
+    /**
+     * Xuất Excel: Giám đốc, Sale Admin.
+     */
+    #[Computed]
+    public function canExport(): bool
+    {
+        return $this->canFilterTeam;
+    }
+
+    /**
+     * Báo cáo tổng hợp của kỳ chọn trong popup (tháng / quý / kỳ lũy kế / năm), đội và salesperson theo bộ lọc:
+     * Sales Team so với chỉ tiêu cộng dồn của kỳ, salesperson theo từng đội, kết quả từng tháng của kỳ
+     * (xuất 1 tháng thì là xu hướng 6 tháng tính đến tháng đó).
+     */
+    public function export(ReportDocumentWriter $writer)
+    {
+        abort_unless($this->canExport, 403);
+
+        $period = $this->exportPeriod();
+        if (! $period) {
+            return null;
+        }
+
+        $filters = $this->filterRange($period['from']->toDateString(), $period['to']->toDateString());
+        $c = fn ($key, $replace = []) => __('reports.sales_performance.export.'.$key, $replace);
+        $m = fn ($key) => __('reports.sales_performance.metric.'.$key);
+        $employee = $this->employeeOptions->firstWhere('employee_id', $filters['employee']);
+        $scope = [$period['range'], $c('scope_team').': '.($this->teamScope ? $this->scopeTeams->first()->team_name : __('reports.sales_performance.all_teams'))
+            .($employee ? ' · '.$c('scope_employee').': '.$employee->full_name : '')];
+        $notes = array_values(array_diff_key(__('reports.sales_performance.method'), array_flip(['title', 'compare'])));
+        $attain = fn ($value, $goal) => $goal ? round($value * 100 / $goal, 1) : null;
+        $sheets = [];
+
+        // Sheet 1: Sales Team so với chỉ tiêu (không có khi đang lọc 1 salesperson)
+        $people = $this->employeeRows($filters);
+        $teams = $this->teamRows($filters, $people, $this->employee !== '' ? [] : $this->targetsForMonths($period['months']));
+        if ($teams) {
+            $target = fn (array $r, string $k) => $r['target'][$k] ?? null;
+            $teamCells = fn (array $r, $rank) => [$r['members'], $r['assigned'], $target($r, 'assigned'), $attain($r['assigned'], $target($r, 'assigned')),
+                $r['won'], $r['close_rate'], $r['students'], $target($r, 'students'), $attain($r['students'], $target($r, 'students')),
+                $r['revenue'], $target($r, 'revenue'), $attain($r['revenue'], $target($r, 'revenue')), $r['paid'], $rank];
+
+            $sum = $this->report()->combine($teams) + ['members' => array_sum(array_column($teams, 'members'))];
+            foreach (SalesPerformanceReport::TARGETS as $metric) {
+                $goals = array_filter(array_map(fn ($t) => $t['target'][$metric] ?? null, $teams), fn ($v) => $v !== null);
+                $sum['target'][$metric] = $goals ? array_sum($goals) : null;
+            }
+
+            $rows = [['total', array_merge(['', $c('total')], $teamCells($sum, null))]];
+            foreach ($teams as $n => $r) {
+                $rows[] = ['item', array_merge([$n + 1, $r['name']], $teamCells($r, $r['rank']))];
+            }
+
+            $sheets[] = [
+                'name'    => $c('sheet_team'),
+                'title'   => $c('title_team'),
+                'period'  => $period['label'],
+                'scope'   => $scope,
+                'unit'    => $c('unit'),
+                'columns' => [[$c('stt'), 'stt'], [$c('team'), 'label'], [__('reports.sales_performance.members'), 'int'],
+                    [$m('assigned'), 'int'], [$c('target_assigned'), 'int'], [$c('attain'), 'percent'],
+                    [$m('won'), 'int'], [$m('close_rate'), 'percent'],
+                    [$c('students'), 'int'], [$c('target_students'), 'int'], [$c('attain'), 'percent'],
+                    [$m('revenue'), 'money'], [$c('target_revenue'), 'money'], [$c('attain'), 'percent'],
+                    [$m('paid'), 'money'], [__('reports.sales_performance.rank'), 'int']],
+                'rows'    => $rows,
+                'notes'   => array_merge([$c('note_team_rank')], $notes),
+            ];
+        }
+
+        // Sheet 2: salesperson nhóm theo đội (dòng đội = cộng các thành viên)
+        $personCells = fn (array $r) => [$r['assigned'], $r['processed_rate'], $r['moved_rate'], $r['won'], $r['lost'], $r['close_rate'],
+            $r['students'], $r['revenue'], $r['paid'], $r['avg_response_hours'], $r['avg_close_days'],
+            $r['contacts'], $r['contact_success_rate'], $r['unreachable'], $r['backward'], $r['rank'] ?? null];
+
+        $groups = collect($people)->groupBy('team_id');
+        $order = $teams ? array_column($teams, 'id') : $this->scopeTeams->pluck('team_id')->all();
+        $order = array_merge(array_values(array_intersect($order, $groups->keys()->all())),
+            array_values(array_diff($groups->keys()->all(), $order)));
+
+        $rows = [['total', array_merge(['', $c('total')], array_slice($personCells($this->report()->combine($people)), 0, -1), [null])]];
+        foreach ($order as $i => $teamId) {
+            $members = $groups[$teamId]->all();
+            $name = $members[0]['team'] ?? $c('no_team');
+            $rows[] = ['group', array_merge([$this->roman($i + 1), $name], array_slice($personCells($this->report()->combine($members)), 0, -1), [null])];
+            foreach ($members as $n => $r) {
+                $rows[] = ['item', array_merge([$n + 1, $r['name']], $personCells($r))];
+            }
+        }
+
+        $sheets[] = [
+            'name'    => $c('sheet_employee'),
+            'title'   => $c('title_employee'),
+            'period'  => $period['label'],
+            'scope'   => $scope,
+            'unit'    => $c('unit'),
+            'columns' => [[$c('stt'), 'stt'], [$c('employee'), 'label'],
+                [$m('assigned'), 'int'], [$m('processed_rate'), 'percent'], [$m('moved_rate'), 'percent'],
+                [$m('won'), 'int'], [$c('lost'), 'int'], [$m('close_rate'), 'percent'], [$c('students'), 'int'],
+                [$m('revenue'), 'money'], [$m('paid'), 'money'], [$c('response_hours'), 'decimal'], [$c('close_days'), 'decimal'],
+                [$m('contacts'), 'int'], [$m('contact_success_rate'), 'percent'], [$m('unreachable'), 'int'], [$m('backward'), 'int'],
+                [__('reports.sales_performance.rank'), 'int']],
+            'rows'    => $rows,
+            'notes'   => array_merge([$c('note_employee_rank', ['metric' => mb_strtolower($m($this->activeSort()))])], $notes),
+        ];
+
+        // Sheet 3: từng tháng của kỳ; kỳ 1 tháng thì xu hướng 6 tháng
+        $single = count($period['months']) === 1;
+        $trend = $this->trendRows($single ? $this->trailingMonths($period['months'][0]) : $period['months']);
+        $trendCells = fn (array $r, $goal) => [$r['assigned'], $r['processed'], $r['won'], $r['close_rate'], $r['students'],
+            $r['revenue'], $goal ?: null, $attain($r['revenue'], $goal), $r['paid']];
+        $goalSum = array_sum(array_column($trend, 'target'));
+        $rows = [['total', array_merge(['', $c('total')], $trendCells($this->report()->combine($trend), $goalSum))]];
+        foreach ($trend as $n => $r) {
+            $rows[] = ['item', array_merge([$n + 1, $c('month', ['month' => $this->monthLabel($r['month'])])], $trendCells($r, $r['target']))];
+        }
+        $sheets[] = [
+            'name'    => $c($single ? 'sheet_trend' : 'sheet_months'),
+            'title'   => $c($single ? 'title_trend' : 'title_months'),
+            'period'  => $single ? $c('period_trend', ['from' => $this->monthLabel($trend[0]['month']), 'to' => $this->monthLabel(end($trend)['month'])]) : $period['label'],
+            'scope'   => $scope,
+            'unit'    => $c('unit'),
+            'columns' => [[$c('stt'), 'stt'], [$c('month_col'), 'label'],
+                [$m('assigned'), 'int'], [$m('processed'), 'int'], [$m('won'), 'int'], [$m('close_rate'), 'percent'], [$c('students'), 'int'],
+                [$m('revenue'), 'money'], [$c('target_revenue'), 'money'], [$c('attain'), 'percent'], [$m('paid'), 'money']],
+            'rows'    => $rows,
+        ];
+
+        $path = $writer->write($writer->document($sheets));
+
+        $this->exportOpen = false;
+
+        return response()->download($path, 'bao-cao-hieu-qua-sales-'.$period['slug'].'.xlsx')->deleteFileAfterSend();
+    }
+
+    /**
+     * Năm chọn được trong popup xuất: các năm có trong danh sách tháng đánh giá.
+     */
+    public function exportYears(): array
+    {
+        return array_values(array_unique(array_map(fn ($m) => (int) substr($m, 0, 4), $this->months)));
+    }
+
+    protected function roman(int $number): string
+    {
+        $map = ['X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1];
+        $text = '';
+        foreach ($map as $symbol => $value) {
+            while ($number >= $value) {
+                $text .= $symbol;
+                $number -= $value;
+            }
+        }
+
+        return $text;
     }
 
     /* ── Hỗ trợ ───────────────────────────────────────────────────────── */
@@ -485,6 +677,23 @@ class SalesPerformance extends Component
         return $this->report()->targets($month, $this->scopeTeams->pluck('team_id')->all());
     }
 
+    /**
+     * Chỉ tiêu cộng dồn các tháng của 1 kỳ: [team_id => [chỉ số => tổng]].
+     */
+    protected function targetsForMonths(array $months): array
+    {
+        $sum = [];
+        foreach ($months as $month) {
+            foreach ($this->targetsFor($month) as $team => $values) {
+                foreach ($values as $metric => $value) {
+                    $sum[$team][$metric] = ($sum[$team][$metric] ?? 0) + $value;
+                }
+            }
+        }
+
+        return $sum;
+    }
+
     protected function report(): SalesPerformanceReport
     {
         return app(SalesPerformanceReport::class);
@@ -497,9 +706,17 @@ class SalesPerformance extends Component
     {
         $start = CarbonImmutable::parse($month.'-01');
 
+        return $this->filterRange($start->toDateString(), $start->endOfMonth()->toDateString());
+    }
+
+    /**
+     * Bộ lọc của 1 khoảng ngày (Y-m-d), cùng phạm vi đội / salesperson.
+     */
+    protected function filterRange(string $from, string $to): array
+    {
         return [
-            'from'     => $start->toDateString(),
-            'to'       => $start->endOfMonth()->toDateString(),
+            'from'     => $from,
+            'to'       => $to,
             'team'     => $this->teamScope === null ? '__none__' : ($this->teamScope ?: null),
             'employee' => $this->employeeOptions->contains('employee_id', $this->employee) ? $this->employee : null,
         ];

@@ -783,3 +783,50 @@
 .rv-types {
     margin-top: 12px;
 }
+
+/* Popup chọn thời gian xuất Excel */
+.rp-export-modal {
+    width: min(520px, 100%);
+}
+
+.rp-export-types {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.rp-export-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    border: 1px solid var(--vc-border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.rp-export-type input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rp-export-type:focus-within {
+    outline: 2px solid var(--vc-primary);
+    outline-offset: 1px;
+}
+
+.rp-export-type.is-active {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .rp-export-types {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
