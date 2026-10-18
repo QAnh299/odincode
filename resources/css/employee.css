@@ -231,30 +231,6 @@ a.em-person:hover .em-person__name {
     gap: 0.4rem;
 }
 
-/* Nút "Gắn trưởng nhóm" ngay trong ô Trưởng nhóm khi đội chưa có trưởng nhóm */
-.em-assign {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.7rem;
-    border: 1px dashed color-mix(in srgb, var(--odin-primary, var(--bs-primary)) 45%, transparent);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--odin-primary, var(--bs-primary));
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.em-assign:hover {
-    background: color-mix(in srgb, var(--odin-primary, var(--bs-primary)) 10%, transparent);
-}
-
-.em-assign .odin-icon {
-    width: 15px;
-    height: 15px;
-}
-
 /* Giá trị chỉ xem trong popup (trưởng nhóm ở popup Chỉnh sửa đội) */
 .em-fixed {
     display: flex;

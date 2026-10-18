@@ -155,10 +155,6 @@
                                                 <span class="em-person__id">{{ $team->leader->employee_id }}</span>
                                             </span>
                                         </a>
-                                    @elseif ($this->canManage)
-                                        <button type="button" class="em-assign" wire:click="openLeader('{{ $team->team_id }}')">
-                                            <x-icon name="user-check" />{{ __('employees.teams.form.assign_leader') }}
-                                        </button>
                                     @else
                                         <span class="em-muted">{{ __('employees.teams.no_leader') }}</span>
                                     @endif
@@ -192,17 +188,12 @@
                                             aria-label="{{ __('employees.teams.view_members') }} {{ $team->team_name }}">
                                             <x-icon name="eye" />
                                         </a>
-                                        {{-- Sale Admin: Chỉnh sửa đội, Gắn / đổi trưởng nhóm --}}
+                                        {{-- Sale Admin: Chỉnh sửa đội (gồm cả đổi trưởng nhóm, gắn thành viên) --}}
                                         @if ($this->canManage)
                                             <button type="button" class="vc-icon-btn" wire:click="openEdit('{{ $team->team_id }}')"
                                                 title="{{ __('employees.teams.form.edit') }}">
                                                 <x-icon name="edit" />
                                                 <span class="visually-hidden">{{ __('employees.teams.form.edit') }} {{ $team->team_name }}</span>
-                                            </button>
-                                            <button type="button" class="vc-icon-btn" wire:click="openLeader('{{ $team->team_id }}')"
-                                                title="{{ $team->leader ? __('employees.teams.form.change_leader') : __('employees.teams.form.assign_leader') }}">
-                                                <x-icon name="user-check" />
-                                                <span class="visually-hidden">{{ __('employees.teams.form.assign_leader') }} {{ $team->team_name }}</span>
                                             </button>
                                         @endif
                                     </div>
@@ -219,18 +210,16 @@
         @endif
     </section>
 
-    {{-- ── Popup Tạo đội / Chỉnh sửa đội / Gắn trưởng nhóm (chỉ Sale Admin) ── --}}
-    @if (in_array($modal, ['create', 'edit', 'leader'], true) && $this->canManage)
+    {{-- ── Popup Tạo đội / Chỉnh sửa đội (chỉ Sale Admin) ───────────── --}}
+    @if (in_array($modal, ['create', 'edit'], true) && $this->canManage)
         @php
             $editing = $this->editingTeam;
             $leaders = $this->leaderOptions;
             $currentLeader = $editing?->leader;
             $anchorBranch = $this->anchorBranch;
-            [$titleKey, $subKey, $modalIcon] = match ($modal) {
-                'create' => ['create', 'create_sub', 'plus'],
-                'edit'   => ['edit', 'edit_sub', 'edit'],
-                default  => [$currentLeader ? 'change_leader' : 'assign_leader', 'leader_sub', 'user-check'],
-            };
+            [$titleKey, $subKey, $modalIcon] = $modal === 'create'
+                ? ['create', 'create_sub', 'plus']
+                : ['edit', 'edit_sub', 'edit'];
         @endphp
         <div class="ld-modal" wire:key="modal-team-{{ $modal }}" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
@@ -253,44 +242,65 @@
                 </header>
 
                 <div class="ld-modal__body ld-form">
-                    @if ($modal !== 'leader')
-                        <label class="vc-field ld-form__wide">
-                            <span class="vc-field__label">{{ __('employees.teams.form.team_name') }}<span class="ld-req">*</span></span>
-                            <input type="text" wire:model="form.team_name" maxlength="150" autofocus
-                                placeholder="{{ __('employees.teams.form.placeholder_name') }}"
-                                class="vc-control @error('team_name') is-invalid @enderror">
-                            @error('team_name')<span class="ld-error">{{ $message }}</span>@enderror
-                        </label>
+                    <label class="vc-field ld-form__wide">
+                        <span class="vc-field__label">{{ __('employees.teams.form.team_name') }}<span class="ld-req">*</span></span>
+                        <input type="text" wire:model="form.team_name" maxlength="150" autofocus
+                            placeholder="{{ __('employees.teams.form.placeholder_name') }}"
+                            class="vc-control @error('team_name') is-invalid @enderror">
+                        @error('team_name')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
 
-                        <label class="vc-field">
-                            <span class="vc-field__label">{{ __('employees.established_date') }}<span class="ld-req">*</span></span>
-                            <input type="date" wire:model="form.established_date" max="{{ today()->toDateString() }}"
-                                class="vc-control @error('established_date') is-invalid @enderror">
-                            @error('established_date')<span class="ld-error">{{ $message }}</span>@enderror
-                        </label>
-                    @endif
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('employees.established_date') }}<span class="ld-req">*</span></span>
+                        <input type="date" wire:model="form.established_date" max="{{ today()->toDateString() }}"
+                            class="vc-control @error('established_date') is-invalid @enderror">
+                        @error('established_date')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    {{-- Trưởng nhóm: đổi ngay trong popup; .live để khoá / mở thành viên theo chi nhánh của trưởng nhóm --}}
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('employees.team_leader') }}</span>
+                        <select wire:model.live="form.team_leader_id" class="vc-control @error('team_leader_id') is-invalid @enderror">
+                            <option value="">{{ __('employees.teams.form.no_leader_yet') }}</option>
+                            @foreach ($leaders as $option)
+                                <option value="{{ $option->employee_id }}" wire:key="leader-{{ $option->employee_id }}">
+                                    {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '—' }}
+                                    @if ($option->employee_id === $currentLeader?->employee_id)
+                                        - {{ __('employees.teams.form.current') }}
+                                    @elseif ($option->team)
+                                        - {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('team_leader_id')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    {{-- Chi nhánh của đội: theo trưởng nhóm đang chọn, chưa chọn thì theo thành viên đang chọn --}}
+                    <div class="vc-field ld-form__wide">
+                        <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
+                        <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_undecided') }}</span>
+                    </div>
+
+                    <p class="ld-form__hint ld-form__wide">
+                        @if ($leaders->isEmpty() || ($leaders->count() === 1 && $currentLeader))
+                            {{ $this->membersBranchId && $anchorBranch
+                                ? __('employees.teams.form.no_candidates_branch', ['branch' => $anchorBranch->branch_name])
+                                : __('employees.teams.form.no_candidates') }}
+                        @else
+                            {{ $modal === 'create' ? __('employees.teams.form.create_branch_hint') : __('employees.teams.form.leader_hint') }}
+                        @endif
+                    </p>
 
                     @if ($modal === 'edit')
-                        {{-- Trưởng nhóm đổi bằng popup riêng (Gắn trưởng nhóm) --}}
-                        <div class="vc-field">
-                            <span class="vc-field__label">{{ __('employees.team_leader') }}</span>
-                            <span class="em-fixed">{{ $currentLeader?->full_name ?? __('employees.teams.no_leader') }}</span>
-                        </div>
-
-                        {{-- Chi nhánh của đội = chi nhánh của trưởng nhóm; chưa có trưởng nhóm thì theo thành viên được chọn --}}
-                        <div class="vc-field">
-                            <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
-                            <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_by_members') }}</span>
-                        </div>
-
-                        {{-- Thành viên: Salesperson đang làm việc; người đang ở đội khác bị khoá (mỗi người chỉ thuộc 1 đội) --}}
+                        {{-- Thành viên: Salesperson đang làm việc; người đang ở đội khác hoặc khác chi nhánh bị khoá --}}
                         @php $memberOptions = $this->memberOptions; @endphp
                         <div class="vc-field ld-form__wide" x-data="{ q: '' }">
                             <span class="vc-field__label em-members-label">
                                 {{ __('employees.teams.form.members') }}
-                                {{-- Số người đã chọn đếm phía trình duyệt, không cần gửi lên server mỗi lần bấm --}}
-                                <span class="em-muted d-inline"
-                                    x-text="@js(__('employees.teams.form.selected', ['count' => '__N__'])).replace('__N__', ($wire.form.members || []).length)"></span>
+                                <span class="em-muted d-inline">
+                                    {{ __('employees.teams.form.selected', ['count' => count($form['members'] ?? [])]) }}
+                                </span>
                             </span>
 
                             @if ($memberOptions->isEmpty())
@@ -311,7 +321,8 @@
                                         @endphp
                                         <li wire:key="pick-{{ $option->employee_id }}" x-show="@js($haystack).includes(q.toLowerCase())">
                                             <label class="em-pick__item {{ $locked ? 'is-disabled' : '' }}">
-                                                <input type="checkbox" class="form-check-input" wire:model="form.members"
+                                                {{-- .live: chọn thành viên thì danh sách trưởng nhóm lọc theo chi nhánh của họ --}}
+                                                <input type="checkbox" class="form-check-input" wire:model.live="form.members"
                                                     value="{{ $option->employee_id }}" @disabled($locked)>
                                                 <span class="odin-avatar em-avatar" aria-hidden="true">{{ $option->initial() }}</span>
                                                 <span class="em-pick__text">
@@ -334,52 +345,9 @@
                                 <p class="ld-form__hint mb-0">{{ __('employees.teams.form.members_hint') }}</p>
                             @endif
                         </div>
-                    @else
-                        @if ($modal === 'leader')
-                            {{-- Đội đã có thành viên: trưởng nhóm phải cùng chi nhánh với họ --}}
-                            <div class="vc-field ld-form__wide">
-                                <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
-                                <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_by_leader') }}</span>
-                            </div>
-                        @endif
-
-                        <label class="vc-field {{ $modal === 'leader' ? 'ld-form__wide' : '' }}">
-                            <span class="vc-field__label">
-                                {{ __('employees.team_leader') }}@if ($modal === 'leader')<span class="ld-req">*</span>@endif
-                            </span>
-                            <select wire:model="form.team_leader_id" class="vc-control @error('team_leader_id') is-invalid @enderror"
-                                @if ($modal === 'leader') autofocus @endif>
-                                <option value="">
-                                    {{ $modal === 'create' ? __('employees.teams.form.no_leader_yet') : __('employees.teams.form.choose_leader') }}
-                                </option>
-                                @foreach ($leaders as $option)
-                                    <option value="{{ $option->employee_id }}">
-                                        {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '—' }}
-                                        @if ($option->employee_id === $currentLeader?->employee_id)
-                                            - {{ __('employees.teams.form.current') }}
-                                        @elseif ($option->team)
-                                            - {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
-                                        @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('team_leader_id')<span class="ld-error">{{ $message }}</span>@enderror
-                        </label>
-
-                        <p class="ld-form__hint ld-form__wide">
-                            @if ($leaders->isEmpty() || ($leaders->count() === 1 && $currentLeader))
-                                {{ $anchorBranch
-                                    ? __('employees.teams.form.no_candidates_branch', ['branch' => $anchorBranch->branch_name])
-                                    : __('employees.teams.form.no_candidates') }}
-                            @else
-                                {{ $modal === 'create' ? __('employees.teams.form.create_branch_hint') : __('employees.teams.form.leader_hint') }}
-                            @endif
-                        </p>
                     @endif
 
-                    @if ($modal !== 'leader')
-                        <p class="ld-form__hint ld-form__wide">{{ __('employees.teams.form.required_hint') }}</p>
-                    @endif
+                    <p class="ld-form__hint ld-form__wide">{{ __('employees.teams.form.required_hint') }}</p>
                 </div>
 
                 <footer class="ld-modal__foot">

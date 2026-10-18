@@ -20,8 +20,8 @@ use Livewire\WithPagination;
 
 /**
  * Danh sách đội kinh doanh + tra cứu (tìm theo mã / tên đội / trưởng nhóm, sắp xếp).
- * Giám đốc: chỉ xem. Sale Admin: thêm Tạo đội, Chỉnh sửa đội (kèm gắn Salesperson vào đội),
- * Gắn trưởng nhóm (popup). Mỗi nhân viên chỉ thuộc một đội (Employees.team_id),
+ * Giám đốc: chỉ xem. Sale Admin: thêm Tạo đội và Chỉnh sửa đội (popup) – trong Chỉnh sửa đội
+ * đổi được trưởng nhóm và gắn Salesperson vào đội. Mỗi nhân viên chỉ thuộc một đội (Employees.team_id),
  * và một đội chỉ thuộc một chi nhánh: mọi nhân viên trong đội phải cùng chi nhánh (SalesTeam::branchId).
  */
 #[Layout('layouts.app')]
@@ -39,14 +39,14 @@ class Index extends Component
     #[Url(except: 'name')]
     public string $sort = 'name';
 
-    // Popup đang mở: '' | 'create' | 'edit' | 'leader'
+    // Popup đang mở: '' | 'create' | 'edit'
     public string $modal = '';
 
-    // Đội đang sửa / gắn trưởng nhóm (popup edit, leader)
+    // Đội đang sửa (popup edit)
     #[Locked]
     public ?string $teamId = null;
 
-    // Dữ liệu popup: team_name, established_date, team_leader_id, members (mã Salesperson của đội)
+    // Dữ liệu popup: team_name, established_date, team_leader_id, members (mã Salesperson của đội – chỉ popup edit)
     public array $form = [];
 
     // Thông báo sau khi lưu: ['type' => success|danger, 'text' => ...]
@@ -72,7 +72,7 @@ class Index extends Component
     }
 
     /**
-     * Tạo / sửa đội và gắn trưởng nhóm - chỉ Sale Admin.
+     * Tạo / sửa đội (kèm trưởng nhóm, thành viên) - chỉ Sale Admin.
      */
     #[Computed]
     public function canManage(): bool
@@ -105,7 +105,7 @@ class Index extends Component
     /* ── Popup ────────────────────────────────────────────────────────── */
 
     /**
-     * Đội đang sửa (popup edit / leader); null khi tạo mới.
+     * Đội đang sửa (popup edit); null khi tạo mới.
      */
     #[Computed]
     public function editingTeam(): ?SalesTeam
@@ -114,21 +114,32 @@ class Index extends Component
     }
 
     /**
-     * Chi nhánh cố định của đội trong popup đang mở (null = chưa xác định, chọn chi nhánh nào cũng được):
-     *   - Tạo đội: null (chi nhánh theo trưởng nhóm được chọn).
-     *   - Chỉnh sửa đội: chi nhánh của trưởng nhóm (không đổi trong popup này).
-     *   - Gắn trưởng nhóm: chi nhánh của các thành viên còn lại (không tính trưởng nhóm cũ).
+     * Mã các Salesperson đang được đánh dấu trong popup (chỉ popup edit).
+     */
+    private function selectedMemberIds(): array
+    {
+        return $this->modal === 'edit' ? array_values(array_filter((array) ($this->form['members'] ?? []), 'is_string')) : [];
+    }
+
+    /**
+     * Chi nhánh của các thành viên đang được đánh dấu (null nếu chưa chọn ai).
+     */
+    #[Computed]
+    public function membersBranchId(): ?string
+    {
+        return $this->memberOptions->whereIn('employee_id', $this->selectedMemberIds())->first()?->branch_id;
+    }
+
+    /**
+     * Chi nhánh của đội theo lựa chọn hiện tại trong popup: chi nhánh của trưởng nhóm đang chọn,
+     * chưa chọn trưởng nhóm thì theo thành viên đang chọn; null = chưa xác định (chọn chi nhánh nào cũng được).
      */
     #[Computed]
     public function anchorBranchId(): ?string
     {
-        $team = $this->editingTeam;
+        $leaderId = (string) ($this->form['team_leader_id'] ?? '');
 
-        return match (true) {
-            $team === null          => null,
-            $this->modal === 'edit' => $team->leader?->branch_id,
-            default                 => $team->branchId(array_filter([$team->team_leader_id])),
-        };
+        return $this->leaderOptions->firstWhere('employee_id', $leaderId)?->branch_id ?? $this->membersBranchId;
     }
 
     #[Computed]
@@ -140,7 +151,7 @@ class Index extends Component
     /**
      * Ứng viên trưởng nhóm: Sale Leader đang làm việc, chưa làm trưởng nhóm đội khác
      * (trưởng nhóm hiện tại của đội đang sửa vẫn được giữ trong danh sách)
-     * và cùng chi nhánh với các thành viên của đội (nếu đội đã có thành viên).
+     * và cùng chi nhánh với các thành viên đang được chọn (nếu có).
      */
     #[Computed]
     public function leaderOptions(): Collection
@@ -150,7 +161,7 @@ class Index extends Component
             ->state(Employee::STATE_WORKING)
             ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALE_LEADER))
             ->whereDoesntHave('ledTeam', fn ($q) => $q->when($this->teamId, fn ($q) => $q->whereKeyNot($this->teamId)))
-            ->when($this->anchorBranchId, fn ($q, $branchId) => $q->where('branch_id', $branchId))
+            ->when($this->membersBranchId, fn ($q, $branchId) => $q->where('branch_id', $branchId))
             ->orderBy('full_name')
             ->get();
     }
@@ -163,6 +174,10 @@ class Index extends Component
     #[Computed]
     public function memberOptions(): Collection
     {
+        if ($this->modal !== 'edit') {
+            return collect();
+        }
+
         return Employee::query()
             ->with(['team', 'branch'])
             ->state(Employee::STATE_WORKING)
@@ -219,21 +234,13 @@ class Index extends Component
         $this->form = [
             'team_name'        => $team->team_name,
             'established_date' => $team->established_date?->toDateString() ?? '',
+            'team_leader_id'   => (string) $team->team_leader_id,
             'members'          => [],
         ];
         $this->openModal('edit');
         $this->form['members'] = $this->memberOptions
             ->where('team_id', $team->team_id)->pluck('employee_id')->all();
-    }
-
-    public function openLeader(string $teamId): void
-    {
-        $this->authorizeManage();
-        $team = SalesTeam::findOrFail($teamId);
-
-        $this->teamId = $team->team_id;
-        $this->form = ['team_leader_id' => (string) $team->team_leader_id];
-        $this->openModal('leader');
+        $this->forgetOptions();
     }
 
     public function closeModal(): void
@@ -249,31 +256,27 @@ class Index extends Component
     }
 
     /**
-     * Lưu popup đang mở: Tạo đội, Chỉnh sửa đội hoặc Gắn trưởng nhóm.
+     * Lưu popup đang mở: Tạo đội hoặc Chỉnh sửa đội (tên, ngày thành lập, trưởng nhóm, thành viên).
      */
     public function save(): void
     {
         $this->authorizeManage();
-        abort_unless(in_array($this->modal, ['create', 'edit', 'leader'], true), 400);
-        abort_if($this->modal !== 'create' && ! $this->editingTeam, 404);
+        abort_unless(in_array($this->modal, ['create', 'edit'], true), 400);
+        abort_if($this->modal === 'edit' && ! $this->editingTeam, 404);
 
         $data = $this->validateForm();
 
         $team = DB::transaction(function () use ($data) {
             $team = $this->editingTeam ?? new SalesTeam;
 
-            if ($this->modal !== 'leader') {
-                $team->fill([
-                    'team_name'        => $data['team_name'],
-                    'established_date' => $data['established_date'],
-                ]);
-            }
+            $team->fill([
+                'team_name'        => $data['team_name'],
+                'established_date' => $data['established_date'],
+            ])->save();
 
-            $team->save();
+            $this->assignLeader($team, $data['team_leader_id'] ?: null);
 
-            if ($this->modal !== 'edit') {
-                $this->assignLeader($team, $data['team_leader_id'] ?: null);
-            } else {
+            if ($this->modal === 'edit') {
                 $this->syncMembers($team, $data['members'] ?? []);
             }
 
@@ -285,7 +288,8 @@ class Index extends Component
             'text' => __('employees.teams.form.saved_'.$this->modal, ['name' => $team->team_name, 'id' => $team->team_id]),
         ];
         $this->closeModal();
-        unset($this->summary, $this->leaderOptions, $this->memberOptions, $this->anchorBranchId, $this->anchorBranch);
+        unset($this->summary);
+        $this->forgetOptions();
     }
 
     public function render()
@@ -328,38 +332,39 @@ class Index extends Component
     private function openModal(string $modal): void
     {
         $this->modal = $modal;
-        unset($this->editingTeam, $this->leaderOptions, $this->memberOptions, $this->anchorBranchId, $this->anchorBranch);
+        unset($this->editingTeam);
+        $this->forgetOptions();
         $this->resetValidation();
         $this->notice = null;
     }
 
     /**
-     * Kiểm tra dữ liệu popup theo loại popup đang mở (luôn kiểm tra lại phía server).
+     * Bỏ cache các danh sách chọn (phụ thuộc loại popup và lựa chọn trong form).
+     */
+    private function forgetOptions(): void
+    {
+        unset($this->memberOptions, $this->membersBranchId, $this->leaderOptions, $this->anchorBranchId, $this->anchorBranch);
+    }
+
+    /**
+     * Kiểm tra dữ liệu popup (luôn kiểm tra lại phía server).
      */
     private function validateForm(): array
     {
         $data = array_map(fn ($value) => is_string($value) ? trim($value) : $value, $this->form);
 
-        $rules = [];
-
-        if ($this->modal !== 'leader') {
-            $rules['team_name'] = [
+        $rules = [
+            'team_name' => [
                 'required', 'string', 'max:150',
                 Rule::unique('SalesTeams', 'team_name')->ignore($this->teamId, 'team_id'),
-            ];
-            $rules['established_date'] = ['required', 'date_format:Y-m-d', 'before_or_equal:today'];
-        }
+            ],
+            'established_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'team_leader_id'   => ['nullable', Rule::in($this->leaderOptions->pluck('employee_id')->all())],
+        ];
 
         if ($this->modal === 'edit') {
             $rules['members'] = ['array'];
             $rules['members.*'] = ['string', 'distinct', Rule::in($this->assignableMemberIds())];
-        }
-
-        if ($this->modal !== 'edit') {
-            $rules['team_leader_id'] = [
-                $this->modal === 'leader' ? 'required' : 'nullable',
-                Rule::in($this->leaderOptions->pluck('employee_id')->all()),
-            ];
         }
 
         return Validator::make($data, $rules, [
@@ -373,7 +378,7 @@ class Index extends Component
             'established_date' => __('employees.established_date'),
             'team_leader_id'   => __('employees.team_leader'),
         ])->after(function ($validator) use ($data) {
-            // Đội chưa có trưởng nhóm: các thành viên được chọn vẫn phải cùng một chi nhánh
+            // Trưởng nhóm + thành viên được chọn phải cùng một chi nhánh
             if ($this->modal !== 'edit' || $validator->errors()->isNotEmpty()) {
                 return;
             }
