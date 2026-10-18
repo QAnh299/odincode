@@ -32,7 +32,7 @@
 <div class="vc rp">
     {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
-        @vite(['resources/css/voucher.css', 'resources/css/report.css', 'resources/js/charts.js'])
+        @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
 
     <header class="vc-head">
@@ -40,10 +40,19 @@
             <h1 class="vc-head__title">{{ __('reports.lead_sources.title') }}</h1>
             <p class="vc-head__sub">{{ __('reports.lead_sources.subtitle') }}</p>
         </div>
-        <span class="vc-results__loading" wire:loading.delay>
-            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-            {{ __('reports.loading') }}
-        </span>
+        <div class="rp-head__actions">
+            <span class="vc-results__loading" wire:loading.delay wire:target.except="export">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                {{ __('reports.loading') }}
+            </span>
+            {{-- Xuất báo cáo tổng hợp dạng văn bản theo bộ lọc (Giám đốc, Sale Admin) --}}
+            @if ($this->canExport)
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
+                    <x-icon name="file" />
+                    {{ __('reports.lead_sources.export.button') }}
+                </button>
+            @endif
+        </div>
     </header>
 
     {{-- ── Bộ lọc chung (áp dụng cho cả 2 phần) ─────────────────────── --}}
@@ -381,4 +390,9 @@
             @endif
         </div>
     </section>
+
+    {{-- Popup chọn thời gian xuất Excel --}}
+    @if ($this->canExport)
+        @include('livewire.reports.partials.export-period')
+    @endif
 </div>

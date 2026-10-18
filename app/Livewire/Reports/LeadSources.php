@@ -2,10 +2,15 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ExportPeriod;
 use App\Models\Branch;
 use App\Models\Lead;
+use App\Models\Role;
 use App\Services\LeadSourceReport;
+use App\Services\ReportDocumentWriter;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -20,10 +25,13 @@ use Livewire\Component;
  * Phần 2 - biểu đồ linh hoạt: người dùng chọn loại biểu đồ, chiều phân tích, chia nhóm,
  *          chỉ số và các giá trị cần vẽ, bấm "Vẽ biểu đồ" để vẽ.
  * Bộ lọc chung (thời gian, chi nhánh, kênh liên hệ) áp dụng cho cả 2 phần.
+ * Xuất Excel: báo cáo tổng hợp dạng văn bản (Giám đốc, Sale Admin).
  */
 #[Layout('layouts.app')]
 class LeadSources extends Component
 {
+    use ExportPeriod;
+
     // Bảng màu phân loại (thứ tự cố định); màu đi theo thực thể, không theo thứ hạng
     const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
@@ -446,6 +454,149 @@ class LeadSources extends Component
             'trend'   => $trend,
             'period'  => $period,
         ];
+    }
+
+    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+
+    /**
+     * Xuất Excel: Giám đốc, Sale Admin.
+     */
+    #[Computed]
+    public function canExport(): bool
+    {
+        return in_array(Auth::user()->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true);
+    }
+
+    /**
+     * Báo cáo tổng hợp của kỳ chọn trong popup (tháng / quý / kỳ lũy kế / năm), chi nhánh và kênh theo bộ lọc:
+     * sheet 1 chỉ số theo nguồn / kênh / chi nhánh / tháng, sheet 2 số Lead mới của từng nguồn theo tháng.
+     */
+    public function export(ReportDocumentWriter $writer)
+    {
+        abort_unless($this->canExport, 403);
+
+        $period = $this->exportPeriod();
+        if (! $period) {
+            return null;
+        }
+
+        // Thời gian theo kỳ chọn trong popup (thay cho bộ lọc ngày trên màn hình); chi nhánh, kênh giữ theo bộ lọc
+        $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $this->filterValues();
+        $c = fn ($key, $replace = []) => __('reports.lead_sources.export.'.$key, $replace);
+        $total = $this->report()->totals($f);
+        $scope = [$period['range'], __('reports.branch').': '.($f['branch'] ? $this->label('branch', $f['branch']) : __('reports.all_branches'))
+            .' · '.__('reports.method').': '.($f['method'] ? $this->label('method', $f['method']) : $c('all_methods'))];
+
+        // Sheet 1: tổng cộng + các nhóm A, B, C, D (mỗi nhóm cộng lại đúng bằng tổng cộng)
+        $metrics = fn (array $r) => [$r['leads'], $r['converted'], $r['conversion_rate'], $r['won'], $r['lost'], $r['win_rate'],
+            $r['close_rate'], $r['revenue'], $r['paid'], $r['revenue_per_lead'],
+            $total['revenue'] > 0 ? round($r['revenue'] * 100 / $total['revenue'], 1) : null];
+
+        // Tháng: đủ các tháng của kỳ (tháng chưa có Lead ghi 0)
+        $byMonth = array_column($this->report()->aggregate($f, 'month'), null, 'dim');
+        $sections = [
+            'source' => $this->sorted($this->report()->aggregate($f, 'source')),
+            'method' => $this->sorted($this->report()->aggregate($f, 'method')),
+            'branch' => $this->sorted($this->report()->aggregate($f, 'branch')),
+            'month'  => array_map(fn ($m) => $byMonth[$m] ?? $this->report()->derive(['dim' => $m]), $period['months']),
+        ];
+        $notes = $this->sourceNotes($sections['source']);
+
+        $rows = [['total', array_merge(['', $c('total')], $metrics($total), [''])]];
+        foreach (array_keys($sections) as $i => $dimension) {
+            $rows[] = ['section', [chr(65 + $i), mb_strtoupper($c('by_'.$dimension))]];
+            foreach ($sections[$dimension] as $n => $r) {
+                $name = $dimension === 'month' ? $c('month', ['month' => $this->label('month', $r['dim'])]) : $this->label($dimension, $r['dim']);
+                $rows[] = ['item', array_merge([$n + 1, $name], $metrics($r), [$dimension === 'source' ? ($notes[$r['dim']] ?? '') : ''])];
+            }
+        }
+
+        $sheets = [[
+            'name'    => $c('sheet_summary'),
+            'title'   => $c('title'),
+            'period'  => $period['label'],
+            'scope'   => $scope,
+            'unit'    => $c('unit'),
+            'columns' => [[$c('stt'), 'stt'], [$c('criteria'), 'label'],
+                [$c('leads'), 'int'], [$c('converted'), 'int'], [$c('conversion_rate'), 'percent'],
+                [$c('won'), 'int'], [$c('lost'), 'int'], [$c('win_rate'), 'percent'], [$c('close_rate'), 'percent'],
+                [$c('revenue'), 'money'], [$c('paid'), 'money'], [$c('revenue_per_lead'), 'money'], [$c('revenue_share'), 'percent'],
+                [$c('note'), 'text']],
+            'rows'    => $rows,
+            'notes'   => $c('notes'),
+        ]];
+
+        // Sheet 2: số Lead mới theo nguồn × tháng
+        $months = array_column($sections['month'], 'dim');
+        $cells = [];
+        foreach ($this->report()->aggregate($f, 'month', 'source') as $r) {
+            $cells[$r['group']][$r['dim']] = $r['leads'];
+        }
+        $trend = [['total', array_merge(['', $c('total')], array_column($sections['month'], 'leads'), [$total['leads']])]];
+        foreach ($sections['source'] as $n => $r) {
+            $trend[] = ['item', array_merge([$n + 1, $r['dim']], array_map(fn ($m) => $cells[$r['dim']][$m] ?? 0, $months), [$r['leads']])];
+        }
+        $sheets[] = [
+            'name'    => $c('sheet_trend'),
+            'title'   => $c('title_trend'),
+            'period'  => $period['label'],
+            'scope'   => $scope,
+            'unit'    => $c('unit_trend'),
+            'columns' => array_merge([[$c('stt'), 'stt'], [$c('source'), 'label']],
+                array_map(fn ($m) => [$this->label('month', $m), 'int'], $months), [[$c('sum'), 'int']]),
+            'rows'    => $trend,
+        ];
+
+        $path = $writer->write($writer->document($sheets));
+
+        $this->exportOpen = false;
+
+        return response()->download($path, 'bao-cao-chat-luong-nguon-lead-'.$period['slug'].'.xlsx')->deleteFileAfterSend();
+    }
+
+    /**
+     * Năm chọn được trong popup xuất: từ năm có Lead sớm nhất đến năm hiện tại.
+     */
+    public function exportYears(): array
+    {
+        $first = Lead::query()->min('created_at');
+        $current = (int) now()->year;
+
+        return range($current, $first ? min($current, (int) CarbonImmutable::parse($first)->year) : $current);
+    }
+
+    /**
+     * Ghi chú cho nguồn nổi bật (khi có từ 2 nguồn): chuyển đổi cao / thấp nhất, doanh thu cao nhất.
+     */
+    protected function sourceNotes(array $rows): array
+    {
+        $rows = array_values(array_filter($rows, fn ($r) => $r['leads'] > 0));
+        if (count($rows) < 2) {
+            return [];
+        }
+
+        $pick = function (string $metric, bool $max) use ($rows) {
+            // Bằng nhau thì nguồn nhiều Lead hơn được chọn (tỷ lệ đáng tin hơn)
+            usort($rows, fn ($a, $b) => ($max ? $b[$metric] <=> $a[$metric] : $a[$metric] <=> $b[$metric]) ?: $b['leads'] <=> $a['leads']);
+
+            return $rows[0]['dim'];
+        };
+
+        $notes = [];
+        $notes[$pick('conversion_rate', true)][] = __('reports.lead_sources.export.note_best_conversion');
+        if (max(array_column($rows, 'revenue')) > 0) {
+            $notes[$pick('revenue', true)][] = __('reports.lead_sources.export.note_best_revenue');
+        }
+        $notes[$pick('conversion_rate', false)][] = __('reports.lead_sources.export.note_worst_conversion');
+
+        return array_map(fn ($items) => implode('; ', $items), $notes);
+    }
+
+    protected function sorted(array $rows): array
+    {
+        usort($rows, fn ($a, $b) => $b['leads'] <=> $a['leads'] ?: strcmp($a['dim'], $b['dim']));
+
+        return $rows;
     }
 
     /* ── Danh mục cho bộ lọc ──────────────────────────────────────────── */
