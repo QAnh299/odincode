@@ -2,7 +2,6 @@
 
 use App\Livewire\Courses\Index as CourseIndex;
 use App\Livewire\Courses\Show as CourseShow;
-use App\Livewire\Director\Home;
 use App\Livewire\Employees\Index as EmployeeIndex;
 use App\Livewire\Employees\Show as EmployeeShow;
 use App\Livewire\Invoices\Index as InvoiceIndex;
@@ -25,8 +24,6 @@ use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
 
 // Giám đốc - prefix /director, name director.*
-
-Route::get('/', Home::class)->name('home');
 
 // Lead - chỉ xem danh sách (dùng chung Giám đốc, Sale Admin, Sale Leader)
 Route::get('/leads', LeadIndex::class)->name('leads');

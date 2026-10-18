@@ -15,7 +15,6 @@ use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadConversion as LeadConversionReport;
 use App\Livewire\Reports\Revenue as RevenueReport;
-use App\Livewire\Salesperson\Home;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
 use App\Livewire\Vouchers\Index as VoucherIndex;
@@ -23,8 +22,6 @@ use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
 
 // Salesperson - prefix /salesperson, name salesperson.*
-
-Route::get('/', Home::class)->name('home');
 
 // Quản lý Opportunity - Kanban theo Stage (thay cho Quản lý Lead)
 Route::get('/opportunities', OpportunityKanban::class)->name('opportunities');

@@ -15,7 +15,6 @@ use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadConversion as LeadConversionReport;
 use App\Livewire\Reports\Revenue as RevenueReport;
 use App\Livewire\Reports\SalesPerformance as SalesPerformanceReport;
-use App\Livewire\SaleLeader\Home;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
 use App\Livewire\Vouchers\Index as VoucherIndex;
@@ -23,8 +22,6 @@ use App\Livewire\Vouchers\Show as VoucherShow;
 use Illuminate\Support\Facades\Route;
 
 // Sale Leader - prefix /sale-leader, name sale_leader.*
-
-Route::get('/', Home::class)->name('home');
 
 // Quản lý Lead (dùng chung Giám đốc, Sale Admin, Sale Leader)
 Route::get('/leads', LeadIndex::class)->name('leads');

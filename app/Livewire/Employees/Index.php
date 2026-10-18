@@ -98,7 +98,7 @@ class Index extends Component
     #[Computed]
     public function roles(): Collection
     {
-        $visible = Employee::visibleRolesFor($this->routePrefix) ?? array_keys(Role::HOME_ROUTES);
+        $visible = Employee::visibleRolesFor($this->routePrefix) ?? [Role::DIRECTOR, Role::SALE_ADMIN, Role::SALE_LEADER, Role::SALESPERSON, Role::ACCOUNTANT];
 
         return Role::query()->whereIn('role_name', $visible)
             ->orderBy('role_id')->get(['role_id', 'role_name']);

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -58,9 +59,27 @@ class User extends Authenticatable
     /**
      * Route name trang home theo vai trò, null nếu chưa được phân quyền.
      */
+    /**
+     * Trang đầu tiên sau khi đăng nhập: mục đầu tiên trong menu dọc của vai trò
+     * (config/sidebar.php); mục có menu con thì lấy menu con đầu tiên.
+     * Bỏ qua mục chưa có route.
+     */
     public function homeRoute(): ?string
     {
-        return Role::HOME_ROUTES[$this->role_name] ?? null;
+        $role = $this->role_name;
+        $items = config('sidebar.items');
+
+        foreach (config("sidebar.roles.$role", []) as $k => $v) {
+            foreach (is_int($k) ? [$v] : $v as $key) {
+                $routeName = "$role.{$items[$key]['route']}";
+
+                if (Route::has($routeName)) {
+                    return $routeName;
+                }
+            }
+        }
+
+        return null;
     }
 
     public function isActive(): bool

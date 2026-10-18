@@ -17,16 +17,6 @@ class Role extends Model
     const SALESPERSON = 'salesperson'; // Salesperson
     const ACCOUNTANT = 'accountant';   // Kế toán
 
-    // Trang home (route name) của từng vai trò sau khi đăng nhập
-    const HOME_ROUTES = [
-        self::DIRECTOR    => 'director.home',
-        self::SALE_ADMIN  => 'sale_admin.home',
-        self::SALE_LEADER => 'sale_leader.home',
-        // Salesperson vào thẳng màn Kanban Opportunity
-        self::SALESPERSON => 'salesperson.opportunities',
-        self::ACCOUNTANT  => 'accountant.home',
-    ];
-
     protected $table = 'Roles';
 
     protected $primaryKey = 'role_id';

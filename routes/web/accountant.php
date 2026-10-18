@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\Accountant\Home;
 use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Invoices\Show as InvoiceShow;
 use App\Livewire\Orders\Index as OrderIndex;
@@ -12,8 +11,6 @@ use App\Livewire\Students\Show as StudentShow;
 use Illuminate\Support\Facades\Route;
 
 // Kế toán - prefix /accountant, name accountant.*
-
-Route::get('/', Home::class)->name('home');
 
 // Báo giá - danh sách + tra cứu, chi tiết (chỉ xem; kế toán xem tất cả báo giá)
 Route::get('/quotations', QuotationIndex::class)->name('quotations');
