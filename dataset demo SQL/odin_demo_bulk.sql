@@ -4,7 +4,7 @@
 --   Lead -> Opportunity (giao cho salesperson cung chi nhanh) -> CareResults
 --   -> Appointments -> StagesHistory -> Won/Lost -> Quotations -> SalesOrders
 --   -> Invoices -> Students (khi don hang thanh toan du).
--- Kem theo: 3 doi moi (TEAM03-05, moi co so mot doi), salesperson moi,
+-- Kem theo: doi moi TEAM03-11 (moi co so 1 - 3 doi), salesperson moi,
 --   ke toan CS03-05, voucher theo mua, chi tieu doi theo thang,
 --   va lich su chuyen stage cho cac Opportunity san co trong odin.sql.
 -- Tai khoan moi dung chung mat khau demo: password
@@ -63,6 +63,96 @@ VALUES
 UPDATE `SalesTeams` SET `team_leader_id` = 'EMP013' WHERE `team_id` = 'TEAM03';
 UPDATE `SalesTeams` SET `team_leader_id` = 'EMP017' WHERE `team_id` = 'TEAM04';
 UPDATE `SalesTeams` SET `team_leader_id` = 'EMP020' WHERE `team_id` = 'TEAM05';
+
+-- ------------------------------------------------------------
+-- Them doi de test phan bo Lead: moi co so co 1 - 3 doi Sale.
+--   BR001: TEAM01, TEAM06, TEAM07   BR002: TEAM02, TEAM08
+--   BR003: TEAM03, TEAM09, TEAM10   BR004: TEAM04, TEAM11
+--   BR005: TEAM05
+-- Doi moi chua co lich su (khong Lead/Opportunity), mat khau: password
+-- ------------------------------------------------------------
+INSERT INTO `Accounts`
+  (`account_id`, `username`, `password`, `created_at`, `status`)
+VALUES
+  ('ACC025', 'leader6', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC026', 'sales16', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC027', 'sales17', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC028', 'leader7', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC029', 'sales18', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC030', 'sales19', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC031', 'leader8', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC032', 'sales20', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC033', 'sales21', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC034', 'leader9', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC035', 'sales22', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC036', 'sales23', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC037', 'leader10', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC038', 'sales24', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC039', 'sales25', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC040', 'leader11', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC041', 'sales26', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active'),
+  ('ACC042', 'sales27', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2026-09-01 09:00:00', 'active');
+
+INSERT INTO `SalesTeams`
+  (`team_id`, `team_name`, `established_date`, `team_leader_id`)
+VALUES
+  ('TEAM06', 'ODIN Sales 6', '2026-09-01', NULL),
+  ('TEAM07', 'ODIN Sales 7', '2026-09-01', NULL),
+  ('TEAM08', 'ODIN Sales 8', '2026-09-01', NULL),
+  ('TEAM09', 'ODIN Sales 9', '2026-09-01', NULL),
+  ('TEAM10', 'ODIN Sales 10', '2026-09-01', NULL),
+  ('TEAM11', 'ODIN Sales 11', '2026-09-01', NULL);
+
+INSERT INTO `Employees`
+  (`employee_id`, `full_name`, `date_of_birth`, `email`, `phone`, `job_title`, `hire_date`, `status`, `role_id`, `account_id`, `team_id`, `branch_id`)
+VALUES
+  ('EMP025', 'Nguyễn Hoàng Nam', '1990-02-14', 'hoangnam@odin.example', '0901000025', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC025', 'TEAM06', 'BR001'),
+  ('EMP026', 'Lý Thu Trang', '1998-06-05', 'thutrang@odin.example', '0901000026', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC026', 'TEAM06', 'BR001'),
+  ('EMP027', 'Phùng Văn Hậu', '1999-10-23', 'vanhau@odin.example', '0901000027', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC027', 'TEAM06', 'BR001'),
+  ('EMP028', 'Kiều Minh Châu', '1991-07-19', 'minhchau@odin.example', '0901000028', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC028', 'TEAM07', 'BR001'),
+  ('EMP029', 'Đoàn Anh Tú', '1997-03-11', 'anhtu@odin.example', '0901000029', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC029', 'TEAM07', 'BR001'),
+  ('EMP030', 'Lâm Ngọc Mai', '2000-12-02', 'ngocmai@odin.example', '0901000030', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC030', 'TEAM07', 'BR001'),
+  ('EMP031', 'Tô Đình Phong', '1989-05-08', 'dinhphong@odin.example', '0901000031', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC031', 'TEAM08', 'BR002'),
+  ('EMP032', 'Hồ Bích Ngân', '1998-09-27', 'bichngan@odin.example', '0901000032', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC032', 'TEAM08', 'BR002'),
+  ('EMP033', 'Dương Khắc Duy', '1999-04-16', 'khacduy@odin.example', '0901000033', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC033', 'TEAM08', 'BR002'),
+  ('EMP034', 'Quách Thanh Hằng', '1992-01-30', 'thanhhang@odin.example', '0901000034', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC034', 'TEAM09', 'BR003'),
+  ('EMP035', 'Vương Gia Bảo', '2000-08-09', 'giabao@odin.example', '0901000035', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC035', 'TEAM09', 'BR003'),
+  ('EMP036', 'Triệu Mỹ Linh', '1997-11-21', 'mylinh@odin.example', '0901000036', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC036', 'TEAM09', 'BR003'),
+  ('EMP037', 'Âu Đức Thịnh', '1990-06-12', 'ducthinh@odin.example', '0901000037', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC037', 'TEAM10', 'BR003'),
+  ('EMP038', 'Lục Hải Đăng', '1998-02-25', 'haidang@odin.example', '0901000038', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC038', 'TEAM10', 'BR003'),
+  ('EMP039', 'Nghiêm Thùy Dung', '1999-07-04', 'thuydung@odin.example', '0901000039', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC039', 'TEAM10', 'BR003'),
+  ('EMP040', 'Bạch Quốc Trung', '1991-10-18', 'quoctrung@odin.example', '0901000040', 'Sale Leader', '2026-09-01', 'Working', 'ROLE03', 'ACC040', 'TEAM11', 'BR004'),
+  ('EMP041', 'Thái Ngọc Ánh', '2000-05-13', 'ngocanh@odin.example', '0901000041', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC041', 'TEAM11', 'BR004'),
+  ('EMP042', 'Mạc Văn Toàn', '1996-12-29', 'vantoan@odin.example', '0901000042', 'Salesperson', '2026-09-01', 'Working', 'ROLE04', 'ACC042', 'TEAM11', 'BR004');
+
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP025' WHERE `team_id` = 'TEAM06';
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP028' WHERE `team_id` = 'TEAM07';
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP031' WHERE `team_id` = 'TEAM08';
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP034' WHERE `team_id` = 'TEAM09';
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP037' WHERE `team_id` = 'TEAM10';
+UPDATE `SalesTeams` SET `team_leader_id` = 'EMP040' WHERE `team_id` = 'TEAM11';
+
+INSERT INTO `TeamSalesTargets`
+  (`target_id`, `team_id`, `target_month`, `target_value`, `status`, `updated_at`)
+VALUES
+  ('TGT001', 'TEAM06', '2026-10-01', 30000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM06', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM06', '2026-10-01', 15.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT001', 'TEAM07', '2026-10-01', 30000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM07', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM07', '2026-10-01', 15.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT001', 'TEAM08', '2026-10-01', 30000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM08', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM08', '2026-10-01', 15.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT001', 'TEAM09', '2026-10-01', 25000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM09', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM09', '2026-10-01', 12.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT001', 'TEAM10', '2026-10-01', 25000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM10', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM10', '2026-10-01', 12.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT001', 'TEAM11', '2026-10-01', 25000000.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT002', 'TEAM11', '2026-10-01', 3.00, 'Active', '2026-10-01 09:00:00'),
+  ('TGT003', 'TEAM11', '2026-10-01', 12.00, 'Active', '2026-10-01 09:00:00');
 
 INSERT INTO `Vouchers`
   (`voucher_id`, `discount_type`, `value`, `start_date`, `end_date`, `status`)
