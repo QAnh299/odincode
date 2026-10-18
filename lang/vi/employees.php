@@ -53,6 +53,10 @@ return [
     // Chi tiết
     'back_to_list'       => 'Quay lại danh sách',
     'leader_of'          => 'Trưởng nhóm :team',
+    'profile_title'      => 'Thông tin nhân viên',
+    'seniority_value'    => 'Thâm niên :value',
+    'team_since'         => 'Thành lập :date',
+    'team_members'       => 'Thành viên trong đội',
     'personal_info'      => 'Thông tin cá nhân',
     'date_of_birth'      => 'Ngày sinh',
     'email'              => 'Email',
@@ -75,15 +79,31 @@ return [
     'no_teammates'       => 'Chưa có thành viên nào khác trong đội.',
 
 
-    'performance'        => 'Kết quả kinh doanh',
-    'performance_note'   => 'Tính trên toàn bộ dữ liệu do nhân viên phụ trách',
-    'opportunities'      => 'Opportunity phụ trách',
-    'in_progress'        => ':count đang xử lý',
-    'won'                => 'Opportunity đã chốt',
-    'win_rate'           => 'Tỷ lệ chốt :rate',
-    'quotations'         => 'Báo giá đã lập',
-    'confirmed'          => ':count đã xác nhận',
-    'appointments'       => 'Lịch hẹn',
+    // Kết quả kinh doanh (chi tiết Sale Leader / Salesperson) – cùng cách tính với báo cáo Phân tích hiệu quả Sales
+    'perf' => [
+        'title'          => 'Kết quả kinh doanh',
+        'title_team'     => 'Kết quả kinh doanh của đội :team',
+        'no_team'        => 'Sale Leader này chưa phụ trách đội kinh doanh nào nên chưa có số liệu.',
+        'period'         => 'Kỳ xem',
+        'month'          => 'Tháng :month',
+        'all_time'       => 'Toàn bộ thời gian',
+        'open_report'    => 'Xem báo cáo chi tiết',
+        'kpi' => [
+            'revenue'  => 'Doanh thu',
+            'won'      => 'Lead chốt',
+            'students' => 'Học viên mới',
+            'assigned' => 'Lead được giao',
+        ],
+        'paid'           => 'Đã thu :amount',
+        'win_rate'       => 'Tỷ lệ thắng :rate · :lost thất bại',
+        'processed'      => 'Đã xử lý :rate',
+        'target'         => 'Đạt :rate% chỉ tiêu (:target)',
+        'target_reached' => 'Đạt :rate% chỉ tiêu',
+        'delta'          => ':value% so với tháng trước',
+        'delta_new'      => 'Tháng trước chưa có',
+        'delta_new_short' => 'Mới',
+        'delta_note'     => 'Nhãn % bên cạnh mỗi chỉ số: so với tháng trước.',
+    ],
 
     // Đội kinh doanh
     'teams' => [

@@ -1,0 +1,780 @@
+/* ── Trang chi tiết nhân viên (livewire/employees/show + partials/performance) ──
+   Tiền tố .ed-. Màu lấy từ --odin-primary (đổi theo bộ chọn màu giao diện) và biến Bootstrap 5.3,
+   không hardcode màu. Chữ dài (email, tên chi nhánh) chỉ xuống dòng ở chỗ hợp lý, không bẻ giữa từ. */
+
+.ed {
+    --ed-primary: var(--odin-primary, var(--bs-primary));
+    --ed-on-primary: var(--odin-on-primary, #fff);
+    --ed-tint: color-mix(in srgb, var(--ed-primary) 9%, var(--bs-body-bg));
+    --ed-tint-strong: color-mix(in srgb, var(--ed-primary) 16%, var(--bs-body-bg));
+    --ed-border: var(--bs-border-color-translucent);
+    --ed-muted: var(--bs-secondary-color);
+    --ed-radius: 18px;
+    --ed-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+
+    max-width: 1240px;
+    margin: 0 auto;
+    min-width: 0;
+}
+
+.ed .odin-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.ed-muted {
+    color: var(--ed-muted);
+}
+
+/* ── Quay lại ─────────────────────────────────────────────────────── */
+
+.ed-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.55rem;
+    border-radius: 999px;
+    color: var(--ed-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.ed-back:hover {
+    background: var(--ed-tint);
+    color: var(--ed-primary);
+}
+
+/* ── Thẻ hồ sơ ────────────────────────────────────────────────────── */
+
+.ed-hero {
+    position: relative;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius);
+    background: var(--bs-body-bg);
+    box-shadow: var(--ed-shadow);
+    overflow: hidden;
+}
+
+.ed-hero__banner {
+    height: 84px;
+    background:
+        radial-gradient(60% 120% at 85% 0%, rgba(255, 255, 255, 0.28) 0%, transparent 70%),
+        radial-gradient(40% 90% at 10% 100%, rgba(255, 255, 255, 0.12) 0%, transparent 70%),
+        linear-gradient(120deg, var(--ed-primary) 0%, color-mix(in srgb, var(--ed-primary) 62%, #fff) 100%);
+}
+
+.ed-hero__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.5rem 1.25rem;
+    padding: 0 1.5rem 1.35rem;
+}
+
+.ed-hero__avatar {
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    margin-top: -48px;
+    border: 4px solid var(--bs-body-bg);
+    border-radius: 50%;
+    background: var(--ed-primary);
+    color: var(--ed-on-primary);
+    font-size: 2.25rem;
+    font-weight: 700;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+}
+
+.ed-hero__main {
+    min-width: 0;
+    padding-top: 0.75rem;
+}
+
+.ed-hero__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+}
+
+.ed-hero__name {
+    margin: 0;
+    font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+.ed-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ed-status__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ed-status--working {
+    background: var(--bs-success-bg-subtle);
+    color: var(--bs-success-text-emphasis);
+}
+
+.ed-status--resigned {
+    background: var(--bs-secondary-bg);
+    color: var(--ed-muted);
+}
+
+.ed-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ed-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--ed-border);
+    border-radius: 999px;
+    background: var(--bs-tertiary-bg);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--bs-body-color);
+}
+
+.ed-chip .odin-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--ed-muted);
+}
+
+.ed-chip--code {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+}
+
+.ed-chip--accent {
+    border-color: transparent;
+    background: var(--ed-tint-strong);
+    color: var(--ed-primary);
+    font-weight: 600;
+}
+
+.ed-chip--accent .odin-icon {
+    color: currentColor;
+}
+
+.ed-hero__contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    min-width: 0;
+    padding-top: 0.75rem;
+}
+
+.ed-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 100%;
+    padding: 0.3rem 0.7rem;
+    border-radius: 10px;
+    color: var(--bs-body-color);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.ed-contact span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ed-contact .odin-icon {
+    color: var(--ed-primary);
+}
+
+.ed-contact:hover {
+    background: var(--ed-tint);
+    color: var(--ed-primary);
+}
+
+/* ── Lưới nội dung: thông tin (trái) + đội (phải ~360px) ───────────── */
+
+/* stretch: 2 thẻ trên cùng một hàng luôn cao bằng nhau (không hở khoảng trống dưới thẻ ngắn hơn) */
+.ed-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.ed-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.ed-card {
+    min-width: 0;
+    padding: 1.35rem 1.5rem;
+    border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius);
+    background: var(--bs-body-bg);
+    box-shadow: var(--ed-shadow);
+}
+
+.ed-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+}
+
+.ed-card__title {
+    margin: 0 0 1.1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.ed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--ed-border);
+    border-radius: 10px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.ed-btn:hover {
+    border-color: color-mix(in srgb, var(--ed-primary) 40%, transparent);
+    background: var(--ed-tint);
+    color: var(--ed-primary);
+}
+
+.ed-btn .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Thông tin nhân viên: nhóm + danh sách nhãn / giá trị ─────────── */
+
+.ed-group + .ed-group {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--ed-border);
+}
+
+.ed-group__title {
+    margin: 0 0 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ed-muted);
+}
+
+.ed-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+    margin: 0;
+}
+
+.ed-field {
+    min-width: 0;
+}
+
+/* Giá trị dài (chi nhánh + địa chỉ) chiếm 2 cột */
+.ed-field--wide {
+    grid-column: span 2;
+}
+
+.ed-field dt {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ed-muted);
+}
+
+.ed-field dt .odin-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--ed-primary);
+}
+
+.ed-field dd {
+    margin: 0;
+    font-size: 0.975rem;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+}
+
+.ed-field__sub {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--ed-muted);
+}
+
+.ed-link {
+    color: inherit;
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.ed-link:hover {
+    color: var(--ed-primary);
+    text-decoration: underline;
+}
+
+/* ── Đội kinh doanh ───────────────────────────────────────────────── */
+
+.ed-team__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: var(--ed-tint);
+}
+
+.ed-team__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--ed-primary);
+    color: var(--ed-on-primary);
+}
+
+.ed-team__icon .odin-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.ed-team__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.ed-team__count {
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--bs-body-bg);
+    color: var(--ed-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ed-team__name {
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.ed-team__meta {
+    font-size: 0.8rem;
+    color: var(--ed-muted);
+}
+
+.ed-team__leader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0.9rem 0 0;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px dashed var(--ed-border);
+}
+
+.ed-team__label {
+    font-size: 0.8rem;
+    color: var(--ed-muted);
+}
+
+.ed-team__leader-name {
+    font-weight: 600;
+    text-align: right;
+}
+
+.ed-team .ed-group__title {
+    margin-top: 1.1rem;
+}
+
+.ed-people {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ed-person {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 12px;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.ed-person.is-link:hover {
+    background: var(--ed-tint);
+}
+
+.ed-person__avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ed-tint-strong);
+    color: var(--ed-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.ed-person__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.ed-person__name {
+    font-weight: 600;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ed-person__meta {
+    font-size: 0.78rem;
+    color: var(--ed-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ed .ed-person__go {
+    width: 16px;
+    height: 16px;
+    color: var(--ed-muted);
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.ed-person.is-link:hover .ed-person__go {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+.ed-tag {
+    flex-shrink: 0;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--ed-tint-strong);
+    color: var(--ed-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ed-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--ed-muted);
+}
+
+.ed-empty p {
+    margin: 0;
+}
+
+.ed-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ed-tint);
+    color: var(--ed-primary);
+}
+
+.ed-empty__icon .odin-icon {
+    width: 22px;
+    height: 22px;
+}
+
+/* ── Kết quả kinh doanh ───────────────────────────────────────────── */
+
+.ed-perf {
+    margin-top: 1.25rem;
+}
+
+.ed-perf__tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ed-perf__period {
+    width: auto;
+    min-width: 170px;
+    border-radius: 10px;
+}
+
+.ed-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    transition: opacity 0.15s;
+}
+
+.ed-kpis.is-loading {
+    opacity: 0.5;
+}
+
+.ed-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 1rem 1.1rem 1.1rem;
+    border: 1px solid var(--ed-border);
+    border-radius: 16px;
+    background: linear-gradient(180deg, var(--ed-tint) 0%, var(--bs-body-bg) 70%);
+}
+
+.ed-kpi__top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.ed-kpi__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--bs-body-bg);
+    color: var(--ed-primary);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.ed-kpi__label {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ed-muted);
+}
+
+.ed-kpi__value {
+    margin-top: 0.35rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ed-kpi--revenue .ed-kpi__value {
+    font-size: 1.35rem;
+    color: var(--ed-primary);
+}
+
+.ed-kpi__target {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.15rem;
+}
+
+.ed-kpi__hint {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--ed-muted);
+}
+
+.ed-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bs-secondary-bg);
+    overflow: hidden;
+}
+
+.ed-bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--ed-primary);
+}
+
+.ed-bar.is-done > span {
+    background: var(--bs-success);
+}
+
+.ed-delta {
+    flex-shrink: 0;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background: var(--bs-secondary-bg);
+    color: var(--ed-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ed-delta.is-up {
+    background: var(--bs-success-bg-subtle);
+    color: var(--bs-success-text-emphasis);
+}
+
+.ed-delta.is-down {
+    background: var(--bs-danger-bg-subtle);
+    color: var(--bs-danger-text-emphasis);
+}
+
+.ed-note {
+    margin: 0.9rem 0 0;
+    font-size: 0.78rem;
+    color: var(--ed-muted);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 1199.98px) {
+    .ed-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ed-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .ed-hero__body {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ed-hero__contact {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 0;
+        margin-left: -0.7rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ed-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ed-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ed-field--wide {
+        grid-column: auto;
+    }
+
+    .ed-hero__banner {
+        height: 72px;
+    }
+
+    .ed-hero__body {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 0 1rem 1.1rem;
+    }
+
+    .ed-hero__avatar {
+        width: 76px;
+        height: 76px;
+        margin-top: -38px;
+        font-size: 1.75rem;
+    }
+
+    .ed-hero__main {
+        padding-top: 0;
+    }
+
+    .ed-contact {
+        padding-inline: 0.5rem;
+    }
+
+    .ed-card {
+        padding: 1.1rem 1rem;
+    }
+
+    .ed-kpis {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ed-kpi__value {
+        white-space: normal;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ed * {
+        transition: none !important;
+    }
+}

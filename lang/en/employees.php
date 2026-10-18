@@ -53,6 +53,10 @@ return [
     // Detail
     'back_to_list'       => 'Back to list',
     'leader_of'          => 'Leader of :team',
+    'profile_title'      => 'Employee information',
+    'seniority_value'    => ':value of service',
+    'team_since'         => 'Since :date',
+    'team_members'       => 'Team members',
     'personal_info'      => 'Personal information',
     'date_of_birth'      => 'Date of birth',
     'email'              => 'Email',
@@ -75,15 +79,31 @@ return [
     'no_teammates'       => 'No other members in this team yet.',
 
 
-    'performance'        => 'Sales performance',
-    'performance_note'   => 'Based on all data handled by this employee',
-    'opportunities'      => 'Opportunities',
-    'in_progress'        => ':count in progress',
-    'won'                => 'Won opportunities',
-    'win_rate'           => 'Win rate :rate',
-    'quotations'         => 'Quotations created',
-    'confirmed'          => ':count confirmed',
-    'appointments'       => 'Appointments',
+    // Sales performance (Sale Leader / Salesperson detail) – same rules as the Sales performance report
+    'perf' => [
+        'title'          => 'Sales performance',
+        'title_team'     => 'Sales performance of team :team',
+        'no_team'        => 'This Sale Leader does not lead any sales team yet, so there is no data.',
+        'period'         => 'Period',
+        'month'          => 'Month :month',
+        'all_time'       => 'All time',
+        'open_report'    => 'Open detailed report',
+        'kpi' => [
+            'revenue'  => 'Revenue',
+            'won'      => 'Won leads',
+            'students' => 'New students',
+            'assigned' => 'Assigned leads',
+        ],
+        'paid'           => ':amount collected',
+        'win_rate'       => 'Win rate :rate · :lost lost',
+        'processed'      => ':rate processed',
+        'target'         => ':rate% of target (:target)',
+        'target_reached' => ':rate% of target',
+        'delta'          => ':value% vs previous month',
+        'delta_new'      => 'None last month',
+        'delta_new_short' => 'New',
+        'delta_note'     => 'The % badge next to each figure compares with the previous month.',
+    ],
 
     // Sales teams
     'teams' => [
