@@ -47,26 +47,37 @@
             $change * $dir > 0 ? 'up' : 'down'];
     };
 
+    // Thẻ KPI: 1 số chính + 1 dòng giải thích ngắn + so với tháng trước
     $revenueTarget = array_sum(array_column($this->targets, 'revenue'));
     $kpis = [
         ['assigned', 'layers', $num($t['assigned']),
-            __('reports.sales_performance.kpi.assigned_hint', ['count' => $num($t['processed']), 'rate' => $pct($t['processed_rate'])]),
+            __('reports.sales_performance.kpi.assigned_hint', ['rate' => $pct($t['processed_rate'])]),
             $delta($t['assigned'], $p['assigned'])],
         ['won', 'check-circle', $num($t['won']),
             __('reports.sales_performance.kpi.won_hint', ['rate' => $pct($t['close_rate'])]),
             $delta($t['won'], $p['won'])],
         ['revenue', 'cash', $money($t['revenue']),
             $revenueTarget
-                ? __('reports.sales_performance.kpi.revenue_target_hint', ['rate' => $pct(round($t['revenue'] * 100 / $revenueTarget, 1)), 'target' => $money($revenueTarget)])
-                : __('reports.sales_performance.kpi.revenue_hint', ['paid' => $money($t['paid'])]),
+                ? __('reports.sales_performance.kpi.revenue_target_hint', ['rate' => $pct(round($t['revenue'] * 100 / $revenueTarget, 1))])
+                : __('reports.sales_performance.kpi.revenue_hint'),
             $delta($t['revenue'], $p['revenue'])],
         ['response', 'clock', $hours($t['avg_response_hours']),
-            __('reports.sales_performance.kpi.response_hint', ['days' => $days($t['avg_close_days'])]),
+            __('reports.sales_performance.kpi.response_hint'),
             $delta($t['avg_response_hours'], $p['avg_response_hours'], -1, true)],
         ['contacts', 'phone', $num($t['contacts']),
-            __('reports.sales_performance.kpi.contacts_hint', ['unreachable' => $num($t['unreachable']), 'backward' => $num($t['backward'])]),
+            __('reports.sales_performance.kpi.contacts_hint', ['rate' => $pct($t['contact_success_rate'])]),
             $delta($t['contacts'], $p['contacts'])],
     ];
+
+    // Bảng chỉ hiện top N dòng đã xếp hạng; chọn "Tất cả" thì bảng có thanh cuộn
+    $teamShown = $this->topRows($teamRows, $this->teamTop);
+    // Bảng team: chỉ tiêu doanh thu + Lead giao mới
+    $teamGoals = ['revenue', 'assigned'];
+    // Bảng salesperson lọc theo đội chọn ở đầu bảng (khác bộ lọc chung); tổng cộng theo đội đó
+    $empRows = $this->employeeView;
+    $empTotals = $this->employeeViewTotals;
+    $rowsShown = $this->topRows($empRows, $this->employeeTop);
+    $chartKeys = array_values(array_filter(['team', 'trend_revenue', 'funnel'], fn ($k) => isset($charts[$k])));
 
     $hasData = $t['assigned'] > 0 || $t['won'] + $t['lost'] > 0 || $t['revenue'] > 0;
 @endphp
@@ -129,14 +140,6 @@
                 @endforeach
             </select>
         </label>
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('reports.sales_performance.sort') }}</span>
-            <select wire:model.live="sort" class="vc-control">
-                @foreach (array_keys(SalesPerformance::SORTS) as $key)
-                    <option value="{{ $key }}">{{ __('reports.sales_performance.metric.'.$key) }}</option>
-                @endforeach
-            </select>
-        </label>
         <div class="vc-field vc-field--action">
             <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetFilters" @disabled(! $this->hasFilters())>
                 <x-icon name="refresh" />{{ __('reports.reset') }}
@@ -145,18 +148,18 @@
     </section>
 
     {{-- ── Thẻ KPI (so với tháng trước) ────────────────────────────────── --}}
-    <div class="rp-kpis">
+    <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
         @foreach ($kpis as [$key, $icon, $value, $hint, $change])
-            <div class="vc-summary__item rp-kpi">
-                <span class="vc-summary__icon"><x-icon :name="$icon" /></span>
-                <span class="vc-summary__text">
-                    <span class="vc-summary__label">{{ __('reports.sales_performance.kpi.'.$key) }}</span>
-                    <span class="vc-summary__value">{{ $value }}</span>
-                    <span class="rp-kpi__hint" title="{{ $hint }}">{{ $hint }}</span>
-                    @if ($change)
-                        <span class="rp-delta {{ $change[1] ? 'rp-delta--'.$change[1] : '' }}">{{ $change[0] }}</span>
-                    @endif
-                </span>
+            <div class="rp-stat">
+                <div class="rp-stat__head">
+                    <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
+                    <span>{{ __('reports.sales_performance.kpi.'.$key) }}</span>
+                </div>
+                <div class="rp-stat__value {{ $key === 'revenue' ? 'rp-stat__value--fit' : '' }}">{{ $value }}</div>
+                @if ($change)
+                    <div class="rp-delta {{ $change[1] ? 'rp-delta--'.$change[1] : '' }}">{{ $change[0] }}</div>
+                @endif
+                <div class="rp-stat__hint">{{ $hint }}</div>
             </div>
         @endforeach
     </div>
@@ -170,53 +173,58 @@
             <p class="rp-section__sub">{{ __('reports.sales_performance.team_section_sub') }}</p>
 
             <section class="vc-card rp-card">
-                <div class="table-responsive">
+                @include('livewire.reports.partials.sp-top', ['model' => 'teamTop', 'shown' => count($teamShown), 'total' => count($teamRows)])
+                <div class="rp-scroll">
                     <table class="rp-table">
                         <thead>
                             <tr>
-                                <th>{{ __('reports.sales_performance.rank') }}</th>
-                                <th>{{ __('reports.sales_performance.team') }}</th>
-                                <th class="rp-num">{{ __('reports.sales_performance.members') }}</th>
-                                @foreach (\App\Services\SalesPerformanceReport::TARGETS as $metric)
-                                    <th class="rp-num">{{ __('reports.sales_performance.target.'.$metric) }}</th>
-                                    <th class="rp-num">{{ __('reports.sales_performance.attain') }}</th>
+                                <th class="rp-pin rp-pin--rank">{{ __('reports.sales_performance.rank') }}</th>
+                                <th class="rp-pin rp-pin--2">{{ __('reports.sales_performance.team') }}</th>
+                                @foreach ($teamGoals as $metric)
+                                    <th>{{ __('reports.sales_performance.target.'.$metric) }}</th>
                                 @endforeach
-                                <th class="rp-num">{{ __('reports.sales_performance.metric.won') }}</th>
                                 <th class="rp-num">{{ __('reports.sales_performance.metric.close_rate') }}</th>
                                 <th class="rp-num">{{ __('reports.sales_performance.metric.processed_rate') }}</th>
-                                <th class="rp-num">{{ __('reports.sales_performance.metric.avg_response_hours') }}</th>
+                                <th class="rp-num">
+                                    {{ __('reports.sales_performance.team_close_days') }}
+                                    <span class="rp-sub">{{ __('reports.sales_performance.team_close_days_sub') }}</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($teamRows as $row)
+                            @foreach ($teamShown as $row)
                                 <tr wire:key="team-{{ $row['id'] }}">
-                                    <td><span class="rp-rank rp-rank--{{ $row['rank'] }}">{{ $row['rank'] }}</span></td>
-                                    <th scope="row">{{ $row['name'] }}</th>
-                                    <td class="rp-num">{{ $num($row['members']) }}</td>
-                                    @foreach (\App\Services\SalesPerformanceReport::TARGETS as $metric)
-                                        <td class="rp-num">
-                                            {{ $metric === 'revenue' ? $money($row[$metric]) : $num($row[$metric]) }}
-                                            <span class="rp-sub">
-                                                @if (isset($row['target'][$metric]))
-                                                    / {{ $metric === 'revenue' ? $money($row['target'][$metric]) : $num($row['target'][$metric]) }}
+                                    <td class="rp-pin rp-pin--rank"><span class="rp-rank rp-rank--{{ $row['rank'] }}">{{ $row['rank'] }}</span></td>
+                                    <th scope="row" class="rp-pin rp-pin--2">
+                                        {{ $row['name'] }}
+                                        <span class="rp-sub">{{ __('reports.sales_performance.members_count', ['count' => $row['members']]) }}</span>
+                                    </th>
+                                    {{-- Mỗi chỉ tiêu 1 ô: thực tế + % đạt, thanh tiến độ, chỉ tiêu --}}
+                                    @foreach ($teamGoals as $metric)
+                                        @php
+                                            $fmt = $metric === 'revenue' ? $money : $num;
+                                            $rate = $row['attain'][$metric];
+                                        @endphp
+                                        <td>
+                                            <div class="rp-goal {{ $rate !== null && $rate >= 100 ? 'is-done' : '' }}">
+                                                <div class="rp-goal__top">
+                                                    <strong>{{ $fmt($row[$metric]) }}</strong>
+                                                    @if ($rate !== null)
+                                                        <span class="rp-goal__pct">{{ $pct($rate) }}</span>
+                                                    @endif
+                                                </div>
+                                                @if ($rate !== null)
+                                                    <div class="rp-goal__bar"><span style="width: {{ min(100, $rate) }}%"></span></div>
+                                                    <span class="rp-sub">{{ __('reports.sales_performance.of_target', ['target' => $fmt($row['target'][$metric])]) }}</span>
                                                 @else
-                                                    {{ __('reports.sales_performance.no_target') }}
+                                                    <span class="rp-sub">{{ __('reports.sales_performance.no_target') }}</span>
                                                 @endif
-                                            </span>
-                                        </td>
-                                        <td class="rp-num">
-                                            @if ($row['attain'][$metric] !== null)
-                                                <span class="rp-bar {{ $row['attain'][$metric] >= 100 ? 'rp-bar--done' : '' }}"
-                                                    style="--w: {{ min(100, $row['attain'][$metric]) }}%">{{ $pct($row['attain'][$metric]) }}</span>
-                                            @else
-                                                —
-                                            @endif
+                                            </div>
                                         </td>
                                     @endforeach
-                                    <td class="rp-num">{{ $num($row['won']) }}</td>
                                     <td class="rp-num">{{ $pct($row['close_rate']) }}</td>
                                     <td class="rp-num">{{ $pct($row['processed_rate']) }}</td>
-                                    <td class="rp-num">{{ $hours($row['avg_response_hours']) }}</td>
+                                    <td class="rp-num">{{ $days($row['avg_close_days']) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -234,12 +242,14 @@
         </p>
 
         <section class="vc-card rp-card">
-            <div class="table-responsive">
+            @include('livewire.reports.partials.sp-top', ['model' => 'employeeTop', 'shown' => count($rowsShown), 'total' => count($empRows),
+                'teamModel' => 'employeeTeam', 'teamOptions' => $this->employeeTeamOptions])
+            <div class="rp-scroll">
                 <table class="rp-table">
                     <thead>
                         <tr>
-                            <th>{{ __('reports.sales_performance.rank') }}</th>
-                            <th>{{ __('reports.sales_performance.employee') }}</th>
+                            <th class="rp-pin rp-pin--rank">{{ __('reports.sales_performance.rank') }}</th>
+                            <th class="rp-pin rp-pin--2">{{ __('reports.sales_performance.employee') }}</th>
                             @foreach (array_keys(SalesPerformance::COLUMNS) as $key)
                                 <th class="rp-num {{ $key === $sortKey ? 'is-sorted' : '' }}">
                                     @if (isset(SalesPerformance::SORTS[$key]))
@@ -254,16 +264,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($rows as $row)
+                        @foreach ($rowsShown as $row)
                             <tr wire:key="emp-{{ $row['id'] }}" class="{{ $row['active'] ? '' : 'rp-row--idle' }}">
-                                <td>
+                                <td class="rp-pin rp-pin--rank">
                                     @if ($row['rank'])
                                         <span class="rp-rank rp-rank--{{ $row['rank'] }}">{{ $row['rank'] }}</span>
                                     @else
                                         —
                                     @endif
                                 </td>
-                                <th scope="row">
+                                <th scope="row" class="rp-pin rp-pin--2">
                                     {{ $row['name'] }}
                                     @if ($row['team'])
                                         <span class="rp-sub">{{ $row['team'] }}</span>
@@ -277,13 +287,13 @@
                             </tr>
                         @endforeach
                     </tbody>
-                    @if (count($rows) > 1)
+                    @if (count($empRows) > 1)
                         <tfoot>
                             <tr>
-                                <td></td>
-                                <th scope="row">{{ __('reports.sales_performance.total') }}</th>
+                                <td class="rp-pin rp-pin--rank"></td>
+                                <th scope="row" class="rp-pin rp-pin--2">{{ __('reports.sales_performance.total') }}</th>
                                 @foreach (array_keys(SalesPerformance::COLUMNS) as $key)
-                                    <td class="rp-num">{{ $formats[$key]($t[$key]) }}</td>
+                                    <td class="rp-num">{{ $formats[$key]($empTotals[$key]) }}</td>
                                 @endforeach
                             </tr>
                         </tfoot>
@@ -296,11 +306,11 @@
         <section class="vc-card rp-card">
             <h3 class="rp-card__title">{{ __('reports.sales_performance.stage_table.title') }}</h3>
             <p class="rp-card__sub">{{ __('reports.sales_performance.stage_table.sub') }}</p>
-            <div class="table-responsive">
+            <div class="rp-scroll">
                 <table class="rp-table">
                     <thead>
                         <tr>
-                            <th>{{ __('reports.sales_performance.employee') }}</th>
+                            <th class="rp-pin">{{ __('reports.sales_performance.employee') }}</th>
                             @foreach ($stages as $stage)
                                 <th class="rp-num">{{ $stage['name'] }}</th>
                             @endforeach
@@ -308,10 +318,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($rows as $row)
+                        @foreach ($rowsShown as $row)
                             @continue(! $row['assigned'])
                             <tr wire:key="stg-{{ $row['id'] }}">
-                                <th scope="row">{{ $row['name'] }}</th>
+                                <th scope="row" class="rp-pin">{{ $row['name'] }}</th>
                                 @foreach ($stages as $stage)
                                     @php $cell = $row['stages'][$stage['order']]; @endphp
                                     <td class="rp-num">
@@ -327,9 +337,9 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th scope="row">{{ __('reports.sales_performance.total') }}</th>
+                            <th scope="row" class="rp-pin">{{ __('reports.sales_performance.total') }}</th>
                             @foreach ($stages as $stage)
-                                @php $cell = $t['stages'][$stage['order']]; @endphp
+                                @php $cell = $empTotals['stages'][$stage['order']]; @endphp
                                 <td class="rp-num">
                                     {{ $num($cell['reached']) }}
                                     @if ($cell['rate'] !== null)
@@ -337,7 +347,7 @@
                                     @endif
                                 </td>
                             @endforeach
-                            <td class="rp-num">{{ $pct($t['moved_rate']) }}</td>
+                            <td class="rp-num">{{ $pct($empTotals['moved_rate']) }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -349,12 +359,13 @@
         <p class="rp-section__sub">{{ __('reports.sales_performance.chart_section_sub') }}</p>
 
         <div class="rp-grid">
-            @foreach (['team', 'funnel', 'pipeline', 'revenue', 'rates', 'quality', 'trend_count', 'trend_revenue'] as $key)
-                @continue(! isset($charts[$key]))
+            @foreach ($chartKeys as $i => $key)
                 @php
                     $height = $key === 'funnel' ? max(200, count($stages) * 48 + 40) : 300;
+                    // Số biểu đồ lẻ: biểu đồ cuối chiếm cả hàng
+                    $wide = $i === count($chartKeys) - 1 && count($chartKeys) % 2 === 1;
                 @endphp
-                <section class="vc-card rp-card">
+                <section class="vc-card rp-card {{ $wide ? 'rp-card--wide' : '' }}">
                     <h3 class="rp-card__title">{{ __('reports.sales_performance.chart.'.$key) }}</h3>
                     <p class="rp-card__sub">{{ __('reports.sales_performance.chart.'.$key.'_sub') }}</p>
                     <div class="rp-chart" style="height: {{ $height }}px"

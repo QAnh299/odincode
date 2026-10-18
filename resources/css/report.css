@@ -461,6 +461,142 @@
     color: var(--vc-muted);
 }
 
+/* Bảng dài: cuộn trong khung, tiêu đề và dòng tổng dính trên / dưới */
+.rp-scroll {
+    max-height: 460px;
+    overflow: auto;
+}
+
+.rp-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.rp-scroll tfoot th,
+.rp-scroll tfoot td {
+    position: sticky;
+    bottom: 0;
+    background: var(--vc-surface);
+    box-shadow: inset 0 1px 0 var(--vc-border);
+}
+
+/* Cột hạng + tên đứng yên khi cuộn ngang (.rp-pin--2 = cột thứ 2, ngay sau cột hạng) */
+.rp-table .rp-pin {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--vc-surface);
+}
+
+.rp-table .rp-pin--rank {
+    box-sizing: border-box;
+    width: 3.5rem;
+    min-width: 3.5rem;
+    max-width: 3.5rem;
+}
+
+.rp-table .rp-pin--2 {
+    left: 3.5rem;
+}
+
+.rp-table .rp-pin--2,
+.rp-table .rp-pin:not(.rp-pin--rank) {
+    box-shadow: inset -1px 0 0 var(--vc-border);
+}
+
+.rp-table thead .rp-pin {
+    z-index: 3;
+    background: #f8faf8;
+}
+
+.rp-scroll tfoot .rp-pin {
+    z-index: 3;
+}
+
+/* Ô chỉ tiêu của team: số thực tế + % đạt, thanh tiến độ, chỉ tiêu */
+.rp-goal {
+    min-width: 150px;
+}
+
+.rp-goal__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.rp-goal__pct {
+    color: var(--vc-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.rp-goal__bar {
+    height: 6px;
+    margin: 0.35rem 0 0.2rem;
+    border-radius: 999px;
+    background: var(--vc-tint);
+    overflow: hidden;
+}
+
+.rp-goal__bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--vc-primary);
+}
+
+.rp-goal.is-done .rp-goal__pct {
+    color: #15803d;
+}
+
+.rp-goal.is-done .rp-goal__bar > span {
+    background: #16a34a;
+}
+
+/* Ô chọn Top 5 / 10 / Tất cả phía trên bảng */
+.rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.rp-toolbar__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.rp-toolbar__field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.rp-toolbar__field .vc-control {
+    width: auto;
+    min-width: 120px;
+    height: 36px;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.rp-toolbar__count {
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
 /* Đã đạt chỉ tiêu */
 .rp-bar--done {
     background: #dcfce7;

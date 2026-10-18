@@ -35,21 +35,13 @@ class SalesPerformance extends Component
 
     // Màu cố định theo chỉ số (bảng màu chung của trang báo cáo)
     const COLORS = [
-        'assigned'             => '#2a78d6',
-        'processed'            => '#eda100',
-        'moved'                => '#6250d6',
-        'won'                  => '#1baf7a',
         'revenue'              => '#2a78d6',
-        'paid'                 => '#1baf7a',
         'target'               => '#c3cad5',
-        'contacts'             => '#2a78d6',
-        'unreachable'          => '#eb6834',
-        'backward'             => '#e34948',
-        'processed_rate'       => '#eda100',
-        'close_rate'           => '#1baf7a',
-        'contact_success_rate' => '#2a78d6',
         'reached'              => '#2a78d6',
     ];
+
+    // Số dòng hiện trong bảng team / salesperson ('all' = tất cả, bảng có thanh cuộn)
+    const TOPS = ['5', '10', 'all'];
 
     // Chỉ số dùng để xếp hạng salesperson → chiều sắp (desc: cao là tốt, asc: thấp là tốt)
     const SORTS = [
@@ -103,14 +95,22 @@ class SalesPerformance extends Component
     #[Url(except: 'revenue')]
     public string $sort = 'revenue';
 
+    // Số dòng hiện ở bảng team / salesperson (xem TOPS)
+    public string $teamTop = '5';
+
+    public string $employeeTop = '5';
+
+    // Đội của bảng salesperson ('' = tất cả đội trong phạm vi)
+    public string $employeeTeam = '';
+
     public function updatedTeam(): void
     {
-        $this->employee = '';
+        $this->reset('employee', 'employeeTeam');
     }
 
     public function resetFilters(): void
     {
-        $this->reset('month', 'team', 'employee', 'sort');
+        $this->reset('month', 'team', 'employee', 'sort', 'employeeTeam');
     }
 
     public function hasFilters(): bool
@@ -287,6 +287,46 @@ class SalesPerformance extends Component
     }
 
     /**
+     * Đội chọn được ở bảng salesperson: chỉ khi phạm vi có từ 2 đội và không lọc 1 salesperson.
+     */
+    #[Computed]
+    public function employeeTeamOptions(): Collection
+    {
+        return $this->employee === '' && $this->scopeTeams->count() > 1 ? $this->scopeTeams : collect();
+    }
+
+    /**
+     * Dòng bảng salesperson theo đội chọn ở đầu bảng; lọc 1 đội thì xếp hạng lại trong đội.
+     */
+    #[Computed]
+    public function employeeView(): array
+    {
+        if (! $this->employeeTeamOptions->contains('team_id', $this->employeeTeam)) {
+            return $this->byEmployee;
+        }
+
+        $rows = array_values(array_filter($this->byEmployee, fn ($r) => $r['team_id'] === $this->employeeTeam));
+        $rank = 0;
+        foreach ($rows as &$row) {
+            $row['rank'] = $row['active'] ? ++$rank : null;
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
+     * Dòng tổng cộng của bảng salesperson (theo đội đang chọn ở bảng).
+     */
+    #[Computed]
+    public function employeeViewTotals(): array
+    {
+        return count($this->employeeView) === count($this->byEmployee)
+            ? $this->totals
+            : $this->report()->combine($this->employeeView);
+    }
+
+    /**
      * Chỉ số theo đội trong phạm vi + chỉ tiêu, xếp hạng theo % đạt chỉ tiêu doanh thu.
      */
     #[Computed]
@@ -376,30 +416,27 @@ class SalesPerformance extends Component
         ], $months);
     }
 
+    /**
+     * Dòng hiện trong bảng: $top dòng đầu (đã xếp hạng) hoặc tất cả.
+     */
+    public function topRows(array $rows, string $top): array
+    {
+        return in_array($top, self::TOPS, true) && $top !== 'all' ? array_slice($rows, 0, (int) $top) : $rows;
+    }
+
+    /**
+     * Chỉ giữ biểu đồ giúp đọc nhanh tình hình (chi tiết từng người đã có ở bảng):
+     * doanh thu so với chỉ tiêu theo đội, phễu Stage, xu hướng doanh thu 6 tháng.
+     */
     #[Computed]
     public function charts(): array
     {
-        $people = array_values(array_filter($this->byEmployee, fn ($r) => $r['active']));
-        $names = array_column($people, 'name');
         $label = fn ($m) => __('reports.sales_performance.metric.'.$m);
-        $series = fn (array $rows, array $metrics) => array_map(fn ($m) => [
-            'label' => $label($m), 'color' => self::COLORS[$m], 'data' => array_column($rows, $m),
-        ], $metrics);
+        $charts = [];
 
-        $charts = [
-            'pipeline' => ['type' => 'bar', 'unit' => 'count', 'labels' => $names,
-                'series' => $series($people, ['assigned', 'processed', 'moved', 'won'])],
-            'revenue'  => ['type' => 'bar', 'unit' => 'money', 'labels' => $names,
-                'series' => $series($people, ['revenue', 'paid'])],
-            'rates'    => ['type' => 'bar', 'unit' => 'percent', 'labels' => $names,
-                'series' => $series($people, ['processed_rate', 'close_rate', 'contact_success_rate'])],
-            'quality'  => ['type' => 'bar', 'unit' => 'count', 'labels' => $names,
-                'series' => $series($people, ['contacts', 'unreachable', 'backward'])],
-        ];
-
-        // Đội: doanh thu so với chỉ tiêu
+        // Đội: doanh thu so với chỉ tiêu (chỉ khi có từ 2 đội để so sánh)
         $teams = $this->byTeam;
-        if ($teams) {
+        if (count($teams) > 1) {
             $charts['team'] = ['type' => 'bar', 'unit' => 'money', 'labels' => array_column($teams, 'name'),
                 'series' => [
                     ['label' => $label('revenue'), 'color' => self::COLORS['revenue'], 'data' => array_column($teams, 'revenue')],
@@ -414,12 +451,10 @@ class SalesPerformance extends Component
             'series' => [['label' => $label('reached'), 'color' => self::COLORS['reached'],
                 'data' => array_map(fn ($s) => $t['stages'][$s['order']]['reached'], $this->stages)]]];
 
-        // Xu hướng 6 tháng
+        // Xu hướng doanh thu 6 tháng
         $trend = $this->trend;
         $months = array_map(fn ($r) => $this->monthLabel($r['month']), $trend);
-        $charts['trend_count'] = ['type' => 'line', 'unit' => 'count', 'labels' => $months,
-            'series' => $series($trend, ['assigned', 'processed', 'won'])];
-        $revenueSeries = $series($trend, ['revenue']);
+        $revenueSeries = [['label' => $label('revenue'), 'color' => self::COLORS['revenue'], 'data' => array_column($trend, 'revenue')]];
         if ($this->employee === '' && array_sum(array_column($trend, 'target')) > 0) {
             $revenueSeries[] = ['label' => $label('target'), 'color' => self::COLORS['target'], 'data' => array_column($trend, 'target')];
         }
