@@ -15,9 +15,10 @@ use RuntimeException;
  *
  *   1. Sale Admin → Sales Team: Lead 'New' của 1 chi nhánh được chuyển thành Cơ hội ở stage đầu,
  *      người phụ trách = trưởng nhóm của đội (odin.sql không có cột lưu đội của Lead).
- *      Lead chuyển sang 'Converted'.
+ *      Lead vẫn 'New' (đội đang giữ, chưa phân cho salesperson).
  *   2. Sale Leader → Salesperson: Cơ hội trưởng nhóm đang giữ (stage đầu, InProgress, chưa chăm sóc)
  *      được đổi người phụ trách sang salesperson, ngày giao (conversion_date) = lúc phân.
+ *      Lúc này Lead mới chuyển sang 'Converted'.
  *
  * Chia tự động: chia đều phần nguyên, Lead dư lần lượt cho Top 2 theo hiệu suất tháng trước.
  * Mỗi salesperson quản lý tối đa MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress).
@@ -176,6 +177,7 @@ class LeadDistributionService
         return Lead::query()
             ->where('status', Lead::STATUS_NEW)
             ->where('branch_id', $branchId)
+            ->whereDoesntHave('opportunities')
             ->when($source, fn ($q) => $q->where('source_name', $source))
             ->when($method, fn ($q) => $q->where('contact_method', $method))
             ->orderBy('created_at')
@@ -238,7 +240,6 @@ class LeadDistributionService
             }
 
             Opportunity::insert($rows);
-            Lead::whereIn('lead_id', $leadIds)->update(['status' => Lead::STATUS_CONVERTED]);
 
             return $total;
         });
@@ -270,6 +271,9 @@ class LeadDistributionService
                     ->update(['employee_id' => $employeeId, 'conversion_date' => $now]);
                 $offset += $count;
             }
+
+            Lead::whereIn('lead_id', Opportunity::whereIn('opportunity_id', $oppIds)->select('lead_id'))
+                ->update(['status' => Lead::STATUS_CONVERTED]);
 
             return $total;
         });

@@ -67,6 +67,15 @@ class Opportunity extends Model
         };
     }
 
+    /**
+     * Cơ hội đã phân cho salesperson (Lead đã 'Converted'). Cơ hội trưởng nhóm đang giữ chờ phân
+     * (Lead còn 'New') chưa xuất hiện ở Quản lý cơ hội.
+     */
+    public function scopeAssigned(Builder $query): Builder
+    {
+        return $query->whereHas('lead', fn ($q) => $q->where('status', Lead::STATUS_CONVERTED));
+    }
+
     public function lead()
     {
         return $this->belongsTo(Lead::class, 'lead_id', 'lead_id');
@@ -80,6 +89,11 @@ class Opportunity extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'employee_id');
+    }
+
+    public function transfers()
+    {
+        return $this->hasMany(OpportunityTransfer::class, 'opportunity_id', 'opportunity_id');
     }
 
     public function student()

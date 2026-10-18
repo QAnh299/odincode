@@ -228,6 +228,31 @@ CREATE TABLE `StagesHistory` (
     REFERENCES `Stages` (`stage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Lich su chuyen nguoi phu trach Opportunity (Sale Leader chuyen cho salesperson khac trong doi).
+-- stage_id: giai doan luc chuyen; du lieu cham soc truoc do giu nguyen nguoi thuc hien cu.
+CREATE TABLE `OpportunityTransfers` (
+  `transfer_id` VARCHAR(10) NOT NULL,
+  `transferred_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reason` TEXT NOT NULL,
+  `opportunity_id` VARCHAR(10) NOT NULL,
+  `stage_id` VARCHAR(10) NOT NULL,
+  `from_employee_id` VARCHAR(10) NOT NULL,
+  `to_employee_id` VARCHAR(10) NOT NULL,
+  `transferred_by` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`transfer_id`),
+  CHECK (`from_employee_id` <> `to_employee_id`),
+  CONSTRAINT `fk_opportunitytransfers_opportunity_id` FOREIGN KEY (`opportunity_id`)
+    REFERENCES `Opportunities` (`opportunity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_opportunitytransfers_stage_id` FOREIGN KEY (`stage_id`)
+    REFERENCES `Stages` (`stage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_opportunitytransfers_from_employee_id` FOREIGN KEY (`from_employee_id`)
+    REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_opportunitytransfers_to_employee_id` FOREIGN KEY (`to_employee_id`)
+    REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_opportunitytransfers_transferred_by` FOREIGN KEY (`transferred_by`)
+    REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `Courses` (
   `course_id` VARCHAR(10) NOT NULL,
   `course_name` VARCHAR(150) NOT NULL,

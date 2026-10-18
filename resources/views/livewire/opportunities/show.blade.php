@@ -408,38 +408,97 @@
                     @endif
                 </dl>
 
-                {{-- Sale Leader: chuyển người phụ trách (chưa tới stage Chốt) --}}
+                {{-- Sale Leader: chuyển người phụ trách (chưa tới stage Chốt) - mở popup --}}
                 @if ($this->reassignOptions->isNotEmpty())
-                    @if ($reassigning)
-                        <form class="od-reassign" wire:submit="reassign">
-                            <label class="vc-field">
-                                <span class="vc-field__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></span>
-                                <select wire:model="newOwner" class="vc-control @error('newOwner') is-invalid @enderror">
-                                    <option value="">{{ __('opportunities.reassign_choose') }}</option>
-                                    @foreach ($this->reassignOptions as $option)
-                                        <option value="{{ $option->employee_id }}">{{ $option->full_name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('newOwner') <span class="ld-error">{{ $message }}</span> @enderror
-                            </label>
-                            <p class="od-muted od-reassign__hint">{{ __('opportunities.reassign_hint') }}</p>
-                            <div class="od-resched__actions">
-                                <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
-                                <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
-                                    wire:confirm="{{ __('opportunities.reassign_confirm') }}">
-                                    <x-icon name="check" />{{ __('opportunities.reassign_save') }}
-                                </button>
-                            </div>
-                        </form>
-                    @else
-                        <button type="button" class="vc-btn vc-btn--ghost od-reassign__open" wire:click="startReassign">
-                            <x-icon name="users" />{{ __('opportunities.reassign') }}
-                        </button>
-                    @endif
+                    <button type="button" class="vc-btn vc-btn--ghost od-reassign__open" wire:click="startReassign">
+                        <x-icon name="users" />{{ __('opportunities.reassign') }}
+                    </button>
+                @endif
+
+                {{-- Lịch sử chuyển người phụ trách --}}
+                @if ($this->transfers->isNotEmpty())
+                    <div class="od-transfers">
+                        <h3 class="od-transfers__title">{{ __('opportunities.transfers') }}</h3>
+                        <ul class="od-transfers__list">
+                            @foreach ($this->transfers as $transfer)
+                                <li class="od-transfers__item" wire:key="transfer-{{ $transfer->transfer_id }}">
+                                    <span class="od-transfers__line">
+                                        {{ __('opportunities.transfer_line', [
+                                            'from' => $transfer->fromEmployee?->full_name ?? $transfer->from_employee_id,
+                                            'to'   => $transfer->toEmployee?->full_name ?? $transfer->to_employee_id,
+                                        ]) }}
+                                    </span>
+                                    <span class="od-muted od-transfers__meta">
+                                        {{ __('opportunities.transfer_meta', [
+                                            'time'  => $transfer->transferred_at?->format('d/m/Y H:i'),
+                                            'stage' => $transfer->stage?->stage_name ?? $transfer->stage_id,
+                                            'by'    => $transfer->transferrer?->full_name ?? $transfer->transferred_by,
+                                        ]) }}
+                                    </span>
+                                    <span class="od-transfers__reason">{{ $transfer->reason }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 @endif
             </section>
         </aside>
     </div>
+    {{-- Popup: chuyển người phụ trách (Sale Leader) --}}
+    @if ($reassigning && $this->reassignOptions->isNotEmpty())
+        <div class="ld-modal" wire:key="modal-reassign" x-data x-on:keydown.escape.window="$wire.cancelReassign()">
+            <div class="ld-modal__backdrop" wire:click="cancelReassign"></div>
+            <form class="ld-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="od-reassign-title" wire:submit="reassign">
+                <header class="ld-modal__head">
+                    <span class="ld-modal__icon"><x-icon name="users" /></span>
+                    <div>
+                        <h2 class="ld-modal__title" id="od-reassign-title">{{ __('opportunities.reassign') }}</h2>
+                        <p class="ld-modal__sub">
+                            <span class="vc-mono">{{ $opp->opportunity_id }}</span> · {{ $opp->lead?->full_name }} · {{ $opp->stage?->stage_name }}
+                        </p>
+                    </div>
+                    <button type="button" class="ld-modal__close" wire:click="cancelReassign" aria-label="{{ __('leads.close') }}">
+                        <x-icon name="x" />
+                    </button>
+                </header>
+
+                <div class="ld-modal__body od-reassign">
+                    <div class="vc-field">
+                        <span class="vc-field__label">{{ __('opportunities.reassign_current') }}</span>
+                        <span>{{ $opp->employee?->full_name ?? '—' }}</span>
+                    </div>
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></span>
+                        <select wire:model="newOwner" class="vc-control @error('newOwner') is-invalid @enderror">
+                            <option value="">{{ __('opportunities.reassign_choose') }}</option>
+                            @foreach ($this->reassignOptions as $option)
+                                <option value="{{ $option->employee_id }}">{{ $option->full_name }} ({{ $option->employee_id }})</option>
+                            @endforeach
+                        </select>
+                        @error('newOwner') <span class="ld-error">{{ $message }}</span> @enderror
+                    </label>
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('opportunities.reassign_reason') }} <span class="ld-req">*</span></span>
+                        <textarea wire:model="transferReason" rows="3" maxlength="1000"
+                            class="vc-control od-textarea @error('transferReason') is-invalid @enderror"
+                            placeholder="{{ __('opportunities.reassign_reason_placeholder') }}"></textarea>
+                        @error('transferReason') <span class="ld-error">{{ $message }}</span> @enderror
+                    </label>
+                </div>
+
+                <footer class="ld-modal__foot">
+                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
+                    <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
+                        wire:confirm="{{ __('opportunities.reassign_confirm') }}">
+                        <x-icon name="check" />{{ __('opportunities.reassign_save') }}
+                    </button>
+                </footer>
+            </form>
+        </div>
+    @endif
+
     {{-- Popup: chuyển người phụ trách thành công --}}
     @if ($reassigned)
         <div class="ld-modal" wire:key="modal-reassigned" x-data x-on:keydown.escape.window="$wire.closeReassigned()">
@@ -455,11 +514,9 @@
                             'to'   => '<strong>'.e($reassigned['to']).'</strong>',
                         ]) !!}
                     </p>
-                    <p class="od-muted">
-                        {{ $reassigned['moved']
-                            ? __('opportunities.reassigned_moved', ['count' => $reassigned['moved']])
-                            : __('opportunities.reassigned_no_pending') }}
-                    </p>
+                    @if ($reassigned['moved'])
+                        <p class="od-muted">{{ __('opportunities.reassigned_moved', ['count' => $reassigned['moved']]) }}</p>
+                    @endif
                 </div>
                 <footer class="ld-modal__foot od-success__foot">
                     <button type="button" class="vc-btn vc-btn--primary" wire:click="closeReassigned" autofocus>

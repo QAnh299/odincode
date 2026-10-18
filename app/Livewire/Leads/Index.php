@@ -347,8 +347,17 @@ class Index extends Component
      */
     protected function scoped(Builder $query): Builder
     {
+        // Sale Leader: chỉ Lead Sale Admin đã phân cho đội mình (trưởng nhóm đang giữ hoặc đã phân cho thành viên)
         if ($this->routePrefix === Role::SALE_LEADER) {
-            $query->where('branch_id', $this->fixedBranch?->branch_id);
+            $employee = Auth::user()->employee;
+            $team = $employee?->ledTeam ?? $employee?->team;
+
+            $team
+                ? $query->where('branch_id', $this->fixedBranch?->branch_id)
+                    ->whereHas('opportunities', fn ($q) => $q->where(fn ($q) => $q
+                        ->where('employee_id', $team->team_leader_id)
+                        ->orWhereHas('employee', fn ($e) => $e->where('team_id', $team->team_id))))
+                : $query->whereRaw('1 = 0');
         }
 
         return $query;

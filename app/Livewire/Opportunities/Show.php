@@ -7,6 +7,7 @@ use App\Models\CareActivity;
 use App\Models\CareResult;
 use App\Models\Employee;
 use App\Models\Opportunity;
+use App\Models\OpportunityTransfer;
 use App\Models\Role;
 use App\Models\Quotation;
 use App\Models\Stage;
@@ -27,7 +28,8 @@ use Livewire\Component;
  * Dùng chung cho Salesperson, Sale Leader, Giám đốc - xem được theo Opportunity::visibleTo().
  * Mọi thao tác (liên hệ, lịch hẹn, báo giá) chỉ dành cho salesperson đang phụ trách;
  * Sale Leader / Giám đốc chỉ xem. Sale Leader được chuyển người phụ trách sang salesperson khác
- * trong đội (khi cơ hội chưa tới stage Chốt) - lịch hẹn đang chờ chuyển theo.
+ * trong đội (popup chọn người + lý do, khi cơ hội chưa tới stage Chốt) - lịch hẹn đang chờ chuyển theo,
+ * lịch sử chăm sóc / lịch hẹn đã có kết quả giữ người cũ; mỗi lần chuyển lưu vào OpportunityTransfers.
  *
  * Lịch hẹn: mỗi mã lịch hẹn gồm 1-2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
  * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch - Tạo lịch hẹn.
@@ -69,6 +71,8 @@ class Show extends Component
 
     public string $newOwner = '';
 
+    public string $transferReason = '';
+
     // Popup chuyển thành công: ['from' => tên cũ, 'to' => tên mới, 'moved' => số lịch hẹn đang chờ đã chuyển]
     public ?array $reassigned = null;
 
@@ -98,7 +102,7 @@ class Show extends Component
     public function mount(Opportunity $opportunity): void
     {
         abort_unless(
-            Opportunity::query()->visibleTo(Auth::user()->employee)->whereKey($opportunity->getKey())->exists(),
+            Opportunity::query()->visibleTo(Auth::user()->employee)->assigned()->whereKey($opportunity->getKey())->exists(),
             404
         );
 
@@ -826,12 +830,13 @@ class Show extends Component
         $this->reassigned = null;
         $this->reassigning = $this->reassignOptions->isNotEmpty();
         $this->newOwner = '';
+        $this->transferReason = '';
     }
 
     public function cancelReassign(): void
     {
-        $this->reset('reassigning', 'newOwner');
-        $this->resetValidation('newOwner');
+        $this->reset('reassigning', 'newOwner', 'transferReason');
+        $this->resetValidation(['newOwner', 'transferReason']);
     }
 
     public function reassign(): void
@@ -839,14 +844,33 @@ class Show extends Component
         $options = $this->reassignOptions;
         abort_unless($options->isNotEmpty(), 403);
 
+        $this->transferReason = trim($this->transferReason);
         $this->validate(
-            ['newOwner' => ['required', Rule::in($options->pluck('employee_id')->all())]],
-            ['newOwner.required' => __('opportunities.reassign_required'), 'newOwner.in' => __('opportunities.reassign_required')],
+            [
+                'newOwner'       => ['required', Rule::in($options->pluck('employee_id')->all())],
+                'transferReason' => ['required', 'string', 'max:1000'],
+            ],
+            [
+                'newOwner.required'       => __('opportunities.reassign_required'),
+                'newOwner.in'             => __('opportunities.reassign_required'),
+                'transferReason.required' => __('opportunities.reassign_reason_required'),
+                'transferReason.max'      => __('opportunities.reassign_reason_max'),
+            ],
         );
 
         $from = $this->opportunity->employee?->full_name;
 
         $moved = DB::transaction(function () {
+            OpportunityTransfer::create([
+                'transferred_at'   => now(),
+                'reason'           => $this->transferReason,
+                'opportunity_id'   => $this->opportunity->opportunity_id,
+                'stage_id'         => $this->opportunity->stage_id,
+                'from_employee_id' => $this->opportunity->employee_id,
+                'to_employee_id'   => $this->newOwner,
+                'transferred_by'   => $this->employeeId(),
+            ]);
+
             // Lịch hẹn đang chờ chuyển sang người mới; lịch đã có kết quả và lịch sử chăm sóc giữ nguyên người thực hiện
             $moved = DB::table('Appointments')
                 ->where('opportunity_id', $this->opportunity->opportunity_id)
@@ -861,7 +885,20 @@ class Show extends Component
         $this->opportunity->load('employee.team:team_id,team_name');
         $this->cancelReassign();
         $this->reassigned = ['from' => $from, 'to' => $this->opportunity->employee->full_name, 'moved' => $moved];
-        unset($this->reassignOptions, $this->appointments, $this->careResults);
+        unset($this->reassignOptions, $this->appointments, $this->careResults, $this->transfers);
+    }
+
+    /**
+     * Lịch sử chuyển người phụ trách, mới nhất trước.
+     */
+    #[Computed]
+    public function transfers(): Collection
+    {
+        return $this->opportunity->transfers()
+            ->with(['stage:stage_id,stage_name', 'fromEmployee:employee_id,full_name', 'toEmployee:employee_id,full_name', 'transferrer:employee_id,full_name'])
+            ->orderByDesc('transferred_at')
+            ->orderByDesc('transfer_id')
+            ->get();
     }
 
     public function closeReassigned(): void
