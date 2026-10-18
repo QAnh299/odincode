@@ -540,6 +540,13 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* Số tiền dài: cỡ chữ co theo bề rộng, nếu vẫn thiếu chỗ thì xuống dòng chứ không tràn ra ngoài thẻ */
+.rp-stat__value--fit {
+    font-size: clamp(1.15rem, 1.6vw, 1.5rem);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 .rp-stat__hint {
     margin-top: auto;
     padding-top: 0.55rem;

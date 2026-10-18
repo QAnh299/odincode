@@ -5,6 +5,8 @@ declare(strict_types=1);
 // Dashboard & Reports
 return [
     'other'         => 'Other',
+    'money_billion' => 'bn',
+    'money_million' => 'm',
     'not_converted' => 'Not converted',
     'week_label'    => 'Week :week/:year',
     'all'           => 'All',
@@ -107,24 +109,18 @@ return [
             'conversion' => 'Conversion rate',
             'win'        => 'Win rate',
             'revenue'    => 'Revenue',
-            'leads_hint'      => ':count leads converted',
-            'conversion_hint' => 'Lead → Opportunity',
+            'leads_hint'      => 'From :count sources',
+            'conversion_hint' => ':count leads became opportunities',
             'win_hint'        => ':count leads won',
             'revenue_hint'    => 'Collected :paid',
         ],
 
         'chart' => [
-            'volume'       => 'Leads by source',
-            'volume_sub'   => 'Converted to an opportunity vs. not yet',
-            'rates'        => 'Conversion by source',
-            'rates_sub'    => 'Lead → Opportunity and Lead → Won',
-            'revenue'      => 'Revenue mix by source',
+            'quality'      => 'Leads and won leads by source',
+            'quality_sub'  => 'The wider the gap between the bars, the more leads a source brings without closing',
+            'revenue'      => 'Revenue by source',
             'revenue_sub'  => 'Total order value from each source\'s leads',
             'revenue_none' => 'No orders in the current filters.',
-            'trend'        => 'Leads per :period',
-            'trend_sub'    => 'New leads of each source over time',
-            'period_month' => 'month',
-            'period_week'  => 'week',
         ],
 
         'table' => [

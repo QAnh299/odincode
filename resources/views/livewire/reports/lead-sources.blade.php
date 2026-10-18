@@ -12,12 +12,28 @@
     $pct = fn ($v) => number_format((float) $v, 1, ',', '.').'%';
     $fmt = fn ($unit, $v) => match ($unit) { 'money' => $money($v), 'percent' => $pct($v), default => $num($v) };
 
+    // Tiền rút gọn cho thẻ KPI (số đầy đủ để ở title): 1,39 tỷ ₫ / 390,6 triệu ₫
+    $short = function ($v) use ($money) {
+        $v = (float) $v;
+        foreach ([[1e9, 'billion'], [1e6, 'million']] as [$base, $unit]) {
+            if (abs($v) >= $base) {
+                return number_format($v / $base, 2, ',', '.').' '.__('reports.money_'.$unit).' ₫';
+            }
+        }
+
+        return $money($v);
+    };
+
+    // [key, icon, giá trị hiển thị, giá trị đầy đủ (title), chú thích]
     $kpis = [
-        ['leads', 'layers', $num($t['leads']), __('reports.lead_sources.kpi.leads_hint', ['count' => $num($t['converted'])])],
-        ['sources', 'filter', $num($t['sources']), null],
-        ['conversion', 'trending', $pct($t['conversion_rate']), __('reports.lead_sources.kpi.conversion_hint')],
-        ['win', 'check-circle', $pct($t['win_rate']), __('reports.lead_sources.kpi.win_hint', ['count' => $num($t['won'])])],
-        ['revenue', 'cash', $money($t['revenue']), __('reports.lead_sources.kpi.revenue_hint', ['paid' => $money($t['paid'])])],
+        ['leads', 'layers', $num($t['leads']), null,
+            __('reports.lead_sources.kpi.leads_hint', ['count' => $num($t['sources'])])],
+        ['conversion', 'trending', $pct($t['conversion_rate']), null,
+            __('reports.lead_sources.kpi.conversion_hint', ['count' => $num($t['converted'])])],
+        ['win', 'check-circle', $pct($t['win_rate']), null,
+            __('reports.lead_sources.kpi.win_hint', ['count' => $num($t['won'])])],
+        ['revenue', 'cash', $short($t['revenue']), $money($t['revenue']),
+            __('reports.lead_sources.kpi.revenue_hint', ['paid' => $short($t['paid'])])],
     ];
 
     $round = in_array($chartType, LeadSources::ROUND_TYPES, true);
@@ -94,17 +110,16 @@
     <h2 class="rp-section">{{ __('reports.lead_sources.fixed') }}</h2>
     <p class="rp-section__sub">{{ __('reports.lead_sources.fixed_sub') }}</p>
 
-    <div class="rp-kpis">
-        @foreach ($kpis as [$key, $icon, $value, $hint])
-            <div class="vc-summary__item rp-kpi">
-                <span class="vc-summary__icon"><x-icon :name="$icon" /></span>
-                <span class="vc-summary__text">
-                    <span class="vc-summary__label">{{ __('reports.lead_sources.kpi.'.$key) }}</span>
-                    <span class="vc-summary__value">{{ $value }}</span>
-                    @if ($hint)
-                        <span class="rp-kpi__hint">{{ $hint }}</span>
-                    @endif
-                </span>
+    {{-- Thẻ KPI dạng dọc (cùng giao diện các trang báo cáo khác): số nằm riêng 1 dòng, đủ chỗ cho số tiền --}}
+    <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
+        @foreach ($kpis as [$key, $icon, $value, $full, $hint])
+            <div class="rp-stat">
+                <div class="rp-stat__head">
+                    <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
+                    <span>{{ __('reports.lead_sources.kpi.'.$key) }}</span>
+                </div>
+                <div class="rp-stat__value rp-stat__value--fit" @if ($full) title="{{ $full }}" @endif>{{ $value }}</div>
+                <div class="rp-stat__hint">{{ $hint }}</div>
             </div>
         @endforeach
     </div>
@@ -112,35 +127,25 @@
     @if (! $rows)
         <section class="vc-card rp-empty">{{ __('reports.no_data') }}</section>
     @else
+        @php $barHeight = fn ($n, $perRow) => max(200, $n * $perRow + 60); @endphp
         <div class="rp-grid">
-            {{-- 1. Lead theo nguồn --}}
+            {{-- 1. Số Lead & Lead chốt theo nguồn: nguồn nào nhiều Lead nhưng ít chốt --}}
             <section class="vc-card rp-card">
-                <h3 class="rp-card__title">{{ __('reports.lead_sources.chart.volume') }}</h3>
-                <p class="rp-card__sub">{{ __('reports.lead_sources.chart.volume_sub') }}</p>
-                <div class="rp-chart" style="height: {{ max(220, count($rows) * 44 + 70) }}px"
-                    wire:key="fx-volume-{{ md5(json_encode($charts['volume'])) }}" wire:ignore
-                    x-data="odinChart(@js($charts['volume']))">
-                    <canvas x-ref="canvas" role="img" aria-label="{{ __('reports.lead_sources.chart.volume') }}"></canvas>
+                <h3 class="rp-card__title">{{ __('reports.lead_sources.chart.quality') }}</h3>
+                <p class="rp-card__sub">{{ __('reports.lead_sources.chart.quality_sub') }}</p>
+                <div class="rp-chart" style="height: {{ $barHeight(count($rows), 52) }}px"
+                    wire:key="fx-quality-{{ md5(json_encode($charts['quality'])) }}" wire:ignore
+                    x-data="odinChart(@js($charts['quality']))">
+                    <canvas x-ref="canvas" role="img" aria-label="{{ __('reports.lead_sources.chart.quality') }}"></canvas>
                 </div>
             </section>
 
-            {{-- 2. Tỷ lệ chuyển đổi theo nguồn --}}
-            <section class="vc-card rp-card">
-                <h3 class="rp-card__title">{{ __('reports.lead_sources.chart.rates') }}</h3>
-                <p class="rp-card__sub">{{ __('reports.lead_sources.chart.rates_sub') }}</p>
-                <div class="rp-chart" style="height: {{ max(220, count($rows) * 44 + 70) }}px"
-                    wire:key="fx-rates-{{ md5(json_encode($charts['rates'])) }}" wire:ignore
-                    x-data="odinChart(@js($charts['rates']))">
-                    <canvas x-ref="canvas" role="img" aria-label="{{ __('reports.lead_sources.chart.rates') }}"></canvas>
-                </div>
-            </section>
-
-            {{-- 3. Cơ cấu doanh thu theo nguồn --}}
+            {{-- 2. Doanh thu theo nguồn --}}
             <section class="vc-card rp-card">
                 <h3 class="rp-card__title">{{ __('reports.lead_sources.chart.revenue') }}</h3>
                 <p class="rp-card__sub">{{ __('reports.lead_sources.chart.revenue_sub') }}</p>
                 @if ($charts['revenue']['labels'])
-                    <div class="rp-chart" style="height: 280px"
+                    <div class="rp-chart" style="height: {{ $barHeight(count($charts['revenue']['labels']), 40) }}px"
                         wire:key="fx-revenue-{{ md5(json_encode($charts['revenue'])) }}" wire:ignore
                         x-data="odinChart(@js($charts['revenue']))">
                         <canvas x-ref="canvas" role="img" aria-label="{{ __('reports.lead_sources.chart.revenue') }}"></canvas>
@@ -148,19 +153,6 @@
                 @else
                     <p class="rp-empty rp-empty--inline">{{ __('reports.lead_sources.chart.revenue_none') }}</p>
                 @endif
-            </section>
-
-            {{-- 4. Xu hướng Lead theo thời gian --}}
-            <section class="vc-card rp-card">
-                <h3 class="rp-card__title">
-                    {{ __('reports.lead_sources.chart.trend', ['period' => __('reports.lead_sources.chart.period_'.$charts['period'])]) }}
-                </h3>
-                <p class="rp-card__sub">{{ __('reports.lead_sources.chart.trend_sub') }}</p>
-                <div class="rp-chart" style="height: 280px"
-                    wire:key="fx-trend-{{ md5(json_encode($charts['trend'])) }}" wire:ignore
-                    x-data="odinChart(@js($charts['trend']))">
-                    <canvas x-ref="canvas" role="img" aria-label="{{ __('reports.lead_sources.chart.trend_sub') }}"></canvas>
-                </div>
             </section>
         </div>
 
@@ -173,7 +165,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('reports.lead_sources.table.source') }}</th>
-                            @foreach (['leads', 'converted', 'conversion_rate', 'won', 'lost', 'win_rate', 'close_rate', 'revenue', 'paid', 'revenue_per_lead'] as $m)
+                            @foreach (['leads', 'conversion_rate', 'won', 'win_rate', 'revenue', 'revenue_per_lead'] as $m)
                                 <th class="rp-num">{{ __('reports.metric.'.$m) }}</th>
                             @endforeach
                         </tr>
@@ -183,18 +175,14 @@
                             <tr wire:key="src-{{ md5($row['dim']) }}">
                                 <th scope="row">{{ $row['dim'] }}</th>
                                 <td class="rp-num">{{ $num($row['leads']) }}</td>
-                                <td class="rp-num">{{ $num($row['converted']) }}</td>
                                 <td class="rp-num">
                                     <span class="rp-bar" style="--w: {{ min(100, $row['conversion_rate']) }}%">{{ $pct($row['conversion_rate']) }}</span>
                                 </td>
                                 <td class="rp-num">{{ $num($row['won']) }}</td>
-                                <td class="rp-num">{{ $num($row['lost']) }}</td>
                                 <td class="rp-num">
                                     <span class="rp-bar" style="--w: {{ min(100, $row['win_rate']) }}%">{{ $pct($row['win_rate']) }}</span>
                                 </td>
-                                <td class="rp-num">{{ $pct($row['close_rate']) }}</td>
                                 <td class="rp-num">{{ $money($row['revenue']) }}</td>
-                                <td class="rp-num">{{ $money($row['paid']) }}</td>
                                 <td class="rp-num">{{ $money($row['revenue_per_lead']) }}</td>
                             </tr>
                         @endforeach
@@ -203,14 +191,10 @@
                         <tr>
                             <th scope="row">{{ __('reports.lead_sources.table.total') }}</th>
                             <td class="rp-num">{{ $num($t['leads']) }}</td>
-                            <td class="rp-num">{{ $num($t['converted']) }}</td>
                             <td class="rp-num">{{ $pct($t['conversion_rate']) }}</td>
                             <td class="rp-num">{{ $num($t['won']) }}</td>
-                            <td class="rp-num">{{ $num($t['lost']) }}</td>
                             <td class="rp-num">{{ $pct($t['win_rate']) }}</td>
-                            <td class="rp-num">{{ $pct($t['close_rate']) }}</td>
                             <td class="rp-num">{{ $money($t['revenue']) }}</td>
-                            <td class="rp-num">{{ $money($t['paid']) }}</td>
                             <td class="rp-num">{{ $money($t['revenue_per_lead']) }}</td>
                         </tr>
                     </tfoot>

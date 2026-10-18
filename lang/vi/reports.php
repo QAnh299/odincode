@@ -5,6 +5,8 @@ declare(strict_types=1);
 // Dashboard & Báo cáo
 return [
     'other'         => 'Khác',
+    'money_billion' => 'tỷ',
+    'money_million' => 'triệu',
     'not_converted' => 'Chưa chuyển đổi',
     'week_label'    => 'Tuần :week/:year',
     'all'           => 'Tất cả',
@@ -110,24 +112,18 @@ return [
             'conversion' => 'Tỷ lệ chuyển đổi',
             'win'        => 'Tỷ lệ chốt',
             'revenue'    => 'Doanh thu',
-            'leads_hint'      => ':count Lead đã chuyển đổi',
-            'conversion_hint' => 'Lead → Cơ hội',
+            'leads_hint'      => 'Từ :count nguồn',
+            'conversion_hint' => ':count Lead đã thành Cơ hội',
             'win_hint'        => ':count Lead chốt thành công',
             'revenue_hint'    => 'Đã thu :paid',
         ],
 
         'chart' => [
-            'volume'       => 'Số Lead theo nguồn',
-            'volume_sub'   => 'Đã chuyển thành Cơ hội và chưa chuyển',
-            'rates'        => 'Tỷ lệ chuyển đổi theo nguồn',
-            'rates_sub'    => 'Lead → Cơ hội và Lead → chốt thành công',
-            'revenue'      => 'Cơ cấu doanh thu theo nguồn',
+            'quality'      => 'Số Lead và Lead chốt theo nguồn',
+            'quality_sub'  => 'Khoảng cách giữa 2 thanh càng lớn, nguồn càng nhiều Lead nhưng ít chốt',
+            'revenue'      => 'Doanh thu theo nguồn',
             'revenue_sub'  => 'Tổng giá trị đơn hàng từ Lead của từng nguồn',
             'revenue_none' => 'Chưa có đơn hàng nào trong phạm vi lọc.',
-            'trend'        => 'Xu hướng Lead theo :period',
-            'trend_sub'    => 'Số Lead mới của từng nguồn theo thời gian',
-            'period_month' => 'tháng',
-            'period_week'  => 'tuần',
         ],
 
         'table' => [
