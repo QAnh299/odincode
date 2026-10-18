@@ -12,6 +12,7 @@ use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadConversion as LeadConversionReport;
 use App\Livewire\Reports\LeadSources as LeadSourceReport;
+use App\Livewire\Reports\Revenue as RevenueReport;
 use App\Livewire\Reports\SalesPerformance as SalesPerformanceReport;
 use App\Livewire\SalesTeams\Index as SalesTeamIndex;
 use App\Livewire\SaleAdmin\Home;
@@ -62,6 +63,9 @@ Route::get('/reports/sales-performance', SalesPerformanceReport::class)->name('r
 
 // Báo cáo - Phân tích hiệu quả chuyển đổi Lead (Giám đốc, Sale Admin: toàn bộ Lead; Sale Leader: Lead của đội; Salesperson: Lead mình phụ trách)
 Route::get('/reports/lead-conversion', LeadConversionReport::class)->name('reports.lead-conversion');
+
+// Báo cáo - Phân tích doanh thu & thanh toán (Giám đốc, Sale Admin, Kế toán: toàn bộ; Sale Leader: đội mình; Salesperson: đơn mình phụ trách)
+Route::get('/reports/revenue', RevenueReport::class)->name('reports.revenue');
 
 // Học viên - danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
 // Sale Leader, Salesperson được chỉnh sửa)

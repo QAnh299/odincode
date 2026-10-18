@@ -6,6 +6,7 @@ use App\Livewire\Invoices\Show as InvoiceShow;
 use App\Livewire\Orders\Index as OrderIndex;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
+use App\Livewire\Reports\Revenue as RevenueReport;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,9 @@ Route::get('/orders', OrderIndex::class)->name('orders');
 // Hóa đơn - danh sách + tra cứu (chỉ xem; kế toán xem tất cả hóa đơn)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');
 Route::get('/invoices/{invoice}', InvoiceShow::class)->name('invoices.show');
+
+// Báo cáo - Phân tích doanh thu & thanh toán (Giám đốc, Sale Admin, Kế toán: toàn bộ; Sale Leader: đội mình; Salesperson: đơn mình phụ trách)
+Route::get('/reports/revenue', RevenueReport::class)->name('reports.revenue');
 
 // Học viên - danh sách + tra cứu, chi tiết (mọi vai trò; Sale Leader xem của đội, Salesperson xem của mình;
 // Sale Leader, Salesperson được chỉnh sửa)

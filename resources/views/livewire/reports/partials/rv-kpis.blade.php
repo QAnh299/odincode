@@ -1,0 +1,18 @@
+{{-- Thẻ KPI báo cáo doanh thu & thanh toán (cùng giao diện lc-kpis): $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh. --}}
+<div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
+    @foreach ($kpis as [$key, $icon, $value, $hint, $change])
+        <div class="rp-stat">
+            <div class="rp-stat__head">
+                <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
+                <span>{{ __('reports.revenue.kpi.'.$key) }}</span>
+            </div>
+            <div class="rp-stat__value">{{ $value }}</div>
+            @if ($change)
+                <div class="rp-delta {{ $change[1] ? 'rp-delta--'.$change[1] : '' }}">
+                    {{ $change[0] }} {{ __('reports.revenue.delta_vs', ['period' => $prevLabel]) }}
+                </div>
+            @endif
+            <div class="rp-stat__hint">{{ $hint }}</div>
+        </div>
+    @endforeach
+</div>

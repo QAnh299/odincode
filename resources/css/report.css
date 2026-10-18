@@ -713,3 +713,73 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* ===== Báo cáo doanh thu & thanh toán (rv-*) ===== */
+.rv-target {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rv-target__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.rv-target__rate {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--vc-primary);
+    white-space: nowrap;
+}
+
+.rv-target__rate.is-done {
+    color: #16a34a;
+}
+
+.rv-progress {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--vc-tint);
+    overflow: hidden;
+}
+
+.rv-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--vc-primary);
+    transition: width .3s ease;
+}
+
+.rv-target:has(.is-done) .rv-progress > span {
+    background: #16a34a;
+}
+
+.rv-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--c, var(--vc-muted));
+    vertical-align: baseline;
+}
+
+.rv-late {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: .75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rv-types {
+    margin-top: 12px;
+}
