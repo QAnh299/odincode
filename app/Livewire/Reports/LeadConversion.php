@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ExportPeriod;
 use App\Models\Branch;
 use App\Models\CareResult;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Services\LeadConversionReport;
-use App\Services\ReportExcelWriter;
+use App\Services\ReportDocumentWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -28,11 +29,17 @@ use Livewire\Component;
  *
  * 5 tab: Tổng quan phễu, Hiệu quả theo nguồn, Tốc độ chuyển đổi,
  * Chất lượng chăm sóc, Cohort theo tháng. Mỗi tab chỉ tính số liệu khi được mở.
- * Tỷ lệ tính theo ngày tạo Lead, doanh thu theo ngày thanh toán - xem App\Services\LeadConversionReport.
+ * Tỷ lệ tính theo ngày tạo Lead - xem App\Services\LeadConversionReport.
+ * Xuất Excel (Giám đốc, Sale Admin): popup chọn tháng / năm + tiêu chí, xem trước, chọn sheet và cột;
+ * file dạng văn bản (App\Services\ReportDocumentWriter).
  */
 #[Layout('layouts.app')]
 class LeadConversion extends Component
 {
+    use ExportPeriod {
+        openExport as protected openExportPeriod;
+    }
+
     const TABS = ['overview', 'sources', 'velocity', 'care', 'cohort'];
 
     // Bảng màu phân loại dùng chung các trang báo cáo; màu đi theo thực thể / chỉ số
@@ -71,6 +78,24 @@ class LeadConversion extends Component
 
     const COHORT_METRICS = ['won', 'converted', 'student'];
 
+    // Xuất Excel: các sheet, cột luôn có của từng sheet (không bỏ chọn được), số dòng xem trước trong popup
+    const EXPORT_SHEETS = ['summary', 'leads', 'care', 'appointments'];
+
+    const EXPORT_LOCKED = ['summary' => 'source', 'leads' => 'name', 'care' => 'at', 'appointments' => 'at'];
+
+    const EXPORT_PREVIEW_ROWS = 50;
+
+    // Mặc định khi mở popup: cột tổng quát cho cấp quản lý (các cột chi tiết vẫn chọn thêm được);
+    // sheet tác nghiệp (chăm sóc, lịch hẹn) không xuất
+    const EXPORT_DEFAULT_COLUMNS = [
+        'summary'      => ['source', 'leads', 'conversion_rate', 'won', 'win_rate', 'close_rate', 'students', 'close_median'],
+        'leads'        => ['name', 'created', 'source', 'branch', 'owner', 'outcome', 'stage', 'won_at'],
+        'care'         => ['at', 'lead_name', 'employee', 'activity', 'result'],
+        'appointments' => ['at', 'lead_name', 'employee', 'type', 'status'],
+    ];
+
+    const EXPORT_DEFAULT_SHEETS = ['summary', 'leads'];
+
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
     #[Url(except: 'overview')]
@@ -96,6 +121,22 @@ class LeadConversion extends Component
 
     #[Url(except: 'won')]
     public string $cohortMetric = 'won';
+
+    // Tiêu chí riêng của popup xuất ('' = tất cả), không theo bộ lọc trên màn hình
+    public string $exportBranch = '';
+
+    public string $exportSource = '';
+
+    public string $exportTeam = '';
+
+    public string $exportEmployee = '';
+
+    // Sheet được xuất [sheet => bool], cột được chọn [sheet => [cột => bool]], sheet đang xem trước
+    public array $exportSheets = [];
+
+    public array $exportColumns = [];
+
+    public string $exportTab = 'summary';
 
     const FILTERS = ['from', 'to', 'branch', 'source', 'team', 'employee'];
 
@@ -681,27 +722,417 @@ class LeadConversion extends Component
     /* ── Xuất Excel ───────────────────────────────────────────────────── */
 
     /**
-     * Xuất theo bộ lọc và phạm vi đang xem, dạng danh sách (mỗi sheet 1 bảng):
-     * Tổng hợp theo nguồn, Danh sách Lead (không kèm SĐT / email), Lịch sử chăm sóc, Lịch hẹn.
+     * Mở popup xuất: kỳ = tháng hiện tại, tiêu chí "Tất cả" (không theo bộ lọc trên màn hình),
+     * sheet và cột theo mặc định.
      */
-    public function export(ReportExcelWriter $writer)
+    public function openExport(): void
+    {
+        $this->openExportPeriod();
+        $this->reset('exportBranch', 'exportSource', 'exportTeam', 'exportEmployee');
+        $this->exportTab = self::EXPORT_SHEETS[0];
+        $this->exportSheets = array_combine(self::EXPORT_SHEETS,
+            array_map(fn ($sheet) => in_array($sheet, self::EXPORT_DEFAULT_SHEETS, true), self::EXPORT_SHEETS));
+        $this->exportColumns = [];
+        foreach (self::EXPORT_SHEETS as $sheet) {
+            $this->setExportColumns($sheet, self::EXPORT_DEFAULT_COLUMNS[$sheet]);
+        }
+    }
+
+    /**
+     * Cột của sheet đang xem: theo mặc định / chọn tất cả.
+     */
+    public function defaultExportColumns(): void
+    {
+        $tab = $this->activeExportTab();
+        $this->setExportColumns($tab, self::EXPORT_DEFAULT_COLUMNS[$tab]);
+    }
+
+    public function allExportColumns(): void
+    {
+        $tab = $this->activeExportTab();
+        $this->setExportColumns($tab, array_keys($this->exportColumnCatalog()[$tab]));
+    }
+
+    protected function setExportColumns(string $sheet, array $on): void
+    {
+        $columns = array_keys($this->exportColumnCatalog()[$sheet]);
+        $this->exportColumns[$sheet] = array_combine($columns, array_map(fn ($c) => in_array($c, $on, true), $columns));
+    }
+
+    /**
+     * Tháng chọn được của năm đang chọn (năm nay thì đến tháng hiện tại); 0 = cả năm.
+     */
+    public function exportMonths(): array
+    {
+        $now = CarbonImmutable::now();
+
+        return range(1, $this->exportYear === (int) $now->year ? (int) $now->month : 12);
+    }
+
+    public function updatedExportYear(): void
+    {
+        $this->exportMonth = min($this->exportMonth, max($this->exportMonths()));
+    }
+
+    /**
+     * Đội chọn được trong popup: đang chọn chi nhánh thì chỉ còn đội của chi nhánh đó.
+     */
+    #[Computed]
+    public function exportTeamOptions(): Collection
+    {
+        $branch = $this->branches->contains('branch_id', $this->exportBranch) ? $this->exportBranch : null;
+
+        return $branch === null ? $this->teams : $this->teams->filter(fn ($team) => $team->branchId() === $branch)->values();
+    }
+
+    /**
+     * Salesperson chọn được trong popup: theo đội và chi nhánh đã chọn.
+     */
+    #[Computed]
+    public function exportEmployeeOptions(): Collection
+    {
+        $team = $this->exportTeamOptions->contains('team_id', $this->exportTeam) ? $this->exportTeam : null;
+        $branch = $this->branches->contains('branch_id', $this->exportBranch) ? $this->exportBranch : null;
+
+        return Employee::query()
+            ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
+            ->when($team, fn ($q) => $q->where('team_id', $team))
+            ->when($branch, fn ($q) => $q->where('branch_id', $branch))
+            ->orderBy('full_name')
+            ->get(['employee_id', 'full_name', 'team_id', 'status']);
+    }
+
+    public function updatedExportBranch(): void
+    {
+        unset($this->exportTeamOptions, $this->exportEmployeeOptions);
+        if (! $this->exportTeamOptions->contains('team_id', $this->exportTeam)) {
+            $this->exportTeam = '';
+        }
+        if (! $this->exportEmployeeOptions->contains('employee_id', $this->exportEmployee)) {
+            $this->exportEmployee = '';
+        }
+    }
+
+    public function updatedExportTeam(): void
+    {
+        $this->exportEmployee = '';
+    }
+
+    /**
+     * Năm chọn được trong popup: từ năm có Lead sớm nhất đến năm nay (mới nhất trước).
+     */
+    public function exportYears(): array
+    {
+        $first = DB::table('Leads')->min('created_at');
+        $now = (int) date('Y');
+        $start = $first ? min($now, (int) substr($first, 0, 4)) : $now;
+
+        return range($now, $start);
+    }
+
+    /**
+     * Các cột của từng sheet: [sheet => [cột => kiểu]]; tiêu đề cột lấy từ lang reports.lead_conversion.export.{sheet}.{cột}.
+     * Cột STT luôn có (không nằm trong danh sách chọn).
+     */
+    public function exportColumnCatalog(): array
+    {
+        return [
+            'summary' => [
+                'source' => 'label', 'leads' => 'int', 'opportunities' => 'int', 'conversion_rate' => 'percent',
+                'contact_rate' => 'percent', 'appointment_rate' => 'percent', 'open' => 'int', 'won' => 'int', 'lost' => 'int',
+                'archived' => 'int', 'win_rate' => 'percent', 'close_rate' => 'percent', 'students' => 'int',
+                'response_median' => 'decimal', 'close_median' => 'decimal',
+            ],
+            'leads' => [
+                'id' => 'text', 'name' => 'label', 'created' => 'text', 'source' => 'text', 'method' => 'text',
+                'branch' => 'text', 'owner' => 'text', 'team' => 'text', 'opportunity' => 'text', 'outcome' => 'text',
+                'stage' => 'text', 'stage_since' => 'text', 'days_in_stage' => 'decimal', 'stuck' => 'text',
+                'assigned' => 'text', 'first_contact' => 'text', 'response_hours' => 'decimal', 'contacts' => 'int',
+                'contacts_ok' => 'int', 'appointments_ok' => 'int', 'appointments_failed' => 'int', 'won_at' => 'text',
+                'close_days' => 'decimal', 'student' => 'text',
+            ],
+            'care' => [
+                'at' => 'text', 'lead_id' => 'text', 'lead_name' => 'label', 'source' => 'text', 'opportunity' => 'text',
+                'employee' => 'text', 'activity' => 'text', 'result' => 'text', 'notes' => 'label',
+            ],
+            'appointments' => [
+                'at' => 'text', 'id' => 'text', 'lead_id' => 'text', 'lead_name' => 'label', 'source' => 'text',
+                'opportunity' => 'text', 'employee' => 'text', 'type' => 'text', 'status' => 'text', 'notes' => 'label',
+            ],
+        ];
+    }
+
+    public function exportColumnOn(string $sheet, string $column): bool
+    {
+        return $column === self::EXPORT_LOCKED[$sheet] || (bool) ($this->exportColumns[$sheet][$column] ?? true);
+    }
+
+    public function exportSheetOn(string $sheet): bool
+    {
+        return (bool) ($this->exportSheets[$sheet] ?? true);
+    }
+
+    public function activeExportTab(): string
+    {
+        return in_array($this->exportTab, self::EXPORT_SHEETS, true) ? $this->exportTab : self::EXPORT_SHEETS[0];
+    }
+
+    /**
+     * Xem trước sheet đang mở trong popup: đúng bố cục file (phần đầu văn bản, bảng, chữ ký), tối đa EXPORT_PREVIEW_ROWS dòng.
+     */
+    #[Computed]
+    public function exportPreview(): ?array
+    {
+        $period = $this->resolveExportPeriod();
+        if (! $period) {
+            return null;
+        }
+
+        [$filters, $criteria] = $this->exportCriteria();
+        $tab = $this->activeExportTab();
+        $sheet = $this->exportSheet($tab, $this->exportRows($tab, $this->exportData($period, $filters, [$tab])), $period, $criteria);
+
+        $items = count(array_filter($sheet['rows'], fn ($row) => $row[0] === 'item'));
+        $head = count($sheet['rows']) - $items;
+        $sheet['rows'] = array_slice($sheet['rows'], 0, $head + self::EXPORT_PREVIEW_ROWS);
+
+        return [
+            'sheet'    => $sheet,
+            'items'    => $items,
+            'shown'    => min($items, self::EXPORT_PREVIEW_ROWS),
+            'document' => app(ReportDocumentWriter::class)->document([]),
+        ];
+    }
+
+    /**
+     * Báo cáo dạng văn bản (quốc hiệu, tiêu ngữ, ngày lập = ngày xuất, khối chữ ký) cho Lead tạo trong tháng / năm chọn ở popup,
+     * theo tiêu chí, các sheet và cột đã chọn.
+     */
+    public function export(ReportDocumentWriter $writer)
     {
         abort_unless($this->canExport, 403);
 
-        $ids = array_merge(...array_column($this->facts, 'opportunities') ?: [[]]);
-        $contacts = $this->report()->contacts($ids);
-        $appointments = $this->report()->appointments($ids);
+        $period = $this->resolveExportPeriod();
+        if (! $period) {
+            return null;
+        }
 
-        $path = $writer->write([
-            $this->summarySheet(),
-            $this->leadListSheet(),
-            $this->careListSheet($contacts),
-            $this->appointmentListSheet($appointments),
+        $sheets = array_values(array_filter(self::EXPORT_SHEETS, fn ($sheet) => $this->exportSheetOn($sheet)));
+        if (! $sheets) {
+            $this->addError('exportSheets', $this->exportLabel('err_no_sheet'));
+
+            return null;
+        }
+
+        [$filters, $criteria] = $this->exportCriteria();
+        $data = $this->exportData($period, $filters, $sheets);
+        $path = $writer->write($writer->document(array_map(
+            fn ($sheet) => $this->exportSheet($sheet, $this->exportRows($sheet, $data), $period, $criteria), $sheets)));
+
+        $this->exportOpen = false;
+
+        return response()->download($path, 'bao-cao-chuyen-doi-lead-'.$period['slug'].'.xlsx')->deleteFileAfterSend();
+    }
+
+    /**
+     * Kỳ xuất: tháng đã chọn, hoặc cả năm khi tháng = 0 (ExportPeriod tính from / to, nhãn, tên file).
+     */
+    protected function resolveExportPeriod(): ?array
+    {
+        $this->exportType = $this->exportMonth > 0 ? 'month' : 'year';
+        $this->resetErrorBag(['exportYear', 'exportType']);
+
+        return $this->exportPeriod();
+    }
+
+    /**
+     * Tiêu chí trong popup đã kiểm tra (giá trị không hợp lệ coi như "Tất cả"): [bộ lọc cho LeadConversionReport, dòng phạm vi].
+     */
+    protected function exportCriteria(): array
+    {
+        $branch = $this->branches->firstWhere('branch_id', $this->exportBranch);
+        $source = in_array($this->exportSource, $this->sources, true) ? $this->exportSource : null;
+        $team = $this->exportTeamOptions->firstWhere('team_id', $this->exportTeam);
+        $employee = $this->exportEmployeeOptions->firstWhere('employee_id', $this->exportEmployee);
+
+        $parts = array_filter([
+            $branch ? __('reports.branch').': '.$branch->branch_name : null,
+            $source ? __('reports.dimension.source').': '.$source : null,
+            $team ? __('reports.sales_performance.team').': '.$team->team_name : null,
+            $employee ? __('reports.sales_performance.employee').': '.$employee->full_name : null,
         ]);
 
-        return response()
-            ->download($path, 'bao-cao-chuyen-doi-lead-'.now()->format('Ymd-His').'.xlsx')
-            ->deleteFileAfterSend();
+        return [
+            [
+                'branch'   => $branch?->branch_id,
+                'source'   => $source,
+                'team'     => $team?->team_id,
+                'employee' => $employee?->employee_id,
+            ],
+            $parts ? implode(' · ', $parts) : $this->exportLabel('scope_all'),
+        ];
+    }
+
+    /**
+     * Lead tạo trong kỳ theo tiêu chí; lịch sử chăm sóc / lịch hẹn chỉ lấy khi có sheet cần.
+     */
+    protected function exportData(array $period, array $filters, array $sheets): array
+    {
+        $facts = $this->report()->leads(['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters);
+        $ids = array_merge(...array_column($facts, 'opportunities') ?: [[]]);
+
+        return [
+            'facts'        => $facts,
+            'leads'        => $this->leadsByOpportunity($facts),
+            'contacts'     => in_array('care', $sheets, true) ? $this->report()->contacts($ids) : [],
+            'appointments' => in_array('appointments', $sheets, true) ? $this->report()->appointments($ids) : [],
+        ];
+    }
+
+    /**
+     * 1 sheet của tài liệu: cột STT + các cột đã chọn, đánh số các dòng chi tiết.
+     */
+    protected function exportSheet(string $sheet, array $rows, array $period, string $criteria): array
+    {
+        $catalog = $this->exportColumnCatalog()[$sheet];
+        $keys = array_values(array_filter(array_keys($catalog), fn ($column) => $this->exportColumnOn($sheet, $column)));
+
+        $n = 0;
+        $out = [];
+        foreach ($rows as [$kind, $values]) {
+            $out[] = [$kind, array_merge([$kind === 'item' ? ++$n : ''], array_map(fn ($key) => $values[$key] ?? null, $keys))];
+        }
+
+        return [
+            'name'    => $this->exportLabel('sheet.'.$sheet),
+            'title'   => $this->exportLabel('title.'.$sheet),
+            'period'  => $period['label'],
+            'scope'   => [$period['range'], $criteria],
+            'columns' => array_merge([[$this->exportLabel('stt'), 'stt']],
+                array_map(fn ($key) => [$this->exportLabel($sheet.'.'.$key), $catalog[$key]], $keys)),
+            'rows'    => $out,
+        ];
+    }
+
+    /**
+     * Các dòng của 1 sheet: [[loại dòng, [cột => giá trị]], ...].
+     */
+    protected function exportRows(string $sheet, array $data): array
+    {
+        return match ($sheet) {
+            'summary'      => $this->summaryRows($data['facts']),
+            'leads'        => $this->leadRows($data['facts']),
+            'care'         => $this->careRows($data['contacts'], $data['leads']),
+            'appointments' => $this->appointmentRows($data['appointments'], $data['leads']),
+        };
+    }
+
+    /**
+     * Tổng hợp theo nguồn: dòng tổng cộng rồi mỗi nguồn 1 dòng (nhiều Lead trước).
+     */
+    protected function summaryRows(array $facts): array
+    {
+        $groups = [];
+        foreach ($facts as $f) {
+            $groups[$f['source']][] = $f;
+        }
+        $sources = [];
+        foreach ($groups as $source => $items) {
+            $sources[] = $this->report()->summarize($items) + ['source' => (string) $source];
+        }
+        usort($sources, fn ($a, $b) => [$b['leads'], $b['won']] <=> [$a['leads'], $a['won']]);
+
+        $rows = [['total', ['source' => __('reports.lead_conversion.total')] + $this->report()->summarize($facts)]];
+        foreach ($sources as $r) {
+            $rows[] = ['item', $r];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Mỗi Lead 1 dòng - không kèm số điện thoại / email.
+     */
+    protected function leadRows(array $facts): array
+    {
+        $branches = $this->branches->pluck('branch_name', 'branch_id');
+        $teams = $this->teams->pluck('team_name', 'team_id');
+        $stuck = array_column($this->report()->stuck($facts), 'days', 'id');
+        $now = time();
+        $yes = $this->exportLabel('yes');
+
+        return array_map(function ($f) use ($branches, $teams, $stuck, $now, $yes) {
+            $open = $f['outcome'] === LeadConversionReport::OUTCOME_OPEN;
+
+            return ['item', [
+                'id'                  => $f['id'],
+                'name'                => $f['name'],
+                'created'             => $this->dateTime($f['created']),
+                'source'              => $f['source'],
+                'method'              => __('leads.method.'.$f['method']),
+                'branch'              => $branches[$f['branch']] ?? $f['branch'],
+                'owner'               => $f['employee_name'],
+                'team'                => $teams[$f['team']] ?? $f['team'],
+                'opportunity'         => $f['opportunity'],
+                'outcome'             => __('reports.lead_conversion.outcome.'.$f['outcome']),
+                'stage'               => $f['stage_name'],
+                'stage_since'         => $open ? $this->dateTime($f['stage_since']) : null,
+                'days_in_stage'       => $open && $f['stage_since'] ? round(($now - $f['stage_since']) / 86400, 1) : null,
+                'stuck'               => isset($stuck[$f['id']]) ? $yes : null,
+                'assigned'            => $this->dateTime($f['converted_at']),
+                'first_contact'       => $this->dateTime($f['first_contact']),
+                'response_hours'      => $f['first_contact'] ? round(max(0, $f['first_contact'] - $f['created']) / 3600, 1) : null,
+                'contacts'            => $f['contacts'],
+                'contacts_ok'         => $f['contacts_ok'],
+                'appointments_ok'     => $f['appointments_ok'],
+                'appointments_failed' => $f['appointments_failed'],
+                'won_at'              => $this->dateTime($f['won_at']),
+                'close_days'          => $f['won_at'] ? round(max(0, $f['won_at'] - $f['created']) / 86400, 1) : null,
+                'student'             => $f['student'] ? $yes : null,
+            ]];
+        }, array_values($facts));
+    }
+
+    /**
+     * Mỗi lần chăm sóc 1 dòng.
+     */
+    protected function careRows(array $contacts, array $leads): array
+    {
+        $people = $this->employeeNames(array_column($contacts, 'employee'));
+        $activities = DB::table('CareActivities')->pluck('activity_name', 'activity_id');
+
+        return array_map(fn ($c) => ['item', [
+            'at'          => $this->dateTime($c['at']),
+            'lead_id'     => $leads[$c['opportunity']]['id'] ?? null,
+            'lead_name'   => $leads[$c['opportunity']]['name'] ?? null,
+            'source'      => $leads[$c['opportunity']]['source'] ?? null,
+            'opportunity' => $c['opportunity'],
+            'employee'    => $people[$c['employee']] ?? $c['employee'],
+            'activity'    => $activities[$c['activity']] ?? $c['activity'],
+            'result'      => __('reports.lead_conversion.care.result.'.$c['result']),
+            'notes'       => $c['notes'],
+        ]], array_values($contacts));
+    }
+
+    /**
+     * Mỗi lịch hẹn 1 dòng.
+     */
+    protected function appointmentRows(array $appointments, array $leads): array
+    {
+        $people = $this->employeeNames(array_column($appointments, 'employee'));
+
+        return array_map(fn ($a) => ['item', [
+            'at'          => $this->dateTime($a['at']),
+            'id'          => $a['id'],
+            'lead_id'     => $leads[$a['opportunity']]['id'] ?? null,
+            'lead_name'   => $leads[$a['opportunity']]['name'] ?? null,
+            'source'      => $leads[$a['opportunity']]['source'] ?? null,
+            'opportunity' => $a['opportunity'],
+            'employee'    => $people[$a['employee']] ?? $a['employee'],
+            'type'        => __('opportunities.appointment_type_name.'.$a['type']),
+            'status'      => __('appointments.status.'.$a['status']),
+            'notes'       => $a['notes'],
+        ]], array_values($appointments));
     }
 
     /**
@@ -723,121 +1154,12 @@ class LeadConversion extends Component
     }
 
     /**
-     * Tổng hợp: mỗi nguồn Lead 1 dòng + dòng tổng cộng.
+     * Mã Cơ hội → Lead của nó.
      */
-    protected function summarySheet(): array
-    {
-        $d = $this->bySource;
-        $col = fn ($key) => $this->exportLabel('summary.'.$key);
-
-        // [khoá, kiểu]
-        $fields = [
-            'leads' => 'int', 'opportunities' => 'int', 'conversion_rate' => 'percent', 'contact_rate' => 'percent',
-            'appointment_rate' => 'percent', 'open' => 'int', 'won' => 'int', 'lost' => 'int', 'archived' => 'int',
-            'win_rate' => 'percent', 'close_rate' => 'percent', 'students' => 'int', 'response_median' => 'decimal',
-            'close_median' => 'decimal',
-        ];
-        $values = fn (array $row) => array_map(fn ($key) => $row[$key] ?? null, array_keys($fields));
-
-        return [
-            'name'    => $this->exportLabel('sheet.summary'),
-            'columns' => array_merge([[$col('source'), 'text']],
-                array_map(fn ($key, $type) => [$col($key), $type], array_keys($fields), $fields)),
-            'rows'    => array_map(fn ($r) => array_merge([$r['name']], $values($r)), $d['rows']),
-            'total'   => array_merge([__('reports.lead_conversion.total')], $values($d['total'])),
-        ];
-    }
-
-    /**
-     * Mỗi Lead 1 dòng - không kèm số điện thoại / email.
-     */
-    protected function leadListSheet(): array
-    {
-        $branches = $this->branches->pluck('branch_name', 'branch_id');
-        $teams = $this->teams->pluck('team_name', 'team_id');
-        $stuck = array_column($this->report()->stuck($this->facts), 'days', 'id');
-        $now = time();
-        $hours = fn ($from, $to) => $from && $to ? round(max(0, $to - $from) / 3600, 1) : null;
-        $yes = $this->exportLabel('yes');
-        $open = fn ($f) => $f['outcome'] === LeadConversionReport::OUTCOME_OPEN;
-
-        $columns = [
-            'id' => 'text', 'name' => 'text', 'created' => 'datetime', 'source' => 'text', 'method' => 'text',
-            'branch' => 'text', 'owner' => 'text', 'team' => 'text', 'opportunity' => 'text', 'outcome' => 'text',
-            'stage' => 'text', 'stage_since' => 'datetime', 'days_in_stage' => 'decimal', 'stuck' => 'text',
-            'assigned' => 'datetime', 'first_contact' => 'datetime', 'response_hours' => 'decimal', 'contacts' => 'int',
-            'contacts_ok' => 'int', 'appointments_ok' => 'int', 'appointments_failed' => 'int', 'won_at' => 'datetime',
-            'close_days' => 'decimal', 'student' => 'text',
-        ];
-
-        return [
-            'name'    => $this->exportLabel('sheet.leads'),
-            'columns' => array_map(fn ($key, $type) => [$this->exportLabel('leads.'.$key), $type], array_keys($columns), $columns),
-            'rows'    => array_map(fn ($f) => [
-                $f['id'], $f['name'], $f['created'], $f['source'], __('leads.method.'.$f['method']),
-                $branches[$f['branch']] ?? $f['branch'], $f['employee_name'], $teams[$f['team']] ?? $f['team'],
-                $f['opportunity'], __('reports.lead_conversion.outcome.'.$f['outcome']),
-                $f['stage_name'], $open($f) ? $f['stage_since'] : null,
-                $open($f) && $f['stage_since'] ? round(($now - $f['stage_since']) / 86400, 1) : null,
-                isset($stuck[$f['id']]) ? $yes : null,
-                $f['converted_at'], $f['first_contact'], $hours($f['created'], $f['first_contact']), $f['contacts'],
-                $f['contacts_ok'], $f['appointments_ok'], $f['appointments_failed'], $f['won_at'],
-                $f['won_at'] ? round(max(0, $f['won_at'] - $f['created']) / 86400, 1) : null,
-                $f['student'] ? $yes : null,
-            ], $this->facts),
-        ];
-    }
-
-    /**
-     * Mỗi lần chăm sóc 1 dòng.
-     */
-    protected function careListSheet(array $contacts): array
-    {
-        $leads = $this->leadsByOpportunity();
-        $people = $this->employeeNames(array_column($contacts, 'employee'));
-        $activities = DB::table('CareActivities')->pluck('activity_name', 'activity_id');
-        $columns = ['at' => 'datetime', 'lead_id' => 'text', 'lead_name' => 'text', 'source' => 'text', 'opportunity' => 'text',
-            'employee' => 'text', 'activity' => 'text', 'result' => 'text', 'notes' => 'text'];
-
-        return [
-            'name'    => $this->exportLabel('sheet.care'),
-            'columns' => array_map(fn ($key, $type) => [$this->exportLabel('care.'.$key), $type], array_keys($columns), $columns),
-            'rows'    => array_map(fn ($c) => [
-                $c['at'], $leads[$c['opportunity']]['id'] ?? null, $leads[$c['opportunity']]['name'] ?? null,
-                $leads[$c['opportunity']]['source'] ?? null, $c['opportunity'], $people[$c['employee']] ?? $c['employee'],
-                $activities[$c['activity']] ?? $c['activity'], __('reports.lead_conversion.care.result.'.$c['result']), $c['notes'],
-            ], $contacts),
-        ];
-    }
-
-    /**
-     * Mỗi lịch hẹn 1 dòng.
-     */
-    protected function appointmentListSheet(array $appointments): array
-    {
-        $leads = $this->leadsByOpportunity();
-        $people = $this->employeeNames(array_column($appointments, 'employee'));
-        $columns = ['at' => 'datetime', 'id' => 'text', 'lead_id' => 'text', 'lead_name' => 'text', 'source' => 'text',
-            'opportunity' => 'text', 'employee' => 'text', 'type' => 'text', 'status' => 'text', 'notes' => 'text'];
-
-        return [
-            'name'    => $this->exportLabel('sheet.appointments'),
-            'columns' => array_map(fn ($key, $type) => [$this->exportLabel('appointments.'.$key), $type], array_keys($columns), $columns),
-            'rows'    => array_map(fn ($a) => [
-                $a['at'], $a['id'], $leads[$a['opportunity']]['id'] ?? null, $leads[$a['opportunity']]['name'] ?? null,
-                $leads[$a['opportunity']]['source'] ?? null, $a['opportunity'], $people[$a['employee']] ?? $a['employee'],
-                __('opportunities.appointment_type_name.'.$a['type']), __('appointments.status.'.$a['status']), $a['notes'],
-            ], $appointments),
-        ];
-    }
-
-    /**
-     * Mã Cơ hội → Lead của nó (trong phạm vi đang xem).
-     */
-    protected function leadsByOpportunity(): array
+    protected function leadsByOpportunity(array $facts): array
     {
         $map = [];
-        foreach ($this->facts as $f) {
+        foreach ($facts as $f) {
             foreach ($f['opportunities'] as $id) {
                 $map[$id] = $f;
             }
@@ -852,9 +1174,14 @@ class LeadConversion extends Component
             ->pluck('full_name', 'employee_id')->all();
     }
 
-    protected function exportLabel(string $key): string
+    protected function dateTime(?int $time): ?string
     {
-        return __('reports.lead_conversion.export.'.$key);
+        return $time ? date('d/m/Y H:i', $time) : null;
+    }
+
+    public function exportLabel(string $key, array $replace = []): string
+    {
+        return __('reports.lead_conversion.export.'.$key, $replace);
     }
 
     /* ── Hỗ trợ ───────────────────────────────────────────────────────── */

@@ -927,6 +927,14 @@
     margin-top: 12px;
 }
 
+/* Popup đưa ra <body> bằng @teleport (popup xuất báo cáo chuyển đổi Lead), gốc mang class .vc để giữ biến màu:
+   bỏ khung rộng tối đa / căn giữa / hiệu ứng của trang để lớp mờ phủ toàn màn hình */
+.vc.rp-portal {
+    max-width: none;
+    margin: 0;
+    animation: none;
+}
+
 /* Popup chọn thời gian xuất Excel */
 .rp-export-modal {
     width: min(520px, 100%);
@@ -972,4 +980,386 @@
     .rp-export-types {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+/* ── Popup xuất báo cáo chuyển đổi Lead: bộ lọc · xem trước · cột hiển thị ─ */
+
+.lx {
+    width: min(1440px, 100%);
+    height: calc(100vh - 2rem);
+    max-height: none;
+}
+
+.lx__head {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.lx__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.lx__body {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr) 270px;
+    flex: 1;
+    min-height: 0;
+}
+
+.lx__pane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-height: 0;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.lx__filters {
+    border-right: 1px solid var(--vc-border);
+}
+
+.lx__columns {
+    gap: 0.4rem;
+    border-left: 1px solid var(--vc-border);
+}
+
+.lx__pane-title {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.lx__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.lx__zoom {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.lx__icon-btn {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--vc-border);
+    border-radius: 8px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.lx__icon-btn:hover {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+/* Tab sheet */
+.lx__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: -0.85rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.lx__tab {
+    margin-bottom: -1px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.lx__tab.is-active {
+    border-color: var(--vc-border);
+    border-bottom-color: #f3f4f6;
+    background: #f3f4f6;
+    color: var(--vc-primary);
+}
+
+.lx__tab.is-off {
+    text-decoration: line-through;
+}
+
+.lx__tab-off {
+    margin-left: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 400;
+}
+
+/* Vùng xem trước: nền xám, tờ giấy trắng ở giữa */
+.lx__preview {
+    gap: 0.85rem;
+    overflow: hidden;
+}
+
+.lx__canvas {
+    flex: 1;
+    min-height: 0;
+    padding: 1rem;
+    overflow: auto;
+    border: 1px solid var(--vc-border);
+    border-radius: 0 10px 10px 10px;
+    background: #f3f4f6;
+    transition: opacity 0.15s;
+}
+
+.lx__canvas.is-loading {
+    opacity: 0.55;
+}
+
+.lx-paper {
+    width: max-content;
+    min-width: 100%;
+    padding: 1.5rem 1.75rem;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+    color: #111;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.lx-paper .is-bold {
+    font-weight: 700;
+}
+
+.lx-paper .is-italic {
+    font-style: italic;
+}
+
+.lx-paper .is-center {
+    text-align: center;
+}
+
+.lx-paper__pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 0.6rem;
+    text-align: center;
+}
+
+.lx-paper__rule {
+    width: 120px;
+    margin: 0.2rem auto 0;
+    border-top: 1px solid #111;
+}
+
+.lx-paper__title {
+    margin: 1rem 0 0.15rem;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lx-paper__period {
+    font-weight: 700;
+    text-align: center;
+}
+
+.lx-paper__scope {
+    font-style: italic;
+    text-align: center;
+}
+
+.lx-paper__table {
+    margin-top: 0.9rem;
+    border-collapse: collapse;
+}
+
+.lx-paper__table th,
+.lx-paper__table td {
+    padding: 0.3rem 0.45rem;
+    border: 1px solid #555;
+    vertical-align: middle;
+}
+
+.lx-paper__table th {
+    max-width: 160px;
+    background: #e8f0e9;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lx-paper__table td {
+    max-width: 260px;
+}
+
+.lx-paper__index td {
+    font-size: 11px;
+    font-style: italic;
+    text-align: center;
+}
+
+.lx-paper__table .is-num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.lx-paper__table tr.is-total td {
+    background: #fce4d6;
+    font-weight: 700;
+}
+
+.lx-paper__table tr.is-group td,
+.lx-paper__table tr.is-section td {
+    background: #ededed;
+    font-weight: 700;
+}
+
+.lx-paper__more {
+    margin: 0.5rem 0 0;
+    color: #555;
+    font-style: italic;
+}
+
+.lx-paper__sign {
+    margin-top: 1.5rem;
+}
+
+.lx-paper__name {
+    margin-top: 3rem;
+    font-weight: 700;
+}
+
+/* Cột hiển thị */
+.lx__count {
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+}
+
+.lx__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.3rem 0.35rem;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    cursor: pointer;
+}
+
+.lx__check:hover {
+    background: #f6f7f9;
+}
+
+.lx__check input {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 0.1rem;
+    accent-color: var(--vc-primary);
+}
+
+.lx__check--sheet {
+    margin-bottom: 0.35rem;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--vc-border);
+    background: var(--vc-tint);
+    font-weight: 600;
+}
+
+.lx__column-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.lx__column-list.is-off {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.lx__locked {
+    margin-left: 0.25rem;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+    font-style: normal;
+}
+
+.lx__foot {
+    align-items: center;
+}
+
+.lx__note {
+    margin-right: auto;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+@media (max-width: 1100px) {
+    .lx__body {
+        grid-template-columns: 220px minmax(0, 1fr);
+    }
+
+    .lx__columns {
+        grid-column: 1 / -1;
+        max-height: 200px;
+        border-top: 1px solid var(--vc-border);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 760px) {
+    .lx__body {
+        grid-template-columns: minmax(0, 1fr);
+        overflow-y: auto;
+    }
+
+    .lx__filters {
+        border-right: 0;
+        border-bottom: 1px solid var(--vc-border);
+    }
+
+    .lx__preview {
+        min-height: 60vh;
+    }
+}
+
+/* Nút nhanh chọn cột: Mặc định · Chọn tất cả */
+.lx__quick {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.35rem 0.25rem;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.lx__quick button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--vc-primary);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.lx__quick button:hover {
+    text-decoration: underline;
+}
+
+.lx__quick.is-off {
+    opacity: 0.45;
+    pointer-events: none;
 }

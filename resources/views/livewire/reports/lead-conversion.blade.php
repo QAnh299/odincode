@@ -43,7 +43,7 @@
 <div class="vc rp">
     {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
-        @vite(['resources/css/voucher.css', 'resources/css/report.css', 'resources/js/charts.js'])
+        @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
 
     <header class="vc-head">
@@ -56,12 +56,10 @@
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('reports.loading') }}
             </span>
-            {{-- Xuất Excel theo bộ lọc đang chọn (Giám đốc, Sale Admin): mỗi tab 1 sheet + danh sách Lead --}}
+            {{-- Xuất báo cáo dạng văn bản: popup chọn kỳ + tiêu chí (Giám đốc, Sale Admin) --}}
             @if ($this->canExport)
-                <button type="button" class="vc-btn vc-btn--primary" wire:click="export" wire:loading.attr="disabled" wire:target="export"
-                    @disabled(! $hasData)>
-                    <span wire:loading.remove wire:target="export"><x-icon name="file" /></span>
-                    <span class="spinner-border spinner-border-sm" wire:loading wire:target="export" aria-hidden="true"></span>
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
+                    <x-icon name="file" />
                     {{ $L('export.button') }}
                 </button>
             @endif
@@ -560,5 +558,10 @@
                 @endif
                 @break
         @endswitch
+    @endif
+
+    {{-- Popup xuất Excel: bộ lọc · xem trước · cột hiển thị --}}
+    @if ($this->canExport)
+        @include('livewire.reports.partials.lc-export')
     @endif
 </div>
