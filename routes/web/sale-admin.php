@@ -15,6 +15,7 @@ use App\Livewire\Reports\LeadSources as LeadSourceReport;
 use App\Livewire\Reports\Revenue as RevenueReport;
 use App\Livewire\Reports\SalesPerformance as SalesPerformanceReport;
 use App\Livewire\SalesTeams\Index as SalesTeamIndex;
+use App\Livewire\SalesTeams\Show as SalesTeamShow;
 use App\Livewire\Students\Index as StudentIndex;
 use App\Livewire\Students\Show as StudentShow;
 use App\Livewire\Vouchers\Index as VoucherIndex;
@@ -32,6 +33,7 @@ Route::get('/employees/{employee}', EmployeeShow::class)->name('employees.show')
 
 // Đội kinh doanh - xem danh sách + tra cứu (Giám đốc, Sale Admin)
 Route::get('/sales-teams', SalesTeamIndex::class)->name('sales-teams');
+Route::get('/sales-teams/{team}', SalesTeamShow::class)->name('sales-teams.show');
 
 // Báo giá - danh sách + tra cứu, chi tiết (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/quotations', QuotationIndex::class)->name('quotations');

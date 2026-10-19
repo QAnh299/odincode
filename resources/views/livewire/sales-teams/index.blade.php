@@ -131,20 +131,20 @@
                     <tbody>
                         @foreach ($teams as $team)
                             @php
-                                $membersUrl = route($this->routePrefix.'.employees', ['team' => $team->team_id]);
+                                $detailUrl = route($this->routePrefix.'.sales-teams.show', $team);
                                 $members = $team->employees;
                                 // Chi nhánh của đội: theo trưởng nhóm, chưa có thì theo thành viên (xem SalesTeam::branchId)
                                 $teamBranch = $team->leader?->branch ?? $members->first()?->branch;
                             @endphp
                             <tr wire:key="team-{{ $team->team_id }}">
                                 <td data-label="{{ __('employees.teams.team') }}">
-                                    <span class="em-person">
+                                    <a href="{{ $detailUrl }}" class="em-person">
                                         <span class="em-team-icon" aria-hidden="true"><x-icon name="users" /></span>
                                         <span>
                                             <span class="em-person__name">{{ $team->team_name }}</span>
                                             <span class="em-person__id">{{ $team->team_id }}</span>
                                         </span>
-                                    </span>
+                                    </a>
                                 </td>
                                 <td data-label="{{ __('employees.team_leader') }}">
                                     @if ($team->leader)
@@ -184,8 +184,8 @@
                                 </td>
                                 <td data-label="{{ __('employees.actions') }}" class="text-lg-end">
                                     <div class="em-row-actions">
-                                        <a href="{{ $membersUrl }}" class="vc-icon-btn" title="{{ __('employees.teams.view_members') }}"
-                                            aria-label="{{ __('employees.teams.view_members') }} {{ $team->team_name }}">
+                                        <a href="{{ $detailUrl }}" class="vc-icon-btn" title="{{ __('employees.teams.view_detail') }}"
+                                            aria-label="{{ __('employees.teams.view_detail') }} {{ $team->team_name }}">
                                             <x-icon name="eye" />
                                         </a>
                                         {{-- Sale Admin: Chỉnh sửa đội (gồm cả đổi trưởng nhóm, gắn thành viên) --}}

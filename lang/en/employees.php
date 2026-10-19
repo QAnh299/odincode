@@ -107,6 +107,10 @@ return [
 
     // Sales teams
     'teams' => [
+        'detail_title'       => 'Team :name',
+        'back_to_list'       => 'Sales teams',
+        'view_detail'        => 'View team details',
+        'open_in_list'       => 'Open in employee list',
         'title'              => 'Sales teams',
         'subtitle'           => 'Sales teams, their leaders and members',
         'lookup'             => 'Sales team lookup',

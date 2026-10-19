@@ -107,6 +107,10 @@ return [
 
     // Đội kinh doanh
     'teams' => [
+        'detail_title'       => 'Đội :name',
+        'back_to_list'       => 'Danh sách đội kinh doanh',
+        'view_detail'        => 'Xem chi tiết đội',
+        'open_in_list'       => 'Xem trong danh sách nhân viên',
         'title'              => 'Đội kinh doanh',
         'subtitle'           => 'Danh sách các đội kinh doanh, trưởng nhóm và thành viên',
         'lookup'             => 'Tra cứu đội kinh doanh',

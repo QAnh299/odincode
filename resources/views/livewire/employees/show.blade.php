@@ -92,8 +92,9 @@
         </div>
     </header>
 
-    {{-- Sale Leader / Salesperson: thông tin + Đội kinh doanh (2 cột) rồi Kết quả kinh doanh;
-         Giám đốc, Sale Admin, Kế toán: chỉ thông tin nhân viên --}}
+    {{-- Sale Leader / Salesperson: thông tin + Đội kinh doanh (2 cột);
+         Giám đốc, Sale Admin, Kế toán: chỉ thông tin nhân viên.
+         Kết quả kinh doanh xem ở trang chi tiết đội (nút "Xem đội") --}}
     <div class="ed-grid {{ $this->isSales ? '' : 'ed-grid--single' }}">
         {{-- ── Thông tin nhân viên ───────────────────────────────────── --}}
         <section class="ed-card" aria-labelledby="ed-info-title">
@@ -129,7 +130,7 @@
                 <div class="ed-card__head">
                     <h2 class="ed-card__title mb-0" id="ed-team-title">{{ __('employees.team_section') }}</h2>
                     @if ($team && $this->canViewTeams)
-                        <a href="{{ route($this->routePrefix.'.sales-teams', ['q' => $team->team_id]) }}" class="ed-btn">
+                        <a href="{{ route($this->routePrefix.'.sales-teams.show', $team) }}" class="ed-btn">
                             {{ __('employees.view_team') }}<x-icon name="chevron" />
                         </a>
                     @endif
@@ -192,9 +193,4 @@
             </section>
         @endif
     </div>
-
-    {{-- ── Kết quả kinh doanh (Sale Leader: cả đội phụ trách; Salesperson: của riêng mình) ── --}}
-    @if ($this->isSales)
-        @include('livewire.employees.partials.performance')
-    @endif
 </div>

@@ -693,6 +693,44 @@
     color: var(--ed-muted);
 }
 
+/* ── Trang chi tiết đội (livewire/sales-teams/show) ───────────────── */
+
+.ed .ed-hero__avatar--team {
+    border-radius: 24px;
+}
+
+.ed-hero__avatar--team .odin-icon {
+    width: 42px;
+    height: 42px;
+}
+
+.ed-hero__leader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 220px;
+    max-width: 300px;
+    padding-top: 0.75rem;
+}
+
+.ed-hero__leader .ed-person {
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--ed-border);
+}
+
+.ed-members {
+    margin-top: 1.25rem;
+}
+
+.ed-people--grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.5rem;
+}
+
+.ed-people--grid .ed-person {
+    border: 1px solid var(--ed-border);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
@@ -708,6 +746,12 @@
 @media (max-width: 991.98px) {
     .ed-hero__body {
         grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ed-hero__leader {
+        grid-column: 1 / -1;
+        max-width: none;
+        padding-top: 0;
     }
 
     .ed-hero__contact {
