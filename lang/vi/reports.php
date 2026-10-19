@@ -167,13 +167,6 @@ return [
             'note_best_conversion'  => 'Tỷ lệ chuyển đổi cao nhất',
             'note_best_revenue'     => 'Doanh thu cao nhất',
             'note_worst_conversion' => 'Tỷ lệ chuyển đổi thấp nhất',
-            'notes' => [
-                'Số liệu tính trên các Lead được TẠO trong kỳ báo cáo, theo chi nhánh và kênh liên hệ đã chọn.',
-                'Tỷ lệ chuyển đổi = Lead đã chuyển thành Cơ hội ÷ Số Lead. Tỷ lệ chốt / Lead = Lead chốt (Won) ÷ Số Lead.',
-                'Tỷ lệ thắng = Won ÷ (Won + Lost), chỉ tính các Cơ hội đã có kết quả.',
-                'Doanh thu = tổng giá trị đơn hàng phát sinh từ các Lead trên; Đã thu = số tiền đã thanh toán của các đơn đó. Doanh thu / Lead = Doanh thu ÷ Số Lead.',
-                'Mỗi nhóm A, B, C, D là một cách chia của cùng tập Lead nên cộng lại đều bằng dòng Tổng cộng.',
-            ],
         ],
     ],
 
@@ -274,16 +267,6 @@ return [
             'sub'   => 'Lead được giao trong tháng. Mỗi ô: số Lead đã đạt tới stage và tỷ lệ so với stage liền trước.',
         ],
 
-        'method' => [
-            'title'    => 'Cách tính các chỉ số',
-            'assigned' => 'Lead được giao: Lead được chuyển thành Cơ hội và giao cho salesperson trong tháng (theo ngày giao).',
-            'process'  => 'Chỉ số quy trình tính trên các Lead được giao trong tháng: đã xử lý = đã liên hệ hoặc đã rời stage đầu; chuyển Stage; phễu stage; phản hồi đầu = từ lúc giao đến lần liên hệ đầu tiên; lần liên hệ; không liên hệ được = đã liên hệ nhưng chưa lần nào thành công; chuyển ngược = có lần quay về stage trước.',
-            'outcome'  => 'Lead chốt / thất bại tính theo ngày đóng Cơ hội trong tháng (lúc vào stage Chốt / Lưu trữ). Tỷ lệ thắng = chốt ÷ (chốt + thất bại). Thời gian chốt = từ lúc giao đến lúc chốt.',
-            'revenue'  => 'Doanh thu = giá trị đơn hàng tạo trong tháng, tính cho người phụ trách Cơ hội; Đã thu = số tiền đã thanh toán của các đơn đó.',
-            'target'   => 'Team so với chỉ tiêu tháng (Doanh thu, Học viên mới, Lead mới). Học viên mới tính theo ngày thành học viên.',
-            'compare'  => 'Màu trong bảng salesperson: so với trung bình đội (số lượng = trung bình mỗi người, tỷ lệ / thời gian = mức chung của đội); chỉ so khi đội có từ 2 người có số liệu.',
-        ],
-
         'export' => [
             'button'             => 'Xuất Excel',
             'sheet_team'         => 'Sales Team',
@@ -313,8 +296,6 @@ return [
             'lost'               => 'Lead thất bại',
             'response_hours'     => 'Phản hồi đầu TB (giờ)',
             'close_days'         => 'Thời gian chốt TB (ngày)',
-            'note_team_rank'     => 'Xếp hạng Sales Team theo % đạt chỉ tiêu doanh thu; đội chưa có chỉ tiêu xếp sau. Dòng Tổng cộng: % đạt so với tổng chỉ tiêu của các đội có chỉ tiêu.',
-            'note_employee_rank' => 'Hạng salesperson xếp theo :metric (như đang chọn trên màn hình); người chưa có số liệu trong tháng không xếp hạng. Dòng đội (I, II...) là cộng các salesperson của đội.',
         ],
     ],
 

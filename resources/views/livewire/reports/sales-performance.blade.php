@@ -388,16 +388,6 @@
         </div>
     @endif
 
-    {{-- Cách tính --}}
-    <details class="vc-card rp-card rp-method">
-        <summary>{{ __('reports.sales_performance.method.title') }}</summary>
-        <ul>
-            @foreach (['assigned', 'process', 'outcome', 'revenue', 'target', 'compare'] as $key)
-                <li>{{ __('reports.sales_performance.method.'.$key) }}</li>
-            @endforeach
-        </ul>
-    </details>
-
     {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)
         @include('livewire.reports.partials.export-period')

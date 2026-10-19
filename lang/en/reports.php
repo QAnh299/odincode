@@ -164,13 +164,6 @@ return [
             'note_best_conversion'  => 'Highest conversion rate',
             'note_best_revenue'     => 'Highest revenue',
             'note_worst_conversion' => 'Lowest conversion rate',
-            'notes' => [
-                'Figures cover leads CREATED in the report period, for the selected branch and contact channel.',
-                'Conversion rate = leads converted to opportunities ÷ leads. Won / leads = won leads ÷ leads.',
-                'Win rate = Won ÷ (Won + Lost), counting only opportunities with an outcome.',
-                'Revenue = total value of sales orders from those leads; Collected = amount paid on those orders. Revenue / lead = revenue ÷ leads.',
-                'Groups A, B, C, D each split the same set of leads, so each adds up to the TOTAL row.',
-            ],
         ],
     ],
 
@@ -270,16 +263,6 @@ return [
             'sub'   => 'Leads assigned this month. Each cell: leads that reached the stage and the rate versus the previous stage.',
         ],
 
-        'method' => [
-            'title'    => 'How the metrics are calculated',
-            'assigned' => 'Assigned leads: leads converted to an opportunity and assigned to a salesperson during the month (by assignment date).',
-            'process'  => 'Process metrics use the leads assigned during the month: handled = contacted or left the first stage; stage moved; stage funnel; first response = assignment to first contact; contacts; unreachable = contacted but never successfully; moved back = returned to an earlier stage.',
-            'outcome'  => 'Won / lost leads are counted by the opportunity close date within the month (entering the Closed / Archived stage). Win rate = won ÷ (won + lost). Time to close = assignment to close.',
-            'revenue'  => 'Revenue = value of orders created during the month, credited to the opportunity owner; Collected = amount paid on those orders.',
-            'target'   => 'Teams are compared with their monthly targets (Revenue, New students, New leads). New students are counted by student conversion date.',
-            'compare'  => 'Colours in the salesperson table compare with the team average (counts = average per person, rates / times = team-wide value), only when the team has at least 2 people with data.',
-        ],
-
         'export' => [
             'button'             => 'Export Excel',
             'sheet_team'         => 'Sales teams',
@@ -309,8 +292,6 @@ return [
             'lost'               => 'Lost leads',
             'response_hours'     => 'Avg first response (hours)',
             'close_days'         => 'Avg time to close (days)',
-            'note_team_rank'     => 'Teams are ranked by % of revenue target achieved; teams without a target come last. TOTAL row: % achieved against the sum of the targets that exist.',
-            'note_employee_rank' => 'Salespeople are ranked by :metric (as selected on screen); people with no data this month are not ranked. Team rows (I, II...) sum the team\'s salespeople.',
         ],
     ],
 

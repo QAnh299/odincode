@@ -484,7 +484,6 @@ class LeadSources extends Component
                 [$c('revenue'), 'money'], [$c('paid'), 'money'], [$c('revenue_per_lead'), 'money'], [$c('revenue_share'), 'percent'],
                 [$c('note'), 'text']],
             'rows'    => $rows,
-            'notes'   => $c('notes'),
         ]];
 
         // Sheet 2: số Lead mới theo nguồn × tháng

@@ -494,7 +494,6 @@ class SalesPerformance extends Component
         $employee = $this->employeeOptions->firstWhere('employee_id', $filters['employee']);
         $scope = [$period['range'], $c('scope_team').': '.($this->teamScope ? $this->scopeTeams->first()->team_name : __('reports.sales_performance.all_teams'))
             .($employee ? ' · '.$c('scope_employee').': '.$employee->full_name : '')];
-        $notes = array_values(array_diff_key(__('reports.sales_performance.method'), array_flip(['title', 'compare'])));
         $attain = fn ($value, $goal) => $goal ? round($value * 100 / $goal, 1) : null;
         $sheets = [];
 
@@ -531,7 +530,6 @@ class SalesPerformance extends Component
                     [$m('revenue'), 'money'], [$c('target_revenue'), 'money'], [$c('attain'), 'percent'],
                     [$m('paid'), 'money'], [__('reports.sales_performance.rank'), 'int']],
                 'rows'    => $rows,
-                'notes'   => array_merge([$c('note_team_rank')], $notes),
             ];
         }
 
@@ -568,7 +566,6 @@ class SalesPerformance extends Component
                 [$m('contacts'), 'int'], [$m('contact_success_rate'), 'percent'], [$m('unreachable'), 'int'], [$m('backward'), 'int'],
                 [__('reports.sales_performance.rank'), 'int']],
             'rows'    => $rows,
-            'notes'   => array_merge([$c('note_employee_rank', ['metric' => mb_strtolower($m($this->activeSort()))])], $notes),
         ];
 
         // Sheet 3: từng tháng của kỳ; kỳ 1 tháng thì xu hướng 6 tháng
