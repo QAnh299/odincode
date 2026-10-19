@@ -235,7 +235,6 @@ CREATE TABLE `OpportunityTransfers` (
   `transferred_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `reason` TEXT NOT NULL,
   `opportunity_id` VARCHAR(10) NOT NULL,
-  `stage_id` VARCHAR(10) NOT NULL,
   `from_employee_id` VARCHAR(10) NOT NULL,
   `to_employee_id` VARCHAR(10) NOT NULL,
   `transferred_by` VARCHAR(10) NOT NULL,
@@ -243,8 +242,6 @@ CREATE TABLE `OpportunityTransfers` (
   CHECK (`from_employee_id` <> `to_employee_id`),
   CONSTRAINT `fk_opportunitytransfers_opportunity_id` FOREIGN KEY (`opportunity_id`)
     REFERENCES `Opportunities` (`opportunity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_opportunitytransfers_stage_id` FOREIGN KEY (`stage_id`)
-    REFERENCES `Stages` (`stage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_opportunitytransfers_from_employee_id` FOREIGN KEY (`from_employee_id`)
     REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_opportunitytransfers_to_employee_id` FOREIGN KEY (`to_employee_id`)

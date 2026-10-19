@@ -32,7 +32,7 @@ return [
     'reassign_current'   => 'Đang phụ trách',
     'transfers'          => 'Lịch sử chuyển người phụ trách',
     'transfer_line'      => ':from → :to',
-    'transfer_meta'      => ':time · giai đoạn :stage · bởi :by',
+    'transfer_meta'      => ':time · bởi :by',
     'reassigned_title'      => 'Chuyển người phụ trách thành công',
     'reassigned_text'       => 'Cơ hội :code đã được chuyển từ :from sang :to.',
     'reassigned_moved'      => ':count lịch hẹn đang chờ đã chuyển cho người phụ trách mới.',

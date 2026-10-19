@@ -32,7 +32,7 @@ return [
     'reassign_current'   => 'Current owner',
     'transfers'          => 'Owner reassignment history',
     'transfer_line'      => ':from → :to',
-    'transfer_meta'      => ':time · stage :stage · by :by',
+    'transfer_meta'      => ':time · by :by',
     'reassigned_title'      => 'Owner reassigned',
     'reassigned_text'       => 'Opportunity :code has been reassigned from :from to :to.',
     'reassigned_moved'      => ':count pending appointment(s) moved to the new owner.',

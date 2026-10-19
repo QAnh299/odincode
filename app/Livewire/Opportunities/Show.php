@@ -865,7 +865,6 @@ class Show extends Component
                 'transferred_at'   => now(),
                 'reason'           => $this->transferReason,
                 'opportunity_id'   => $this->opportunity->opportunity_id,
-                'stage_id'         => $this->opportunity->stage_id,
                 'from_employee_id' => $this->opportunity->employee_id,
                 'to_employee_id'   => $this->newOwner,
                 'transferred_by'   => $this->employeeId(),
@@ -895,7 +894,7 @@ class Show extends Component
     public function transfers(): Collection
     {
         return $this->opportunity->transfers()
-            ->with(['stage:stage_id,stage_name', 'fromEmployee:employee_id,full_name', 'toEmployee:employee_id,full_name', 'transferrer:employee_id,full_name'])
+            ->with(['fromEmployee:employee_id,full_name', 'toEmployee:employee_id,full_name', 'transferrer:employee_id,full_name'])
             ->orderByDesc('transferred_at')
             ->orderByDesc('transfer_id')
             ->get();

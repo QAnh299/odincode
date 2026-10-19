@@ -431,7 +431,6 @@
                                     <span class="od-muted od-transfers__meta">
                                         {{ __('opportunities.transfer_meta', [
                                             'time'  => $transfer->transferred_at?->format('d/m/Y H:i'),
-                                            'stage' => $transfer->stage?->stage_name ?? $transfer->stage_id,
                                             'by'    => $transfer->transferrer?->full_name ?? $transfer->transferred_by,
                                         ]) }}
                                     </span>
