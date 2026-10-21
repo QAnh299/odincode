@@ -202,11 +202,18 @@ class Kanban extends Component
             ->withMin(['quotations as draft_expiry' => fn ($q) => $q
                 ->where('status', Quotation::STATUS_DRAFT)
                 ->whereDate('expiry_date', '>=', today()->toDateString())], 'expiry_date')
+            // Stage Chốt: cơ hội chưa có báo giá cần salesperson chú ý
+            ->withCount('quotations')
             ->orderByDesc('conversion_date')
             ->get();
 
+        // Stage Chốt: cơ hội chưa có báo giá lên đầu cột (giữ thứ tự ngày chuyển đổi trong từng nhóm)
+        $columns = $opportunities->groupBy('stage_id')->map(fn ($cards, $stageId) => $stageId === Stage::CLOSED
+            ? $cards->sortBy(fn (Opportunity $opp) => $opp->needsQuotation() ? 0 : 1)->values()
+            : $cards);
+
         return view('livewire.opportunities.kanban', [
-            'columns' => $opportunities->groupBy('stage_id'),
+            'columns' => $columns,
             'total'   => $opportunities->count(),
         ])->title(__('opportunities.title'));
     }

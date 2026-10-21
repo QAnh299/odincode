@@ -55,10 +55,6 @@ class Opportunity extends Model
             : number_format((float) $this->expected_value, 0, ',', '.').' ₫';
     }
 
-    /**
-     * Cơ hội mà nhân viên được phép xem:
-     * Giám đốc / Sale Admin / Kế toán xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
-     */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return match ($employee?->role_name) {
@@ -149,6 +145,13 @@ class Opportunity extends Model
         $changed = $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
 
         return $changed ? Carbon::parse($changed)->startOfMinute() : $this->conversion_date;
+    }
+
+    public function needsQuotation(): bool
+    {
+        return $this->stage_id === Stage::CLOSED
+            && $this->status === self::STATUS_IN_PROGRESS
+            && ($this->quotations_count ?? $this->quotations()->count()) === 0;
     }
 
     public function decisionDeadline(): ?Carbon

@@ -3,7 +3,6 @@
 @endphp
 
 <div class="vc ok">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/opportunity.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/opportunity.css'])
     @endassets
@@ -27,7 +26,6 @@
         </p>
     </header>
 
-    {{-- ── Bộ lọc theo ngày chuyển đổi (ngày Lead được chia) ────────── --}}
     @php $activePreset = $this->activePreset(); @endphp
     <section class="vc-card ok-filter" aria-label="{{ __('opportunities.filter_title') }}">
         <div class="vc-field">
@@ -105,8 +103,18 @@
 
                 <div class="ok-col__body">
                     @forelse ($cards as $opp)
-                        <a href="{{ route($this->routePrefix.'.opportunities.show', $opp) }}" class="ok-card" wire:key="opp-{{ $opp->opportunity_id }}">
+                        @php $needsQuote = $opp->needsQuotation(); @endphp
+                        <a href="{{ route($this->routePrefix.'.opportunities.show', $opp) }}"
+                            class="ok-card {{ $needsQuote ? 'ok-card--attention' : '' }}" wire:key="opp-{{ $opp->opportunity_id }}">
                             <span class="ok-card__name">{{ $opp->lead?->full_name ?? '—' }}</span>
+
+                            {{-- Stage Chốt chưa có báo giá: biểu tượng góc phải trên, rê chuột hiện "Chưa có báo giá" --}}
+                            @if ($needsQuote)
+                                <span class="ok-card__alert" title="{{ __('opportunities.needs_quotation') }}"
+                                    aria-label="{{ __('opportunities.needs_quotation') }}">
+                                    <x-icon name="alert" />
+                                </span>
+                            @endif
 
                             {{-- Stage Lưu trữ gồm 2 trạng thái: Từ chối (Lost) / Lưu trữ (Archived) --}}
                             @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))

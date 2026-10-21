@@ -38,6 +38,7 @@ return [
     'reassigned_moved'      => ':count pending appointment(s) moved to the new owner.',
 
     'status'             => 'Status',
+    'needs_quotation'    => 'No quotation yet',
     'status_name' => [
         'InProgress' => 'In progress',
         'Won'        => 'Won',

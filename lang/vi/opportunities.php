@@ -38,6 +38,7 @@ return [
     'reassigned_moved'      => ':count lịch hẹn đang chờ đã chuyển cho người phụ trách mới.',
 
     'status'             => 'Trạng thái',
+    'needs_quotation'    => 'Chưa có báo giá',
     'status_name' => [
         'InProgress' => 'Đang xử lý',
         'Won'        => 'Đã chốt',
