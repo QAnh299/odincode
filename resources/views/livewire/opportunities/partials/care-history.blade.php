@@ -3,7 +3,7 @@
     $cares: các lần liên hệ, mới nhất lên đầu (kèm activity, employee).
     Tách theo hoạt động (Liên hệ ban đầu - Xếp lại lịch - Chốt đăng ký), trong mỗi nhóm đánh số "Lần N" theo thời gian.
 --}}
-@forelse ($cares->groupBy('activity_id')->sortKeys() as $activityId => $group)
+@foreach ($cares->groupBy('activity_id')->sortKeys() as $activityId => $group)
     <section class="od-care-group" wire:key="care-group-{{ $activityId }}">
         <h3 class="od-care-group__title">
             {{ $group->first()->activity?->activity_name ?? $activityId }}
@@ -34,6 +34,7 @@
             @endforeach
         </div>
     </section>
-@empty
+@endforeach
+@if ($cares->isEmpty())
     <p class="od-empty">{{ __('opportunities.no_care') }}</p>
-@endforelse
+@endif

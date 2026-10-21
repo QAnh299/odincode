@@ -39,6 +39,17 @@ return [
 
     'status'             => 'Status',
     'needs_quotation'    => 'No quotation yet',
+    'priority'           => 'Priority',
+    'urgent_filter'      => 'Needs action (:count)',
+    'show_more'          => 'Show more (:count left)',
+    'show_archived'      => 'Expand Archive column',
+    'hide_archived'      => 'Collapse Archive column',
+    'urgency' => [
+        'overdue_appointment' => 'Appointment time has passed, result not updated',
+        'needs_quotation'     => 'No quotation yet',
+        'decision_due'        => ':days day(s) left for the customer to decide',
+        'not_contacted'       => 'Customer not contacted yet',
+    ],
     'status_name' => [
         'InProgress' => 'In progress',
         'Won'        => 'Won',

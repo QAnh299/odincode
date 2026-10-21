@@ -78,6 +78,15 @@
             </label>
         @endunless
 
+        {{-- Chỉ hiện cơ hội cần xử lý (việc gấp lên đầu cột) --}}
+        <div class="vc-field">
+            <span class="vc-field__label">{{ __('opportunities.priority') }}</span>
+            <button type="button" wire:click="toggleUrgent" class="ok-preset ok-preset--urgent {{ $urgent ? 'is-active' : '' }}"
+                aria-pressed="{{ $urgent ? 'true' : 'false' }}">
+                <x-icon name="alert" />{{ __('opportunities.urgent_filter', ['count' => $urgentCount]) }}
+            </button>
+        </div>
+
         <div class="vc-field vc-field--action">
             <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetFilters" @disabled(! $this->hasFilters())>
                 <x-icon name="refresh" />{{ __('opportunities.reset') }}
@@ -87,8 +96,34 @@
 
     {{-- ── Bảng Kanban: mỗi cột một Stage ───────────────────────────── --}}
     <div class="ok-board" wire:loading.class="is-loading">
+        @php
+            // Biểu tượng góc thẻ theo việc cần xử lý
+            $urgencyIcons = ['overdue_appointment' => 'clock', 'needs_quotation' => 'alert', 'decision_due' => 'hourglass', 'not_contacted' => 'phone'];
+        @endphp
         @foreach ($this->stages as $stage)
-            @php $cards = $columns->get($stage->stage_id, collect()); @endphp
+            @php
+                $cards = $columns->get($stage->stage_id, collect());
+                $isArchive = $stage->stage_id === \App\Models\Stage::ARCHIVED;
+                $collapsed = $isArchive && ! $showArchived;
+                $limit = $this->limitFor($stage->stage_id);
+            @endphp
+
+            {{-- Cột Lưu trữ thu gọn: dải hẹp ở mép phải (mũi tên, tên cột dựng đứng, số lượng), bấm để mở rộng --}}
+            @if ($collapsed)
+                <section class="ok-col ok-col--{{ $stage->sort_order }} is-collapsed" wire:key="stage-{{ $stage->stage_id }}">
+                    {{-- Mở rộng xong thì cuộn bảng tới cột Lưu trữ (cột mới nằm ở mép phải, có thể ngoài khung nhìn) --}}
+                    <button type="button" class="ok-col__rail" aria-expanded="false" title="{{ __('opportunities.show_archived') }}"
+                        x-data
+                        x-on:click="$wire.toggleArchived().then(() => $nextTick(() =>
+                            document.getElementById('stage-{{ $stage->stage_id }}')
+                                ?.closest('.ok-col')
+                                ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' })))">
+                        <x-icon name="chevron" />
+                        <span class="ok-col__rail-name">{{ $stage->stage_name }}</span>
+                        <span class="ok-col__count">{{ $cards->count() }}</span>
+                    </button>
+                </section>
+            @else
 
             {{-- Màu viền theo thứ tự stage: .ok-col--1 … .ok-col--5 (opportunity.css) --}}
             <section class="ok-col ok-col--{{ $stage->sort_order }}" wire:key="stage-{{ $stage->stage_id }}" aria-labelledby="stage-{{ $stage->stage_id }}">
@@ -96,23 +131,29 @@
                     <div class="ok-col__title">
                         <h2 id="stage-{{ $stage->stage_id }}">{{ $stage->stage_name }}</h2>
                         <span class="ok-col__count">{{ $cards->count() }}</span>
+                        {{-- Cột Lưu trữ đang mở: mũi tên thu gọn lại sang phải --}}
+                        @if ($isArchive)
+                            <button type="button" class="ok-col__toggle" wire:click="toggleArchived"
+                                title="{{ __('opportunities.hide_archived') }}" aria-expanded="true">
+                                <x-icon name="chevron" />
+                            </button>
+                        @endif
                     </div>
 
                     <span class="ok-col__sum">{{ $money($cards->sum('expected_value')) }}</span>
                 </header>
 
                 <div class="ok-col__body">
-                    @forelse ($cards as $opp)
-                        @php $needsQuote = $opp->needsQuotation(); @endphp
+                    @foreach ($cards->take($limit) as $opp)
                         <a href="{{ route($this->routePrefix.'.opportunities.show', $opp) }}"
-                            class="ok-card {{ $needsQuote ? 'ok-card--attention' : '' }}" wire:key="opp-{{ $opp->opportunity_id }}">
+                            class="ok-card {{ $opp->urgency ? 'ok-card--attention' : '' }}" wire:key="opp-{{ $opp->opportunity_id }}">
                             <span class="ok-card__name">{{ $opp->lead?->full_name ?? '—' }}</span>
 
-                            {{-- Stage Chốt chưa có báo giá: biểu tượng góc phải trên, rê chuột hiện "Chưa có báo giá" --}}
-                            @if ($needsQuote)
-                                <span class="ok-card__alert" title="{{ __('opportunities.needs_quotation') }}"
-                                    aria-label="{{ __('opportunities.needs_quotation') }}">
-                                    <x-icon name="alert" />
+                            {{-- Việc cần xử lý: biểu tượng góc phải trên, rê chuột hiện nội dung --}}
+                            @if ($opp->urgency)
+                                @php $urgencyText = __('opportunities.urgency.'.$opp->urgency, ['days' => $opp->urgency_days]); @endphp
+                                <span class="ok-card__alert" title="{{ $urgencyText }}" aria-label="{{ $urgencyText }}">
+                                    <x-icon :name="$urgencyIcons[$opp->urgency]" />
                                 </span>
                             @endif
 
@@ -159,11 +200,21 @@
                                 </span>
                             </div>
                         </a>
-                    @empty
+                    @endforeach
+                    {{-- @foreach + @if thay cho @forelse/@empty: Livewire không chèn dấu đóng khối cho @forelse --}}
+                    @if ($cards->isEmpty())
                         <p class="ok-col__empty">{{ __('opportunities.empty_stage') }}</p>
-                    @endforelse
+                    @endif
+
+                    {{-- Mỗi cột hiện PAGE_SIZE thẻ, bấm để tải thêm --}}
+                    @if ($cards->count() > $limit)
+                        <button type="button" class="ok-col__more" wire:click="showMore('{{ $stage->stage_id }}')">
+                            {{ __('opportunities.show_more', ['count' => $cards->count() - $limit]) }}
+                        </button>
+                    @endif
                 </div>
             </section>
+            @endif
         @endforeach
     </div>
 </div>

@@ -67,10 +67,10 @@
 
 /* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
 
+/* Các cột chia đều chiều ngang (tối thiểu 280px, thiếu chỗ thì cuộn ngang); cột Lưu trữ thu gọn là dải hẹp */
 .ok-board {
-    display: grid;
-    grid-auto-columns: minmax(280px, 1fr);
-    grid-auto-flow: column;
+    display: flex;
+    align-items: stretch;
     gap: 1rem;
     padding-bottom: 0.75rem;
     overflow-x: auto;
@@ -91,8 +91,9 @@
 
 .ok-col {
     display: flex;
+    flex: 1 1 0;
     flex-direction: column;
-    min-width: 0;
+    min-width: 280px;
     border: 1.5px solid color-mix(in srgb, var(--stage, #94a3b8) 28%, #fff);
     border-top: 4px solid color-mix(in srgb, var(--stage, #94a3b8) 55%, #fff);
     border-radius: var(--vc-radius);
@@ -139,10 +140,94 @@
 
 .ok-col__body {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 0.65rem;
     min-height: 120px;
     padding: 0 0.75rem 0.85rem;
+}
+
+/* Nút "Xem thêm" cuối cột / "Xem N cơ hội" khi cột Lưu trữ thu gọn */
+.ok-col__more {
+    width: 100%;
+    margin-top: auto; /* đẩy xuống đáy cột để các cột thẳng hàng */
+    padding: 0.6rem;
+    border: 1.5px dashed var(--vc-border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--vc-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ok-col__more:hover {
+    border-color: var(--vc-primary);
+}
+
+/* Cột Lưu trữ đang mở: mũi tên (→) thu gọn lại sang phải */
+.ok-col__toggle {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 0.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--vc-muted);
+    cursor: pointer;
+}
+
+.ok-col__toggle:hover {
+    color: var(--vc-primary);
+}
+
+.vc .ok-col__toggle .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Cột Lưu trữ thu gọn: dải hẹp ở mép phải, cả dải là nút mở rộng */
+.ok-col.is-collapsed {
+    flex: 0 0 56px;
+    min-width: 56px;
+}
+
+.ok-col__rail {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--vc-ink);
+    cursor: pointer;
+}
+
+.ok-col__rail:hover {
+    color: var(--vc-primary);
+}
+
+/* Mũi tên (←) mở rộng sang trái */
+.vc .ok-col__rail .odin-icon {
+    width: 16px;
+    height: 16px;
+    transform: rotate(180deg);
+}
+
+/* Tên cột dựng đứng */
+.ok-col__rail-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+}
+
+/* Bộ lọc "Cần xử lý" */
+.ok-preset--urgent {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .ok-col__empty {
@@ -194,21 +279,19 @@
 }
 
 /* Stage Chốt chưa có báo giá: thẻ nổi bật để salesperson lập báo giá */
+/* Thẻ cần xử lý: giữ nền và viền như thẻ thường, chỉ thêm biểu tượng nhỏ ở góc phải trên */
 .ok-card--attention {
     position: relative;
     padding-right: 2.2rem;
-    border-color: #f59e0b;
-    border-left-color: #f59e0b;
-    background: #fffbeb;
 }
 
-/* Biểu tượng góc phải trên của thẻ, rê chuột hiện "Chưa có báo giá" */
+/* Biểu tượng góc phải trên của thẻ, rê chuột hiện việc cần xử lý */
 .ok-card__alert {
     position: absolute;
     top: 0.6rem;
     right: 0.6rem;
     display: inline-flex;
-    color: #b45309;
+    color: #d97706;
 }
 
 .vc .ok-card__alert .odin-icon {
@@ -295,8 +378,9 @@
 }
 
 @media (max-width: 575.98px) {
-    .ok-board {
-        grid-auto-columns: 85%;
+    .ok-col:not(.is-collapsed) {
+        flex-basis: 85%;
+        min-width: 85%;
     }
 }
 

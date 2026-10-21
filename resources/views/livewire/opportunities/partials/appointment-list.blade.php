@@ -7,7 +7,7 @@
     $label = fn (string $key, string $value) => \Illuminate\Support\Facades\Lang::has("$key.$value") ? __("$key.$value") : $value;
 @endphp
 
-@forelse ($appointments as $group)
+@foreach ($appointments as $group)
     @php
         $statuses = $group['rows']->pluck('status')->unique();
         $tone = $statuses->count() === 1 ? $statuses->first() : 'Mixed';
@@ -62,6 +62,7 @@
             @endforeach
         </ul>
     </article>
-@empty
+@endforeach
+@if ($appointments->isEmpty())
     <p class="od-empty">{{ __('opportunities.no_appointments') }}</p>
-@endforelse
+@endif

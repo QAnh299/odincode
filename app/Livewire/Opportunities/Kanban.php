@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Opportunities;
 
+use App\Models\Appointment;
 use App\Models\Employee;
 use App\Models\Opportunity;
 use App\Models\Quotation;
@@ -29,11 +30,38 @@ use Livewire\Component;
  * nút chọn nhanh (Hôm nay, Hôm qua, 7 ngày qua, Tháng này) chỉ điền sẵn Từ ngày - Đến ngày,
  * nút đang sáng được suy ra từ khoảng ngày nên không cần lưu thêm trạng thái.
  * Hiện chỉ xem; chưa kéo thả đổi stage.
+ *
+ * Gọn khi có nhiều cơ hội: việc cần xử lý lên đầu cột (biểu tượng góc thẻ, bộ lọc "Cần xử lý"),
+ * mỗi cột hiện PAGE_SIZE thẻ rồi "Xem thêm", cột Lưu trữ mặc định thu gọn.
  */
 #[Layout('layouts.app')]
 class Kanban extends Component
 {
     const PRESETS = ['today', 'yesterday', 'last7', 'month'];
+
+    // Số thẻ hiện mỗi lần trong một cột; "Xem thêm" tải thêm chừng ấy
+    const PAGE_SIZE = 20;
+
+    // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì coi là cần xử lý
+    const DECISION_WARN_DAYS = 3;
+
+    // Việc cần xử lý, theo mức ưu tiên (nhỏ = gấp hơn): thẻ lên đầu cột, có biểu tượng góc phải trên
+    const URGENCY = [
+        'overdue_appointment' => 0, // lịch hẹn đã qua giờ, chưa cập nhật kết quả
+        'needs_quotation'     => 1, // stage Chốt chưa có báo giá
+        'decision_due'        => 2, // Data đã xử lý sắp hết hạn quyết định
+        'not_contacted'       => 3, // Data chưa tương tác, chưa liên hệ lần nào
+    ];
+
+    // Chỉ hiện cơ hội cần xử lý
+    #[Url(except: false)]
+    public bool $urgent = false;
+
+    // Cột Lưu trữ mặc định thu gọn
+    public bool $showArchived = false;
+
+    // Số thẻ đang hiện của từng cột: [stage_id => số thẻ]
+    public array $shown = [];
 
     // Khoảng ngày chuyển đổi (Y-m-d) - có thể bị sửa từ client nên luôn kiểm tra qua validDate()
     #[Url(except: '')]
@@ -66,12 +94,44 @@ class Kanban extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('from', 'to', 'team', 'employee');
+        $this->reset('from', 'to', 'team', 'employee', 'urgent', 'shown');
     }
 
     public function hasFilters(): bool
     {
-        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '';
+        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent;
+    }
+
+    // Đổi bộ lọc thì mỗi cột hiện lại từ đầu
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['from', 'to', 'team', 'employee'], true)) {
+            $this->shown = [];
+        }
+    }
+
+    public function toggleUrgent(): void
+    {
+        $this->urgent = ! $this->urgent;
+        $this->shown = [];
+    }
+
+    public function toggleArchived(): void
+    {
+        $this->showArchived = ! $this->showArchived;
+    }
+
+    public function showMore(string $stageId): void
+    {
+        $this->shown[$stageId] = $this->limitFor($stageId) + self::PAGE_SIZE;
+    }
+
+    /**
+     * Số thẻ hiện trong một cột (ít nhất PAGE_SIZE).
+     */
+    public function limitFor(string $stageId): int
+    {
+        return max(self::PAGE_SIZE, (int) ($this->shown[$stageId] ?? 0));
     }
 
     // ── Phạm vi theo vai trò ──────────────────────────────────────────
@@ -202,19 +262,59 @@ class Kanban extends Component
             ->withMin(['quotations as draft_expiry' => fn ($q) => $q
                 ->where('status', Quotation::STATUS_DRAFT)
                 ->whereDate('expiry_date', '>=', today()->toDateString())], 'expiry_date')
-            // Stage Chốt: cơ hội chưa có báo giá cần salesperson chú ý
-            ->withCount('quotations')
+            // Việc cần xử lý: số báo giá, lịch hẹn đã qua giờ chưa cập nhật, số lần liên hệ
+            ->withCount([
+                'quotations',
+                'appointments as overdue_appointments' => fn ($q) => $q
+                    ->where('status', Appointment::STATUS_SCHEDULED)
+                    ->where('scheduled_time', '<=', now()),
+                'careResults',
+            ])
             ->orderByDesc('conversion_date')
             ->get();
 
-        // Stage Chốt: cơ hội chưa có báo giá lên đầu cột (giữ thứ tự ngày chuyển đổi trong từng nhóm)
-        $columns = $opportunities->groupBy('stage_id')->map(fn ($cards, $stageId) => $stageId === Stage::CLOSED
-            ? $cards->sortBy(fn (Opportunity $opp) => $opp->needsQuotation() ? 0 : 1)->values()
-            : $cards);
+        $this->markUrgency($opportunities);
+        $urgentCount = $opportunities->whereNotNull('urgency')->count();
+
+        if ($this->urgent) {
+            $opportunities = $opportunities->whereNotNull('urgency')->values();
+        }
+
+        // Trong mỗi cột: việc gấp lên đầu (cùng mức thì sắp hạn gần hơn trước), còn lại giữ thứ tự ngày chuyển đổi
+        $columns = $opportunities->groupBy('stage_id')->map(fn (Collection $cards) => $cards
+            ->sortBy(fn (Opportunity $opp) => [self::URGENCY[$opp->urgency] ?? 99, $opp->urgency_days ?? 0])
+            ->values());
 
         return view('livewire.opportunities.kanban', [
-            'columns' => $columns,
-            'total'   => $opportunities->count(),
+            'columns'     => $columns,
+            'total'       => $opportunities->count(),
+            'urgentCount' => $urgentCount,
         ])->title(__('opportunities.title'));
+    }
+
+    /**
+     * Gắn việc cần xử lý gấp nhất cho từng cơ hội đang xử lý: urgency (khóa của URGENCY, null nếu không có)
+     * và urgency_days (số ngày còn lại của hạn quyết định).
+     */
+    protected function markUrgency(Collection $opportunities): void
+    {
+        foreach ($opportunities as $opp) {
+            $days = null;
+
+            if ($opp->status === Opportunity::STATUS_IN_PROGRESS && $opp->stage_id === Stage::PROCESSED
+                && $deadline = $opp->decisionDeadline()) {
+                $days = max(0, (int) today()->diffInDays($deadline->copy()->startOfDay(), false));
+            }
+
+            $opp->urgency = match (true) {
+                $opp->status !== Opportunity::STATUS_IN_PROGRESS                                  => null,
+                $opp->overdue_appointments > 0                                                    => 'overdue_appointment',
+                $opp->needsQuotation()                                                            => 'needs_quotation',
+                $days !== null && $days <= self::DECISION_WARN_DAYS                               => 'decision_due',
+                $opp->stage_id === Stage::UNTOUCHED && $opp->care_results_count === 0             => 'not_contacted',
+                default                                                                           => null,
+            };
+            $opp->urgency_days = $opp->urgency === 'decision_due' ? $days : null;
+        }
     }
 }

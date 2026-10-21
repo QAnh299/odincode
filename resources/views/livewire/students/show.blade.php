@@ -157,7 +157,7 @@
             <section class="vc-card vc-results">
                 <h2 class="st-title st-title--bar">{{ __('students.opportunities_title') }}</h2>
 
-                @forelse ($this->opportunities as $item)
+                @foreach ($this->opportunities as $item)
                     @php $isOpen = $openOpportunity === $item->opportunity_id; @endphp
                     <div class="st-opp {{ $isOpen ? 'is-open' : '' }}" wire:key="opp-{{ $item->opportunity_id }}">
                         <button type="button" class="st-opp__head" wire:click="toggleOpportunity('{{ $item->opportunity_id }}')"
@@ -204,9 +204,10 @@
                             </div>
                         @endif
                     </div>
-                @empty
+                @endforeach
+                @if ($this->opportunities->isEmpty())
                     <p class="st-empty">{{ __('students.no_opportunities') }}</p>
-                @endforelse
+                @endif
             </section>
         </div>
 

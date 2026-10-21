@@ -39,6 +39,17 @@ return [
 
     'status'             => 'Trạng thái',
     'needs_quotation'    => 'Chưa có báo giá',
+    'priority'           => 'Ưu tiên',
+    'urgent_filter'      => 'Cần xử lý (:count)',
+    'show_more'          => 'Xem thêm (còn :count)',
+    'show_archived'      => 'Mở cột Lưu trữ',
+    'hide_archived'      => 'Thu gọn cột Lưu trữ',
+    'urgency' => [
+        'overdue_appointment' => 'Lịch hẹn đã qua giờ, chưa cập nhật kết quả',
+        'needs_quotation'     => 'Chưa có báo giá',
+        'decision_due'        => 'Còn :days ngày để khách quyết định',
+        'not_contacted'       => 'Chưa liên hệ khách',
+    ],
     'status_name' => [
         'InProgress' => 'Đang xử lý',
         'Won'        => 'Đã chốt',
