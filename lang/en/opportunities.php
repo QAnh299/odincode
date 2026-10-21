@@ -97,6 +97,7 @@ return [
     'care_closed_unreachable' => ':activity logged - :reason, the opportunity was moved to Archive (Archived).',
     'care_closed_returns'    => ':activity logged - the customer declined more than :max times, the opportunity was moved to Archive (Archived).',
     'care_returned'          => ':activity logged - the customer declined to register, the opportunity moved back to ":stage" (:count/:max).',
+    'care_closed_overdue'    => ':activity logged - :reason, the opportunity was moved to Archive (:status).',
     'quote_stage_moved'      => 'The opportunity moved to ":stage" - prepare a quotation for the customer.',
     'confirm_quote'          => 'Has the customer agreed to register? The opportunity will move to the Closed stage for a quotation.',
     'apt_notes'              => 'Appointment notes',

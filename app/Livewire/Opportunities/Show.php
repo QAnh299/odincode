@@ -47,7 +47,7 @@ use Livewire\Component;
  *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
  *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
  *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
- *   - Data đã xử lý - "Chốt đăng ký": Thành công → nút "Tạo báo giá" (→ Chốt); Thất bại → quay về
+ *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → tự chuyển sang Chốt; Thất bại → quay về
  *     Data chưa tương tác (quá 3 lần → Archived); không liên lạc được quá 14 ngày từ lần liên hệ đầu tiên
  *     ở stage → Archived.
  * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
@@ -141,11 +141,10 @@ class Show extends Component
     // Data chưa tương tác: đủ số lần không liên lạc được này → Archived
     const MAX_UNREACHABLE_CONTACTS = 4;
 
-    // Không liên lạc được quá số ngày này → Archived: Data đã có lịch hẹn (tính từ buổi khách không đến),
-    // Data đã xử lý (tính từ lần liên hệ đầu tiên ở stage)
+    // Data đã có lịch hẹn: không liên lạc được quá số ngày này (tính từ buổi khách không đến) → Archived.
+    // Data đã xử lý dùng hạn quyết định Opportunity::DECISION_DAYS.
     const UNREACHABLE_DAYS = [
         Stage::APPOINTED => 7,
-        Stage::PROCESSED => 14,
     ];
 
     // Khách từ chối đăng ký ở Data đã xử lý → quay về Data chưa tương tác; quá số lần này → Archived
@@ -170,12 +169,7 @@ class Show extends Component
     #[Computed]
     public function stageSince(): Carbon
     {
-        $changed = $this->opportunity->stagesHistory()
-            ->where('to_stage_id', $this->opportunity->stage_id)
-            ->max('changed_at');
-
-        // Làm tròn xuống phút: thời gian liên hệ chỉ nhập tới phút, lần liên hệ trong cùng phút vẫn tính vào stage này
-        return $changed ? Carbon::parse($changed)->startOfMinute() : $this->opportunity->conversion_date;
+        return $this->opportunity->stageEnteredAt();
     }
 
     /**
@@ -343,6 +337,17 @@ class Show extends Component
             ]);
         }
 
+        // Data đã xử lý: quá hạn quyết định (14 ngày từ lần liên hệ chốt đầu tiên) mà khách chưa đồng ý
+        // → gọi được nhưng còn cân nhắc: Lost; không liên lạc được: Archived
+        if ($this->opportunity->stage_id === Stage::PROCESSED && $this->opportunity->closeIfDecisionOverdue($time)) {
+            $this->refreshStage();
+
+            return __('opportunities.care_closed_overdue', $params + [
+                'reason' => $this->closeReason,
+                'status' => __('opportunities.status_name.'.$this->opportunity->status),
+            ]);
+        }
+
         $reason = $result === CareResult::RESULT_UNREACHABLE ? $this->unreachableReason($time) : null;
 
         return $reason
@@ -353,8 +358,8 @@ class Show extends Component
     /**
      * Lý do lưu trữ khi không liên lạc được đã vượt giới hạn của stage, null nếu chưa vượt:
      *   - Data chưa tương tác: đủ 4 lần không liên lạc được;
-     *   - Data đã có lịch hẹn: quá 7 ngày kể từ buổi khách không đến;
-     *   - Data đã xử lý: quá 14 ngày kể từ lần liên hệ đầu tiên ở stage.
+     *   - Data đã có lịch hẹn: quá 7 ngày kể từ buổi khách không đến.
+     * (Data đã xử lý: hạn quyết định – Opportunity::closeIfDecisionOverdue().)
      */
     protected function unreachableReason(Carbon $time): ?string
     {
@@ -367,19 +372,13 @@ class Show extends Component
         }
 
         $days = self::UNREACHABLE_DAYS[$stage] ?? null;
-        $from = match ($stage) {
-            Stage::APPOINTED => $this->lastNoShow(),
-            Stage::PROCESSED => ($first = $this->stageContacts()->min('performed_at')) ? Carbon::parse($first) : null,
-            default          => null,
-        };
+        $from = $stage === Stage::APPOINTED ? $this->lastNoShow() : null;
 
         if (! $days || ! $from || $time->lte($from->copy()->addDays($days))) {
             return null;
         }
 
-        return $stage === Stage::APPOINTED
-            ? 'Không liên lạc được quá '.$days.' ngày kể từ buổi khách không đến'
-            : 'Không liên lạc được quá '.$days.' ngày kể từ lần liên hệ chốt đăng ký đầu tiên';
+        return 'Không liên lạc được quá '.$days.' ngày kể từ buổi khách không đến';
     }
 
     /**
@@ -396,7 +395,8 @@ class Show extends Component
     // ── Tạo báo giá ───────────────────────────────────────────────────
 
     /**
-     * Khách đồng ý đăng ký: chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1 → HĐ2).
+     * Khách đồng ý đăng ký (Data chưa tương tác – đăng ký ngay / Data đã xử lý – chốt đăng ký):
+     * chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1 → HĐ2).
      */
     public function createQuotation()
     {
@@ -408,7 +408,7 @@ class Show extends Component
     }
 
     /**
-     * Nút "Lập báo giá" ở stage Chốt: salesperson phụ trách, đủ điều kiện HĐ2
+     * Nút "Tạo báo giá" ở stage Chốt: salesperson phụ trách, đủ điều kiện HĐ2
      * (Chốt; InProgress hoặc Won; không còn báo giá Nháp) - QuotationService::blockerFor().
      */
     public function canStartQuotation(): bool
@@ -418,8 +418,10 @@ class Show extends Component
             && app(QuotationService::class)->blockerFor($this->opportunity, Auth::user()->employee) === null;
     }
 
+
     /**
-     * Nhãn "Phân vân · còn N ngày" (HĐ11): số ngày còn lại của báo giá Nháp chưa hết hạn; không có thì null.
+     * Nhãn "Phân vân · còn N ngày": số ngày còn lại của báo giá Nháp chưa hết hạn (HĐ11), hoặc ở Data đã xử lý
+     * là số ngày còn lại của hạn quyết định (khách đang cân nhắc); không có thì null.
      * Chỉ là nhãn tính ra, không phải trạng thái cơ hội.
      */
     #[Computed]
@@ -427,7 +429,13 @@ class Show extends Component
     {
         $draft = $this->quotations->first(fn ($q) => $q->status === Quotation::STATUS_DRAFT && ! $q->isExpired());
 
-        return $draft?->daysUntilExpiry();
+        if ($draft) {
+            return $draft->daysUntilExpiry();
+        }
+
+        $deadline = $this->opportunity->decisionDeadline();
+
+        return $deadline ? max(0, (int) today()->diffInDays($deadline->copy()->startOfDay(), false)) : null;
     }
 
     // ── Cập nhật kết quả lịch hẹn ─────────────────────────────────────
@@ -987,14 +995,15 @@ class Show extends Component
     }
 
     /**
-     * Nút "Tạo báo giá": chỉ salesperson phụ trách, khi đã có lần liên hệ thành công ở stage hiện tại -
-     * "Liên hệ ban đầu" ở Data chưa tương tác (khách đăng ký ngay) hoặc "Chốt đăng ký" ở Data đã xử lý.
+     * Nút "Tạo báo giá" (khách đồng ý đăng ký): salesperson phụ trách, đã liên hệ thành công ở stage hiện tại –
+     * "Liên hệ ban đầu" ở Data chưa tương tác hoặc "Chốt đăng ký" ở Data đã xử lý (chưa quá hạn quyết định).
      */
     public function canCreateQuotation(): bool
     {
         return $this->isOwner()
             && in_array($this->opportunity->stage_id, [Stage::UNTOUCHED, Stage::PROCESSED], true)
-            && $this->stageContactDone;
+            && $this->stageContactDone
+            && ! $this->opportunity->decisionDeadline()?->isPast();
     }
 
     /**

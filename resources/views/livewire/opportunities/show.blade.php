@@ -50,13 +50,11 @@
             </div>
 
             @if ($this->canCreateQuotation())
-                {{-- Khách đồng ý đăng ký → chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1) --}}
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="createQuotation"
                     wire:confirm="{{ __('opportunities.confirm_quote') }}">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </button>
             @elseif ($this->canStartQuotation())
-                {{-- Đã ở stage Chốt, đủ điều kiện HĐ2 → mở biểu mẫu lập báo giá --}}
                 <a href="{{ route('salesperson.quotations.create', $opp) }}" class="vc-btn vc-btn--primary">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </a>
@@ -85,7 +83,6 @@
     </section>
 
     <div class="od-grid">
-        {{-- ── Cột trái: tab Lịch sử chăm sóc / Lịch hẹn, báo giá ──── --}}
         <div class="od-main">
             @php
                 $cares = $this->careResults;
@@ -97,8 +94,6 @@
             @endphp
 
             <section class="vc-card vc-results">
-                {{-- Hàng tab + nút thao tác của tab đang mở: Ghi nhận liên hệ (Lịch sử chăm sóc),
-                     Đổi lịch - Tạo lịch hẹn (Lịch hẹn, không còn ở stage Chốt / Lưu trữ) --}}
                 <div class="od-tabs" role="tablist">
                     @foreach (['care' => $cares->count(), 'appointments' => $appointments->count()] as $key => $count)
                         <button type="button" role="tab" wire:click="setTab('{{ $key }}')"
@@ -158,7 +153,6 @@
                             </form>
                         @endif
 
-                        {{-- Form đổi lịch: chọn lịch muốn đổi (Test / Tư vấn) rồi nhập thời gian / địa điểm mới --}}
                         @if ($form === 'reschedule')
                             <form class="od-create" wire:submit="saveReschedule">
                                 <h3 class="od-create__title">{{ __('opportunities.reschedule') }}</h3>
@@ -289,7 +283,6 @@
                                     @php $quoteRoute = $this->routePrefix.'.quotations.show'; $canOpen = \Illuminate\Support\Facades\Route::has($quoteRoute); @endphp
                                     @foreach ($quotations as $quo)
                                         @php
-                                            // Mở chi tiết báo giá kèm from=opportunity để nút "Quay lại" trở về cơ hội này
                                             $quoUrl = $canOpen ? route($quoteRoute, ['quotation' => $quo->quotation_id, 'from' => 'opportunity']) : null;
                                             $isDraft = $quo->status === \App\Models\Quotation::STATUS_DRAFT;
                                             $daysLeft = $isDraft ? $quo->daysUntilExpiry() : null;

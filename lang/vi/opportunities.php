@@ -97,6 +97,7 @@ return [
     'care_closed_unreachable' => 'Đã ghi nhận :activity - :reason, cơ hội chuyển sang Lưu trữ (Archived).',
     'care_closed_returns'    => 'Đã ghi nhận :activity - khách từ chối đăng ký quá :max lần, cơ hội chuyển sang Lưu trữ (Archived).',
     'care_returned'          => 'Đã ghi nhận :activity - khách từ chối đăng ký, cơ hội quay về ":stage" (lần :count/:max).',
+    'care_closed_overdue'    => 'Đã ghi nhận :activity - :reason, cơ hội chuyển sang Lưu trữ (:status).',
     'quote_stage_moved'      => 'Cơ hội đã chuyển sang ":stage" - lập báo giá cho khách hàng.',
     'confirm_quote'          => 'Khách đồng ý đăng ký? Cơ hội sẽ chuyển sang stage Chốt để lập báo giá.',
     'apt_notes'              => 'Ghi chú lịch hẹn',

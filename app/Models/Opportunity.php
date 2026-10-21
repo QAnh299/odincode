@@ -6,6 +6,7 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class Opportunity extends Model
@@ -18,6 +19,9 @@ class Opportunity extends Model
     const STATUS_ARCHIVED = 'Archived';
 
     const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
+
+    // Data đã xử lý: số ngày để khách quyết định, tính từ lần liên hệ "Chốt đăng ký" đầu tiên ở stage
+    const DECISION_DAYS = 14;
 
     protected $table = 'Opportunities';
 
@@ -121,10 +125,6 @@ class Opportunity extends Model
         return $this->hasMany(StageHistory::class, 'opportunity_id', 'opportunity_id');
     }
 
-    /**
-     * Chuyển sang stage khác và ghi một dòng StagesHistory trong cùng transaction.
-     * Không làm gì nếu đã ở stage đó.
-     */
     public function moveToStage(string $stageId, ?string $notes = null): void
     {
         if ($this->stage_id === $stageId) {
@@ -144,10 +144,50 @@ class Opportunity extends Model
         });
     }
 
-    /**
-     * Kết thúc xử lý: xoá lịch hẹn chưa diễn ra, chuyển sang stage Lưu trữ (ghi lý do vào StagesHistory)
-     * và đổi trạng thái thành Lost (khách từ chối) hoặc Archived (không liên lạc được).
-     */
+    public function stageEnteredAt(): Carbon
+    {
+        $changed = $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
+
+        return $changed ? Carbon::parse($changed)->startOfMinute() : $this->conversion_date;
+    }
+
+    public function decisionDeadline(): ?Carbon
+    {
+        if ($this->stage_id !== Stage::PROCESSED) {
+            return null;
+        }
+
+        $first = $this->decisionContacts()->min('performed_at');
+
+        return $first ? Carbon::parse($first)->addDays(self::DECISION_DAYS) : null;
+    }
+
+    public function closeIfDecisionOverdue(?Carbon $at = null): bool
+    {
+        $deadline = $this->decisionDeadline();
+
+        if (! $deadline || $this->status !== self::STATUS_IN_PROGRESS || ($at ?? now())->lte($deadline)) {
+            return false;
+        }
+
+        $days = self::DECISION_DAYS;
+        $last = $this->decisionContacts()->orderByDesc('performed_at')->orderByDesc('result_id')->value('result');
+
+        $last === CareResult::RESULT_UNREACHABLE
+            ? $this->close(self::STATUS_ARCHIVED, "Không liên lạc được quá {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên")
+            : $this->close(self::STATUS_LOST, "Khách không ra quyết định sau {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên");
+
+        return true;
+    }
+
+    protected function decisionContacts()
+    {
+        return $this->careResults()
+            ->where('activity_id', CareActivity::DECISION)
+            ->where('performed_at', '>=', $this->stageEnteredAt());
+    }
+
+
     public function close(string $status, string $reason): void
     {
         DB::transaction(function () use ($status, $reason) {
@@ -157,10 +197,6 @@ class Opportunity extends Model
         });
     }
 
-    /**
-     * Quay về stage "Data chưa tương tác" (khách từ chối đăng ký ở stage Data đã xử lý):
-     * xoá lịch hẹn chưa diễn ra và ghi lý do vào StagesHistory.
-     */
     public function returnToUntouched(string $reason): void
     {
         DB::transaction(function () use ($reason) {
