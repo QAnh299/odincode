@@ -23,7 +23,7 @@ use Livewire\Component;
  * Thanh thao tác chỉ hiện với Salesperson lập báo giá và báo giá còn Nháp:
  *   - Chỉnh sửa (HĐ10) → trang sửa; Xuất PDF (HĐ7 – HĐ8) → tải file; Từ chối (HĐ12 – HĐ13).
  *   - Xác nhận (HĐ16 – HĐ17): một giao dịch gồm báo giá → Đã xác nhận + tạo đơn hàng (hình thức chưa xác định).
- * Sau khi từ chối: hỏi khách còn nhu cầu không (HĐ14) – lập báo giá mới, hoặc kết thúc cơ hội (Lost / giữ Won).
+ * Từ chối = khách không đồng ý: kết thúc cơ hội luôn (Lost / giữ Won); đổi khóa học thì SP sửa báo giá Nháp.
  */
 #[Layout('layouts.app')]
 class Show extends Component
@@ -99,33 +99,7 @@ class Show extends Component
             : $all;
     }
 
-    /**
-     * HĐ14: hiện câu hỏi "khách còn nhu cầu?" khi Salesperson lập báo giá vừa bị từ chối, cơ hội vẫn đang xử lý
-     * ở stage Chốt, không còn báo giá Nháp và đây là báo giá mới nhất của cơ hội.
-     */
-    #[Computed]
-    public function showFollowUp(): bool
-    {
-        $opportunity = $this->quotation->opportunity;
 
-        return $this->isAuthor()
-            && $this->quotation->status === Quotation::STATUS_REJECTED
-            && $opportunity?->status === Opportunity::STATUS_IN_PROGRESS
-            && ! $opportunity->quotations()->where('status', Quotation::STATUS_DRAFT)->exists()
-            && $opportunity->quotations()->latest('created_at')->latest('quotation_id')->value('quotation_id') === $this->quotation->quotation_id;
-    }
-
-    /**
-     * Còn lập được báo giá mới cho cơ hội này không (điều kiện HĐ2).
-     */
-    #[Computed]
-    public function canCreateNew(): bool
-    {
-        $opportunity = $this->quotation->opportunity;
-
-        return $opportunity !== null
-            && app(QuotationService::class)->blockerFor($opportunity, Auth::user()->employee) === null;
-    }
 
     /**
      * HĐ18: nút "Tạo hóa đơn" ở khối Đơn hàng – Salesperson lập báo giá, đơn còn phần nợ chưa lập hóa đơn
@@ -162,32 +136,17 @@ class Show extends Component
     }
 
     /**
-     * HĐ12 → HĐ13: Salesperson từ chối báo giá Nháp; cơ hội giữ nguyên, chuyển sang câu hỏi HĐ14.
+     * Salesperson từ chối báo giá Nháp khi khách không đồng ý: báo giá → Từ chối, cơ hội đang xử lý → Lost (đã Won giữ nguyên).
      */
     public function reject(QuotationService $service): void
     {
         abort_unless($this->canAct, 403);
 
-        $service->reject($this->quotation, Auth::user()->employee);
+        $closed = $service->reject($this->quotation, Auth::user()->employee);
 
         $this->reloadQuotation();
-        $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.rejected_done', ['code' => $this->quotation->quotation_id])];
-    }
-
-    /**
-     * HĐ14 – khách không còn nhu cầu: cơ hội đang xử lý → Lost; đã Won → giữ Won.
-     */
-    public function closeOpportunity(QuotationService $service): void
-    {
-        abort_unless($this->showFollowUp, 403);
-
-        $closed = $service->closeOpportunity(
-            $this->quotation->opportunity,
-            __('quotations.detail.close_reason', ['code' => $this->quotation->quotation_id], 'vi')
-        );
-
-        $this->reloadQuotation();
-        $this->notice = ['tone' => 'info', 'text' => __($closed ? 'quotations.detail.opportunity_lost' : 'quotations.detail.opportunity_kept')];
+        $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.rejected_done', ['code' => $this->quotation->quotation_id])
+            .' '.__($closed ? 'quotations.detail.opportunity_lost' : 'quotations.detail.opportunity_kept')];
     }
 
     public function render()
@@ -205,7 +164,7 @@ class Show extends Component
     private function reloadQuotation(): void
     {
         $this->loadQuotation($this->quotation->fresh());
-        unset($this->canAct, $this->actions, $this->showFollowUp, $this->canCreateNew);
+        unset($this->canAct, $this->actions);
     }
 
     /**

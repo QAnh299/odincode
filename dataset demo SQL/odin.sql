@@ -572,7 +572,10 @@ VALUES
   ('STD002', 'Trương Hải Yến', '0912000037', 'haiyen@example.test', '2003-04-12', '2026-09-25 09:00:00', 'Studying', 'OPP027'),
   ('STD003', 'Phí Minh Quân', '0912000038', 'minhquan@example.test', '1999-12-01', '2026-10-04 15:00:00', 'Studying', 'OPP028'),
   ('STD004', 'Lò Thị Hoa', '0912000039', 'thihoa@example.test', '2000-09-09', '2026-07-08 11:00:00', 'Completed', 'OPP029'),
-  ('STD005', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', '2017-03-15', '2026-08-14 16:00:00', 'Dropped', 'OPP030');
+  ('STD005', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', '2017-03-15', '2026-08-14 16:00:00', 'Dropped', 'OPP030'),
+  -- Hoc vien tu lan thanh toan thanh cong dau tien (chot 22/10/2026): don tra gop da dong tien
+  ('STD145', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-10 11:00:00', 'Studying', 'OPP003'),
+  ('STD146', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-17 10:00:00', 'Studying', 'OPP007');
 
 INSERT INTO `Appointments`
   (`appointment_id`, `appointment_type`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)

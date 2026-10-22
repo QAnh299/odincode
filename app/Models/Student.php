@@ -63,19 +63,19 @@ class Student extends Model
     }
 
     /**
-     * Đơn hàng đã thanh toán đủ (Hoàn tất) của Opportunity - căn cứ để trở thành học viên.
+     * Đơn hàng đã đóng tiền (Hoàn tất hoặc đang trả góp) của Opportunity - căn cứ để trở thành học viên.
      */
     public function paidOrder(): ?SalesOrder
     {
         return SalesOrder::query()
-            ->where('status', SalesOrder::STATUS_COMPLETED)
+            ->where('paid_amount', '>', 0)
             ->whereHas('quotation', fn ($q) => $q->where('opportunity_id', $this->opportunity_id))
             ->latest('created_at')
             ->first();
     }
 
     /**
-     * Tạo học viên khi đơn hàng đã thanh toán đủ (gọi từ SalesOrder khi lưu).
+     * Tạo học viên ở lần thanh toán thành công đầu tiên của đơn (gọi từ SalesOrder khi lưu).
      * Thông tin lấy từ Lead của Opportunity; Opportunity đã có học viên thì bỏ qua.
      */
     public static function enrollFromOrder(SalesOrder $order): ?self

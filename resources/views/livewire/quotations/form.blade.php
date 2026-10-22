@@ -197,8 +197,21 @@
                     <dl class="qt-info qt-info--stack">
                         <div class="qt-info__row"><dt>{{ __('quotations.detail.full_name') }}</dt><dd>{{ $lead?->full_name ?? '—' }}</dd></div>
                         <div class="qt-info__row"><dt>{{ __('quotations.detail.phone') }}</dt><dd>{{ $lead?->phone ?: '—' }}</dd></div>
-                        <div class="qt-info__row"><dt>{{ __('quotations.detail.email') }}</dt><dd>{{ $lead?->email ?: '—' }}</dd></div>
+                        @unless ($this->needsEmail())
+                            <div class="qt-info__row"><dt>{{ __('quotations.detail.email') }}</dt><dd>{{ $lead->email }}</dd></div>
+                        @endunless
                     </dl>
+                    @if ($this->needsEmail())
+                        {{-- Hồ sơ khách thiếu email: bổ sung ngay khi lập báo giá --}}
+                        <label class="qt-field">
+                            <span class="qt-field__label">{{ __('quotations.form.customer_email') }}</span>
+                            <input type="email" wire:model="customerEmail" maxlength="254" @class(['qt-control', 'is-invalid' => $errors->has('customerEmail')])>
+                            <span class="qt-field__help">{{ __('quotations.form.customer_email_help') }}</span>
+                            @error('customerEmail')
+                                <span class="qt-field__error">{{ $message }}</span>
+                            @enderror
+                        </label>
+                    @endif
                 </section>
                 <section class="qt-card qt-panel-card">
                     <h2 class="qt-section-title">{{ __('quotations.detail.opportunity') }}</h2>

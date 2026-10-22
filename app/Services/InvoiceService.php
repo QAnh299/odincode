@@ -104,6 +104,18 @@ class InvoiceService
     }
 
     /**
+     * Ngoại lệ của chuyển khoản (chốt 18/10/2026): khách chuyển lệch số tiền nên hệ thống không tự khớp và báo lỗi
+     * (TransferAlerts); thiếu thì SP nhắc khách chuyển đủ, kế toán đối chiếu sao kê rồi xác nhận thủ công.
+     * Số tiền hóa đơn giữ nguyên; chuyển thừa / hoàn tiền nằm ngoài phạm vi.
+     */
+    public function canConfirmTransfer(Invoice $invoice, ?Employee $employee): bool
+    {
+        return $employee?->role_name === Role::ACCOUNTANT
+            && $invoice->status === Invoice::STATUS_UNPAID
+            && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER;
+    }
+
+    /**
      * HĐ26: một giao dịch tạo hóa đơn Chờ thanh toán (kỳ = kỳ lớn nhất + 1) và ghi hình thức cho đơn nếu là
      * hóa đơn đầu tiên. Toàn bộ: số tiền = còn lại của đơn (khóa). Trả góp: 0 < số tiền ≤ còn lại − đang chờ.
      * Khóa dòng đơn hàng để hai lần bấm cùng lúc không vượt số tiền tối đa.
@@ -173,6 +185,21 @@ class InvoiceService
     }
 
     /**
+     * Kế toán xác nhận thủ công hóa đơn chuyển khoản sau khi đối chiếu sao kê → ghi nhận thanh toán.
+     * accountant_id vẫn để trống vì CHECK của Invoices (chuyển khoản không có kế toán); người xác nhận ghi vào log 'payments'.
+     */
+    public function confirmTransfer(Invoice $invoice, Employee $accountant): Invoice
+    {
+        abort_unless($this->canConfirmTransfer($invoice, $accountant), 409);
+
+        Log::channel('payments')->info('Kế toán xác nhận chuyển khoản thủ công', [
+            'invoice' => $invoice->invoice_id, 'amount' => $invoice->payment_amount, 'accountant' => $accountant->employee_id,
+        ]);
+
+        return $this->recordPayment($invoice, null, now());
+    }
+
+    /**
      * HĐ29: nhận thông báo giao dịch từ ngân hàng / cổng QR, so khớp nội dung (mã hóa đơn) và số tiền với hóa đơn
      * Chuyển khoản còn Chờ thanh toán. Khớp → ghi nhận thanh toán (không có kế toán). Không khớp → không ghi nhận,
      * lưu giao dịch vào log 'payments' (CSDL chưa có bảng giao dịch) và trả về null.
@@ -192,6 +219,11 @@ class InvoiceService
                 'reference' => $reference, 'amount' => $amount, 'content' => $content,
                 'invoice'   => $code, 'invoice_status' => $invoice?->status, 'invoice_amount' => $invoice?->payment_amount,
             ]);
+
+            // Đúng hóa đơn chuyển khoản đang chờ nhưng lệch số tiền → báo lỗi cho kế toán và SP (không ghi nhận tiền)
+            if ($invoice && $invoice->status === Invoice::STATUS_UNPAID && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER) {
+                TransferAlerts::add($invoice->invoice_id, $amount, $paidAt);
+            }
 
             return null;
         }
@@ -239,6 +271,7 @@ class InvoiceService
             return $invoice->fresh(['order.quotation.opportunity.lead', 'createdBy', 'accountant']);
         });
 
+        TransferAlerts::forget($paid->invoice_id);
         $this->sendInvoiceEmail($paid);
 
         return $paid;

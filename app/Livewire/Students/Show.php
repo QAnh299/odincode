@@ -78,7 +78,7 @@ class Show extends Component
     }
 
     /**
-     * Đơn hàng đã thanh toán đủ + báo giá, khoá học, voucher, các đợt hoá đơn.
+     * Đơn hàng đã đóng tiền + báo giá, khoá học, voucher, các đợt hoá đơn.
      */
     #[Computed]
     public function order(): ?SalesOrder

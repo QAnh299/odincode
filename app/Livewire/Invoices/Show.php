@@ -5,6 +5,7 @@ namespace App\Livewire\Invoices;
 use App\Models\Invoice;
 use App\Models\Role;
 use App\Services\InvoiceService;
+use App\Services\TransferAlerts;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -58,6 +59,15 @@ class Show extends Component
     }
 
     /**
+     * Kế toán xác nhận thủ công hóa đơn chuyển khoản bị lệch số tiền (sau khi SP sửa và kế toán đối chiếu sao kê).
+     */
+    #[Computed]
+    public function canConfirmTransfer(): bool
+    {
+        return app(InvoiceService::class)->canConfirmTransfer($this->invoice, Auth::user()->employee);
+    }
+
+    /**
      * HĐ36: Salesperson lập hóa đơn sửa khi còn Chờ thanh toán.
      */
     #[Computed]
@@ -102,6 +112,25 @@ class Show extends Component
     }
 
     /**
+     * Lần chuyển khoản lệch số tiền gần nhất của hóa đơn (nếu có): hiện cảnh báo cho kế toán và SP.
+     */
+    #[Computed]
+    public function transferAlert(): ?array
+    {
+        return $this->invoice->status === Invoice::STATUS_UNPAID ? TransferAlerts::find($this->invoice->invoice_id) : null;
+    }
+
+    public function confirmTransfer(InvoiceService $service): void
+    {
+        abort_unless($this->canConfirmTransfer, 403);
+
+        $service->confirmTransfer($this->invoice, Auth::user()->employee);
+
+        $this->reloadInvoice();
+        $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_confirmed', ['code' => $this->invoice->invoice_id])];
+    }
+
+    /**
      * Demo HĐ28 → HĐ29: giả lập ngân hàng báo có giao dịch đúng số tiền, nội dung = mã hóa đơn.
      */
     public function simulateTransfer(InvoiceService $service): void
@@ -118,6 +147,23 @@ class Show extends Component
         $this->notice = $paid
             ? ['tone' => 'success', 'text' => __('invoices.detail.transfer_matched', ['code' => $this->invoice->invoice_id])]
             : ['tone' => 'danger', 'text' => __('invoices.detail.transfer_unmatched')];
+    }
+
+    /**
+     * Demo: giả lập khách chuyển thiếu (một nửa số tiền) để thử cảnh báo chuyển khoản lệch.
+     */
+    public function simulateShortTransfer(InvoiceService $service): void
+    {
+        abort_unless($this->canSimulate, 403);
+
+        $service->handleBankTransfer(
+            round((float) $this->invoice->payment_amount / 2, -3),
+            $this->invoice->invoice_id,
+            'SIM-'.now()->format('YmdHis'),
+        );
+
+        unset($this->transferAlert);
+        $this->notice = ['tone' => 'danger', 'text' => __('invoices.detail.transfer_short_simulated')];
     }
 
     public function render()

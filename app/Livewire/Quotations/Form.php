@@ -9,6 +9,7 @@ use App\Models\Voucher;
 use App\Services\QuotationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -43,6 +44,9 @@ class Form extends Component
     public string $voucherId = '';
 
     public string $notes = '';
+
+    // Bổ sung email khách khi hồ sơ còn thiếu (cần để gửi email hóa đơn sau khi thanh toán)
+    public string $customerEmail = '';
 
     // Dòng khóa học: [['course_id' => ..., 'quantity' => ...], ...]
     public array $lines = [];
@@ -105,7 +109,15 @@ class Form extends Component
     #[Computed]
     public function vouchers(): Collection
     {
-        return app(QuotationService::class)->validVouchers()->keyBy('voucher_id');
+        $vouchers = app(QuotationService::class)->validVouchers()->keyBy('voucher_id');
+
+        // Sửa Nháp: voucher đã thống nhất với khách lúc lập báo giá được giữ nguyên dù nay đã hết hiệu lực
+        $current = $this->quotation?->voucher;
+        if ($current && ! $vouchers->has($current->voucher_id)) {
+            $vouchers->put($current->voucher_id, $current);
+        }
+
+        return $vouchers;
     }
 
     /**
@@ -209,8 +221,8 @@ class Form extends Component
     }
 
     /**
-     * HĐ3 → HĐ4 → HĐ6: kiểm tra (đủ trường, ít nhất một khóa, số lượng > 0, hạn không trước ngày lập,
-     * voucher còn hiệu lực); sai thì báo lỗi để sửa (HĐ5), đúng thì lưu Nháp và mở trang chi tiết.
+     * Kiểm tra thông tin báo giá và hồ sơ khách hàng (đủ trường, ít nhất một khóa, số lượng > 0, hạn không trước ngày lập,
+     * voucher còn hiệu lực, khách có email); sai thì báo lỗi để sửa, đúng thì lưu Nháp (kèm email bổ sung) và mở trang chi tiết.
      */
     public function save(QuotationService $service)
     {
@@ -226,6 +238,7 @@ class Form extends Component
             'lines'              => ['required', 'array', 'min:1'],
             'lines.*.course_id'  => ['required', 'string', 'distinct', 'in:'.implode(',', $courseIds)],
             'lines.*.quantity'   => ['required', 'integer', 'min:1', 'max:'.QuotationService::MAX_QUANTITY],
+            'customerEmail'      => $this->needsEmail() ? ['required', 'email:rfc', 'max:254'] : ['nullable'],
         ], [], [
             'expiryDate'        => __('quotations.form.expiry_date'),
             'voucherId'         => __('quotations.form.voucher'),
@@ -233,14 +246,21 @@ class Form extends Component
             'lines'             => __('quotations.form.courses'),
             'lines.*.course_id' => __('quotations.form.course'),
             'lines.*.quantity'  => __('quotations.form.quantity'),
+            'customerEmail'     => __('quotations.form.customer_email'),
         ]);
 
-        $quotation = $service->save($this->quotation, $this->opportunity, $this->viewer(), [
-            'expiry_date' => $this->expiryDate,
-            'voucher_id'  => $this->voucherId !== '' ? $this->voucherId : null,
-            'notes'       => $this->notes,
-            'lines'       => collect($this->lines)->mapWithKeys(fn ($l) => [$l['course_id'] => (int) $l['quantity']])->all(),
-        ]);
+        $quotation = DB::transaction(function () use ($service) {
+            if ($this->needsEmail()) {
+                $this->opportunity->lead->update(['email' => trim($this->customerEmail)]);
+            }
+
+            return $service->save($this->quotation, $this->opportunity, $this->viewer(), [
+                'expiry_date' => $this->expiryDate,
+                'voucher_id'  => $this->voucherId !== '' ? $this->voucherId : null,
+                'notes'       => $this->notes,
+                'lines'       => collect($this->lines)->mapWithKeys(fn ($l) => [$l['course_id'] => (int) $l['quantity']])->all(),
+            ]);
+        });
 
         session()->flash('quotation_notice', __($this->quotationId ? 'quotations.form.updated' : 'quotations.form.created', ['code' => $quotation->quotation_id]));
 
@@ -254,6 +274,14 @@ class Form extends Component
             : __('quotations.form.create_title');
 
         return view('livewire.quotations.form')->title($title);
+    }
+
+    /**
+     * Khách chưa có email: biểu mẫu hiện ô bổ sung email và bắt buộc nhập trước khi lưu.
+     */
+    public function needsEmail(): bool
+    {
+        return blank($this->opportunity->lead?->email);
     }
 
     private function viewer(): ?Employee

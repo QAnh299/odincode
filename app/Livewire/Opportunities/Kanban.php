@@ -246,7 +246,7 @@ class Kanban extends Component
 
     public function render()
     {
-        // Opportunity đã thanh toán đủ và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
+        // Opportunity đã thanh toán (lần đầu) và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
         $opportunities = Opportunity::query()
             ->visibleTo($this->me)
             ->assigned()

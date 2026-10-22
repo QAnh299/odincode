@@ -89,10 +89,21 @@
                     <x-icon name="check-circle" />{{ __('invoices.detail.approve_cash') }}
                 </button>
             @endif
+            @if ($this->canConfirmTransfer)
+                {{-- Ngoại lệ: khách chuyển lệch số tiền, kế toán đối chiếu sao kê rồi xác nhận thủ công --}}
+                <button type="button" class="qt-btn qt-btn--primary" wire:click="confirmTransfer" wire:loading.attr="disabled" wire:target="confirmTransfer"
+                    wire:confirm="{{ __('invoices.detail.confirm_transfer_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)]) }}">
+                    <x-icon name="check-circle" />{{ __('invoices.detail.confirm_transfer') }}
+                </button>
+            @endif
             @if ($this->canSimulate)
                 <button type="button" class="qt-btn qt-btn--ghost" wire:click="simulateTransfer" wire:loading.attr="disabled" wire:target="simulateTransfer"
                     wire:confirm="{{ __('invoices.detail.simulate_confirm') }}" title="{{ __('invoices.detail.simulate_hint') }}">
                     <x-icon name="refresh" />{{ __('invoices.detail.simulate') }}
+                </button>
+                <button type="button" class="qt-btn qt-btn--ghost" wire:click="simulateShortTransfer" wire:loading.attr="disabled" wire:target="simulateShortTransfer"
+                    title="{{ __('invoices.detail.simulate_hint') }}">
+                    <x-icon name="alert" />{{ __('invoices.detail.simulate_short') }}
                 </button>
             @endif
             @if ($this->canEdit)
@@ -102,6 +113,15 @@
                 <a href="{{ route('salesperson.invoices.create', $order) }}" class="qt-btn qt-btn--ghost"><x-icon name="plus" />{{ __('invoices.detail.create_next') }}</a>
             @endif
         </div>
+        @if ($alert = $this->transferAlert)
+            {{-- Khách chuyển lệch số tiền: hệ thống không ghi nhận, báo kế toán và SP --}}
+            <p class="qt-notice qt-notice--danger" role="alert"><x-icon name="alert" />{{ __('invoices.detail.transfer_mismatch', [
+                'received' => $money($alert['amount']), 'amount' => $money($invoice->payment_amount), 'time' => $alert['at']->format('d/m/Y H:i'),
+            ]) }}</p>
+        @endif
+        @if ($this->canConfirmTransfer)
+            <p class="qt-actions__hint"><x-icon name="info" />{{ __('invoices.detail.confirm_transfer_hint') }}</p>
+        @endif
         @if ($this->canApproveCash)
             <p class="qt-actions__hint"><x-icon name="info" />{{ __('invoices.detail.approve_hint') }}</p>
         @endif

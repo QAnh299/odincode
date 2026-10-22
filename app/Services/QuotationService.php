@@ -145,11 +145,12 @@ class QuotationService
     }
 
     /**
-     * HĐ12 – HĐ13: Salesperson từ chối báo giá Nháp → Từ chối; cơ hội giữ nguyên (quyết định ở HĐ14).
+     * Salesperson từ chối báo giá Nháp khi khách không đồng ý: báo giá → Từ chối và kết thúc cơ hội trong cùng giao dịch
+     * (đang xử lý → Lost, đã Won giữ nguyên; chốt 23/10/2026). Trả về true nếu cơ hội đã chuyển Lost.
      */
-    public function reject(Quotation $quotation, Employee $employee): void
+    public function reject(Quotation $quotation, Employee $employee): bool
     {
-        DB::transaction(function () use ($quotation, $employee) {
+        return DB::transaction(function () use ($quotation, $employee) {
             $locked = Quotation::query()->whereKey($quotation->getKey())->lockForUpdate()->firstOrFail();
 
             abort_unless($employee->role_name === Role::SALESPERSON
@@ -157,12 +158,20 @@ class QuotationService
                 && $locked->status === Quotation::STATUS_DRAFT, 409);
 
             $locked->update(['status' => Quotation::STATUS_REJECTED]);
+
+            // Khách không đồng ý = không mua: kết thúc luôn (đổi khóa học / số lượng thì SP sửa báo giá Nháp)
+            return $this->closeOpportunity(
+                $locked->opportunity,
+                __('quotations.detail.close_reason', ['code' => $locked->quotation_id], 'vi')
+            );
         });
     }
 
     /**
      * HĐ17: lý do không xác nhận được (khóa lang quotations.detail.confirm_blocked.*), null = được xác nhận.
-     * Chỉ Salesperson lập báo giá; báo giá còn Nháp, chưa hết hạn, voucher (nếu có) còn hiệu lực, chưa có đơn hàng.
+     * Chỉ Salesperson lập báo giá; báo giá còn Nháp, chưa hết hạn, chưa có đơn hàng.
+     * Voucher KHÔNG kiểm tra lại: voucher hợp lệ ngày lập báo giá được giữ nguyên tới khi xác nhận, vì khách đã
+     * đồng ý mức giá đó (quyết định 18/10/2026).
      */
     public function confirmBlocker(Quotation $quotation, ?Employee $employee): ?string
     {
@@ -171,7 +180,6 @@ class QuotationService
             $quotation->employee_id !== $employee->employee_id => 'not_author',
             $quotation->status !== Quotation::STATUS_DRAFT => 'not_draft',
             $quotation->isExpired() => 'expired',
-            $quotation->voucher_id !== null && ! $quotation->voucher?->isValid() => 'voucher_invalid',
             $quotation->order()->exists() => 'has_order',
             ! $quotation->details()->exists() => 'no_lines',
             default => null,
@@ -205,7 +213,7 @@ class QuotationService
     }
 
     /**
-     * HĐ14 – khách không còn nhu cầu: cơ hội đang xử lý → Lost (stage Lưu trữ, ghi lý do); đã Won → giữ Won.
+     * Kết thúc cơ hội khi báo giá bị từ chối: cơ hội đang xử lý → Lost (stage Lưu trữ, ghi lý do); đã Won → giữ Won.
      * Trả về true nếu cơ hội đã chuyển Lost.
      */
     public function closeOpportunity(Opportunity $opportunity, string $reason): bool

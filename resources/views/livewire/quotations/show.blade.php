@@ -129,23 +129,6 @@
         </section>
     @endif
 
-    {{-- ── HĐ14: báo giá đã bị từ chối – khách còn nhu cầu không? ── --}}
-    @if ($this->showFollowUp)
-        <section class="qt-actions qt-followup" aria-label="{{ __('quotations.detail.followup_title') }}">
-            <p class="qt-followup__title"><x-icon name="info" />{{ __('quotations.detail.followup_title') }}</p>
-            <div class="qt-actions__buttons">
-                @if ($this->canCreateNew)
-                    <a href="{{ route('salesperson.quotations.create', $quotation->opportunity_id) }}" class="qt-btn qt-btn--primary">
-                        <x-icon name="plus" />{{ __('quotations.detail.followup_new') }}
-                    </a>
-                @endif
-                <button type="button" class="qt-btn qt-btn--danger" wire:click="closeOpportunity"
-                    wire:confirm="{{ __('quotations.detail.followup_close_confirm') }}" wire:loading.attr="disabled" wire:target="closeOpportunity">
-                    <x-icon name="x" />{{ __('quotations.detail.followup_close') }}
-                </button>
-            </div>
-        </section>
-    @endif
 
     {{-- ── Tiến trình: Báo giá → Đơn hàng → Hóa đơn → Thanh toán ────── --}}
     <section class="qt-card qt-progress" aria-label="{{ __('quotations.detail.progress') }}">

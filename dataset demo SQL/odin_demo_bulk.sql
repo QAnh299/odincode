@@ -3,7 +3,7 @@
 -- Chay SAU odin.sql, mot lan. Sinh tu dong theo quy trinh cua ung dung:
 --   Lead -> Opportunity (giao cho salesperson cung chi nhanh) -> CareResults
 --   -> Appointments -> StagesHistory -> Won/Lost -> Quotations -> SalesOrders
---   -> Invoices -> Students (khi don hang thanh toan du).
+--   -> Invoices -> Students (tu lan thanh toan thanh cong dau tien).
 -- Kem theo: doi moi TEAM03-11 (moi co so 1 - 3 doi), salesperson moi,
 --   ke toan CS03-05, voucher theo mua, chi tieu doi theo thang,
 --   va lich su chuyen stage cho cac Opportunity san co trong odin.sql.
@@ -5647,6 +5647,17 @@ VALUES
   ('STD141', 'Phan Tiến Hiếu', '0777976432', 'hieuphan@example.test', '1986-09-21', '2026-10-07 16:37:00', 'Studying', 'OPP590'),
   ('STD142', 'Trần Đức Huy', '0732448717', NULL, '1996-08-28', '2026-10-11 15:52:00', 'Studying', 'OPP592'),
   ('STD143', 'Phan Đăng Tuấn', '0922999574', 'tuanpd7@example.test', '2006-04-20', '2026-10-13 16:27:00', 'Studying', 'OPP595'),
-  ('STD144', 'Đinh Quang Khang', '0859658940', 'khangdq@example.test', '2016-02-02', '2026-10-12 18:37:00', 'Studying', 'OPP602');
+  ('STD144', 'Đinh Quang Khang', '0859658940', 'khangdq@example.test', '2016-02-02', '2026-10-12 18:37:00', 'Studying', 'OPP602'),
+  -- Hoc vien tu lan thanh toan thanh cong dau tien (chot 22/10/2026): don tra gop da dong tien
+  ('STD147', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-23 16:58:00', 'Studying', 'OPP259'),
+  ('STD148', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-13 12:30:00', 'Studying', 'OPP358'),
+  ('STD149', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-08-26 19:48:00', 'Studying', 'OPP369'),
+  ('STD150', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-08-27 10:33:00', 'Studying', 'OPP413'),
+  ('STD151', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-03 11:46:00', 'Studying', 'OPP477'),
+  ('STD152', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-18 18:50:00', 'Studying', 'OPP494'),
+  ('STD153', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-09-24 11:50:00', 'Studying', 'OPP513'),
+  ('STD154', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-09-26 11:59:00', 'Studying', 'OPP517'),
+  ('STD155', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-05 12:41:00', 'Studying', 'OPP560'),
+  ('STD156', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-03 11:20:00', 'Studying', 'OPP573');
 
 COMMIT;

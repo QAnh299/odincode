@@ -185,7 +185,7 @@ class Index extends Component
                 fn ($q) => $q->where('status', $this->status))
             ->when($this->courses->contains('course_id', $this->course),
                 fn ($q) => $q->whereHas('opportunity.quotations', fn ($quo) => $quo
-                    ->whereHas('order', fn ($o) => $o->where('status', SalesOrder::STATUS_COMPLETED))
+                    ->whereHas('order', fn ($o) => $o->where('paid_amount', '>', 0))
                     ->whereHas('details', fn ($d) => $d->where('course_id', $this->course))))
             ->when($this->canFilterTeam && $this->activeTeam,
                 fn ($q) => $q->whereHas('opportunity.employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id)))
@@ -222,9 +222,9 @@ class Index extends Component
             ->with([
                 'opportunity:opportunity_id,lead_id,employee_id',
                 'opportunity.employee:employee_id,full_name',
-                // Khoá học = dòng của báo giá có đơn hàng đã thanh toán đủ
+                // Khoá học = dòng của báo giá có đơn hàng đã đóng tiền (học viên từ lần thanh toán đầu tiên)
                 'opportunity.quotations' => fn ($q) => $q
-                    ->whereHas('order', fn ($o) => $o->where('status', SalesOrder::STATUS_COMPLETED))
+                    ->whereHas('order', fn ($o) => $o->where('paid_amount', '>', 0))
                     ->with('details.course:course_id,course_name'),
             ])
             ->orderByDesc('conversion_date')

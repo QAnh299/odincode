@@ -27,8 +27,8 @@ class InvoiceNotices
     public static function for(?Employee $employee): Collection
     {
         return match ($employee?->role_name) {
-            Role::ACCOUNTANT  => self::cashQueue()->concat(self::recentlyPaid(null, Role::ACCOUNTANT)),
-            Role::SALESPERSON => self::recentlyPaid($employee->employee_id, Role::SALESPERSON),
+            Role::ACCOUNTANT  => self::transferAlerts(null, Role::ACCOUNTANT)->concat(self::cashQueue())->concat(self::recentlyPaid(null, Role::ACCOUNTANT)),
+            Role::SALESPERSON => self::transferAlerts($employee->employee_id, Role::SALESPERSON)->concat(self::recentlyPaid($employee->employee_id, Role::SALESPERSON)),
             default           => collect(),
         };
     }
@@ -71,6 +71,43 @@ class InvoiceNotices
                 // Hàng đợi xếp lên đầu chuông
                 'at'    => Carbon::create(1970),
             ]);
+    }
+
+    /**
+     * Chuyển khoản lệch số tiền chưa được xác nhận (TransferAlerts). $creatorId = null → tất cả (kế toán); có giá trị → hóa đơn SP đó lập.
+     */
+    private static function transferAlerts(?string $creatorId, string $role): Collection
+    {
+        $alerts = TransferAlerts::all();
+        if (! $alerts) {
+            return collect();
+        }
+        $prefix = $role === Role::ACCOUNTANT ? 'accountant' : 'salesperson';
+
+        return Invoice::query()
+            ->whereIn('invoice_id', array_keys($alerts))
+            ->where('status', Invoice::STATUS_UNPAID)
+            ->where('payment_method', Invoice::METHOD_BANK_TRANSFER)
+            ->when($creatorId, fn ($q) => $q->where('created_by_employee_id', $creatorId))
+            ->with('order.quotation.opportunity.lead:lead_id,full_name')
+            ->get()
+            ->map(function (Invoice $invoice) use ($prefix) {
+                $alert = TransferAlerts::find($invoice->invoice_id);
+
+                return [
+                    'title' => __('invoices.notice.transfer_mismatch', [
+                        'code'     => $invoice->invoice_id,
+                        'name'     => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                        'received' => self::money($alert['amount']),
+                        'amount'   => self::money($invoice->payment_amount),
+                    ]),
+                    'time'  => __('invoices.notice.transfer_mismatch_time', ['time' => $alert['at']->format('d/m H:i')]),
+                    'url'   => route($prefix.'.invoices.show', $invoice),
+                    // Lỗi cần xử lý xếp lên đầu chuông
+                    'at'    => Carbon::create(1970),
+                ];
+            })
+            ->values();
     }
 
     /**
