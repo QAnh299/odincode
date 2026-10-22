@@ -16,11 +16,19 @@
     $receivers = count(array_filter($incoming));
     $available = $this->available;
 
-    // Giá trị chỉ số hiệu suất theo tiêu chí đang chọn
-    $metric = fn (?array $perf) => match ($criterion) {
-        'close_rate' => isset($perf['close_rate']) ? number_format($perf['close_rate'], 1, ',', '.').'%' : '—',
-        'students'   => $perf['students'] ?? 0,
-        default      => number_format((float) ($perf['revenue'] ?? 0), 0, ',', '.').' ₫',
+    // Giá trị chỉ số hiệu suất theo tiêu chí đang chọn; chưa đủ cỡ mẫu tối thiểu thì ghi chú (không được xếp hạng)
+    $metric = function (?array $perf) use ($criterion) {
+        $value = match ($criterion) {
+            'close_rate' => isset($perf['close_rate']) ? number_format($perf['close_rate'], 1, ',', '.').'%' : '—',
+            'avg_close_days' => isset($perf['avg_close_days'])
+                ? __('leads.distribute.days', ['count' => number_format($perf['avg_close_days'], 1, ',', '.')]) : '—',
+            default      => number_format((float) ($perf['revenue'] ?? 0), 0, ',', '.').' ₫',
+        };
+        $sample = app(LeadDistributionService::class)->sample($perf, $criterion);
+
+        return $sample && $sample[0] < $sample[1]
+            ? $value.' · '.__('leads.distribute.sample_short.'.$criterion, ['count' => $sample[0], 'min' => $sample[1]])
+            : $value;
     };
 
     // Chữ cái đại diện + màu avatar cố định theo mã

@@ -283,56 +283,57 @@
 
                 <div class="ld-modal__body ld-form">
                     @php
-                        // [trường, kiểu input, placeholder, bắt buộc]
-                        $inputs = [
-                            ['full_name', 'text', 'placeholder_name', true],
-                            ['phone', 'tel', 'placeholder_phone', true],
-                            ['email', 'email', 'placeholder_email', false],
-                        ];
+                        // SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ (không phụ thuộc Nguồn Lead)
+                        $method = $form['contact_method'] ?? '';
                     @endphp
 
-                    @foreach ($inputs as [$field, $type, $placeholder, $required])
-                        <label class="vc-field">
-                            <span class="vc-field__label">
-                                {{ __('leads.field.'.$field) }}@if ($required)<span class="ld-req">*</span>@endif
-                            </span>
-                            <input type="{{ $type }}" wire:model="form.{{ $field }}" placeholder="{{ __('leads.form.'.$placeholder) }}"
-                                class="vc-control @error($field) is-invalid @enderror"
-                                @if ($field === 'full_name') autofocus @endif>
-                            @error($field)<span class="ld-error">{{ $message }}</span>@enderror
-                        </label>
-                    @endforeach
-
                     <label class="vc-field">
-                        <span class="vc-field__label">{{ __('leads.field.source_name') }}<span class="ld-req">*</span></span>
-                        <select wire:model.live="form.source_name" class="vc-control @error('source_name') is-invalid @enderror">
-                            <option value="">{{ __('leads.form.choose_source') }}</option>
-                            @foreach (Lead::SOURCES as $option)
-                                <option value="{{ $option }}">{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        @error('source_name')<span class="ld-error">{{ $message }}</span>@enderror
-                    </label>
-
-                    {{-- Bắt buộc trừ Workshop, Website ODIN: Salesperson cần biết liên hệ Lead qua đâu --}}
-                    <label class="vc-field ld-form__wide">
                         <span class="vc-field__label">
-                            {{ __('leads.field.source_url') }}@if (! in_array($form['source_name'] ?? '', Lead::SOURCES_LINK_OPTIONAL, true))<span class="ld-req">*</span>@endif
+                            {{ __('leads.field.full_name') }}<span class="ld-req">*</span>
                         </span>
-                        <input type="text" wire:model="form.source_url" placeholder="{{ __('leads.form.placeholder_url') }}"
-                            class="vc-control @error('source_url') is-invalid @enderror">
-                        @error('source_url')<span class="ld-error">{{ $message }}</span>@enderror
+                        <input type="text" wire:model="form.full_name" placeholder="{{ __('leads.form.placeholder_name') }}"
+                            class="vc-control @error('full_name') is-invalid @enderror" autofocus>
+                        @error('full_name')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('leads.field.contact_method') }}<span class="ld-req">*</span></span>
-                        <select wire:model="form.contact_method" class="vc-control @error('contact_method') is-invalid @enderror">
+                        <select wire:model.live="form.contact_method" class="vc-control @error('contact_method') is-invalid @enderror">
                             <option value="">{{ __('leads.form.choose_method') }}</option>
                             @foreach (Lead::CONTACT_METHODS as $option)
                                 <option value="{{ $option }}">{{ __('leads.method.'.$option) }}</option>
                             @endforeach
                         </select>
                         @error('contact_method')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">
+                            {{ __('leads.field.phone') }}@if (in_array($method, Lead::METHODS_PHONE_REQUIRED, true))<span class="ld-req">*</span>@endif
+                        </span>
+                        <input type="tel" wire:model="form.phone" placeholder="{{ __('leads.form.placeholder_phone') }}"
+                            class="vc-control @error('phone') is-invalid @enderror">
+                        @error('phone')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">
+                            {{ __('leads.field.email') }}
+                        </span>
+                        <input type="email" wire:model="form.email" placeholder="{{ __('leads.form.placeholder_email') }}"
+                            class="vc-control @error('email') is-invalid @enderror">
+                        @error('email')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('leads.field.source_name') }}<span class="ld-req">*</span></span>
+                        <select wire:model="form.source_name" class="vc-control @error('source_name') is-invalid @enderror">
+                            <option value="">{{ __('leads.form.choose_source') }}</option>
+                            @foreach (Lead::SOURCES as $option)
+                                <option value="{{ $option }}">{{ $option }}</option>
+                            @endforeach
+                        </select>
+                        @error('source_name')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
                     <label class="vc-field">
@@ -344,6 +345,16 @@
                             @endforeach
                         </select>
                         @error('branch_id')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    {{-- Bắt buộc khi liên hệ qua Facebook: Salesperson cần link trang cá nhân/bài viết để nhắn tin --}}
+                    <label class="vc-field ld-form__wide">
+                        <span class="vc-field__label">
+                            {{ __('leads.field.source_url') }}@if (in_array($method, Lead::METHODS_LINK_REQUIRED, true))<span class="ld-req">*</span>@endif
+                        </span>
+                        <input type="text" wire:model="form.source_url" placeholder="{{ __('leads.form.placeholder_url') }}"
+                            class="vc-control @error('source_url') is-invalid @enderror">
+                        @error('source_url')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
                     <p class="ld-form__hint ld-form__wide">{{ __('leads.form.required_hint') }}</p>

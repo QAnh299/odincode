@@ -20,8 +20,10 @@ class Lead extends Model
     // Nguồn Lead (theo ràng buộc CHECK source_name trong odin.sql)
     const SOURCES = ['Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok'];
 
-    // Nguồn không bắt buộc Link nguồn / SĐT; các nguồn còn lại phải có để Salesperson biết liên hệ qua đâu
-    const SOURCES_LINK_OPTIONAL = ['Workshop', 'Website ODIN'];
+    // Thông tin bắt buộc theo kênh liên hệ (Salesperson cần biết liên hệ Lead qua đâu):
+    // Điện thoại, Zalo → bắt buộc SĐT; Facebook → bắt buộc Link nguồn
+    const METHODS_PHONE_REQUIRED = ['Phone', 'Zalo'];
+    const METHODS_LINK_REQUIRED = ['Facebook'];
 
     protected $table = 'Leads';
 
@@ -56,7 +58,7 @@ class Lead extends Model
     }
 
     /**
-     * Link nguồn / SĐT là đường dẫn http(s) → hiển thị thành link.
+     * Link nguồn là đường dẫn http(s) → hiển thị thành link.
      */
     public function sourceUrlIsLink(): bool
     {

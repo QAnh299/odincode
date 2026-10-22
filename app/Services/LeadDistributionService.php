@@ -28,7 +28,17 @@ class LeadDistributionService
     const MAX_PER_SALESPERSON = 50;
 
     // Tiêu chí xếp hạng hiệu suất (tính theo tháng trước) → khoá chỉ số trong SalesPerformanceReport
-    const CRITERIA = ['revenue', 'close_rate', 'students'];
+    //   avg_close_days = TB số ngày từ lúc được giao Lead đến khi chốt thành công (Won)
+    const CRITERIA = ['revenue', 'close_rate', 'avg_close_days'];
+
+    // Tiêu chí càng nhỏ càng tốt
+    const LOWER_IS_BETTER = ['avg_close_days'];
+
+    // Cỡ mẫu tối thiểu để tiêu chí tỷ lệ / trung bình đáng tin (tránh 1/1 = 100%, 1 đơn chốt trong 1 ngày):
+    //   close_rate     → số Cơ hội đã đóng (Won + Lost) trong tháng
+    //   avg_close_days → số Cơ hội chốt thành công (Won) trong tháng
+    // Chưa đủ thì coi như không có số liệu (xếp cuối). Doanh thu là số tuyệt đối nên không cần ngưỡng.
+    const MIN_SAMPLE = ['close_rate' => 15, 'avg_close_days' => 4];
 
     // Số đội / salesperson nhận Lead dư
     const TOP = 2;
@@ -47,7 +57,7 @@ class LeadDistributionService
 
     /**
      * Hiệu suất tháng trước theo đội ('team') hoặc nhân viên ('employee'):
-     * [id => ['revenue' => float, 'close_rate' => ?float, 'students' => int]].
+     * [id => ['revenue' => float, 'close_rate' => ?float, 'avg_close_days' => ?float, 'closed' => int, 'won' => int]].
      */
     public function performance(string $dimension, ?string $teamId = null): array
     {
@@ -56,14 +66,43 @@ class LeadDistributionService
         $rows = $this->report->aggregate(array_filter(['from' => $from, 'to' => $to, 'team' => $teamId]), $dimension);
 
         return array_map(fn ($row) => [
-            'revenue'    => $row['revenue'],
-            'close_rate' => $row['close_rate'],
-            'students'   => $row['students'],
+            'revenue'        => $row['revenue'],
+            'close_rate'     => $row['close_rate'],
+            'avg_close_days' => $row['avg_close_days'],
+            'closed'         => $row['won'] + $row['lost'],
+            'won'            => $row['close_n'],
         ], $rows);
     }
 
     /**
-     * Xếp hạng theo tiêu chí giảm dần; hoà thì ai đang giữ ít Lead hơn trước, cuối cùng theo mã.
+     * Cỡ mẫu của tiêu chí: [đã có, tối thiểu]; tiêu chí không cần ngưỡng → null.
+     */
+    public function sample(?array $performance, string $criterion): ?array
+    {
+        $min = self::MIN_SAMPLE[$criterion] ?? null;
+        if ($min === null) {
+            return null;
+        }
+
+        $count = (int) ($performance[$criterion === 'close_rate' ? 'closed' : 'won'] ?? 0);
+
+        return [$count, $min];
+    }
+
+    /**
+     * Giá trị tiêu chí dùng để xếp hạng; null = không có số liệu hoặc chưa đủ cỡ mẫu tối thiểu.
+     */
+    public function score(?array $performance, string $criterion): ?float
+    {
+        $value = $performance[$criterion] ?? null;
+        $sample = $this->sample($performance, $criterion);
+
+        return $value === null || ($sample && $sample[0] < $sample[1]) ? null : (float) $value;
+    }
+
+    /**
+     * Xếp hạng từ tốt đến kém theo tiêu chí (TB thời gian xử lý: nhanh hơn là tốt hơn; không có / chưa đủ số liệu xếp cuối);
+     * hoà thì ai đang giữ ít Lead hơn trước, cuối cùng theo mã.
      *
      * @param  string[]  $ids
      * @return string[]
@@ -71,7 +110,12 @@ class LeadDistributionService
     public function rank(array $ids, array $performance, string $criterion, array $load = []): array
     {
         $criterion = in_array($criterion, self::CRITERIA, true) ? $criterion : self::CRITERIA[0];
-        $score = fn ($id) => $performance[$id][$criterion] ?? -1;
+        $lower = in_array($criterion, self::LOWER_IS_BETTER, true);
+        $score = function ($id) use ($performance, $criterion, $lower) {
+            $value = $this->score($performance[$id] ?? null, $criterion);
+
+            return $value === null ? -INF : ($lower ? -$value : $value);
+        };
 
         usort($ids, fn ($a, $b) => [$score($b), $load[$a] ?? 0, $a] <=> [$score($a), $load[$b] ?? 0, $b]);
 

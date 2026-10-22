@@ -111,7 +111,7 @@ CREATE TABLE `Stages` (
 CREATE TABLE `Leads` (
   `lead_id` VARCHAR(10) NOT NULL,
   `full_name` VARCHAR(150) NOT NULL,
-  `phone` VARCHAR(10) NOT NULL,
+  `phone` VARCHAR(10) NULL,
   `email` VARCHAR(254) NULL,
   `source_name` VARCHAR(150) NOT NULL,
   `source_url` TEXT NULL,
@@ -121,10 +121,14 @@ CREATE TABLE `Leads` (
   `branch_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`lead_id`),
   CHECK (`source_name` IN ('Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok')),
-  -- source_url = link nguon hoac SDT/mo ta kenh lien he.
-  -- Workshop, Website ODIN: duoc phep NULL; cac nguon con lai bat buoc co de Salesperson biet lien he qua dau
+  -- Thong tin bat buoc phu thuoc kenh lien he (khong phu thuoc nguon Lead):
+  --   Phone, Zalo: bat buoc co SDT; Facebook: bat buoc co link nguon (link trang ca nhan/bai viet)
+  CONSTRAINT `chk_leads_phone` CHECK (
+    `contact_method` NOT IN ('Phone', 'Zalo')
+    OR (`phone` IS NOT NULL AND `phone` <> '')
+  ),
   CONSTRAINT `chk_leads_source_url` CHECK (
-    `source_name` IN ('Workshop', 'Website ODIN')
+    `contact_method` <> 'Facebook'
     OR (`source_url` IS NOT NULL AND `source_url` <> '')
   ),
   CHECK (`contact_method` IN ('Zalo', 'Phone', 'Facebook')),
