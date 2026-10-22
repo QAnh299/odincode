@@ -91,6 +91,50 @@ class LeadSourceReport
     }
 
     /**
+     * Danh sách Lead theo bộ lọc (mới nhất trước) - không kèm số điện thoại / email.
+     * outcome: won (có Cơ hội Won) → open (còn Cơ hội đang xử lý) → lost → archived → new (chưa có Cơ hội);
+     * owner = người phụ trách Cơ hội gần nhất.
+     */
+    public function leads(array $filters): array
+    {
+        $owners = DB::table('Opportunities as o')
+            ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
+            ->select('o.lead_id')
+            ->selectRaw("MAX(o.status = 'InProgress') AS open")
+            ->selectRaw("MAX(o.status = 'Archived') AS archived")
+            ->selectRaw("SUBSTRING_INDEX(GROUP_CONCAT(e.full_name ORDER BY o.conversion_date DESC SEPARATOR '|'), '|', 1) AS owner")
+            ->groupBy('o.lead_id');
+
+        return $this->base($filters)
+            ->leftJoinSub($owners, 'ow', 'ow.lead_id', '=', 'l.lead_id')
+            ->select('l.lead_id', 'l.full_name', 'l.created_at', 'l.source_name', 'l.contact_method', 'l.branch_id', 'l.status', 'ow.owner')
+            ->selectRaw('COALESCE(op.won, 0) AS won, COALESCE(op.lost, 0) AS lost, COALESCE(ow.open, 0) AS open, COALESCE(ow.archived, 0) AS archived')
+            ->selectRaw('COALESCE(rv.revenue, 0) AS revenue')
+            ->orderByDesc('l.created_at')
+            ->orderByDesc('l.lead_id')
+            ->get()
+            ->map(fn ($r) => [
+                'id'      => $r->lead_id,
+                'name'    => $r->full_name,
+                'created' => $r->created_at,
+                'source'  => $r->source_name,
+                'method'  => $r->contact_method,
+                'branch'  => $r->branch_id,
+                'status'  => $r->status,
+                'owner'   => $r->owner,
+                'outcome' => match (true) {
+                    (bool) $r->won      => 'won',
+                    (bool) $r->open     => 'open',
+                    (bool) $r->lost     => 'lost',
+                    (bool) $r->archived => 'archived',
+                    default             => 'new',
+                },
+                'revenue' => (float) $r->revenue,
+            ])
+            ->all();
+    }
+
+    /**
      * Leads (alias l) + chỉ số đã gộp theo từng Lead + bộ lọc chung.
      */
     protected function base(array $filters): Builder

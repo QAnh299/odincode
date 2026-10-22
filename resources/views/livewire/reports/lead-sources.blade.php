@@ -377,6 +377,6 @@
 
     {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)
-        @include('livewire.reports.partials.export-period')
+        @include('livewire.reports.partials.report-export')
     @endif
 </div>

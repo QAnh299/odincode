@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\CareActivity;
+use App\Models\Opportunity;
 use App\Models\Stage;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -22,21 +24,36 @@ use Illuminate\Support\Facades\DB;
  *      Lead chốt, Lead thất bại, tỷ lệ thắng = Won / (Won + Lost), thời gian chốt.
  *      Ngày đóng = lúc vào stage Chốt / Lưu trữ (StagesHistory); thiếu lịch sử thì lấy báo giá đầu tiên (Won),
  *      lần liên hệ cuối, cuối cùng là ngày giao.
- *   C. Theo ngày tạo đơn hàng: Doanh thu = SalesOrders.total_amount, Đã thu = paid_amount
- *      (SalesOrders → Quotations → Opportunities, tính cho người phụ trách Cơ hội).
+ *   C. Theo ngày tạo đơn hàng: Doanh số chốt = SalesOrders.total_amount, số đơn, Đã thu = paid_amount
+ *      (SalesOrders → Quotations → Opportunities). Ghi công cho người giữ Cơ hội lúc chốt = Opportunities.employee_id
+ *      (chỉ chuyển người phụ trách được trước stage Chốt nên người đang giữ chính là người chốt).
  *   D. Theo ngày thành học viên: Học viên mới (Students.conversion_date).
+ *   E. Theo ngày thực hiện, tính cho NGƯỜI THỰC HIỆN (không phải người đang giữ Cơ hội - opp bị chuyển thì
+ *      công chăm sóc trước đó vẫn thuộc người cũ): lượt chăm sóc (CareResults), lịch hẹn đã có kết quả (Appointments).
+ *   F. Theo ngày chuyển: số Cơ hội bị chuyển đi (OpportunityTransfers.from_employee_id).
  *
  * Mọi truy vấn đều có cột event_at (thời điểm phát sinh) nên lọc / nhóm theo tháng dùng chung được.
+ * Pipeline đang mở và việc cần xử lý là ảnh chụp hiện tại (không theo tháng): pipeline(), alerts().
  */
 class SalesPerformanceReport
 {
     // Chiều nhóm → biểu thức SQL (o = dòng dữ liệu đã có employee_id + event_at, e = Employees)
     const DIMENSIONS = [
-        'all'      => "'all'",
-        'employee' => 'o.employee_id',
-        'team'     => 'e.team_id',
-        'month'    => "DATE_FORMAT(o.event_at, '%Y-%m')",
+        'all'        => "'all'",
+        'employee'   => 'o.employee_id',
+        'team'       => 'e.team_id',
+        'month'      => "DATE_FORMAT(o.event_at, '%Y-%m')",
+        'team_month' => "CONCAT(e.team_id, '|', DATE_FORMAT(o.event_at, '%Y-%m'))",
     ];
+
+    // Cơ hội đang xử lý không có tương tác nào (liên hệ, chuyển stage, lịch hẹn) quá số ngày này = "nguội"
+    const STALE_DAYS = 7;
+
+    // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì cần xử lý (giống Kanban)
+    const DECISION_WARN_DAYS = 3;
+
+    // Việc cần xử lý (khoá trong alerts())
+    const ALERTS = ['overdue_appointment', 'needs_quotation', 'decision_due', 'stale'];
 
     // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh
     const TARGETS = [
@@ -49,6 +66,7 @@ class SalesPerformanceReport
     const SUMMABLE = [
         'assigned', 'processed', 'moved', 'contacts', 'contacts_ok', 'unreachable', 'backward',
         'response_hours', 'response_n', 'won', 'lost', 'close_days', 'close_n', 'revenue', 'paid', 'students',
+        'orders', 'care', 'care_ok', 'appts', 'appts_ok', 'transfers_out',
     ];
 
     const FLOATS = ['response_hours', 'close_days', 'revenue', 'paid'];
@@ -120,6 +138,7 @@ class SalesPerformanceReport
         $parts[] = $this->scoped($orders, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw('SUM(o.total_amount) AS revenue')
             ->selectRaw('SUM(o.paid_amount) AS paid')
+            ->selectRaw('COUNT(*) AS orders')
             ->get();
 
         // D. Theo ngày thành học viên
@@ -128,6 +147,27 @@ class SalesPerformanceReport
             ->select('op.employee_id', 'st.conversion_date as event_at');
         $parts[] = $this->scoped($students, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw('COUNT(*) AS students')
+            ->get();
+
+        // E. Hoạt động chăm sóc theo người thực hiện
+        $care = DB::table('CareResults')->select('employee_id', 'performed_at as event_at', 'result');
+        $parts[] = $this->scoped($care, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS care')
+            ->selectRaw("SUM(o.result = 'Success') AS care_ok")
+            ->get();
+
+        $appointments = DB::table('Appointments')
+            ->whereIn('status', ['Success', 'Failed'])
+            ->select('employee_id', 'scheduled_time as event_at', 'status');
+        $parts[] = $this->scoped($appointments, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS appts')
+            ->selectRaw("SUM(o.status = 'Success') AS appts_ok")
+            ->get();
+
+        // F. Cơ hội bị chuyển đi
+        $transfers = DB::table('OpportunityTransfers')->select('from_employee_id as employee_id', 'transferred_at as event_at');
+        $parts[] = $this->scoped($transfers, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS transfers_out')
             ->get();
 
         // Gộp các phần theo dim
@@ -170,6 +210,105 @@ class SalesPerformanceReport
         }
 
         return $targets;
+    }
+
+    /**
+     * Pipeline đang mở (hiện tại, không theo kỳ): Cơ hội InProgress mà người phụ trách đang giữ.
+     *
+     * @param  string  $dimension  all | employee | team
+     * @return array<string, array{open: int, open_value: float}>
+     */
+    public function pipeline(array $filters, string $dimension): array
+    {
+        $dim = self::DIMENSIONS[$dimension];
+
+        return $this->current($filters)
+            ->selectRaw("$dim AS dim")->groupBy('dim')
+            ->selectRaw('COUNT(*) AS open')
+            ->selectRaw('COALESCE(SUM(o.expected_value), 0) AS open_value')
+            ->get()
+            ->mapWithKeys(fn ($r) => [(string) $r->dim => ['open' => (int) $r->open, 'open_value' => (float) $r->open_value]])
+            ->all();
+    }
+
+    /**
+     * Việc cần xử lý hiện tại theo người phụ trách (cùng tiêu chí với Kanban), mỗi loại đếm số Cơ hội:
+     *   overdue_appointment  lịch hẹn đã qua giờ mà chưa cập nhật kết quả
+     *   needs_quotation      ở stage Chốt nhưng chưa có báo giá
+     *   decision_due         Data đã xử lý, còn ≤ DECISION_WARN_DAYS ngày đến hạn quyết định
+     *                        (lần liên hệ chốt đăng ký đầu tiên kể từ khi vào stage + Opportunity::DECISION_DAYS)
+     *   stale                trước stage Chốt, không có lịch hẹn sắp tới và không tương tác nào quá STALE_DAYS ngày
+     *   flagged              số Cơ hội có ít nhất 1 việc trên
+     *
+     * @return array<string, array> employee_id → [loại => số Cơ hội, 'flagged' => ...]
+     */
+    public function alerts(array $filters): array
+    {
+        $now = now();
+
+        $care = DB::table('CareResults')
+            ->select('opportunity_id')
+            ->selectRaw('MAX(performed_at) AS last_care')
+            ->groupBy('opportunity_id');
+
+        $history = DB::table('StagesHistory')
+            ->select('opportunity_id')
+            ->selectRaw('MAX(changed_at) AS last_move')
+            ->selectRaw('MAX(IF(to_stage_id = ?, changed_at, NULL)) AS processed_at', [Stage::PROCESSED])
+            ->groupBy('opportunity_id');
+
+        $appointments = DB::table('Appointments')
+            ->select('opportunity_id')
+            ->selectRaw("SUM(status = 'Scheduled' AND scheduled_time < ?) AS overdue", [$now])
+            ->selectRaw("SUM(status = 'Scheduled' AND scheduled_time >= ?) AS upcoming", [$now])
+            ->selectRaw('MAX(IF(scheduled_time <= ?, scheduled_time, NULL)) AS last_appt', [$now])
+            ->groupBy('opportunity_id');
+
+        $quotes = DB::table('Quotations')
+            ->select('opportunity_id')
+            ->selectRaw('COUNT(*) AS quotes')
+            ->groupBy('opportunity_id');
+
+        $flags = $this->current($filters)
+            ->leftJoinSub($care, 'c', 'c.opportunity_id', '=', 'o.opportunity_id')
+            ->leftJoinSub($history, 'h', 'h.opportunity_id', '=', 'o.opportunity_id')
+            ->leftJoinSub($appointments, 'a', 'a.opportunity_id', '=', 'o.opportunity_id')
+            ->leftJoinSub($quotes, 'q', 'q.opportunity_id', '=', 'o.opportunity_id')
+            ->select('o.employee_id')
+            ->selectRaw('COALESCE(a.overdue, 0) > 0 AS overdue_appointment')
+            ->selectRaw('(o.stage_id = ? AND COALESCE(q.quotes, 0) = 0) AS needs_quotation', [Stage::CLOSED])
+            ->selectRaw('(o.stage_id = ? AND DATE_ADD((
+                    SELECT MIN(cr.performed_at) FROM CareResults cr
+                    WHERE cr.opportunity_id = o.opportunity_id AND cr.activity_id = ?
+                      AND cr.performed_at >= COALESCE(h.processed_at, o.conversion_date)
+                ), INTERVAL ? DAY) <= ?) AS decision_due',
+                [Stage::PROCESSED, CareActivity::DECISION, Opportunity::DECISION_DAYS, $now->copy()->addDays(self::DECISION_WARN_DAYS)])
+            ->selectRaw('(o.stage_id <> ? AND COALESCE(a.upcoming, 0) = 0 AND GREATEST(o.conversion_date,
+                    COALESCE(c.last_care, o.conversion_date), COALESCE(h.last_move, o.conversion_date),
+                    COALESCE(a.last_appt, o.conversion_date)) < ?) AS stale',
+                [Stage::CLOSED, $now->copy()->subDays(self::STALE_DAYS)]);
+
+        $query = DB::query()->fromSub($flags, 'f')->select('f.employee_id')->groupBy('f.employee_id')
+            ->selectRaw('SUM(f.'.implode(' OR f.', self::ALERTS).') AS flagged');
+        foreach (self::ALERTS as $alert) {
+            $query->selectRaw("SUM(f.$alert) AS $alert");
+        }
+
+        return $query->get()
+            ->mapWithKeys(fn ($r) => [(string) $r->employee_id => array_map('intval', array_diff_key((array) $r, ['employee_id' => 1]))])
+            ->all();
+    }
+
+    /**
+     * Cơ hội đang xử lý (o) + Employees (e) theo phạm vi đội / salesperson của bộ lọc.
+     */
+    protected function current(array $filters): Builder
+    {
+        return DB::table('Opportunities as o')
+            ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
+            ->where('o.status', Opportunity::STATUS_IN_PROGRESS)
+            ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
+            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
     }
 
     /**
@@ -268,6 +407,10 @@ class SalesPerformanceReport
         $row['contact_success_rate'] = $pct($row['contacts_ok'], $row['contacts']);
         $row['avg_response_hours'] = $row['response_n'] ? round($row['response_hours'] / $row['response_n'], 1) : null;
         $row['avg_close_days'] = $row['close_n'] ? round($row['close_days'] / $row['close_n'], 1) : null;
+        $row['avg_order'] = $row['orders'] ? round($row['revenue'] / $row['orders']) : null;
+        $row['activity'] = $row['care'] + $row['appts'];
+        $row['reach_rate'] = $pct($row['care_ok'], $row['care']);
+        $row['show_rate'] = $pct($row['appts_ok'], $row['appts']);
 
         $row['stages'] = [];
         $previous = null;

@@ -2,12 +2,11 @@
 
 namespace App\Livewire\Reports;
 
-use App\Livewire\Reports\Concerns\ExportPeriod;
+use App\Livewire\Reports\Concerns\ReportExport;
 use App\Models\Branch;
 use App\Models\Lead;
 use App\Models\Role;
 use App\Services\LeadSourceReport;
-use App\Services\ReportDocumentWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -25,12 +24,12 @@ use Livewire\Component;
  * Phần 2 - biểu đồ linh hoạt: người dùng chọn loại biểu đồ, chiều phân tích, chia nhóm,
  *          chỉ số và các giá trị cần vẽ, bấm "Vẽ biểu đồ" để vẽ.
  * Bộ lọc chung (thời gian, chi nhánh, kênh liên hệ) áp dụng cho cả 2 phần.
- * Xuất Excel: báo cáo tổng hợp dạng văn bản (Giám đốc, Sale Admin).
+ * Xuất Excel: popup chọn kỳ, tiêu chí, sheet, cột và xem trước (trait ReportExport) - Giám đốc, Sale Admin.
  */
 #[Layout('layouts.app')]
 class LeadSources extends Component
 {
-    use ExportPeriod;
+    use ReportExport;
 
     // Bảng màu phân loại (thứ tự cố định); màu đi theo thực thể, không theo thứ hạng
     const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
@@ -417,7 +416,37 @@ class LeadSources extends Component
         return ['quality' => $quality, 'revenue' => $revenue];
     }
 
-    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+    /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
+
+    // Sheet: theo nguồn · theo kênh & chi nhánh · theo tháng · Lead mới nguồn × tháng · danh sách Lead
+    const EXPORT_SHEETS = ['summary', 'breakdown', 'months', 'matrix', 'leads'];
+
+    const EXPORT_LOCKED = ['summary' => 'source', 'breakdown' => 'criteria', 'months' => 'month', 'matrix' => 'source', 'leads' => 'name'];
+
+    // Mặc định: sheet tổng hợp với các cột trả lời "nguồn nào đáng đầu tư"; danh sách Lead chọn thêm khi cần đối chiếu
+    const EXPORT_DEFAULT_SHEETS = ['summary', 'breakdown', 'months', 'matrix'];
+
+    const EXPORT_DEFAULT_COLUMNS = [
+        'summary'   => ['source', 'leads', 'converted', 'conversion_rate', 'won', 'win_rate', 'close_rate', 'revenue', 'revenue_per_lead', 'revenue_share', 'note'],
+        'breakdown' => ['criteria', 'leads', 'conversion_rate', 'won', 'win_rate', 'revenue', 'revenue_per_lead'],
+        'months'    => ['month', 'leads', 'converted', 'conversion_rate', 'won', 'win_rate', 'revenue'],
+        'matrix'    => ['source', 'months', 'sum'],
+        'leads'     => ['name', 'created', 'source', 'method', 'branch', 'owner', 'outcome', 'revenue'],
+    ];
+
+    // Chỉ số dùng chung cho các sheet tổng hợp → kiểu cột
+    const EXPORT_METRICS = [
+        'leads' => 'int', 'converted' => 'int', 'conversion_rate' => 'percent', 'won' => 'int', 'lost' => 'int',
+        'win_rate' => 'percent', 'close_rate' => 'percent', 'revenue' => 'money', 'paid' => 'money',
+        'expected' => 'money', 'revenue_per_lead' => 'money', 'revenue_share' => 'percent',
+    ];
+
+    // Tiêu chí riêng của popup ('' = tất cả)
+    public string $exportBranch = '';
+
+    public string $exportMethod = '';
+
+    public string $exportSource = '';
 
     /**
      * Xuất Excel: Giám đốc, Sale Admin.
@@ -428,90 +457,175 @@ class LeadSources extends Component
         return in_array(Auth::user()->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
-    /**
-     * Báo cáo tổng hợp của kỳ chọn trong popup (tháng / quý / kỳ lũy kế / năm), chi nhánh và kênh theo bộ lọc:
-     * sheet 1 chỉ số theo nguồn / kênh / chi nhánh / tháng, sheet 2 số Lead mới của từng nguồn theo tháng.
-     */
-    public function export(ReportDocumentWriter $writer)
+    public function exportColumnCatalog(): array
     {
-        abort_unless($this->canExport, 403);
+        return [
+            'summary'   => ['source' => 'label'] + self::EXPORT_METRICS + ['note' => 'text'],
+            'breakdown' => ['criteria' => 'label'] + self::EXPORT_METRICS,
+            'months'    => ['month' => 'label'] + self::EXPORT_METRICS,
+            'matrix'    => ['source' => 'label', 'months' => 'int', 'sum' => 'int'],
+            'leads'     => [
+                'id' => 'text', 'name' => 'label', 'created' => 'text', 'source' => 'text', 'method' => 'text',
+                'branch' => 'text', 'status' => 'text', 'owner' => 'text', 'outcome' => 'text', 'revenue' => 'money',
+            ],
+        ];
+    }
 
-        $period = $this->exportPeriod();
-        if (! $period) {
-            return null;
+    /**
+     * Tiêu đề cột của các sheet tổng hợp dùng chung nhóm "metric".
+     */
+    public function exportLabel(string $key, array $replace = []): string
+    {
+        [$sheet, $column] = array_pad(explode('.', $key, 2), 2, null);
+        if (in_array($sheet, ['summary', 'breakdown', 'months'], true) && isset(self::EXPORT_METRICS[$column])) {
+            $key = 'metric.'.$column;
         }
 
-        // Thời gian theo kỳ chọn trong popup (thay cho bộ lọc ngày trên màn hình); chi nhánh, kênh giữ theo bộ lọc
-        $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $this->filterValues();
-        $c = fn ($key, $replace = []) => __('reports.lead_sources.export.'.$key, $replace);
-        $total = $this->report()->totals($f);
-        $scope = [$period['range'], __('reports.branch').': '.($f['branch'] ? $this->label('branch', $f['branch']) : __('reports.all_branches'))
-            .' · '.__('reports.method').': '.($f['method'] ? $this->label('method', $f['method']) : $c('all_methods'))];
+        return __('reports.lead_sources.export.'.$key, $replace);
+    }
 
-        // Sheet 1: tổng cộng + các nhóm A, B, C, D (mỗi nhóm cộng lại đúng bằng tổng cộng)
-        $metrics = fn (array $r) => [$r['leads'], $r['converted'], $r['conversion_rate'], $r['won'], $r['lost'], $r['win_rate'],
-            $r['close_rate'], $r['revenue'], $r['paid'], $r['revenue_per_lead'],
-            $total['revenue'] > 0 ? round($r['revenue'] * 100 / $total['revenue'], 1) : null];
+    public function exportFilterFields(): array
+    {
+        return [
+            ['model' => 'exportBranch', 'label' => __('reports.branch'), 'all' => __('reports.all_branches'),
+                'options' => $this->branches->pluck('branch_name', 'branch_id')->all()],
+            ['model' => 'exportMethod', 'label' => __('reports.method'), 'all' => __('reports.lead_sources.export.all_methods'),
+                'options' => collect(Lead::CONTACT_METHODS)->mapWithKeys(fn ($m) => [$m => $this->label('method', $m)])->all()],
+            ['model' => 'exportSource', 'label' => __('reports.dimension.source'), 'all' => __('reports.all'),
+                'options' => array_combine($this->allSources, $this->allSources)],
+        ];
+    }
+
+    protected function resetExportFilters(): void
+    {
+        $this->reset('exportBranch', 'exportMethod', 'exportSource');
+    }
+
+    protected function exportCriteria(): array
+    {
+        $branch = $this->branches->firstWhere('branch_id', $this->exportBranch);
+        $method = in_array($this->exportMethod, Lead::CONTACT_METHODS, true) ? $this->exportMethod : null;
+        $source = in_array($this->exportSource, $this->allSources, true) ? $this->exportSource : null;
+
+        $parts = array_filter([
+            $branch ? __('reports.branch').': '.$branch->branch_name : null,
+            $method ? __('reports.method').': '.$this->label('method', $method) : null,
+            $source ? __('reports.dimension.source').': '.$source : null,
+        ]);
+
+        return [
+            ['branch' => $branch?->branch_id, 'method' => $method, 'sources' => $source ? [$source] : null],
+            $parts ? implode(' · ', $parts) : $this->exportLabel('scope_all'),
+        ];
+    }
+
+    /**
+     * Số liệu Lead tạo trong kỳ theo tiêu chí; chỉ tính phần có sheet cần.
+     */
+    protected function exportData(array $period, array $filters, array $sheets): array
+    {
+        $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters;
+        $need = fn (string ...$names) => (bool) array_intersect($names, $sheets);
 
         // Tháng: đủ các tháng của kỳ (tháng chưa có Lead ghi 0)
-        $byMonth = array_column($this->report()->aggregate($f, 'month'), null, 'dim');
-        $sections = [
-            'source' => $this->sorted($this->report()->aggregate($f, 'source')),
-            'method' => $this->sorted($this->report()->aggregate($f, 'method')),
-            'branch' => $this->sorted($this->report()->aggregate($f, 'branch')),
-            'month'  => array_map(fn ($m) => $byMonth[$m] ?? $this->report()->derive(['dim' => $m]), $period['months']),
-        ];
-        $notes = $this->sourceNotes($sections['source']);
-
-        $rows = [['total', array_merge(['', $c('total')], $metrics($total), [''])]];
-        foreach (array_keys($sections) as $i => $dimension) {
-            $rows[] = ['section', [chr(65 + $i), mb_strtoupper($c('by_'.$dimension))]];
-            foreach ($sections[$dimension] as $n => $r) {
-                $name = $dimension === 'month' ? $c('month', ['month' => $this->label('month', $r['dim'])]) : $this->label($dimension, $r['dim']);
-                $rows[] = ['item', array_merge([$n + 1, $name], $metrics($r), [$dimension === 'source' ? ($notes[$r['dim']] ?? '') : ''])];
+        $byMonth = $need('months', 'matrix') ? array_column($this->report()->aggregate($f, 'month'), null, 'dim') : [];
+        $cells = [];
+        if ($need('matrix')) {
+            foreach ($this->report()->aggregate($f, 'month', 'source') as $r) {
+                $cells[$r['group']][$r['dim']] = $r['leads'];
             }
         }
 
-        $sheets = [[
-            'name'    => $c('sheet_summary'),
-            'title'   => $c('title'),
-            'period'  => $period['label'],
-            'scope'   => $scope,
-            'unit'    => $c('unit'),
-            'columns' => [[$c('stt'), 'stt'], [$c('criteria'), 'label'],
-                [$c('leads'), 'int'], [$c('converted'), 'int'], [$c('conversion_rate'), 'percent'],
-                [$c('won'), 'int'], [$c('lost'), 'int'], [$c('win_rate'), 'percent'], [$c('close_rate'), 'percent'],
-                [$c('revenue'), 'money'], [$c('paid'), 'money'], [$c('revenue_per_lead'), 'money'], [$c('revenue_share'), 'percent'],
-                [$c('note'), 'text']],
-            'rows'    => $rows,
-        ]];
+        return [
+            'total'   => $this->report()->totals($f),
+            'sources' => $need('summary', 'matrix') ? $this->sorted($this->report()->aggregate($f, 'source')) : [],
+            'methods' => $need('breakdown') ? $this->sorted($this->report()->aggregate($f, 'method')) : [],
+            'branchs' => $need('breakdown') ? $this->sorted($this->report()->aggregate($f, 'branch')) : [],
+            'months'  => array_map(fn ($m) => $byMonth[$m] ?? $this->report()->derive(['dim' => $m]), $period['months']),
+            'cells'   => $cells,
+            'leads'   => $need('leads') ? $this->report()->leads($f) : [],
+        ];
+    }
 
-        // Sheet 2: số Lead mới theo nguồn × tháng
-        $months = array_column($sections['month'], 'dim');
-        $cells = [];
-        foreach ($this->report()->aggregate($f, 'month', 'source') as $r) {
-            $cells[$r['group']][$r['dim']] = $r['leads'];
-        }
-        $trend = [['total', array_merge(['', $c('total')], array_column($sections['month'], 'leads'), [$total['leads']])]];
-        foreach ($sections['source'] as $n => $r) {
-            $trend[] = ['item', array_merge([$n + 1, $r['dim']], array_map(fn ($m) => $cells[$r['dim']][$m] ?? 0, $months), [$r['leads']])];
-        }
-        $sheets[] = [
-            'name'    => $c('sheet_trend'),
-            'title'   => $c('title_trend'),
-            'period'  => $period['label'],
-            'scope'   => $scope,
-            'unit'    => $c('unit_trend'),
-            'columns' => array_merge([[$c('stt'), 'stt'], [$c('source'), 'label']],
-                array_map(fn ($m) => [$this->label('month', $m), 'int'], $months), [[$c('sum'), 'int']]),
-            'rows'    => $trend,
+    protected function exportRows(string $sheet, array $data): array
+    {
+        $total = $data['total'];
+        $metrics = fn (array $r) => array_intersect_key($r, self::EXPORT_METRICS) + [
+            'revenue_share' => $total['revenue'] > 0 ? round($r['revenue'] * 100 / $total['revenue'], 1) : null,
         ];
 
-        $path = $writer->write($writer->document($sheets));
+        switch ($sheet) {
+            case 'summary':
+                $notes = $this->sourceNotes($data['sources']);
+                $rows = [['total', ['source' => $this->exportLabel('total')] + $metrics($total)]];
+                foreach ($data['sources'] as $r) {
+                    $rows[] = ['item', ['source' => $r['dim'], 'note' => $notes[$r['dim']] ?? null] + $metrics($r)];
+                }
 
-        $this->exportOpen = false;
+                return $rows;
 
-        return response()->download($path, 'bao-cao-chat-luong-nguon-lead-'.$period['slug'].'.xlsx')->deleteFileAfterSend();
+            case 'breakdown':
+                // Mỗi phần (A kênh, B chi nhánh) cộng lại đúng bằng tổng cộng
+                $rows = [['total', ['criteria' => $this->exportLabel('total')] + $metrics($total)]];
+                foreach (['method' => $data['methods'], 'branch' => $data['branchs']] as $i => $items) {
+                    $rows[] = ['section', ['_stt' => $i === 'method' ? 'A' : 'B', 'criteria' => mb_strtoupper($this->exportLabel('by_'.$i))]];
+                    foreach ($items as $r) {
+                        $rows[] = ['item', ['criteria' => $this->label($i, $r['dim'])] + $metrics($r)];
+                    }
+                }
+
+                return $rows;
+
+            case 'months':
+                $rows = [['total', ['month' => $this->exportLabel('total')] + $metrics($total)]];
+                foreach ($data['months'] as $r) {
+                    $rows[] = ['item', ['month' => $this->exportLabel('month', ['month' => $this->label('month', $r['dim'])])] + $metrics($r)];
+                }
+
+                return $rows;
+
+            case 'matrix':
+                $months = array_column($data['months'], 'dim');
+                $rows = [['total', ['source' => $this->exportLabel('total'), 'sum' => $total['leads']]
+                    + array_combine(array_map(fn ($m) => 'm:'.$m, $months), array_column($data['months'], 'leads'))]];
+                foreach ($data['sources'] as $r) {
+                    $rows[] = ['item', ['source' => $r['dim'], 'sum' => $r['leads']]
+                        + array_combine(array_map(fn ($m) => 'm:'.$m, $months), array_map(fn ($m) => $data['cells'][$r['dim']][$m] ?? 0, $months))];
+                }
+
+                return $rows;
+
+            default:
+                return array_map(fn ($l) => ['item', [
+                    'created' => CarbonImmutable::parse($l['created'])->format('d/m/Y H:i'),
+                    'method'  => $this->label('method', $l['method']),
+                    'branch'  => $this->label('branch', $l['branch']),
+                    'status'  => $this->label('status', $l['status']),
+                    'outcome' => __('reports.lead_conversion.outcome.'.$l['outcome']),
+                ] + $l], $data['leads']);
+        }
+    }
+
+    /**
+     * Cột "Các tháng" của sheet nguồn × tháng: mỗi tháng của kỳ 1 cột.
+     */
+    protected function expandExportColumn(string $sheet, string $column, array $data): ?array
+    {
+        if ($sheet !== 'matrix' || $column !== 'months') {
+            return null;
+        }
+
+        return array_map(fn ($r) => [$this->label('month', $r['dim']), 'int', 'm:'.$r['dim']], $data['months']);
+    }
+
+    protected function exportSheetMeta(string $sheet, array $data, array $period): array
+    {
+        return ['unit' => $this->exportLabel(in_array($sheet, ['matrix'], true) ? 'unit_trend' : 'unit')];
+    }
+
+    protected function exportFileName(): string
+    {
+        return 'bao-cao-chat-luong-nguon-lead';
     }
 
     /**
