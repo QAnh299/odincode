@@ -16,20 +16,26 @@
     $receivers = count(array_filter($incoming));
     $available = $this->available;
 
-    // Giá trị chỉ số hiệu suất theo tiêu chí đang chọn; chưa đủ cỡ mẫu tối thiểu thì ghi chú (không được xếp hạng)
-    $metric = function (?array $perf) use ($criterion) {
+    // Chỉ số hiệu suất của 1 tiêu chí: [giá trị, ghi chú chưa đủ cỡ mẫu tối thiểu (xếp cuối ở tiêu chí đó) hoặc null]
+    $metric = function (?array $perf, string $criterion) {
+        $revenue = (float) ($perf['revenue'] ?? 0);
         $value = match ($criterion) {
             'close_rate' => isset($perf['close_rate']) ? number_format($perf['close_rate'], 1, ',', '.').'%' : '—',
             'avg_close_days' => isset($perf['avg_close_days'])
                 ? __('leads.distribute.days', ['count' => number_format($perf['avg_close_days'], 1, ',', '.')]) : '—',
-            default      => number_format((float) ($perf['revenue'] ?? 0), 0, ',', '.').' ₫',
+            default => match (true) {
+                $revenue >= 1e9 => __('leads.distribute.money_billion', ['value' => number_format($revenue / 1e9, 1, ',', '.')]),
+                $revenue >= 1e6 => __('leads.distribute.money_million', ['value' => number_format($revenue / 1e6, 1, ',', '.')]),
+                default         => number_format($revenue, 0, ',', '.').' ₫',
+            },
         };
         $sample = app(LeadDistributionService::class)->sample($perf, $criterion);
 
-        return $sample && $sample[0] < $sample[1]
-            ? $value.' · '.__('leads.distribute.sample_short.'.$criterion, ['count' => $sample[0], 'min' => $sample[1]])
-            : $value;
+        return [$value, $sample && $sample[0] < $sample[1]
+            ? __('leads.distribute.sample_short.'.$criterion, ['count' => $sample[0], 'min' => $sample[1]])
+            : null];
     };
+    $kpiIcons = ['revenue' => 'wallet', 'close_rate' => 'check-circle', 'avg_close_days' => 'clock'];
 
     // Chữ cái đại diện + màu avatar cố định theo mã
     $initial = fn (string $name) => mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim($name), ' '), 0, 1));
@@ -134,7 +140,7 @@
                                     <span class="ld-dist__stat-icon"><x-icon name="alert" /></span>
                                     <span class="ld-dist__stat-text">
                                         <small>{{ __('leads.distribute.stat_overflow') }}</small>
-                                        <strong>{{ $fmt(array_sum(array_map('intval', $overflowAmounts))) }}<em>/{{ $this->overflowRequired }}</em></strong>
+                                        <strong>{{ $fmt(array_sum(array_map('intval', $overflowAmounts))) }}<em>/{{ $overflow }}</em></strong>
                                     </span>
                                 </div>
                             @else
@@ -163,32 +169,22 @@
                             <div class="ld-notice ld-notice--warning ld-notice--inline">
                                 <x-icon name="alert" />
                                 <span class="ld-notice__text">
-                                    {{ __('leads.distribute.overflow_notice', ['count' => $overflow, 'required' => $this->overflowRequired, 'max' => $max]) }}
+                                    {{ __('leads.distribute.overflow_notice', ['count' => $overflow, 'max' => $max]) }}
                                 </span>
                             </div>
                         @endif
 
-                        {{-- ── Lead dư → chọn tiêu chí hiệu suất ────────────────── --}}
-                        @if ($showList && $ranking)
+                        {{-- ── Lead dư → xếp hạng hiệu suất (cộng hạng) ─────────── --}}
+                        @if ($showList && $ranking && ! $isOverflow)
                             <div class="ld-dist__ranking">
                                 <span class="ld-dist__ranking-icon"><x-icon name="trending" /></span>
                                 <p class="ld-dist__ranking-text">
-                                    @if ($isOverflow)
-                                        {{ __('leads.distribute.ranking_overflow', ['month' => $month]) }}
-                                    @elseif ($this->leftover['over'] > 0)
-                                        {{ __('leads.distribute.ranking_over', ['count' => $this->leftover['over'], 'max' => $max, 'top' => $top]) }}
+                                    @if ($this->leftover['over'] > 0)
+                                        {{ __('leads.distribute.ranking_over', ['count' => $this->leftover['over'], 'max' => $max]) }}
                                     @else
-                                        {{ __('leads.distribute.ranking_remainder', ['count' => $this->leftover['remainder'], 'top' => $top]) }}
+                                        {{ __('leads.distribute.ranking_remainder', ['count' => $this->leftover['remainder']]) }}
                                     @endif
                                 </p>
-                                <label class="ld-dist__ranking-select">
-                                    <span class="visually-hidden">{{ __('leads.distribute.criterion', ['month' => $month]) }}</span>
-                                    <select wire:model.live="criterion" class="vc-control" title="{{ __('leads.distribute.criterion', ['month' => $month]) }}">
-                                        @foreach (LeadDistributionService::CRITERIA as $option)
-                                            <option value="{{ $option }}">{{ __('leads.distribute.criteria.'.$option) }} · {{ $month }}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
                             </div>
                         @endif
 
@@ -207,7 +203,7 @@
                             <div class="ld-dist__list-head">
                                 <span>{{ __('leads.distribute.col_'.$kind) }} <em>{{ $this->targets->count() }}</em></span>
                                 @if ($isAuto)
-                                    @php $allOn = ! array_diff($this->targets->filter(fn ($r) => $r['capacity'] !== 0)->pluck('id')->all(), $selected); @endphp
+                                    @php $allOn = ! array_diff($this->selectableIds, $selected); @endphp
                                     <button type="button" class="ld-dist__link" wire:click="toggleAll">
                                         <x-icon name="{{ $allOn ? 'x' : 'check' }}" />{{ __('leads.distribute.'.($allOn ? 'deselect_all' : 'select_all')) }}
                                     </button>
@@ -232,9 +228,9 @@
                                         $after = $this->forTeams ? 0 : $row['load'] + $add;
                                         $tone = $after > $max ? 'danger' : ($after >= $max * 0.8 ? 'warn' : 'ok');
                                     @endphp
-                                    <li wire:key="dist-{{ $id }}" class="ld-dist__row {{ $checked || ($add && ! $isAuto) ? 'is-active' : '' }} {{ $full ? 'is-full' : '' }} {{ $isAuto ? 'is-selectable' : '' }}">
+                                    <li wire:key="dist-{{ $id }}" class="ld-dist__row {{ $checked || ($add && ! $isAuto) ? 'is-active' : '' }} {{ $full && $isAuto && ! $checked ? 'is-full' : '' }} {{ $isAuto ? 'is-selectable' : '' }}">
                                         @if ($isAuto)
-                                            <input type="checkbox" class="ld-dist__check" wire:model.live="selected" value="{{ $id }}" id="dist-{{ $id }}" @disabled($full)>
+                                            <input type="checkbox" class="ld-dist__check" wire:model.live="selected" value="{{ $id }}" id="dist-{{ $id }}">
                                         @endif
 
                                         <label class="ld-dist__who" @if ($isAuto) for="dist-{{ $id }}" @endif>
@@ -250,13 +246,26 @@
                                             </span>
                                             <span class="ld-dist__who-text">
                                                 <span class="ld-dist__name">{{ $row['name'] }}</span>
-                                                <span class="ld-dist__meta">
-                                                    {{ $row['sub'] }}
-                                                    @if ($ranking)
-                                                        <span class="ld-dist__dot"></span>
-                                                        <span class="ld-dist__perf">{{ $metric($row['perf']) }}</span>
-                                                    @endif
-                                                </span>
+                                                <span class="ld-dist__meta">{{ $row['sub'] }}</span>
+                                                @if ($ranking)
+                                                    {{-- Chỉ số hiệu suất tháng trước (chỉ để tham khảo); dẫn đầu nhóm ở tiêu chí nào thì tô nổi tiêu chí đó --}}
+                                                    @php $board = $this->scoreboard[$id] ?? null; @endphp
+                                                    <span class="ld-dist__kpis">
+                                                        @foreach (LeadDistributionService::CRITERIA as $criterion)
+                                                            @php
+                                                                [$value, $note] = $metric($row['perf'], $criterion);
+                                                                $label = __('leads.distribute.criteria.'.$criterion).' · '.$month;
+                                                                $best = $board && $board[$criterion] === 1 && ! $note && count($this->scoreboard) > 1;
+                                                            @endphp
+                                                            <span class="ld-dist__kpi {{ $best ? 'is-best' : '' }} {{ $note ? 'is-short' : '' }}"
+                                                                title="{{ $label }}{{ $note ? ' — '.$note : '' }}">
+                                                                <x-icon name="{{ $kpiIcons[$criterion] }}" />
+                                                                <span class="visually-hidden">{{ $label }}:</span>
+                                                                {{ $value }}@if ($note)<sup>*</sup>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </span>
+                                                @endif
                                             </span>
                                         </label>
 
@@ -289,18 +298,18 @@
                                                     $field = $isOverflow ? 'overflowAmounts' : 'amounts';
                                                     $room = $isOverflow ? $this->overflowRoom[$id] : null;
                                                 @endphp
-                                                <div class="ld-dist__stepper {{ $isOverflow && $room === 0 ? 'is-disabled' : '' }}">
-                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', -1)" aria-label="−1"
-                                                        @disabled($isOverflow && $room === 0)>−</button>
+                                                <div class="ld-dist__stepper">
+                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', -1)" aria-label="−1">−</button>
                                                     <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
-                                                        @if ($isOverflow) max="{{ $room }}" @endif
                                                         wire:model.live.debounce.300ms="{{ $field }}.{{ $id }}"
-                                                        aria-label="{{ $row['name'] }}" @disabled($isOverflow && $room === 0)>
-                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', 1)" aria-label="+1"
-                                                        @disabled($isOverflow && $room === 0)>+</button>
+                                                        aria-label="{{ $row['name'] }}">
+                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', 1)" aria-label="+1">+</button>
                                                 </div>
                                                 @if ($isOverflow)
-                                                    <span class="ld-dist__room">{{ __('leads.distribute.room_left', ['count' => $room]) }}</span>
+                                                    {{-- Ngưỡng 50 chỉ cảnh báo: hết chỗ vẫn nhập được --}}
+                                                    <span class="ld-dist__room {{ $room === 0 ? 'is-warn' : '' }}">
+                                                        {{ $room > 0 ? __('leads.distribute.room_left', ['count' => $room]) : __('leads.distribute.room_full', ['max' => $max]) }}
+                                                    </span>
                                                 @endif
                                             @endif
                                         </div>
@@ -309,7 +318,7 @@
                             </ul>
 
                             @if ($isAuto && $this->preview['unplaced'] > 0)
-                                <p class="ld-form__hint">{{ __('leads.distribute.preview_unplaced', ['count' => $this->preview['unplaced'], 'max' => $max]) }}</p>
+                                <p class="ld-form__hint">{{ __('leads.distribute.preview_unplaced', ['count' => $this->preview['unplaced']]) }}</p>
                             @endif
                         @endif
                     @endif

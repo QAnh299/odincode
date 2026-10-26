@@ -6,11 +6,13 @@ use App\Models\Appointment;
 use App\Models\CareActivity;
 use App\Models\CareResult;
 use App\Models\Employee;
+use App\Models\Invoice;
 use App\Models\Opportunity;
 use App\Models\OpportunityTransfer;
 use App\Models\Role;
 use App\Models\Quotation;
 use App\Models\Stage;
+use App\Services\LeadDistributionService;
 use App\Services\QuotationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -28,8 +30,9 @@ use Livewire\Component;
  * Dùng chung cho Salesperson, Sale Leader, Giám đốc - xem được theo Opportunity::visibleTo().
  * Mọi thao tác (liên hệ, lịch hẹn, báo giá) chỉ dành cho salesperson đang phụ trách;
  * Sale Leader / Giám đốc chỉ xem. Sale Leader được chuyển người phụ trách sang salesperson khác
- * trong đội (popup chọn người + lý do, khi cơ hội chưa tới stage Chốt) - lịch hẹn đang chờ chuyển theo,
- * lịch sử chăm sóc / lịch hẹn đã có kết quả giữ người cũ; mỗi lần chuyển lưu vào OpportunityTransfers.
+ * trong đội (popup chọn người + lý do, tới hết stage Chốt khi khách chưa đóng tiền) - lịch hẹn đang chờ, báo giá
+ * và hóa đơn chưa thanh toán chuyển theo (người mới có đủ quyền), lịch sử chăm sóc / lịch hẹn đã có kết quả giữ người cũ;
+ * mỗi lần chuyển lưu vào OpportunityTransfers.
  *
  * Lịch hẹn: mỗi mã lịch hẹn gồm 1-2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
  * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch - Tạo lịch hẹn.
@@ -913,8 +916,10 @@ class Show extends Component
     // ── Chuyển người phụ trách (Sale Leader) ──────────────────────────
 
     /**
-     * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách),
-     * chỉ khi cơ hội chưa tới stage Chốt.
+     * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách), khi cơ hội chưa qua stage Chốt,
+     * chưa kết thúc (Lost / Archived) và khách chưa đóng tiền lần nào, chưa thành học viên.
+     * Ở stage Chốt (đang lập báo giá, chờ thanh toán) vẫn chuyển được. Xét theo thanh toán thực tế chứ không theo
+     * trạng thái Won vì dữ liệu gốc (odin.sql) đặt mọi cơ hội ở stage Chốt là Won kể cả khi chưa có báo giá.
      */
     #[Computed]
     public function reassignOptions(): Collection
@@ -923,7 +928,8 @@ class Show extends Component
         $closed = $this->stages->firstWhere('stage_id', Stage::CLOSED);
 
         if ($this->routePrefix !== Role::SALE_LEADER || ! $me?->team_id
-            || ! $closed || $this->stageOrder() >= $closed->sort_order) {
+            || ! in_array($this->opportunity->status, [Opportunity::STATUS_IN_PROGRESS, Opportunity::STATUS_WON], true)
+            || ! $closed || $this->stageOrder() > $closed->sort_order || $this->paidOrEnrolled()) {
             return collect();
         }
 
@@ -934,6 +940,28 @@ class Show extends Component
             ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
             ->orderBy('full_name')
             ->get(['employee_id', 'full_name']);
+    }
+
+    /**
+     * Khách đã đóng tiền (đơn hàng có thanh toán) hoặc đã thành học viên.
+     */
+    protected function paidOrEnrolled(): bool
+    {
+        return $this->opportunity->student()->exists()
+            || $this->opportunity->quotations()->whereHas('order', fn ($q) => $q->where('paid_amount', '>', 0))->exists();
+    }
+
+    /**
+     * Số Cơ hội đang xử lý của người đang phụ trách + các salesperson có thể nhận (thanh tải x/50 như popup phân công Lead).
+     *
+     * @return array<string, int>
+     */
+    #[Computed]
+    public function reassignLoad(): array
+    {
+        $ids = $this->reassignOptions->pluck('employee_id')->push($this->opportunity->employee_id)->filter()->all();
+
+        return app(LeadDistributionService::class)->currentLoad($ids);
     }
 
     public function startReassign(): void
@@ -988,15 +1016,30 @@ class Show extends Component
                 ->where('status', Appointment::STATUS_SCHEDULED)
                 ->update(['employee_id' => $this->newOwner]);
 
+            // Trao lại mọi quyền của người cũ trên cơ hội này (khách chưa đóng tiền nên tất cả còn dở): quyền với báo giá,
+            // đơn hàng, hóa đơn gắn theo người lập báo giá / người lập hóa đơn → báo giá và hóa đơn chưa thanh toán
+            // đổi sang người mới (xem, sửa, xác nhận, lập / sửa hóa đơn, nhận thông báo). Lần chuyển lưu ở OpportunityTransfers.
+            $quotes = $this->opportunity->quotations()->update(['employee_id' => $this->newOwner]);
+
+            Invoice::query()
+                ->whereHas('order.quotation', fn ($q) => $q->where('opportunity_id', $this->opportunity->opportunity_id))
+                ->where('status', '!=', Invoice::STATUS_PAID)
+                ->update(['created_by_employee_id' => $this->newOwner]);
+
             $this->opportunity->update(['employee_id' => $this->newOwner]);
 
-            return $moved;
+            return ['appointments' => $moved, 'quotations' => $quotes];
         });
 
         $this->opportunity->load('employee.team:team_id,team_name');
         $this->cancelReassign();
-        $this->reassigned = ['from' => $from, 'to' => $this->opportunity->employee->full_name, 'moved' => $moved];
-        unset($this->reassignOptions, $this->appointments, $this->careResults, $this->transfers);
+        $this->reassigned = [
+            'from'   => $from,
+            'to'     => $this->opportunity->employee->full_name,
+            'moved'  => $moved['appointments'],
+            'quotes' => $moved['quotations'],
+        ];
+        unset($this->reassignOptions, $this->reassignLoad, $this->appointments, $this->careResults, $this->transfers, $this->quotations);
     }
 
     /**

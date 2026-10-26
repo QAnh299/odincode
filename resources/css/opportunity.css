@@ -1026,9 +1026,155 @@
     margin-top: 1rem;
 }
 
+/* Popup chuyển người phụ trách: thẻ người đang giữ → danh sách salesperson nhận, kèm thanh tải x/50
+   (dùng lại .ld-dist__avatar / .ld-dist__load / .ld-dist__bar của lead.css) */
 .od-reassign {
+    --d-ok: #16a34a;
+    --d-warn: #d97706;
+    --d-danger: #dc2626;
     display: grid;
     gap: 0.9rem;
+}
+
+.od-reassign section {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.od-reassign__label {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.od-reassign__arrow {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    margin: -0.35rem auto;
+    border: 1px solid var(--vc-border);
+    border-radius: 50%;
+    background: var(--vc-surface);
+    color: var(--vc-muted);
+}
+
+.od-reassign__arrow .odin-icon {
+    width: 1rem;
+    height: 1rem;
+    transform: rotate(90deg);
+}
+
+.od-reassign__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 300px;
+    margin: -3px;
+    padding: 3px;
+    overflow-y: auto;
+}
+
+.od-reassign__card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(140px, 200px);
+    gap: 0.8rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 14px;
+    background: var(--vc-surface);
+}
+
+.od-reassign__card.is-current {
+    border-style: dashed;
+    background: color-mix(in srgb, var(--vc-muted) 5%, var(--vc-surface));
+}
+
+.od-reassign__card.is-option {
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.od-reassign__card.is-option:hover {
+    border-color: color-mix(in srgb, var(--vc-primary) 35%, var(--vc-border));
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.od-reassign__card.is-active,
+.od-reassign__card.is-active:hover {
+    border-color: var(--vc-primary);
+    background: color-mix(in srgb, var(--vc-primary) 4%, var(--vc-surface));
+    box-shadow: 0 0 0 3px var(--vc-tint);
+}
+
+.od-reassign__card:has(input:focus-visible) {
+    outline: 2px solid var(--vc-primary);
+    outline-offset: 2px;
+}
+
+.od-reassign__list.is-invalid .od-reassign__card {
+    border-color: color-mix(in srgb, var(--d-danger) 45%, var(--vc-border));
+}
+
+.od-reassign__card .ld-dist__avatar {
+    width: 2.4rem;
+    height: 2.4rem;
+}
+
+.od-reassign__tick {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid var(--vc-surface);
+    border-radius: 50%;
+    background: var(--vc-primary);
+    color: #fff;
+}
+
+.od-reassign__tick .odin-icon {
+    width: 0.62rem;
+    height: 0.62rem;
+    stroke-width: 3.5;
+}
+
+.od-reassign__who {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.od-reassign__who strong {
+    overflow: hidden;
+    color: var(--vc-ink);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.od-reassign__who small {
+    color: var(--vc-muted);
+    font-size: 0.74rem;
+}
+
+.od-reassign__card .ld-dist__load {
+    display: block;
+}
+
+@media (max-width: 575.98px) {
+    .od-reassign__card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .od-reassign__card .ld-dist__load {
+        grid-column: 1 / -1;
+    }
 }
 
 /* Lịch sử chuyển người phụ trách (thẻ Thông tin cơ hội) */

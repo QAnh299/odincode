@@ -21,13 +21,16 @@ use RuntimeException;
  *      Lúc này Lead mới chuyển sang 'Converted'.
  *
  * Chia tự động: chia đều phần nguyên, Lead dư lần lượt cho Top 2 theo hiệu suất tháng trước.
- * Mỗi salesperson quản lý tối đa MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress).
+ * Hiệu suất = cộng hạng: xếp hạng riêng theo từng tiêu chí (doanh thu, tỷ lệ chốt, TB thời gian xử lý)
+ * rồi cộng 3 thứ hạng; tổng hạng càng nhỏ càng tốt (không cần chuẩn hoá hay đặt trọng số).
+ * Ngưỡng MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress)/salesperson chỉ là cảnh báo: chia tự động không
+ * tự đẩy ai vượt ngưỡng, phần còn lại do trưởng nhóm tự phân (được phép vượt).
  */
 class LeadDistributionService
 {
     const MAX_PER_SALESPERSON = 50;
 
-    // Tiêu chí xếp hạng hiệu suất (tính theo tháng trước) → khoá chỉ số trong SalesPerformanceReport
+    // Tiêu chí cộng hạng hiệu suất (tính theo tháng trước) → khoá chỉ số trong SalesPerformanceReport
     //   avg_close_days = TB số ngày từ lúc được giao Lead đến khi chốt thành công (Won)
     const CRITERIA = ['revenue', 'close_rate', 'avg_close_days'];
 
@@ -101,23 +104,47 @@ class LeadDistributionService
     }
 
     /**
-     * Xếp hạng từ tốt đến kém theo tiêu chí (TB thời gian xử lý: nhanh hơn là tốt hơn; không có / chưa đủ số liệu xếp cuối);
+     * Bảng cộng hạng trong nhóm $ids: [id => ['revenue' => hạng, 'close_rate' => hạng, 'avg_close_days' => hạng, 'total' => tổng hạng]].
+     * Mỗi tiêu chí xếp hạng riêng (TB thời gian xử lý: nhanh hơn là tốt hơn); bằng giá trị thì đồng hạng (1, 1, 3);
+     * không có / chưa đủ số liệu thì cùng xếp cuối ở tiêu chí đó.
+     *
+     * @param  string[]  $ids
+     * @return array<string, array<string, int>>
+     */
+    public function scoreboard(array $ids, array $performance): array
+    {
+        $board = array_fill_keys($ids, ['total' => 0]);
+
+        foreach (self::CRITERIA as $criterion) {
+            $lower = in_array($criterion, self::LOWER_IS_BETTER, true);
+            $values = [];
+            foreach ($ids as $id) {
+                $value = $this->score($performance[$id] ?? null, $criterion);
+                $values[$id] = $value === null ? -INF : ($lower ? -$value : $value);
+            }
+
+            foreach ($values as $id => $value) {
+                $rank = 1 + count(array_filter($values, fn ($other) => $other > $value));
+                $board[$id][$criterion] = $rank;
+                $board[$id]['total'] += $rank;
+            }
+        }
+
+        return $board;
+    }
+
+    /**
+     * Xếp hạng từ tốt đến kém theo tổng hạng (nhỏ hơn là tốt hơn);
      * hoà thì ai đang giữ ít Lead hơn trước, cuối cùng theo mã.
      *
      * @param  string[]  $ids
      * @return string[]
      */
-    public function rank(array $ids, array $performance, string $criterion, array $load = []): array
+    public function rank(array $ids, array $performance, array $load = []): array
     {
-        $criterion = in_array($criterion, self::CRITERIA, true) ? $criterion : self::CRITERIA[0];
-        $lower = in_array($criterion, self::LOWER_IS_BETTER, true);
-        $score = function ($id) use ($performance, $criterion, $lower) {
-            $value = $this->score($performance[$id] ?? null, $criterion);
+        $board = $this->scoreboard($ids, $performance);
 
-            return $value === null ? -INF : ($lower ? -$value : $value);
-        };
-
-        usort($ids, fn ($a, $b) => [$score($b), $load[$a] ?? 0, $a] <=> [$score($a), $load[$b] ?? 0, $b]);
+        usort($ids, fn ($a, $b) => [$board[$a]['total'], $load[$a] ?? 0, $a] <=> [$board[$b]['total'], $load[$b] ?? 0, $b]);
 
         return $ids;
     }
@@ -187,7 +214,7 @@ class LeadDistributionService
 
     /**
      * Chia tự động có ngưỡng: phần vượt được phân lại lần lượt cho Top 2 salesperson còn chỗ
-     * (theo thứ hạng hiệu suất). Trả về [kế hoạch, số Lead không còn ai nhận được].
+     * (theo thứ hạng hiệu suất). Trả về [kế hoạch, số Lead không ai dưới ngưỡng nhận được → trưởng nhóm tự phân].
      */
     public function capAuto(array $plan, array $load, array $rankedIds): array
     {
