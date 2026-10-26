@@ -32,7 +32,8 @@
 
         <x-language-switcher />
 
-        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai (App\Services\AppointmentReminders)
+        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai và lịch đã qua giờ chưa cập nhật (App\Services\AppointmentReminders)
+             + cơ hội không liên lạc được đã tới lúc liên hệ lại (App\Services\CareReminders)
              + báo giá Nháp sắp hết hạn / quá hạn chờ khách phản hồi (App\Services\QuotationReminders), xếp theo thời điểm
              Sale Leader: Lead Sale Admin vừa phân cho đội, chờ phân cho Salesperson (App\Services\LeadAssignmentNotices) --}}
         @php
@@ -41,6 +42,7 @@
                 \App\Models\Role::SALESPERSON => [
                     'items'    => \App\Services\InvoiceNotices::for($employee)->sortByDesc('at')
                         ->concat(\App\Services\AppointmentReminders::for($employee)
+                            ->concat(\App\Services\CareReminders::for($employee))
                             ->concat(\App\Services\QuotationReminders::for($employee))
                             ->sortBy('at'))
                         ->values(),

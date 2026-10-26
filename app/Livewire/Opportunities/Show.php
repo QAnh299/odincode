@@ -37,7 +37,8 @@ use Livewire\Component;
  *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
  *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Tạo lịch hẹn" ở tab Lịch hẹn).
  *     Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
- *   - Từ giờ hẹn trở đi: cập nhật từng dòng Khách đã đến (Success) / Khách không đến (Failed).
+ *   - Từ giờ hẹn trở đi: cập nhật từng dòng Khách đã đến (Success, bắt buộc ghi kết quả - nối vào ghi chú lịch hẹn)
+ *     / Khách không đến (Failed).
  *     Mọi loại đã hẹn đều có lần khách đến → tự chuyển sang "Data đã xử lý".
  *   - Không tạo / đổi lịch hẹn khi đã tới stage Chốt.
  * Lịch sử chăm sóc: ghi nhận lần liên hệ (thời gian, kết quả, ghi chú) với hoạt động theo stage, đếm từ lúc
@@ -47,9 +48,8 @@ use Livewire\Component;
  *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
  *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
  *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
- *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → tự chuyển sang Chốt; Thất bại → quay về
- *     Data chưa tương tác (quá 3 lần → Archived); không liên lạc được quá 14 ngày từ lần liên hệ đầu tiên
- *     ở stage → Archived.
+ *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → "Tạo báo giá" (→ Chốt); Thất bại → Archived;
+ *     quá 14 ngày từ lần liên hệ chốt đăng ký đầu tiên mà khách chưa đồng ý → Archived.
  * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
  * Phần Báo giá chỉ hiện ở stage Chốt (hoặc khi đã có báo giá).
  */
@@ -99,6 +99,11 @@ class Show extends Component
 
     public array $editTimes = [];
 
+    // Ghi kết quả khi khách đã đến: dòng đang mở ("APT006-Test") và nội dung kết quả
+    public ?string $attendKey = null;
+
+    public string $attendResult = '';
+
     public function mount(Opportunity $opportunity): void
     {
         abort_unless(
@@ -125,7 +130,7 @@ class Show extends Component
 
     public function closeForm(): void
     {
-        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newNotes', 'editKeys', 'editTimes');
+        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newNotes', 'editKeys', 'editTimes', 'attendKey', 'attendResult');
         $this->resetValidation();
     }
 
@@ -144,11 +149,8 @@ class Show extends Component
     // Data đã có lịch hẹn: không liên lạc được quá số ngày này (tính từ buổi khách không đến) → Archived.
     // Data đã xử lý dùng hạn quyết định Opportunity::DECISION_DAYS.
     const UNREACHABLE_DAYS = [
-        Stage::APPOINTED => 7,
+        Stage::APPOINTED => Opportunity::REBOOK_DAYS,
     ];
-
-    // Khách từ chối đăng ký ở Data đã xử lý → quay về Data chưa tương tác; quá số lần này → Archived
-    const MAX_RETURNS = 3;
 
     /**
      * Hoạt động của lần liên hệ tiếp theo theo stage hiện tại: "Liên hệ ban đầu" (Data chưa tương tác),
@@ -224,22 +226,49 @@ class Show extends Component
     }
 
     /**
-     * Được ghi nhận liên hệ: cần liên hệ và (ở Data chưa tương tác) chưa đủ số lần không liên lạc được.
+     * Lần liên hệ gần nhất ở stage hiện tại là "Không liên lạc được" → thời điểm được liên hệ lại
+     * (sau Opportunity::RECONTACT_DAYS ngày), null nếu không phải chờ.
+     */
+    #[Computed]
+    public function recontactAt(): ?Carbon
+    {
+        return $this->opportunity->recontactAt();
+    }
+
+    /**
+     * Được ghi nhận liên hệ: cần liên hệ, (ở Data chưa tương tác) chưa đủ số lần không liên lạc được
+     * và đã hết thời gian chờ sau lần không liên lạc được.
      */
     public function canLogCare(): bool
     {
         return $this->needsContact()
-            && ($this->opportunity->stage_id !== Stage::UNTOUCHED || $this->unreachableContacts < self::MAX_UNREACHABLE_CONTACTS);
+            && ($this->opportunity->stage_id !== Stage::UNTOUCHED || $this->unreachableContacts < self::MAX_UNREACHABLE_CONTACTS)
+            && ! $this->recontactAt?->isFuture();
     }
 
     /**
-     * Thời điểm sớm nhất được ghi: sau lần liên hệ trước và sau lúc vào stage hiện tại.
+     * Lý do nút ghi nhận bị khóa, null nếu ghi nhận được.
+     */
+    public function careLockHint(): ?string
+    {
+        if ($this->canLogCare()) {
+            return null;
+        }
+
+        return $this->recontactAt?->isFuture()
+            ? __('opportunities.care_hint_wait', ['time' => $this->recontactAt->format('d/m/Y H:i')])
+            : __('opportunities.care_hint_full', ['max' => self::MAX_UNREACHABLE_CONTACTS]);
+    }
+
+    /**
+     * Thời điểm sớm nhất được ghi: sau lần liên hệ trước, sau lúc vào stage hiện tại
+     * và sau thời gian chờ liên hệ lại.
      */
     protected function earliestCareTime(): Carbon
     {
         $last = $this->opportunity->careResults()->max('performed_at');
 
-        return collect([$this->stageSince, $last ? Carbon::parse($last) : null])
+        return collect([$this->stageSince, $last ? Carbon::parse($last) : null, $this->recontactAt])
             ->filter()
             ->max();
     }
@@ -292,7 +321,7 @@ class Show extends Component
                 'employee_id'    => $this->employeeId(),
             ]);
 
-            unset($this->careResults, $this->unreachableContacts, $this->stageContactDone);
+            unset($this->careResults, $this->unreachableContacts, $this->stageContactDone, $this->recontactAt);
 
             return $this->applyCareOutcome($result, $time, $notes, $activity->activity_name);
         });
@@ -304,8 +333,7 @@ class Show extends Component
 
     /**
      * Xử lý sau khi ghi nhận liên hệ, theo kết quả và stage; trả về nội dung thông báo.
-     *   - Thất bại (khách từ chối): Data đã xử lý → quay về Data chưa tương tác (quá 3 lần → Archived);
-     *     stage khác → Lost.
+     *   - Thất bại (khách từ chối): Data đã xử lý → Archived; stage khác → Lost.
      *   - Không liên lạc được: vượt giới hạn của stage → Archived.
      */
     protected function applyCareOutcome(string $result, Carbon $time, string $notes, string $activity): string
@@ -313,32 +341,12 @@ class Show extends Component
         $params = ['activity' => $activity];
 
         if ($result === CareResult::RESULT_FAILED) {
-            if ($this->opportunity->stage_id !== Stage::PROCESSED) {
-                return $this->closeOpportunity(Opportunity::STATUS_LOST, 'Khách từ chối: '.$notes, 'opportunities.care_closed_lost', $params);
-            }
-
-            // Lần quay về này vượt giới hạn → lưu trữ luôn từ Data đã xử lý
-            $returns = $this->opportunity->returnsToUntouched() + 1;
-
-            if ($returns > self::MAX_RETURNS) {
-                return $this->closeOpportunity(
-                    Opportunity::STATUS_ARCHIVED,
-                    'Khách từ chối đăng ký quá '.self::MAX_RETURNS.' lần: '.$notes,
-                    'opportunities.care_closed_returns',
-                    $params + ['max' => self::MAX_RETURNS],
-                );
-            }
-
-            $this->opportunity->returnToUntouched('Khách từ chối đăng ký: '.$notes);
-            $this->refreshStage();
-
-            return __('opportunities.care_returned', $params + [
-                'stage' => $this->opportunity->stage->stage_name, 'count' => $returns, 'max' => self::MAX_RETURNS,
-            ]);
+            return $this->opportunity->stage_id === Stage::PROCESSED
+                ? $this->closeOpportunity(Opportunity::STATUS_ARCHIVED, 'Khách từ chối đăng ký: '.$notes, 'opportunities.care_closed_refused', $params)
+                : $this->closeOpportunity(Opportunity::STATUS_LOST, 'Khách từ chối: '.$notes, 'opportunities.care_closed_lost', $params);
         }
 
-        // Data đã xử lý: quá hạn quyết định (14 ngày từ lần liên hệ chốt đầu tiên) mà khách chưa đồng ý
-        // → gọi được nhưng còn cân nhắc: Lost; không liên lạc được: Archived
+        // Data đã xử lý: quá hạn quyết định (14 ngày từ lần liên hệ chốt đầu tiên) mà khách chưa đồng ý → Archived
         if ($this->opportunity->stage_id === Stage::PROCESSED && $this->opportunity->closeIfDecisionOverdue($time)) {
             $this->refreshStage();
 
@@ -441,25 +449,59 @@ class Show extends Component
     // ── Cập nhật kết quả lịch hẹn ─────────────────────────────────────
 
     /**
-     * Khách đã đến (Success) / Khách không đến (Failed) cho một dòng lịch hẹn.
+     * Mở ô ghi kết quả buổi hẹn trước khi xác nhận khách đã đến.
+     */
+    public function startAttended(string $appointmentId, string $type): void
+    {
+        $this->closeForm();
+        $this->attendKey = $appointmentId.'-'.$type;
+    }
+
+    /**
+     * Khách đã đến: bắt buộc ghi kết quả (Test: điểm / trình độ; Tư vấn: nội dung tư vấn, khóa học đề xuất).
+     */
+    public function saveAttended(): void
+    {
+        [$id, $type] = array_pad(explode('-', (string) $this->attendKey, 2), 2, '');
+
+        $this->validate(
+            ['attendResult' => ['required', 'string', 'max:1000']],
+            ['attendResult.required' => __('opportunities.apt_result_required')],
+            ['attendResult' => __('opportunities.apt_result')],
+        );
+
+        $this->markAppointment($id, $type, Appointment::STATUS_SUCCESS, trim($this->attendResult));
+    }
+
+    /**
+     * Khách đã đến (Success, kèm kết quả ghi nối vào ghi chú lịch hẹn) / Khách không đến (Failed) cho một dòng lịch hẹn.
      * Chỉ dòng còn "Scheduled", đã tới giờ hẹn, thuộc Opportunity này và do chính mình phụ trách.
      */
-    public function markAppointment(string $appointmentId, string $type, string $status): void
+    public function markAppointment(string $appointmentId, string $type, string $status, ?string $result = null): void
     {
         abort_unless($this->isOwner(), 403);
 
         $this->tab = 'appointments';
 
-        if (! in_array($status, [Appointment::STATUS_SUCCESS, Appointment::STATUS_FAILED], true)) {
+        if (! in_array($status, [Appointment::STATUS_SUCCESS, Appointment::STATUS_FAILED], true)
+            || ($status === Appointment::STATUS_SUCCESS && blank($result))) {
             return;
         }
 
-        $updated = $this->opportunityAppointments()
+        $query = $this->opportunityAppointments()
             ->where('appointment_id', $appointmentId)
             ->where('appointment_type', $type)
             ->where('status', Appointment::STATUS_SCHEDULED)
-            ->where('scheduled_time', '<=', now())
-            ->update(['status' => $status]);
+            ->where('scheduled_time', '<=', now());
+
+        $row = (clone $query)->first(['notes']);
+        $values = ['status' => $status];
+
+        if ($row && $result) {
+            $values['notes'] = ($row->notes ? $row->notes."\n" : '').'Kết quả: '.$result;
+        }
+
+        $updated = $row ? $query->update($values) : 0;
 
         if (! $updated) {
             $this->notice = ['tone' => 'danger', 'text' => __('opportunities.apt_cannot_mark')];
@@ -508,7 +550,7 @@ class Show extends Component
     protected function refreshStage(): void
     {
         $this->opportunity->setRelation('stage', $this->stages->firstWhere('stage_id', $this->opportunity->stage_id));
-        unset($this->nextActivity, $this->stageSince, $this->unreachableContacts, $this->stageContactDone, $this->rebookTypes);
+        unset($this->nextActivity, $this->stageSince, $this->unreachableContacts, $this->stageContactDone, $this->rebookTypes, $this->recontactAt);
     }
 
     // ── Tạo lịch hẹn ──────────────────────────────────────────────────

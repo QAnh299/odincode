@@ -733,6 +733,15 @@
     margin: 0.5rem 0 0;
     font-size: 0.9rem;
     overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+/* Ô ghi kết quả khi khách đã đến */
+.od-attend {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.6rem;
+    max-width: 520px;
 }
 
 .od-apt__actions {

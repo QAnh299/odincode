@@ -107,7 +107,7 @@
                     <div class="od-tabs__actions">
                         @if ($tab === 'care' && $this->needsContact())
                             <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)
-                                title="{{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this::MAX_UNREACHABLE_CONTACTS]) }}">
+                                title="{{ $this->careLockHint() }}">
                                 <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
                             </button>
                         @elseif ($tab === 'appointments' && $this->canCreateAppointment())
@@ -227,7 +227,7 @@
                                         {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
                                         @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
                                             <span class="od-muted">
-                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_return') : __('opportunities.care_failed_lost') }}
+                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_archived') : __('opportunities.care_failed_lost') }}
                                             </span>
                                         @endif
                                     </div>

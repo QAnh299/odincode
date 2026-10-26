@@ -98,7 +98,7 @@
     <div class="ok-board" wire:loading.class="is-loading">
         @php
             // Biểu tượng góc thẻ theo việc cần xử lý
-            $urgencyIcons = ['overdue_appointment' => 'clock', 'needs_quotation' => 'alert', 'decision_due' => 'hourglass', 'not_contacted' => 'phone'];
+            $urgencyIcons = ['overdue_appointment' => 'clock', 'needs_quotation' => 'alert', 'decision_due' => 'hourglass', 'recontact' => 'refresh', 'not_contacted' => 'phone'];
         @endphp
         @foreach ($this->stages as $stage)
             @php

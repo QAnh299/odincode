@@ -23,6 +23,12 @@ class Opportunity extends Model
     // Data đã xử lý: số ngày để khách quyết định, tính từ lần liên hệ "Chốt đăng ký" đầu tiên ở stage
     const DECISION_DAYS = 14;
 
+    // Không liên lạc được: lần liên hệ tiếp theo sau số ngày này (hệ thống nhắc khi tới hạn)
+    const RECONTACT_DAYS = 1;
+
+    // Data đã có lịch hẹn: quá số ngày này kể từ buổi khách không đến mà chưa hẹn lại → Archived
+    const REBOOK_DAYS = 7;
+
     protected $table = 'Opportunities';
 
     protected $primaryKey = 'opportunity_id';
@@ -147,6 +153,44 @@ class Opportunity extends Model
         return $changed ? Carbon::parse($changed)->startOfMinute() : $this->conversion_date;
     }
 
+    public function scopeWithLastCare(Builder $query): Builder
+    {
+        return $query->addSelect(['last_care_result' => CareResult::query()
+            ->select('result')
+            ->whereColumn('CareResults.opportunity_id', 'Opportunities.opportunity_id')
+            ->orderByDesc('performed_at')
+            ->orderByDesc('result_id')
+            ->limit(1)]);
+    }
+
+    public function recontactAt(): ?Carbon
+    {
+        $last = $this->careResults()
+            ->where('performed_at', '>=', $this->stageEnteredAt())
+            ->orderByDesc('performed_at')
+            ->orderByDesc('result_id')
+            ->first(['result', 'performed_at']);
+
+        return $last?->result === CareResult::RESULT_UNREACHABLE
+            ? Carbon::parse($last->performed_at)->addDays(self::RECONTACT_DAYS)
+            : null;
+    }
+
+    public function recontactDue(): bool
+    {
+        if ($this->status !== self::STATUS_IN_PROGRESS
+            || ! in_array($this->stage_id, [Stage::UNTOUCHED, Stage::APPOINTED, Stage::PROCESSED], true)
+            || (array_key_exists('last_care_result', $this->getAttributes()) && $this->last_care_result !== CareResult::RESULT_UNREACHABLE)) {
+            return false;
+        }
+
+        $at = $this->recontactAt();
+
+        return $at && $at->lte(now())
+            && ($this->stage_id !== Stage::APPOINTED
+                || ! $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->exists());
+    }
+
     public function needsQuotation(): bool
     {
         return $this->stage_id === Stage::CLOSED
@@ -176,9 +220,27 @@ class Opportunity extends Model
         $days = self::DECISION_DAYS;
         $last = $this->decisionContacts()->orderByDesc('performed_at')->orderByDesc('result_id')->value('result');
 
-        $last === CareResult::RESULT_UNREACHABLE
-            ? $this->close(self::STATUS_ARCHIVED, "Không liên lạc được quá {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên")
-            : $this->close(self::STATUS_LOST, "Khách không ra quyết định sau {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên");
+        $this->close(self::STATUS_ARCHIVED, $last === CareResult::RESULT_UNREACHABLE
+            ? "Không liên lạc được quá {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên"
+            : "Khách không ra quyết định sau {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên");
+
+        return true;
+    }
+
+    public function closeIfRebookOverdue(?Carbon $at = null): bool
+    {
+        if ($this->stage_id !== Stage::APPOINTED || $this->status !== self::STATUS_IN_PROGRESS
+            || $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->exists()) {
+            return false;
+        }
+
+        $noShow = $this->appointments()->where('status', Appointment::STATUS_FAILED)->max('scheduled_time');
+
+        if (! $noShow || ($at ?? now())->lte(Carbon::parse($noShow)->addDays(self::REBOOK_DAYS))) {
+            return false;
+        }
+
+        $this->close(self::STATUS_ARCHIVED, 'Không hẹn lại được trong '.self::REBOOK_DAYS.' ngày kể từ buổi khách không đến');
 
         return true;
     }
@@ -198,21 +260,5 @@ class Opportunity extends Model
             $this->moveToStage(Stage::ARCHIVED, $reason);
             $this->update(['status' => $status]);
         });
-    }
-
-    public function returnToUntouched(string $reason): void
-    {
-        DB::transaction(function () use ($reason) {
-            $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->delete();
-            $this->moveToStage(Stage::UNTOUCHED, $reason);
-        });
-    }
-
-    /**
-     * Số lần Opportunity đã quay về stage "Data chưa tương tác".
-     */
-    public function returnsToUntouched(): int
-    {
-        return $this->stagesHistory()->where('to_stage_id', Stage::UNTOUCHED)->count();
     }
 }

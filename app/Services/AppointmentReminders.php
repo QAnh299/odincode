@@ -27,7 +27,31 @@ class AppointmentReminders
 
         $now = now();
 
-        return Appointment::query()
+        // Đã qua giờ hẹn mà chưa cập nhật kết quả (Khách đã đến / Khách không đến)
+        $overdue = Appointment::query()
+            ->where('employee_id', $employee->employee_id)
+            ->where('status', Appointment::STATUS_SCHEDULED)
+            ->where('scheduled_time', '<=', $now)
+            ->with('opportunity.lead:lead_id,full_name')
+            ->orderBy('scheduled_time')
+            ->get()
+            ->groupBy('appointment_id')
+            ->map(function (Collection $rows) {
+                $first = $rows->first();
+
+                return [
+                    'title' => __('appointments.overdue_title', [
+                        'types' => self::typeNames($rows),
+                        'name'  => $first->opportunity?->lead?->full_name ?? '—',
+                    ]),
+                    'time'  => __('appointments.overdue_time', ['time' => $first->scheduled_time->format('d/m/Y H:i')]),
+                    'url'   => route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),
+                    'at'    => $first->scheduled_time,
+                ];
+            })
+            ->values();
+
+        return $overdue->concat(Appointment::query()
             ->where('employee_id', $employee->employee_id)
             ->where('status', Appointment::STATUS_SCHEDULED)
             ->where('scheduled_time', '>', $now)
@@ -39,9 +63,7 @@ class AppointmentReminders
             ->map(function (Collection $rows) {
                 $first = $rows->first();
                 $lead = $first->opportunity?->lead;
-                $types = $rows->sortBy(fn ($r) => array_search($r->appointment_type, Appointment::TYPES))
-                    ->map(fn ($r) => __('opportunities.appointment_type_name.'.$r->appointment_type))
-                    ->implode(' + ');
+                $types = self::typeNames($rows);
                 $day = $first->scheduled_time->isToday() ? __('appointments.today') : __('appointments.tomorrow');
 
                 return [
@@ -52,6 +74,16 @@ class AppointmentReminders
                     'at'    => $first->scheduled_time,
                 ];
             })
-            ->values();
+            ->values());
+    }
+
+    /**
+     * "Test + Tư vấn" theo thứ tự Appointment::TYPES.
+     */
+    protected static function typeNames(Collection $rows): string
+    {
+        return $rows->sortBy(fn ($r) => array_search($r->appointment_type, Appointment::TYPES))
+            ->map(fn ($r) => __('opportunities.appointment_type_name.'.$r->appointment_type))
+            ->implode(' + ');
     }
 }
