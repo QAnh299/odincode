@@ -160,7 +160,8 @@ return [
     'apt_rescheduled'       => 'Đã đổi thời gian / địa điểm lịch hẹn.',
     'apt_cannot_reschedule' => 'Chỉ đổi được lịch hẹn chưa tới giờ hẹn và chưa có kết quả.',
     'apt_time_future'       => 'Thời gian hẹn mới phải sau thời điểm hiện tại.',
-    'appointment_status' => [
+    'apt_staff'             => 'Nhân viên phụ trách',
+    'apt_clash'             => 'Trùng lịch: bạn đã có lịch :type lúc :time (:code).',    'appointment_status' => [
         'Scheduled' => 'Đã lên lịch',
         'Success'   => 'Khách đã đến',
         'Failed'    => 'Khách không đến',

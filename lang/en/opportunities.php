@@ -160,7 +160,8 @@ return [
     'apt_rescheduled'       => 'Appointment time / location updated.',
     'apt_cannot_reschedule' => 'Only upcoming appointments without a result can be rescheduled.',
     'apt_time_future'       => 'The new appointment time must be in the future.',
-    'appointment_status' => [
+    'apt_staff'             => 'Assigned staff',
+    'apt_clash'             => 'Schedule clash: you already have a :type appointment at :time (:code).',    'appointment_status' => [
         'Scheduled' => 'Scheduled',
         'Success'   => 'Attended',
         'Failed'    => 'No-show',

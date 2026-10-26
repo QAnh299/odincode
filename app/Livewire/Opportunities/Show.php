@@ -454,7 +454,7 @@ class Show extends Component
             return;
         }
 
-        $updated = $this->ownAppointments()
+        $updated = $this->opportunityAppointments()
             ->where('appointment_id', $appointmentId)
             ->where('appointment_type', $type)
             ->where('status', Appointment::STATUS_SCHEDULED)
@@ -488,7 +488,7 @@ class Show extends Component
             return false;
         }
 
-        $rows = $this->ownAppointments()->get(['appointment_type', 'status']);
+        $rows = $this->opportunityAppointments()->get(['appointment_type', 'status']);
         $types = $rows->pluck('appointment_type')->unique();
         $done = $rows->where('status', Appointment::STATUS_SUCCESS)->pluck('appointment_type')->unique();
 
@@ -543,7 +543,7 @@ class Show extends Component
             return $this->stageContactDone ? Appointment::TYPES : [];
         }
 
-        $rows = $this->ownAppointments()->get(['appointment_type', 'status']);
+        $rows = $this->opportunityAppointments()->get(['appointment_type', 'status']);
 
         return array_values(array_filter(Appointment::TYPES, function ($type) use ($rows) {
             $statuses = $rows->where('appointment_type', $type)->pluck('status');
@@ -586,6 +586,10 @@ class Show extends Component
 
         $this->validate($this->appointmentRules($allowed), $this->appointmentMessages(), $this->appointmentAttributes());
 
+        if (! $this->checkNewTimes()) {
+            return;
+        }
+
         [, $moved] = DB::transaction(fn () => $this->insertAppointment());
 
         $this->closeForm();
@@ -601,6 +605,44 @@ class Show extends Component
     protected function fillNewDefaults(): void
     {
         $this->newTimes = array_fill_keys(Appointment::TYPES, '');
+    }
+
+    /**
+     * Lịch hẹn đang chờ của Salesperson bắt đầu cùng giờ (theo phút). Test và Tư vấn của cùng một lịch hẹn
+     * được phép trùng giờ nên bỏ qua lịch hẹn đang đổi.
+     */
+    protected function clashFor(string $employeeId, Carbon $time, ?string $appointmentId = null): ?Appointment
+    {
+        return Appointment::query()
+            ->where('employee_id', $employeeId)
+            ->where('status', Appointment::STATUS_SCHEDULED)
+            ->whereBetween('scheduled_time', [$time->copy()->startOfMinute(), $time->copy()->endOfMinute()])
+            ->when($appointmentId, fn ($q) => $q->where('appointment_id', '!=', $appointmentId))
+            ->first();
+    }
+
+    protected function clashMessage(Appointment $clash): string
+    {
+        return __('opportunities.apt_clash', [
+            'type' => __('opportunities.appointment_type_name.'.$clash->appointment_type),
+            'time' => $clash->scheduled_time->format('d/m/Y H:i'),
+            'code' => $clash->appointment_id,
+        ]);
+    }
+
+    /**
+     * Kiểm tra giờ bắt đầu của form tạo lịch hẹn: không trùng lịch đang chờ của Salesperson.
+     * Lỗi gắn vào ô thời gian.
+     */
+    protected function checkNewTimes(): bool
+    {
+        foreach (array_intersect(Appointment::TYPES, $this->newTypes) as $type) {
+            if ($clash = $this->clashFor($this->employeeId(), Carbon::parse($this->newTimes[$type]))) {
+                $this->addError("newTimes.$type", $this->clashMessage($clash));
+            }
+        }
+
+        return $this->getErrorBag()->isEmpty();
     }
 
     /**
@@ -766,11 +808,15 @@ class Show extends Component
             'editTimes.*.after'  => __('opportunities.apt_time_future'),
         ], $attributes);
 
+        if (! $this->checkEditTimes()) {
+            return;
+        }
+
         DB::transaction(function () {
             foreach ($this->editKeys as $key) {
                 [$id, $type] = explode('-', $key, 2);
 
-                $this->ownAppointments()
+                $this->opportunityAppointments()
                     ->where('appointment_id', $id)
                     ->where('appointment_type', $type)
                     ->where('status', Appointment::STATUS_SCHEDULED)
@@ -782,6 +828,22 @@ class Show extends Component
         $this->closeForm();
         $this->notice = ['tone' => 'success', 'text' => __('opportunities.apt_rescheduled')];
         $this->refreshAppointments();
+    }
+
+    /**
+     * Kiểm tra giờ mới của form đổi lịch: không trùng lịch đang chờ khác của Salesperson.
+     */
+    protected function checkEditTimes(): bool
+    {
+        foreach ($this->editKeys as $key) {
+            [$id] = explode('-', $key, 2);
+
+            if ($clash = $this->clashFor($this->employeeId(), Carbon::parse($this->editTimes[$key]), $id)) {
+                $this->addError("editTimes.$key", $this->clashMessage($clash));
+            }
+        }
+
+        return $this->getErrorBag()->isEmpty();
     }
 
     // ── Dữ liệu ───────────────────────────────────────────────────────
@@ -919,13 +981,12 @@ class Show extends Component
     }
 
     /**
-     * Lịch hẹn của Opportunity này do chính mình phụ trách.
+     * Lịch hẹn của Opportunity này (gồm cả lịch của người phụ trách trước khi được chuyển).
      */
-    protected function ownAppointments()
+    protected function opportunityAppointments()
     {
         return DB::table('Appointments')
-            ->where('opportunity_id', $this->opportunity->opportunity_id)
-            ->where('employee_id', $this->employeeId());
+            ->where('opportunity_id', $this->opportunity->opportunity_id);
     }
 
     protected function refreshAppointments(): void
@@ -973,6 +1034,7 @@ class Show extends Component
 
         return Appointment::groupForDisplay(
             $this->opportunity->appointments()
+                ->with('employee:employee_id,full_name')
                 ->orderBy('scheduled_time')
                 ->get()
                 ->each(function ($row) use ($now, $open, $owner) {

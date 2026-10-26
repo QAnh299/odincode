@@ -36,6 +36,9 @@
 
                     <ul class="od-apt__meta">
                         <li><x-icon name="calendar" />{{ $row->scheduled_time->format('d/m/Y H:i') }}</li>
+                        @if ($row->relationLoaded('employee') && $row->employee)
+                            <li title="{{ __('opportunities.apt_staff') }}"><x-icon name="user" />{{ $row->employee->full_name }}</li>
+                        @endif
                     </ul>
 
                     @if ($row->notes)
