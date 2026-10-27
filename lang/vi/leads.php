@@ -112,8 +112,7 @@ return [
 
     // Thông báo chuông cho Sale Leader (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
-        'action' => 'Phân chia Lead cho Salesperson',
+        'title' => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
     ],
 
     // Popup Phân chia Lead (Leads\Distribute)

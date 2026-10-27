@@ -112,8 +112,7 @@ return [
 
     // Bell notifications for Sale Leaders (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
-        'action' => 'Distribute leads to salespeople',
+        'title' => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
     ],
 
     // Lead distribution popup (Leads\Distribute)
