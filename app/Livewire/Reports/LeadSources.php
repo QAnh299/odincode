@@ -12,18 +12,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
  * Dashboard & Báo cáo → Phân tích chất lượng nguồn Lead (Giám đốc, Sale Admin).
  *
- * Phần 1 - biểu đồ cố định: 4 thẻ KPI, Số Lead & Lead chốt theo nguồn, doanh thu theo nguồn,
- *          bảng xếp hạng nguồn.
- * Phần 2 - biểu đồ linh hoạt: người dùng chọn loại biểu đồ, chiều phân tích, chia nhóm,
- *          chỉ số và các giá trị cần vẽ, bấm "Vẽ biểu đồ" để vẽ.
- * Bộ lọc chung (thời gian, chi nhánh, kênh liên hệ) áp dụng cho cả 2 phần.
+ * Trả lời 1 câu hỏi: nguồn nào mang về Lead tốt (chốt được, ra doanh thu)?
+ *   - 4 thẻ KPI: tổng Lead, nguồn nhiều Lead nhất, nguồn chốt tốt nhất, nguồn doanh thu cao nhất
+ *   - 4 biểu đồ theo nguồn: số Lead & Lead chốt, tỷ lệ chốt, doanh thu, doanh thu / Lead
+ *   - bảng tóm tắt theo nguồn
+ * Tỷ lệ chốt = Lead chốt thành công (có Cơ hội Won) / Lead, tính theo ngày tạo Lead - xem App\Services\LeadSourceReport.
  * Xuất Excel: popup chọn kỳ, tiêu chí, sheet, cột và xem trước (trait ReportExport) - Giám đốc, Sale Admin.
  */
 #[Layout('layouts.app')]
@@ -31,23 +30,24 @@ class LeadSources extends Component
 {
     use ReportExport;
 
-    // Bảng màu phân loại (thứ tự cố định); màu đi theo thực thể, không theo thứ hạng
+    // Bảng màu phân loại (thứ tự cố định) - dùng chung các trang báo cáo
     const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
     const OTHER_COLOR = '#9ca3af';
 
-    // Số nhóm tối đa trên 1 biểu đồ; phần còn lại gộp vào "Khác"
-    const MAX_SERIES = 8;
+    // Màu cố định theo chỉ số
+    const COLORS = [
+        'leads'            => '#c3cad5',
+        'won'              => '#1baf7a',
+        'win_rate'         => '#1baf7a',
+        'revenue'          => '#2a78d6',
+        'revenue_per_lead' => '#6250d6',
+    ];
 
-    const CHART_TYPES = ['bar', 'bar_h', 'stacked', 'line', 'area', 'pie', 'doughnut'];
+    // Nguồn ít hơn số Lead này không xét "chốt tốt nhất" (tỷ lệ chưa đáng tin)
+    const MIN_LEADS = 10;
 
-    const ROUND_TYPES = ['pie', 'doughnut'];
-
-    const SORTS = ['value_desc', 'value_asc', 'label'];
-
-    const LIMITS = [0, 5, 10, 20];
-
-    /* ── Bộ lọc chung ─────────────────────────────────────────────────── */
+    /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
     #[Url(except: '')]
     public string $from = '';
@@ -61,304 +61,17 @@ class LeadSources extends Component
     #[Url(except: '')]
     public string $method = '';
 
-    const FILTERS = ['from', 'to', 'branch', 'method'];
-
-    /* ── Biểu đồ linh hoạt: lựa chọn đang sửa ─────────────────────────── */
-
-    public string $chartType = 'bar';
-
-    public string $dimension = 'source';
-
-    public string $breakdown = '';
-
-    public array $metrics = ['leads'];
-
-    // Giá trị của chiều phân tích được chọn để vẽ; rỗng = tất cả
-    public array $values = [];
-
-    public string $sort = 'value_desc';
-
-    public int $limit = 0;
-
-    // Lựa chọn đã bấm "Vẽ biểu đồ" (biểu đồ chỉ vẽ lại khi bấm nút)
-    #[Locked]
-    public array $applied = [];
-
-    #[Locked]
-    public array $builderErrors = [];
-
-    public function mount(): void
-    {
-        $this->draw();
-    }
-
     public function resetFilters(): void
     {
-        $this->reset(...self::FILTERS);
+        $this->reset('from', 'to', 'branch', 'method');
     }
 
     public function hasFilters(): bool
     {
-        foreach (self::FILTERS as $filter) {
-            if ($this->$filter !== '') {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->from !== '' || $this->to !== '' || $this->branch !== '' || $this->method !== '';
     }
 
-    /* ── Biểu đồ linh hoạt ────────────────────────────────────────────── */
-
-    public function updatedChartType(): void
-    {
-        // Biểu đồ tròn: 1 chỉ số cộng dồn được, không chia nhóm
-        if (in_array($this->chartType, self::ROUND_TYPES, true)) {
-            $this->breakdown = '';
-            $additive = array_values(array_filter($this->metrics, fn ($m) => $this->unitOf($m) !== 'percent'));
-            $this->metrics = [$additive[0] ?? 'leads'];
-        }
-    }
-
-    public function updatedDimension(): void
-    {
-        $this->values = [];
-        if ($this->breakdown === $this->dimension) {
-            $this->breakdown = '';
-        }
-    }
-
-    public function updatedBreakdown(): void
-    {
-        // Có chia nhóm: chỉ giữ 1 chỉ số
-        if ($this->breakdown !== '') {
-            $this->metrics = array_slice($this->metrics, 0, 1) ?: ['leads'];
-        }
-    }
-
-    public function selectAllValues(): void
-    {
-        $this->values = [];
-    }
-
-    public function draw(): void
-    {
-        $errors = $this->validateBuilder();
-        $this->builderErrors = $errors;
-
-        if ($errors) {
-            return;
-        }
-
-        $this->applied = [
-            'chartType' => $this->chartType,
-            'dimension' => $this->dimension,
-            'breakdown' => $this->breakdown,
-            'metrics'   => array_values($this->metrics),
-            'values'    => array_values($this->values),
-            'sort'      => $this->sort,
-            'limit'     => $this->limit,
-        ];
-    }
-
-    /**
-     * Kiểm tra tổ hợp lựa chọn; trả về danh sách lỗi (rỗng = hợp lệ).
-     */
-    protected function validateBuilder(): array
-    {
-        $errors = [];
-        $round = in_array($this->chartType, self::ROUND_TYPES, true);
-
-        if (! in_array($this->chartType, self::CHART_TYPES, true)
-            || ! isset(LeadSourceReport::DIMENSIONS[$this->dimension])
-            || ($this->breakdown !== '' && ! in_array($this->breakdown, $this->breakdownOptions(), true))
-            || ! in_array($this->sort, self::SORTS, true)
-            || ! in_array($this->limit, self::LIMITS, true)) {
-            return [__('reports.builder.err_invalid')];
-        }
-
-        $this->metrics = array_values(array_unique(array_filter(
-            $this->metrics, fn ($m) => is_string($m) && isset(LeadSourceReport::METRICS[$m])
-        )));
-
-        if (! $this->metrics) {
-            return [__('reports.builder.err_no_metric')];
-        }
-
-        $units = array_unique(array_map(fn ($m) => $this->unitOf($m), $this->metrics));
-
-        // Không dùng biểu đồ 2 trục: các chỉ số trên cùng 1 biểu đồ phải cùng đơn vị
-        if (count($units) > 1) {
-            $errors[] = __('reports.builder.err_unit');
-        }
-
-        if ($round) {
-            if (count($this->metrics) > 1) {
-                $errors[] = __('reports.builder.err_round_one');
-            }
-            if (in_array('percent', $units, true)) {
-                $errors[] = __('reports.builder.err_round_percent');
-            }
-        }
-
-        if ($this->breakdown !== '' && count($this->metrics) > 1) {
-            $errors[] = __('reports.builder.err_breakdown_one');
-        }
-
-        if ($this->chartType === 'stacked') {
-            if (in_array('percent', $units, true) || in_array('revenue_per_lead', $this->metrics, true)) {
-                $errors[] = __('reports.builder.err_stack_rate');
-            }
-            if ($this->breakdown === '' && count($this->metrics) < 2) {
-                $errors[] = __('reports.builder.err_stack_need');
-            }
-        }
-
-        // Chỉ giữ giá trị còn tồn tại trong danh sách
-        $available = array_column($this->valueOptions, 'value');
-        $this->values = array_values(array_intersect($this->values, $available));
-
-        return $errors;
-    }
-
-    /**
-     * Chiều chia nhóm hợp lệ với chiều phân tích hiện tại.
-     */
-    public function breakdownOptions(): array
-    {
-        return array_values(array_filter(
-            array_keys(LeadSourceReport::DIMENSIONS),
-            fn ($d) => $d !== $this->dimension && ! in_array($d, LeadSourceReport::TIME_DIMENSIONS, true)
-        ));
-    }
-
-    /**
-     * Các giá trị của chiều phân tích (để chọn giá trị cần vẽ). Chiều thời gian dùng bộ lọc ngày.
-     */
-    #[Computed]
-    public function valueOptions(): array
-    {
-        if (in_array($this->dimension, LeadSourceReport::TIME_DIMENSIONS, true)) {
-            return [];
-        }
-
-        $rows = $this->report()->aggregate($this->filterValues(), $this->dimension);
-        usort($rows, fn ($a, $b) => $b['leads'] <=> $a['leads'] ?: strcmp($a['dim'], $b['dim']));
-
-        return array_map(fn ($row) => [
-            'value' => $row['dim'],
-            'label' => $this->label($this->dimension, $row['dim']),
-            'leads' => $row['leads'],
-        ], $rows);
-    }
-
-    /**
-     * Cấu hình biểu đồ linh hoạt theo lựa chọn đã áp dụng + bảng số liệu đi kèm.
-     */
-    #[Computed]
-    public function customChart(): ?array
-    {
-        if (! $this->applied) {
-            return null;
-        }
-
-        $a = $this->applied;
-        $dim = $a['dimension'];
-        $time = in_array($dim, LeadSourceReport::TIME_DIMENSIONS, true);
-        $rows = $this->report()->aggregate($this->filterValues(), $dim, $a['breakdown'] ?: null);
-
-        if ($a['values'] && ! $time) {
-            $rows = array_values(array_filter($rows, fn ($r) => in_array($r['dim'], $a['values'], true)));
-        }
-
-        if (! $rows) {
-            return ['empty' => true];
-        }
-
-        $sortMetric = $a['metrics'][0];
-
-        // Thứ tự các giá trị trên trục: theo thời gian / tên / giá trị chỉ số đầu tiên (cộng theo nhóm)
-        $dims = $this->sumBy($rows, 'dim');
-        if ($time || $a['sort'] === 'label') {
-            ksort($dims, SORT_NATURAL);
-        } else {
-            uasort($dims, fn ($x, $y) => $a['sort'] === 'value_asc'
-                ? $x[$sortMetric] <=> $y[$sortMetric]
-                : $y[$sortMetric] <=> $x[$sortMetric]);
-        }
-        $keys = array_keys($dims);
-        if ($a['limit'] && ! $time) {
-            $keys = array_slice($keys, 0, $a['limit']);
-        }
-
-        $labels = array_map(fn ($k) => $this->label($dim, (string) $k), $keys);
-        $unit = $this->unitOf($sortMetric);
-        $round = in_array($a['chartType'], self::ROUND_TYPES, true);
-
-        if ($a['breakdown']) {
-            // Mỗi nhóm 1 dãy; quá MAX_SERIES nhóm thì gộp phần nhỏ vào "Khác"
-            $metric = $sortMetric;
-            $groups = $this->sumBy($rows, 'group');
-            uasort($groups, fn ($x, $y) => $y['leads'] <=> $x['leads']);
-            $groupKeys = array_keys($groups);
-            $kept = count($groupKeys) > self::MAX_SERIES ? array_slice($groupKeys, 0, self::MAX_SERIES - 1) : $groupKeys;
-            $cells = [];
-            foreach ($rows as $row) {
-                $g = in_array($row['group'], $kept, true) ? $row['group'] : '__other';
-                $cells[$g][$row['dim']][] = $row;
-            }
-
-            $colors = $this->colorMap($a['breakdown'], $kept);
-            $series = [];
-            foreach (array_merge($kept, isset($cells['__other']) ? ['__other'] : []) as $g) {
-                $series[] = [
-                    'label' => $g === '__other' ? __('reports.other') : $this->label($a['breakdown'], (string) $g),
-                    'color' => $g === '__other' ? self::OTHER_COLOR : $colors[$g],
-                    'data'  => array_map(fn ($k) => isset($cells[$g][$k])
-                        ? $this->combine($cells[$g][$k])[$metric] : 0, $keys),
-                ];
-            }
-            $title = __('reports.metric.'.$metric).' · '.__('reports.dimension.'.$dim).' × '.__('reports.dimension.'.$a['breakdown']);
-        } elseif ($round) {
-            // Tròn: mỗi giá trị 1 lát, màu theo thực thể; quá MAX_SERIES lát thì gộp "Khác"
-            $metric = $sortMetric;
-            $kept = count($keys) > self::MAX_SERIES ? array_slice($keys, 0, self::MAX_SERIES - 1) : $keys;
-            $rest = array_diff($keys, $kept);
-            $colors = $this->colorMap($dim, array_map('strval', $kept));
-            $data = array_map(fn ($k) => $dims[$k][$metric], $kept);
-            $sliceColors = array_map(fn ($k) => $colors[(string) $k], $kept);
-            $labels = array_map(fn ($k) => $this->label($dim, (string) $k), $kept);
-            if ($rest) {
-                $labels[] = __('reports.other');
-                $data[] = array_sum(array_map(fn ($k) => $dims[$k][$metric], $rest));
-                $sliceColors[] = self::OTHER_COLOR;
-            }
-            $series = [['label' => __('reports.metric.'.$metric), 'data' => $data, 'colors' => $sliceColors]];
-            $title = __('reports.metric.'.$metric).' · '.__('reports.dimension.'.$dim);
-        } else {
-            // Mỗi chỉ số 1 dãy, màu cố định theo chỉ số
-            $metricKeys = array_keys(LeadSourceReport::METRICS);
-            $series = array_map(fn ($m) => [
-                'label' => __('reports.metric.'.$m),
-                'color' => self::PALETTE[array_search($m, $metricKeys, true) % count(self::PALETTE)],
-                'data'  => array_map(fn ($k) => $dims[$k][$m], $keys),
-            ], $a['metrics']);
-            $title = implode(', ', array_map(fn ($m) => __('reports.metric.'.$m), $a['metrics'])).' · '.__('reports.dimension.'.$dim);
-        }
-
-        return [
-            'empty' => false,
-            'title' => $title,
-            'spec'  => [
-                'type'   => $a['chartType'],
-                'unit'   => $unit,
-                'labels' => array_values($labels),
-                'series' => $series,
-            ],
-        ];
-    }
-
-    /* ── Biểu đồ cố định ──────────────────────────────────────────────── */
+    /* ── Số liệu ──────────────────────────────────────────────────────── */
 
     #[Computed]
     public function totals(): array
@@ -367,53 +80,60 @@ class LeadSources extends Component
     }
 
     /**
-     * Chỉ số theo từng nguồn, sắp theo số Lead giảm dần.
+     * Chỉ số theo nguồn có Lead trong phạm vi lọc, nhiều Lead trước.
      */
     #[Computed]
     public function bySource(): array
     {
         $rows = $this->report()->aggregate($this->filterValues(), 'source');
-        usort($rows, fn ($a, $b) => $b['leads'] <=> $a['leads'] ?: $b['revenue'] <=> $a['revenue']);
+        usort($rows, fn ($a, $b) => $b['leads'] <=> $a['leads'] ?: strcmp($a['dim'], $b['dim']));
 
         return $rows;
     }
 
     /**
-     * 2 biểu đồ cố định – trả lời 2 câu hỏi chính về chất lượng nguồn:
-     *   quality: nguồn nào nhiều Lead nhưng ít chốt (Số Lead cạnh Lead chốt thành công)
-     *   revenue: nguồn nào mang về nhiều doanh thu nhất
+     * Nguồn nổi bật cho thẻ KPI. Bằng nhau thì nguồn nhiều Lead hơn được chọn.
      */
     #[Computed]
-    public function fixedCharts(): array
+    public function highlights(): array
     {
+        $pick = function (array $rows, string $metric) {
+            usort($rows, fn ($a, $b) => $b[$metric] <=> $a[$metric] ?: $b['leads'] <=> $a['leads']);
+
+            return $rows[0] ?? null;
+        };
         $rows = $this->bySource;
-        $metricKeys = array_keys(LeadSourceReport::METRICS);
-        $metricColor = fn ($m) => self::PALETTE[array_search($m, $metricKeys, true) % count(self::PALETTE)];
+        $enough = array_filter($rows, fn ($r) => $r['leads'] >= self::MIN_LEADS);
+        $revenue = $pick($rows, 'revenue');
 
-        $quality = [
-            'type'   => 'bar_h',
-            'unit'   => 'count',
-            'labels' => array_column($rows, 'dim'),
-            'series' => array_map(fn ($m) => [
-                'label' => __('reports.metric.'.$m), 'color' => $metricColor($m),
-                'data'  => array_column($rows, $m),
-            ], ['leads', 'won']),
+        return [
+            'leads'   => $pick($rows, 'leads'),
+            'win'     => $pick($enough ?: $rows, 'win_rate'),
+            'revenue' => $revenue && $revenue['revenue'] > 0 ? $revenue : null,
         ];
+    }
 
-        // Bỏ nguồn chưa có doanh thu, sắp giảm dần
-        $withRevenue = array_values(array_filter($rows, fn ($r) => $r['revenue'] > 0));
-        usort($withRevenue, fn ($a, $b) => $b['revenue'] <=> $a['revenue']);
-        $revenue = [
-            'type'   => 'bar_h',
-            'unit'   => 'money',
-            'labels' => array_column($withRevenue, 'dim'),
-            'series' => [[
-                'label' => __('reports.metric.revenue'), 'color' => self::PALETTE[0],
-                'data'  => array_column($withRevenue, 'revenue'),
-            ]],
+    /**
+     * 4 biểu đồ theo nguồn, mỗi biểu đồ sắp giảm dần theo chỉ số của nó.
+     */
+    #[Computed]
+    public function charts(): array
+    {
+        $chart = function (string $type, string $unit, array $metrics) {
+            $rows = $this->bySource;
+            usort($rows, fn ($a, $b) => $b[end($metrics)] <=> $a[end($metrics)] ?: $b['leads'] <=> $a['leads']);
+
+            return ['type' => $type, 'unit' => $unit, 'labels' => array_column($rows, 'dim'),
+                'series' => array_map(fn ($m) => ['label' => __('reports.metric.'.$m), 'color' => self::COLORS[$m],
+                    'data' => array_column($rows, $m)], $metrics)];
+        };
+
+        return [
+            'volume'           => $chart('bar_h', 'count', ['leads', 'won']),
+            'win_rate'         => $chart('bar_h', 'percent', ['win_rate']),
+            'revenue'          => $chart('bar_h', 'money', ['revenue']),
+            'revenue_per_lead' => $chart('bar_h', 'money', ['revenue_per_lead']),
         ];
-
-        return ['quality' => $quality, 'revenue' => $revenue];
     }
 
     /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
@@ -682,7 +402,7 @@ class LeadSources extends Component
     }
 
     /**
-     * Toàn bộ nguồn (không theo bộ lọc), sắp theo tên - làm khoá màu cố định cho từng nguồn.
+     * Toàn bộ nguồn (không theo bộ lọc) - cho ô chọn nguồn khi xuất Excel.
      */
     #[Computed]
     public function allSources(): array
@@ -698,7 +418,7 @@ class LeadSources extends Component
     }
 
     /**
-     * Bộ lọc chung đã kiểm tra (giá trị không hợp lệ bị bỏ qua).
+     * Bộ lọc đã kiểm tra (giá trị không hợp lệ bị bỏ qua).
      */
     protected function filterValues(): array
     {
@@ -715,59 +435,6 @@ class LeadSources extends Component
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) && strtotime($value) !== false;
     }
 
-    public function unitOf(string $metric): string
-    {
-        return LeadSourceReport::METRICS[$metric] ?? 'count';
-    }
-
-    /**
-     * Gộp các dòng theo 1 khoá (dim / group) rồi tính lại chỉ số.
-     */
-    protected function sumBy(array $rows, string $key): array
-    {
-        $grouped = [];
-        foreach ($rows as $row) {
-            $grouped[$row[$key]][] = $row;
-        }
-
-        return array_map(fn ($items) => $this->combine($items), $grouped);
-    }
-
-    /**
-     * Cộng các chỉ số gốc của nhiều dòng rồi tính lại chỉ số dẫn xuất (tỷ lệ không cộng thẳng được).
-     */
-    protected function combine(array $items): array
-    {
-        $sum = [];
-        foreach (['leads', 'converted', 'won', 'lost', 'revenue', 'paid', 'expected'] as $k) {
-            $sum[$k] = array_sum(array_column($items, $k));
-        }
-
-        return $this->report()->derive($sum);
-    }
-
-    /**
-     * Màu cố định cho từng giá trị: nguồn theo danh sách toàn bộ nguồn, chiều khác theo danh mục cố định.
-     */
-    protected function colorMap(string $dimension, array $values): array
-    {
-        $catalog = match ($dimension) {
-            'source' => $this->allSources,
-            'method' => Lead::CONTACT_METHODS,
-            'status' => Lead::STATUSES,
-            'branch' => $this->branches->pluck('branch_id')->all(),
-            default  => $values,
-        };
-
-        $map = [];
-        foreach ($values as $value) {
-            $i = array_search($value, $catalog, true);
-            $map[$value] = $i !== false && $i < count(self::PALETTE) ? self::PALETTE[$i] : self::OTHER_COLOR;
-        }
-
-        return $map;
-    }
-
     /**
      * Nhãn hiển thị của 1 giá trị theo chiều phân tích.
      */
@@ -778,8 +445,6 @@ class LeadSources extends Component
             'status' => __('leads.status_name.'.$value),
             'branch' => $this->branches->firstWhere('branch_id', $value)?->branch_name ?? $value,
             'month'  => preg_match('/^(\d{4})-(\d{2})$/', $value, $m) ? "$m[2]/$m[1]" : $value,
-            'week'   => preg_match('/^(\d{4})-(\d{2})$/', $value, $m)
-                ? __('reports.week_label', ['week' => (int) $m[2], 'year' => $m[1]]) : $value,
             default  => $value,
         };
     }

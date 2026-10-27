@@ -148,204 +148,11 @@
     background: linear-gradient(to right, var(--vc-tint) var(--w), transparent var(--w));
 }
 
-/* ── Biểu đồ linh hoạt ─────────────────────────────────────────────── */
-
-.rp-builder {
-    display: grid;
-    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
-    gap: 1.5rem;
-}
-
-.rp-builder__form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-    padding-right: 1.5rem;
-    border-right: 1px solid var(--vc-border);
-}
-
-.rp-builder__result {
-    min-width: 0;
-}
-
-.rp-builder__result .rp-card__title {
-    margin-bottom: 0.9rem;
-}
-
-.rp-step {
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
-.rp-step__title {
-    margin-bottom: 0.6rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--vc-ink);
-}
-
-.rp-step__row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-}
-
-/* Ô chọn loại biểu đồ */
-.rp-types {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.5rem;
-}
-
-.rp-type {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.6rem 0.25rem;
-    border: 1.5px solid var(--vc-border);
-    border-radius: 12px;
-    color: var(--vc-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
-}
-
-.rp-type .odin-icon {
-    width: 22px;
-    height: 22px;
-}
-
-.rp-type:hover {
-    border-color: color-mix(in srgb, var(--vc-primary) 40%, #fff);
-}
-
-.rp-type.is-current {
-    border-color: var(--vc-primary);
-    background: var(--vc-tint);
-    color: var(--vc-primary);
-}
-
-.rp-type:focus-within {
-    box-shadow: 0 0 0 4px var(--vc-tint);
-}
-
-/* Chỉ số + giá trị dạng chip bật/tắt */
-.rp-metrics {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin-top: 0.85rem;
-}
-
-.rp-metrics__group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.rp-metrics__unit {
-    width: 100%;
-    color: var(--vc-muted);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.rp-values {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    max-height: 180px;
-    overflow-y: auto;
-}
-
-.rp-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.7rem;
-    border: 1.5px solid var(--vc-border);
-    border-radius: 999px;
-    background: var(--vc-surface);
-    color: var(--vc-ink);
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
-}
-
-.rp-chip:hover {
-    border-color: color-mix(in srgb, var(--vc-primary) 40%, #fff);
-}
-
-.rp-chip.is-on {
-    border-color: var(--vc-primary);
-    background: var(--vc-tint);
-    color: var(--vc-primary);
-    font-weight: 600;
-}
-
-.rp-chip:focus-within {
-    box-shadow: 0 0 0 3px var(--vc-tint);
-}
-
-.rp-chip__count {
-    color: var(--vc-muted);
-    font-size: 0.72rem;
-}
-
+/* Gợi ý nhỏ dưới ô nhập */
 .rp-hint {
     margin: 0 0 0.4rem;
     color: var(--vc-muted);
     font-size: 0.78rem;
-}
-
-.rp-hint--pending {
-    margin: 0;
-    color: #b45309;
-}
-
-.rp-builder__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-
-.rp-errors {
-    display: flex;
-    gap: 0.6rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #fecaca;
-    border-radius: 14px;
-    background: #fef2f2;
-    color: #b91c1c;
-    font-size: 0.85rem;
-}
-
-.rp-errors ul {
-    margin: 0;
-    padding-left: 1rem;
-}
-
-.rp-data {
-    margin-top: 1rem;
-}
-
-.rp-data summary {
-    color: var(--vc-primary);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.rp-data .table-responsive {
-    margin-top: 0.6rem;
 }
 
 /* ── Hiệu quả nhân viên Sales ──────────────────────────────────────── */
@@ -812,21 +619,6 @@
     .rp-kpis {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-
-    .rp-builder {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .rp-builder__form {
-        padding-right: 0;
-        padding-bottom: 1.25rem;
-        border-right: 0;
-        border-bottom: 1px solid var(--vc-border);
-    }
-
-    .rp-types {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-    }
 }
 
 @media (max-width: 991.98px) {
@@ -843,16 +635,11 @@
     .rp-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .rp-types {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
 }
 
 @media (max-width: 479.98px) {
     .rp-kpis,
-    .rp-filters,
-    .rp-step__row {
+    .rp-filters {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -1470,3 +1257,4 @@
 .rp-link:hover {
     text-decoration: underline;
 }
+
