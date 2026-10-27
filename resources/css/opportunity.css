@@ -497,6 +497,24 @@
     font-weight: 700;
 }
 
+/* Tiêu đề card kèm nút thao tác bên phải (VD: Khách hàng - Sửa) */
+.od-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.od-title-row .od-title {
+    margin: 0;
+}
+
+.od-title-row__btn {
+    height: 32px;
+    padding-inline: 0.75rem;
+}
+
 /* Tiêu đề trong card có bảng (card không padding) */
 .od-title--bar {
     margin: 0;

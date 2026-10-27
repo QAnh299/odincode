@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Leads;
 
+use App\Livewire\Leads\Concerns\EditsLead;
+use App\Models\Branch;
 use App\Models\Lead;
 use App\Models\Opportunity;
+use App\Models\Role;
+use App\Services\LeadImportService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -13,12 +17,18 @@ use Livewire\Component;
 
 /**
  * Chi tiết Lead: thông tin liên hệ (nguồn, chi nhánh, ngày tạo) và các cơ hội đã tạo từ Lead.
- * Giám đốc, Sale Admin, Sale Leader xem theo Lead::visibleTo() (cùng phạm vi với danh sách Lead); chỉ xem.
+ * Giám đốc, Sale Admin, Sale Leader xem theo Lead::visibleTo() (cùng phạm vi với danh sách Lead).
+ * Sale Admin chỉnh sửa khi Lead còn "Mới" (mọi trường) hoặc cơ hội của Lead đang chăm sóc (họ tên, SĐT,
+ * email, link nguồn); cơ hội đã chốt / lưu trữ thì giữ nguyên thông tin.
  */
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    use EditsLead;
+
     public Lead $lead;
+
+    public ?string $notice = null;
 
     public function mount(Lead $lead): void
     {
@@ -55,6 +65,33 @@ class Show extends Component
             ->each(fn (Opportunity $opportunity) => $opportunity->url = in_array($opportunity->opportunity_id, $viewable, true)
                 ? route($route, $opportunity)
                 : null);
+    }
+
+    protected function leadToEdit(): ?Lead
+    {
+        return $this->routePrefix === Role::SALE_ADMIN && $this->lead->isEditable() ? $this->lead : null;
+    }
+
+    public function leadEditableFields(): array
+    {
+        return $this->lead->status === Lead::STATUS_NEW ? LeadImportService::COLUMNS : self::LEAD_CONTACT_FIELDS;
+    }
+
+    protected function leadUpdated(Lead $lead): void
+    {
+        $this->lead = $lead->refresh()->load('branch:branch_id,branch_name,address');
+        $this->notice = __('leads.edit_saved');
+    }
+
+    public function dismissNotice(): void
+    {
+        $this->notice = null;
+    }
+
+    #[Computed]
+    public function branches(): Collection
+    {
+        return Branch::query()->orderBy('branch_id')->get(['branch_id', 'branch_name']);
     }
 
     public function render()

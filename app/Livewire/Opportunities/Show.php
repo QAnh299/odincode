@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Opportunities;
 
+use App\Livewire\Leads\Concerns\EditsLead;
 use App\Models\Appointment;
 use App\Models\CareActivity;
 use App\Models\CareResult;
 use App\Models\Employee;
+use App\Models\Lead;
 use App\Models\Invoice;
 use App\Models\Opportunity;
 use App\Models\OpportunityTransfer;
@@ -59,6 +61,8 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    use EditsLead;
+
     const TABS = ['care', 'appointments'];
 
     public Opportunity $opportunity;
@@ -889,6 +893,34 @@ class Show extends Component
         }
 
         return $this->getErrorBag()->isEmpty();
+    }
+
+    // ── Sửa thông tin khách (Lead) ────────────────────────────────────
+
+    /**
+     * Salesperson phụ trách sửa thông tin liên hệ của khách khi cơ hội đang chăm sóc (InProgress);
+     * cơ hội đã chốt / lưu trữ giữ nguyên thông tin - Lead::isEditable().
+     */
+    protected function leadToEdit(): ?Lead
+    {
+        $lead = $this->opportunity->lead;
+
+        return $this->isOwner()
+            && $this->opportunity->status === Opportunity::STATUS_IN_PROGRESS
+            && $lead?->isEditable()
+            ? $lead
+            : null;
+    }
+
+    public function leadEditableFields(): array
+    {
+        return self::LEAD_CONTACT_FIELDS;
+    }
+
+    protected function leadUpdated(Lead $lead): void
+    {
+        $this->opportunity->setRelation('lead', $lead->refresh()->load('branch:branch_id,branch_name,address'));
+        $this->notice = ['tone' => 'success', 'text' => __('leads.edit_saved')];
     }
 
     // ── Dữ liệu ───────────────────────────────────────────────────────

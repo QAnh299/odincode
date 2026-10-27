@@ -76,6 +76,16 @@ class Lead extends Model
             : $query->whereRaw('1 = 0');
     }
 
+    /**
+     * Thông tin Lead còn được sửa: Lead chưa phân chia, hoặc mọi cơ hội của Lead đều đang chăm sóc.
+     * Cơ hội đã chốt hay đã lưu trữ giữ nguyên thông tin khách lúc kết thúc.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_NEW
+            || ! $this->opportunities()->where('status', '!=', Opportunity::STATUS_IN_PROGRESS)->exists();
+    }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class, 'branch_id', 'branch_id');
