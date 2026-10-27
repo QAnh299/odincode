@@ -214,6 +214,19 @@ return [
     'unassigned'             => 'Chưa phân chia',
     'pending_team'           => 'Chờ phân Salesperson · :team',
     'status'                 => 'Trạng thái',
+    'actions'                => 'Thao tác',
+    'view'                   => 'Xem chi tiết',
+
+    // Chi tiết Lead
+    'detail_title'           => 'Lead :code',
+    'back'                   => 'Quay lại danh sách',
+    'info'                   => 'Thông tin liên hệ',
+    'opportunities_title'    => 'Cơ hội',
+    'no_opportunities'       => 'Lead chưa được phân chia, chưa có cơ hội.',
+    'opportunity'            => 'Mã cơ hội',
+    'conversion_date'        => 'Ngày chuyển đổi',
+    'stage'                  => 'Giai đoạn',
+    'became_student'         => 'Học viên :code',
 
     'status_name' => [
         'New'       => 'Mới',

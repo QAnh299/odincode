@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasStringId;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -51,6 +52,29 @@ class Lead extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    /**
+     * Lead được xem theo vai trò (danh sách và chi tiết Lead):
+     *   - Giám đốc, Sale Admin: tất cả chi nhánh;
+     *   - Sale Leader: Lead thuộc chi nhánh của mình mà Sale Admin đã phân cho đội (trưởng nhóm đang giữ
+     *     hoặc đã phân cho thành viên);
+     *   - vai trò khác: không xem.
+     */
+    public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
+    {
+        if (in_array($employee?->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true)) {
+            return $query;
+        }
+
+        $team = $employee?->role_name === Role::SALE_LEADER ? ($employee->ledTeam ?? $employee->team) : null;
+
+        return $team
+            ? $query->where('branch_id', $employee->branch_id)
+                ->whereHas('opportunities', fn ($q) => $q->where(fn ($q) => $q
+                    ->where('employee_id', $team->team_leader_id)
+                    ->orWhereHas('employee', fn ($e) => $e->where('team_id', $team->team_id))))
+            : $query->whereRaw('1 = 0');
+    }
 
     public function branch()
     {

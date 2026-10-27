@@ -196,12 +196,16 @@
                             <th>{{ __('leads.created_at') }}</th>
                             <th>{{ __('leads.owner') }}</th>
                             <th>{{ __('leads.status') }}</th>
+                            <th class="text-lg-end">{{ __('leads.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($leads as $lead)
-                            @php $owner = $lead->latestOpportunity?->employee; @endphp
-                            <tr wire:key="lead-{{ $lead->lead_id }}">
+                            @php
+                                $owner = $lead->latestOpportunity?->employee;
+                                $url = route($this->routePrefix.'.leads.show', $lead);
+                            @endphp
+                            <tr wire:key="lead-{{ $lead->lead_id }}" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('leads.code') }}">
                                     <span class="vc-mono">{{ $lead->lead_id }}</span>
                                 </td>
@@ -214,7 +218,7 @@
                                 <td data-label="{{ __('leads.phone') }}" class="ld-nowrap">{{ $lead->phone }}</td>
                                 <td data-label="{{ __('leads.source') }}">
                                     @if ($lead->sourceUrlIsLink())
-                                        <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer">{{ $lead->source_name }}</a>
+                                        <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">{{ $lead->source_name }}</a>
                                     @else
                                         {{ $lead->source_name }}
                                         @if ($lead->source_url)
@@ -246,6 +250,12 @@
                                     <span class="vc-badge ld-st--{{ $lead->status }}">
                                         <span class="vc-badge__dot"></span>{{ __('leads.status_name.'.$lead->status) }}
                                     </span>
+                                </td>
+                                <td data-label="{{ __('leads.actions') }}" class="text-lg-end">
+                                    <a href="{{ $url }}" class="vc-icon-btn" onclick="event.stopPropagation()"
+                                        title="{{ __('leads.view') }}" aria-label="{{ __('leads.view') }} {{ $lead->lead_id }}">
+                                        <x-icon name="eye" />
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

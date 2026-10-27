@@ -1088,3 +1088,19 @@
         flex-basis: 100%;
     }
 }
+
+/* Chi tiết Lead: thông tin liên hệ trải ngang trang, hai cặp nhãn - giá trị mỗi hàng */
+.st-info.ld-info {
+    grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+    column-gap: 1.5rem;
+}
+
+.st-info.ld-info dd {
+    text-align: left;
+}
+
+@media (max-width: 767.98px) {
+    .st-info.ld-info {
+        grid-template-columns: max-content minmax(0, 1fr);
+    }
+}

@@ -214,6 +214,19 @@ return [
     'unassigned'             => 'Not distributed',
     'pending_team'           => 'Awaiting salesperson · :team',
     'status'                 => 'Status',
+    'actions'                => 'Actions',
+    'view'                   => 'View details',
+
+    // Lead details
+    'detail_title'           => 'Lead :code',
+    'back'                   => 'Back to list',
+    'info'                   => 'Contact information',
+    'opportunities_title'    => 'Opportunities',
+    'no_opportunities'       => 'This lead has not been assigned yet and has no opportunities.',
+    'opportunity'            => 'Opportunity',
+    'conversion_date'        => 'Conversion date',
+    'stage'                  => 'Stage',
+    'became_student'         => 'Student :code',
 
     'status_name' => [
         'New'       => 'New',
