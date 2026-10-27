@@ -227,7 +227,7 @@
                                         {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
                                         @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
                                             <span class="od-muted">
-                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_archived') : __('opportunities.care_failed_lost') }}
+                                                {{ __('opportunities.care_failed_lost') }}
                                             </span>
                                         @endif
                                     </div>

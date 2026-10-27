@@ -53,7 +53,7 @@ use Livewire\Component;
  *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
  *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
  *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
- *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → "Tạo báo giá" (→ Chốt); Thất bại → Archived;
+ *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → "Tạo báo giá" (→ Chốt); Thất bại → Lost;
  *     quá 14 ngày từ lần liên hệ chốt đăng ký đầu tiên mà khách chưa đồng ý → Archived.
  * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
  * Phần Báo giá chỉ hiện ở stage Chốt (hoặc khi đã có báo giá).
@@ -340,7 +340,7 @@ class Show extends Component
 
     /**
      * Xử lý sau khi ghi nhận liên hệ, theo kết quả và stage; trả về nội dung thông báo.
-     *   - Thất bại (khách từ chối): Data đã xử lý → Archived; stage khác → Lost.
+     *   - Thất bại (khách từ chối): Lost; ở Data đã xử lý lý do ghi là khách từ chối đăng ký.
      *   - Không liên lạc được: vượt giới hạn của stage → Archived.
      */
     protected function applyCareOutcome(string $result, Carbon $time, string $notes, string $activity): string
@@ -348,9 +348,9 @@ class Show extends Component
         $params = ['activity' => $activity];
 
         if ($result === CareResult::RESULT_FAILED) {
-            return $this->opportunity->stage_id === Stage::PROCESSED
-                ? $this->closeOpportunity(Opportunity::STATUS_ARCHIVED, 'Khách từ chối đăng ký: '.$notes, 'opportunities.care_closed_refused', $params)
-                : $this->closeOpportunity(Opportunity::STATUS_LOST, 'Khách từ chối: '.$notes, 'opportunities.care_closed_lost', $params);
+            $reason = $this->opportunity->stage_id === Stage::PROCESSED ? 'Khách từ chối đăng ký: ' : 'Khách từ chối: ';
+
+            return $this->closeOpportunity(Opportunity::STATUS_LOST, $reason.$notes, 'opportunities.care_closed_lost', $params);
         }
 
         // Data đã xử lý: quá hạn quyết định (14 ngày từ lần liên hệ chốt đầu tiên) mà khách chưa đồng ý → Archived
