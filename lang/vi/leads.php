@@ -112,21 +112,20 @@ return [
 
     // Thông báo chuông cho Sale Leader (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
-        'action' => 'Phân chia Lead cho Salesperson',
+        'title' => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
     ],
 
     // Popup Phân chia Lead (Leads\Distribute)
     'distribute' => [
         'title_team'              => 'Phân bổ Lead cho Sales Team',
         'title_person'            => 'Phân bổ Lead cho Salesperson',
-        'overflow_sub'            => 'Phân công lại phần Lead vượt ngưỡng :max Lead/người dựa trên hiệu suất làm việc.',
+        'overflow_sub'            => 'Ngưỡng :max Lead/người chỉ là cảnh báo, bạn vẫn có thể phân thêm dựa trên hiệu suất.',
         'mode'                    => 'Phương thức phân công',
         'mode_auto'               => 'Chia tự động',
         'mode_manual'             => 'Chia thủ công',
         'pick_mode'             => 'Chọn phương thức phân công để bắt đầu.',
         'will_assign'           => 'Sẽ phân',
-        'stat_overflow'         => 'Lead dư đã phân lại',
+        'stat_overflow'         => 'Lead vượt ngưỡng đã phân',
         'stat_receivers_team'   => 'Đội nhận Lead',
         'stat_receivers_person' => 'Salesperson nhận Lead',
         'select_all'            => 'Chọn tất cả',
@@ -134,21 +133,22 @@ return [
         'load'                  => 'Đang quản lý',
         'full'                  => 'Đã đủ',
         'room_left'             => 'Còn :count chỗ',
+        'room_full'               => 'Đã đủ :max',
         'summary_team'          => 'Phân :count Lead cho :receivers đội',
         'summary_person'        => 'Phân :count Lead cho :receivers Salesperson',
         'choose_mode'           => 'Chọn phương thức phân công',
         'mode_required'         => 'Vui lòng chọn phương thức phân công.',
-        'ranking_remainder'     => 'Còn :count Lead dư sau khi chia đều → phân cho Top :top theo hiệu suất.',
-        'ranking_over'          => 'Có :count Lead vượt ngưỡng :max Lead/người → phân lại cho Top :top còn chỗ theo hiệu suất.',
-        'ranking_overflow'      => 'Hiệu suất làm việc tháng :month của các Salesperson trong đội.',
-        'criterion'               => 'Xét hiệu suất theo (tháng :month)',
+        'ranking_remainder'     => 'Còn :count Lead dư sau khi chia đều.',
+        'ranking_over'          => 'Có :count Lead vượt ngưỡng :max Lead/người.',
         'criteria' => [
             'revenue'        => 'Doanh thu',
             'close_rate'     => 'Tỷ lệ chốt đơn',
             'avg_close_days' => 'TB thời gian xử lý',
         ],
         'days'                    => ':count ngày',
-        // Chưa đủ cỡ mẫu tối thiểu → không được xếp hạng theo tiêu chí này
+        'money_million'           => ':value tr ₫',
+        'money_billion'           => ':value tỷ ₫',
+        // Chưa đủ cỡ mẫu tối thiểu → xếp cuối ở tiêu chí này
         'sample_short' => [
             'close_rate'     => 'chưa đủ dữ liệu (:count/:min đơn đã đóng)',
             'avg_close_days' => 'chưa đủ dữ liệu (:count/:min đơn chốt thành công)',
@@ -161,9 +161,9 @@ return [
         'col_person'              => 'Salesperson',
         'col_load'                => 'Đang quản lý (tối đa :max)',
         'col_amount'              => 'Số Lead phân',
-        'col_extra'               => 'Nhận thêm Lead dư',
-        'preview_unplaced'        => ':count Lead không còn Salesperson nào nhận được (đã đủ :max Lead) và sẽ tiếp tục chờ phân.',
-        'overflow_notice'         => 'Có :count Lead vượt ngưỡng :max Lead/người. Hãy phân lại :required Lead này cho các Salesperson còn chỗ trong đội.',
+        'col_extra'               => 'Nhận thêm',
+        'preview_unplaced'        => 'Còn :count Lead không ai dưới ngưỡng nhận được, bạn sẽ tự phân ở bước tiếp theo.',
+        'overflow_notice'         => 'Có :count Lead vượt ngưỡng :max Lead/người.',
         'back'                    => 'Quay lại',
         'submit'                  => 'Phân công',
         'branch_required'         => 'Vui lòng chọn chi nhánh.',
@@ -173,12 +173,10 @@ return [
         'amount_invalid'          => 'Số lượng Lead phải là số nguyên không âm.',
         'amount_required'         => 'Vui lòng nhập số lượng Lead cần phân bổ.',
         'exceed'                  => 'Tổng số Leads cần phân bổ không được vượt quá số Leads khả dụng.',
-        'over_capacity'           => 'Số Lead nhận thêm vượt quá chỗ còn trống (tối đa :max Lead/người).',
-        'overflow_mismatch'       => 'Tổng số Lead dư phân lại phải bằng :count.',
+        'overflow_mismatch'       => 'Tổng số Lead vượt ngưỡng phân thêm phải bằng :count.',
         'nothing'                 => 'Không có Lead nào được phân.',
         'done_team'               => 'Phân bổ Leads thành công: đã phân :count Lead cho :receivers đội.',
         'done_person'             => 'Phân bổ Leads thành công: đã phân :count Lead cho :receivers Salesperson.',
-        'unplaced'                => ':count Lead chưa phân được vì các Salesperson đã đủ :max Lead.',
     ],
 
     // Thống kê
@@ -215,6 +213,23 @@ return [
     'unassigned'             => 'Chưa phân chia',
     'pending_team'           => 'Chờ phân Salesperson · :team',
     'status'                 => 'Trạng thái',
+    'actions'                => 'Thao tác',
+    'view'                   => 'Xem chi tiết',
+
+    // Chi tiết Lead
+    'detail_title'           => 'Lead :code',
+    'back'                   => 'Quay lại danh sách',
+    'info'                   => 'Thông tin liên hệ',
+    'opportunities_title'    => 'Cơ hội',
+    'no_opportunities'       => 'Lead chưa được phân chia, chưa có cơ hội.',
+    'opportunity'            => 'Mã cơ hội',
+    'conversion_date'        => 'Ngày chuyển đổi',
+    'stage'                  => 'Giai đoạn',
+    'became_student'         => 'Học viên :code',
+    'edit'                   => 'Sửa',
+    'edit_title'             => 'Sửa thông tin Lead',
+    'edit_save'              => 'Lưu thay đổi',
+    'edit_saved'             => 'Đã cập nhật thông tin Lead.',
 
     'status_name' => [
         'New'       => 'Mới',

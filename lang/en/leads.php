@@ -112,21 +112,20 @@ return [
 
     // Bell notifications for Sale Leaders (App\Services\LeadAssignmentNotices)
     'notice' => [
-        'title'  => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
-        'action' => 'Distribute leads to salespeople',
+        'title' => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
     ],
 
     // Lead distribution popup (Leads\Distribute)
     'distribute' => [
         'title_team'              => 'Distribute leads to sales teams',
         'title_person'            => 'Distribute leads to salespeople',
-        'overflow_sub'            => 'Reassign the leads above the limit of :max leads per person based on performance.',
+        'overflow_sub'            => 'The :max leads per person limit is only a warning; you can still assign more based on performance.',
         'mode'                    => 'Distribution method',
         'mode_auto'               => 'Automatic',
         'mode_manual'             => 'Manual',
         'pick_mode'             => 'Choose a distribution method to get started.',
         'will_assign'           => 'To assign',
-        'stat_overflow'         => 'Leftover reassigned',
+        'stat_overflow'         => 'Over-limit leads assigned',
         'stat_receivers_team'   => 'Receiving teams',
         'stat_receivers_person' => 'Receiving salespeople',
         'select_all'            => 'Select all',
@@ -134,21 +133,22 @@ return [
         'load'                  => 'Handling',
         'full'                  => 'Full',
         'room_left'             => ':count left',
+        'room_full'               => 'At :max',
         'summary_team'          => 'Assign :count leads to :receivers teams',
         'summary_person'        => 'Assign :count leads to :receivers salespeople',
         'choose_mode'           => 'Choose a distribution method',
         'mode_required'         => 'Please choose a distribution method.',
-        'ranking_remainder'     => ':count leads are left over after the even split → they go to the top :top by performance.',
-        'ranking_over'          => ':count leads exceed the limit of :max per person → they go to the top :top with room left, by performance.',
-        'ranking_overflow'      => 'Performance of the team salespeople in :month.',
-        'criterion'               => 'Rank performance by (:month)',
+        'ranking_remainder'     => ':count leads are left over after the even split.',
+        'ranking_over'          => ':count leads exceed the limit of :max per person.',
         'criteria' => [
             'revenue'        => 'Revenue',
             'close_rate'     => 'Close rate',
             'avg_close_days' => 'Avg. processing time',
         ],
         'days'                    => ':count days',
-        // Below the minimum sample size → not ranked by this criterion
+        'money_million'           => ':value M ₫',
+        'money_billion'           => ':value B ₫',
+        // Below the minimum sample size → ranked last on this criterion
         'sample_short' => [
             'close_rate'     => 'not enough data (:count/:min closed)',
             'avg_close_days' => 'not enough data (:count/:min won)',
@@ -162,8 +162,8 @@ return [
         'col_load'                => 'Handling (max :max)',
         'col_amount'              => 'Leads',
         'col_extra'               => 'Extra leads',
-        'preview_unplaced'        => ':count leads cannot be placed (everyone already has :max leads) and will keep waiting.',
-        'overflow_notice'         => ':count leads exceed the limit of :max leads per person. Reassign :required of them to salespeople with room left.',
+        'preview_unplaced'        => ':count leads cannot go to anyone under the limit; you will assign them in the next step.',
+        'overflow_notice'         => ':count leads exceed the limit of :max leads per person.',
         'back'                    => 'Back',
         'submit'                  => 'Assign',
         'branch_required'         => 'Please choose a branch.',
@@ -173,12 +173,10 @@ return [
         'amount_invalid'          => 'Lead counts must be non-negative whole numbers.',
         'amount_required'         => 'Please enter the number of leads to assign.',
         'exceed'                  => 'The total number of leads to assign cannot exceed the available leads.',
-        'over_capacity'           => 'Extra leads exceed the room left (max :max leads per person).',
-        'overflow_mismatch'       => 'The reassigned leftover leads must total :count.',
+        'overflow_mismatch'       => 'The over-limit leads assigned must total :count.',
         'nothing'                 => 'No leads were assigned.',
         'done_team'               => 'Leads distributed: :count leads assigned to :receivers teams.',
         'done_person'             => 'Leads distributed: :count leads assigned to :receivers salespeople.',
-        'unplaced'                => ':count leads were not assigned because the salespeople already have :max leads.',
     ],
 
     // Statistics
@@ -215,6 +213,23 @@ return [
     'unassigned'             => 'Not distributed',
     'pending_team'           => 'Awaiting salesperson · :team',
     'status'                 => 'Status',
+    'actions'                => 'Actions',
+    'view'                   => 'View details',
+
+    // Lead details
+    'detail_title'           => 'Lead :code',
+    'back'                   => 'Back to list',
+    'info'                   => 'Contact information',
+    'opportunities_title'    => 'Opportunities',
+    'no_opportunities'       => 'This lead has not been assigned yet and has no opportunities.',
+    'opportunity'            => 'Opportunity',
+    'conversion_date'        => 'Conversion date',
+    'stage'                  => 'Stage',
+    'became_student'         => 'Student :code',
+    'edit'                   => 'Edit',
+    'edit_title'             => 'Edit lead information',
+    'edit_save'              => 'Save changes',
+    'edit_saved'             => 'Lead information updated.',
 
     'status_name' => [
         'New'       => 'New',

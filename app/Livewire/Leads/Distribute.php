@@ -19,11 +19,13 @@ use RuntimeException;
 /**
  * Popup Phân bổ Lead (nhúng trong trang Quản lý Lead).
  *   - Sale Admin: phân Lead mới của 1 chi nhánh cho các Sales Team (đội cùng chi nhánh, có trưởng nhóm).
- *   - Sale Leader: phân Lead đội đang giữ cho Salesperson trong đội (tối đa 50 Lead đang xử lý/người).
+ *   - Sale Leader: phân Lead đội đang giữ cho Salesperson trong đội (ngưỡng 50 Lead đang xử lý/người).
  * Chọn phương thức trước (dropdown) rồi mới hiện chi nhánh / nguồn / kênh liên hệ / danh sách nhận Lead.
- * Chia tự động: chia đều, chỉ khi có Lead dư mới hiện tiêu chí hiệu suất (tháng trước) để chọn Top 2.
+ * Chia tự động: chia đều, chỉ khi có Lead dư mới hiện chỉ số hiệu suất (tháng trước) để chọn Top 2.
  * Chia thủ công: bảng đội / salesperson - số lượng nhập tay.
- * Chia thủ công cho Salesperson mà có người vượt 50 → bước 'overflow' để phân lại phần vượt.
+ * Ngưỡng 50 chỉ là cảnh báo: chia tự động không tự đẩy ai quá 50, phần không ai còn chỗ nhận
+ * (hoặc chia thủ công có người vượt 50) → bước 'overflow' để trưởng nhóm tự phân phần vượt theo hiệu suất,
+ * được phép vượt ngưỡng.
  */
 class Distribute extends Component
 {
@@ -33,9 +35,6 @@ class Distribute extends Component
 
     // '' = chưa chọn → chỉ hiện ô chọn phương thức
     public string $mode = '';
-
-    // Tiêu chí xếp hạng hiệu suất (tháng trước)
-    public string $criterion = 'revenue';
 
     // Chi nhánh của Lead (chỉ Sale Admin)
     public string $branch = '';
@@ -55,7 +54,7 @@ class Distribute extends Component
     #[Locked]
     public string $step = 'form';
 
-    // Bước overflow: kế hoạch đã cắt về ngưỡng 50 và số Lead cần phân lại
+    // Bước overflow: kế hoạch đã cắt về ngưỡng 50 và số Lead vượt ngưỡng cần trưởng nhóm tự phân
     #[Locked]
     public array $cappedPlan = [];
 
@@ -97,7 +96,7 @@ class Distribute extends Component
     {
         $this->authorizeAccess();
 
-        $this->reset('mode', 'criterion', 'branch', 'source', 'method', 'selected', 'amounts');
+        $this->reset('mode', 'branch', 'source', 'method', 'selected', 'amounts');
         $this->backToForm();
         $this->open = true;
     }
@@ -127,11 +126,24 @@ class Distribute extends Component
     }
 
     /**
-     * Chia tự động: chọn / bỏ chọn tất cả (bỏ qua salesperson đã đủ 50 Lead).
+     * Id được "Chọn tất cả": bỏ qua salesperson đã đủ 50 Lead, trừ khi cả đội đều đã đủ.
+     *
+     * @return string[]
+     */
+    #[Computed]
+    public function selectableIds(): array
+    {
+        $open = $this->targets->filter(fn ($row) => $row['capacity'] !== 0)->pluck('id')->all();
+
+        return $open ?: $this->targets->pluck('id')->all();
+    }
+
+    /**
+     * Chia tự động: chọn / bỏ chọn tất cả.
      */
     public function toggleAll(): void
     {
-        $ids = $this->targets->filter(fn ($row) => $row['capacity'] !== 0)->pluck('id')->all();
+        $ids = $this->selectableIds;
 
         $this->selected = array_diff($ids, $this->selected) ? $ids : [];
         $this->resetValidation();
@@ -148,9 +160,6 @@ class Distribute extends Component
         }
 
         $value = max(0, (int) ($this->{$field}[$id] ?? 0) + $delta);
-        if ($field === 'overflowAmounts') {
-            $value = min($value, $this->overflowRoom[$id] ?? 0);
-        }
 
         $this->{$field}[$id] = $value ?: '';
         $this->resetValidation();
@@ -264,20 +273,40 @@ class Distribute extends Component
     }
 
     /**
-     * Thứ hạng hiệu suất: [id => hạng]. Chia tự động chỉ xếp hạng trong các đối tượng được chọn
+     * Nhóm được xếp hạng: chia tự động chỉ xếp hạng trong các đối tượng được chọn
      * (Lead dư chỉ chia cho Top 2 của nhóm này), bước phân lại thì xếp hạng cả đội.
+     *
+     * @return string[]
+     */
+    protected function rankingIds(): array
+    {
+        $ids = $this->targets->pluck('id')->all();
+
+        return $this->step === 'form' && $this->mode === 'auto'
+            ? array_values(array_intersect($ids, $this->selected))
+            : $ids;
+    }
+
+    /**
+     * Hạng theo từng tiêu chí + tổng hạng của nhóm được xếp hạng (xem LeadDistributionService::scoreboard).
+     */
+    #[Computed]
+    public function scoreboard(): array
+    {
+        return app(LeadDistributionService::class)->scoreboard($this->rankingIds(), $this->targets->pluck('perf', 'id')->all());
+    }
+
+    /**
+     * Thứ hạng hiệu suất chung (theo tổng hạng): [id => hạng].
      */
     #[Computed]
     public function ranks(): array
     {
-        $ids = $this->step === 'form' && $this->mode === 'auto'
-            ? $this->selectedRanked()
-            : app(LeadDistributionService::class)->rank(
-                $this->targets->pluck('id')->all(),
-                $this->targets->pluck('perf', 'id')->all(),
-                $this->criterion,
-                $this->load,
-            );
+        $ids = app(LeadDistributionService::class)->rank(
+            $this->rankingIds(),
+            $this->targets->pluck('perf', 'id')->all(),
+            $this->load,
+        );
 
         return $ids ? array_combine($ids, range(1, count($ids))) : [];
     }
@@ -321,7 +350,6 @@ class Distribute extends Component
         return app(LeadDistributionService::class)->rank(
             $valid,
             $this->targets->pluck('perf', 'id')->all(),
-            $this->criterion,
             $this->load,
         );
     }
@@ -428,7 +456,15 @@ class Distribute extends Component
             }
 
             $preview = $this->preview;
-            $this->commit($service, $preview['plan'], $preview['unplaced']);
+
+            // Còn Lead mà không ai dưới ngưỡng 50 nhận được → trưởng nhóm tự phân tiếp theo hiệu suất
+            if ($preview['unplaced'] > 0) {
+                $this->toOverflow($preview['plan'], $preview['unplaced']);
+
+                return;
+            }
+
+            $this->commit($service, $preview['plan']);
 
             return;
         }
@@ -460,10 +496,7 @@ class Distribute extends Component
             [$capped, $over] = $service->excess($plan, $this->load);
 
             if ($over > 0) {
-                $this->cappedPlan = $capped;
-                $this->overflow = $over;
-                $this->overflowAmounts = [];
-                $this->step = 'overflow';
+                $this->toOverflow($capped, $over);
 
                 return;
             }
@@ -473,7 +506,18 @@ class Distribute extends Component
     }
 
     /**
-     * Còn nhận được thêm bao nhiêu ở bước phân lại phần vượt: [employee_id => n].
+     * Sang bước tự phân phần vượt ngưỡng 50.
+     */
+    protected function toOverflow(array $cappedPlan, int $overflow): void
+    {
+        $this->cappedPlan = $cappedPlan;
+        $this->overflow = $overflow;
+        $this->overflowAmounts = [];
+        $this->step = 'overflow';
+    }
+
+    /**
+     * Số chỗ còn dưới ngưỡng 50 ở bước phân phần vượt (chỉ để cảnh báo): [employee_id => n].
      */
     #[Computed]
     public function overflowRoom(): array
@@ -487,15 +531,6 @@ class Distribute extends Component
         return $room;
     }
 
-    /**
-     * Số Lead vượt phải phân lại (không thể vượt quá tổng chỗ còn trống của đội).
-     */
-    #[Computed]
-    public function overflowRequired(): int
-    {
-        return min($this->overflow, array_sum($this->overflowRoom));
-    }
-
     public function confirmOverflow(LeadDistributionService $service): void
     {
         $this->authorizeAccess();
@@ -503,10 +538,10 @@ class Distribute extends Component
         $this->resetValidation();
 
         $plan = $this->cappedPlan;
-        $room = $this->overflowRoom;
         $extra = 0;
 
-        foreach ($room as $id => $max) {
+        // Được phân cho cả người đã đủ 50 Lead (ngưỡng chỉ là cảnh báo)
+        foreach ($this->targets->pluck('id') as $id) {
             $value = $this->overflowAmounts[$id] ?? '';
             if ($value === '' || $value === null) {
                 continue;
@@ -516,22 +551,17 @@ class Distribute extends Component
 
                 return;
             }
-            if ((int) $value > $max) {
-                $this->addError('overflow', __('leads.distribute.over_capacity', ['max' => $service::MAX_PER_SALESPERSON]));
-
-                return;
-            }
             $plan[$id] = ($plan[$id] ?? 0) + (int) $value;
             $extra += (int) $value;
         }
 
-        if ($extra !== $this->overflowRequired) {
-            $this->addError('overflow', __('leads.distribute.overflow_mismatch', ['count' => $this->overflowRequired]));
+        if ($extra !== $this->overflow) {
+            $this->addError('overflow', __('leads.distribute.overflow_mismatch', ['count' => $this->overflow]));
 
             return;
         }
 
-        $this->commit($service, $plan, $this->overflow - $extra);
+        $this->commit($service, $plan);
     }
 
     /**
@@ -539,7 +569,7 @@ class Distribute extends Component
      *
      * @param  array  $plan  [team_id | employee_id => số Lead]
      */
-    protected function commit(LeadDistributionService $service, array $plan, int $unplaced = 0): void
+    protected function commit(LeadDistributionService $service, array $plan): void
     {
         $owners = $this->targets->pluck('owner', 'id')->all();
         $byOwner = [];
@@ -564,17 +594,13 @@ class Distribute extends Component
             return;
         }
 
-        $receivers = count($byOwner);
         $text = __($this->forTeams ? 'leads.distribute.done_team' : 'leads.distribute.done_person', [
-            'count' => $count, 'receivers' => $receivers,
+            'count' => $count, 'receivers' => count($byOwner),
         ]);
-        if ($unplaced > 0) {
-            $text .= ' '.__('leads.distribute.unplaced', ['count' => $unplaced, 'max' => $service::MAX_PER_SALESPERSON]);
-        }
 
         $this->open = false;
         $this->backToForm();
-        $this->dispatch('leads-distributed', notice: ['type' => $unplaced > 0 ? 'warning' : 'success', 'text' => $text]);
+        $this->dispatch('leads-distributed', notice: ['type' => 'success', 'text' => $text]);
     }
 
     public function render()

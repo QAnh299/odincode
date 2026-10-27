@@ -157,6 +157,30 @@ return [
             'saved_edit'       => 'Đã cập nhật đội :name.',
         ],
 
+        // Popup KPI đội theo tháng (Sale Admin, cột Thao tác)
+        'kpi' => [
+            'title'         => 'KPI đội',
+            'sub'           => 'Đặt chỉ tiêu tháng cho đội.',
+            'month'         => 'Tháng áp dụng',
+            'this_month'    => 'tháng này',
+            'status'        => 'Tình trạng',
+            'state_set'     => 'Đã đặt KPI',
+            'state_none'    => 'Chưa có KPI',
+            'placeholder'   => 'Bỏ trống nếu không đặt',
+            'not_set'       => 'Không đặt',
+            'last_month'    => 'Tháng trước: :value',
+            'hint_new'      => 'Nhập ít nhất một chỉ tiêu, bỏ trống chỉ tiêu không đặt. KPI của mỗi tháng chỉ đặt một lần, lưu xong không sửa được.',
+            'empty'         => 'Nhập ít nhất một chỉ tiêu.',
+            'locked'        => 'KPI của tháng này đã đặt, không sửa được.',
+            'month_invalid' => 'Chỉ đặt được KPI cho tháng này và 2 tháng tới.',
+            'saved'         => 'Đã lưu KPI tháng :month của đội :team.',
+
+            'types' => [
+                'Revenue'     => 'Doanh thu',
+                'NewStudents' => 'Học viên mới',
+            ],
+        ],
+
         'summary' => [
             'teams'   => 'Số đội kinh doanh',
             'in_team' => 'Nhân viên kinh doanh trong đội',

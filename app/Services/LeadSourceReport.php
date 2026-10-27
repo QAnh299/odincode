@@ -17,39 +17,13 @@ use Illuminate\Support\Facades\DB;
  */
 class LeadSourceReport
 {
-    // Chiều phân tích (trục X / nhóm) → biểu thức SQL trên bảng Leads (alias l)
+    // Chiều nhóm → biểu thức SQL trên bảng Leads (alias l)
     const DIMENSIONS = [
         'source' => 'l.source_name',
         'method' => 'l.contact_method',
         'branch' => 'l.branch_id',
-        'status' => 'l.status',
         'month'  => "DATE_FORMAT(l.created_at, '%Y-%m')",
-        'week'   => "DATE_FORMAT(l.created_at, '%x-%v')",
     ];
-
-    // Chiều thời gian: luôn sắp theo thời gian, không cho chia nhóm theo chiều này
-    const TIME_DIMENSIONS = ['month', 'week'];
-
-    /**
-     * Chỉ số → đơn vị. count/money cộng dồn được (dùng được cho tròn, chồng);
-     * percent là tỷ lệ, chỉ dùng cho cột / đường.
-     */
-    const METRICS = [
-        'leads'            => 'count',
-        'converted'        => 'count',
-        'won'              => 'count',
-        'lost'             => 'count',
-        'conversion_rate'  => 'percent',
-        'win_rate'         => 'percent',
-        'close_rate'       => 'percent',
-        'revenue'          => 'money',
-        'paid'             => 'money',
-        'expected'         => 'money',
-        'revenue_per_lead' => 'money',
-    ];
-
-    // Chỉ số tính từ các chỉ số gốc (không cộng dồn được)
-    const DERIVED = ['conversion_rate', 'win_rate', 'close_rate', 'revenue_per_lead'];
 
     /**
      * Tổng hợp chỉ số theo 1 chiều (và chiều chia nhóm, nếu có).
@@ -78,7 +52,7 @@ class LeadSourceReport
     }
 
     /**
-     * Tổng chung (cho các thẻ KPI).
+     * Tổng chung (thẻ KPI, dòng tổng cộng, mốc so sánh trung bình).
      */
     public function totals(array $filters): array
     {

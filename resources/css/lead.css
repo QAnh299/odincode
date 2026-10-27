@@ -666,17 +666,6 @@
     font-weight: 500;
 }
 
-.ld-dist__ranking-select {
-    flex: 0 1 15rem;
-    margin: 0;
-}
-
-.ld-dist__ranking-select .vc-control {
-    height: 38px;
-    border-color: #fcd34d;
-    font-weight: 600;
-}
-
 /* Danh sách */
 .ld-dist__list-head {
     display: flex;
@@ -847,17 +836,46 @@
     font-size: 0.78rem;
 }
 
-.ld-dist__dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: currentColor;
+/* Chỉ số hiệu suất tháng trước (tham khảo): icon + giá trị, dẫn đầu nhóm thì tô nổi */
+.ld-dist__kpis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.85rem;
+    margin-top: 0.25rem;
 }
 
-.ld-dist__perf {
+.ld-dist__kpi {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    color: var(--vc-muted);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    cursor: help;
+}
+
+.ld-dist__kpi .odin-icon {
+    width: 0.85rem;
+    height: 0.85rem;
+    opacity: 0.7;
+}
+
+.ld-dist__kpi.is-best {
     color: #b45309;
     font-weight: 600;
-    white-space: nowrap;
+}
+
+.ld-dist__kpi.is-best .odin-icon {
+    opacity: 1;
+}
+
+.ld-dist__kpi.is-short {
+    opacity: 0.65;
+}
+
+.ld-dist__kpi sup {
+    top: -0.3em;
 }
 
 /* Thanh tải x/50 (đậm = đang quản lý, nhạt = sắp nhận) */
@@ -992,13 +1010,14 @@
     -webkit-appearance: none;
 }
 
-.ld-dist__stepper.is-disabled {
-    opacity: 0.45;
-}
-
 .ld-dist__room {
     color: var(--vc-muted);
     font-size: 0.72rem;
+}
+
+.ld-dist__room.is-warn {
+    color: var(--d-warn);
+    font-weight: 600;
 }
 
 /* Chân popup */
@@ -1067,5 +1086,21 @@
 
     .ld-dist__summary {
         flex-basis: 100%;
+    }
+}
+
+/* Chi tiết Lead: thông tin liên hệ trải ngang trang, hai cặp nhãn - giá trị mỗi hàng */
+.st-info.ld-info {
+    grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+    column-gap: 1.5rem;
+}
+
+.st-info.ld-info dd {
+    text-align: left;
+}
+
+@media (max-width: 767.98px) {
+    .st-info.ld-info {
+        grid-template-columns: max-content minmax(0, 1fr);
     }
 }

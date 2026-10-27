@@ -24,7 +24,8 @@
     max-width: 1280px;
     margin: 0 auto;
     color: var(--od-ink);
-    animation: od-in 0.3s ease-out both;
+    /* backwards: hết hiệu ứng thì bỏ transform, để popup (position: fixed) phủ cả trang thay vì chỉ trong khung */
+    animation: od-in 0.3s ease-out backwards;
 }
 
 @keyframes od-in {

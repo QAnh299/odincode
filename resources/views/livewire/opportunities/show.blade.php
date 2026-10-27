@@ -107,7 +107,7 @@
                     <div class="od-tabs__actions">
                         @if ($tab === 'care' && $this->needsContact())
                             <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)
-                                title="{{ $canLog ? '' : __('opportunities.care_hint_full', ['max' => $this::MAX_UNREACHABLE_CONTACTS]) }}">
+                                title="{{ $this->careLockHint() }}">
                                 <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
                             </button>
                         @elseif ($tab === 'appointments' && $this->canCreateAppointment())
@@ -227,7 +227,7 @@
                                         {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
                                         @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
                                             <span class="od-muted">
-                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_return') : __('opportunities.care_failed_lost') }}
+                                                {{ __('opportunities.care_failed_lost') }}
                                             </span>
                                         @endif
                                     </div>
@@ -335,7 +335,14 @@
         {{-- ── Cột phải: thông tin khách hàng + cơ hội ─────────────── --}}
         <aside class="od-side">
             <section class="vc-card">
-                <h2 class="od-title">{{ __('opportunities.customer') }}</h2>
+                <div class="od-title-row">
+                    <h2 class="od-title">{{ __('opportunities.customer') }}</h2>
+                    @if ($this->canEditLead())
+                        <button type="button" class="vc-btn vc-btn--ghost od-title-row__btn" wire:click="startEditLead">
+                            <x-icon name="edit" />{{ __('leads.edit') }}
+                        </button>
+                    @endif
+                </div>
                 <dl class="od-info">
                     <dt>{{ __('leads.phone') }}</dt>
                     <dd>{{ $lead?->phone ?? '—' }}</dd>
@@ -401,7 +408,7 @@
                     @endif
                 </dl>
 
-                {{-- Sale Leader: chuyển người phụ trách (chưa tới stage Chốt) - mở popup --}}
+                {{-- Sale Leader: chuyển người phụ trách (tới hết stage Chốt, khi khách chưa đóng tiền) - mở popup --}}
                 @if ($this->reassignOptions->isNotEmpty())
                     <button type="button" class="vc-btn vc-btn--ghost od-reassign__open" wire:click="startReassign">
                         <x-icon name="users" />{{ __('opportunities.reassign') }}
@@ -454,22 +461,87 @@
                     </button>
                 </header>
 
-                <div class="ld-modal__body od-reassign">
-                    <div class="vc-field">
-                        <span class="vc-field__label">{{ __('opportunities.reassign_current') }}</span>
-                        <span>{{ $opp->employee?->full_name ?? '—' }}</span>
-                    </div>
+                @php
+                    // Thanh tải x/50 như popup phân công Lead (đậm = đang quản lý, sọc = cơ hội này nếu chuyển sang); 50 chỉ là ngưỡng cảnh báo
+                    $max = \App\Services\LeadDistributionService::MAX_PER_SALESPERSON;
+                    $loads = $this->reassignLoad;
+                    $loadBar = function (int $now, int $add) use ($max) {
+                        $after = $now + $add;
+                        $nowPct = min(100, $now * 100 / $max);
 
-                    <label class="vc-field">
-                        <span class="vc-field__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></span>
-                        <select wire:model="newOwner" class="vc-control @error('newOwner') is-invalid @enderror">
-                            <option value="">{{ __('opportunities.reassign_choose') }}</option>
+                        return [
+                            'now'  => $nowPct,
+                            'add'  => min(100 - $nowPct, $add * 100 / $max),
+                            'tone' => $after > $max ? 'danger' : ($after >= $max * 0.8 ? 'warn' : 'ok'),
+                        ];
+                    };
+                    // Chữ cái đại diện + màu avatar cố định theo mã (giống popup phân công)
+                    $initial = fn (?string $name) => mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim((string) $name), ' '), 0, 1));
+                    $hues = [152, 200, 262, 24, 330, 45];
+                    $hue = fn (string $id) => $hues[crc32($id) % count($hues)];
+                    $currentLoad = $loads[$opp->employee_id] ?? 0;
+                    $currentBar = $loadBar($currentLoad, 0);
+                @endphp
+                <div class="ld-modal__body od-reassign">
+                    {{-- Người đang phụ trách --}}
+                    <section>
+                        <h3 class="od-reassign__label">{{ __('opportunities.reassign_current') }}</h3>
+                        <div class="od-reassign__card is-current">
+                            <span class="ld-dist__avatar" style="--h: {{ $hue((string) $opp->employee_id) }}">{{ $initial($opp->employee?->full_name) ?: '?' }}</span>
+                            <span class="od-reassign__who">
+                                <strong>{{ $opp->employee?->full_name ?? '—' }}</strong>
+                                <small>{{ $opp->employee_id }}</small>
+                            </span>
+                            @if ($opp->employee_id)
+                                <span class="ld-dist__load ld-dist__load--{{ $currentBar['tone'] }}">
+                                    <span class="ld-dist__load-top">
+                                        <span>{{ __('leads.distribute.load') }}</span>
+                                        <strong>{{ $currentLoad }}<em>/{{ $max }}</em></strong>
+                                    </span>
+                                    <span class="ld-dist__bar"><span class="ld-dist__bar-now" style="width: {{ $currentBar['now'] }}%"></span></span>
+                                </span>
+                            @endif
+                        </div>
+                    </section>
+
+                    <span class="od-reassign__arrow" aria-hidden="true"><x-icon name="chevron" /></span>
+
+                    {{-- Salesperson nhận --}}
+                    <section>
+                        <h3 class="od-reassign__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></h3>
+                        <div class="od-reassign__list @error('newOwner') is-invalid @enderror" role="radiogroup" aria-label="{{ __('opportunities.reassign_to') }}">
                             @foreach ($this->reassignOptions as $option)
-                                <option value="{{ $option->employee_id }}">{{ $option->full_name }} ({{ $option->employee_id }})</option>
+                                @php
+                                    $id = $option->employee_id;
+                                    $now = $loads[$id] ?? 0;
+                                    $picked = $newOwner === $id;
+                                    $bar = $loadBar($now, $picked ? 1 : 0);
+                                @endphp
+                                <label wire:key="reassign-{{ $id }}" class="od-reassign__card is-option {{ $picked ? 'is-active' : '' }}">
+                                    <input type="radio" class="visually-hidden" wire:model.live="newOwner" value="{{ $id }}">
+                                    <span class="ld-dist__avatar" style="--h: {{ $hue($id) }}">
+                                        {{ $initial($option->full_name) }}
+                                        @if ($picked)<span class="od-reassign__tick"><x-icon name="check" /></span>@endif
+                                    </span>
+                                    <span class="od-reassign__who">
+                                        <strong>{{ $option->full_name }}</strong>
+                                        <small>{{ $id }}</small>
+                                    </span>
+                                    <span class="ld-dist__load ld-dist__load--{{ $bar['tone'] }}" title="{{ __('leads.distribute.col_load', ['max' => $max]) }}">
+                                        <span class="ld-dist__load-top">
+                                            <span>{{ __('leads.distribute.load') }}</span>
+                                            <strong>{{ $now }}@if ($picked)<ins>+1</ins>@endif<em>/{{ $max }}</em></strong>
+                                        </span>
+                                        <span class="ld-dist__bar">
+                                            <span class="ld-dist__bar-now" style="width: {{ $bar['now'] }}%"></span>
+                                            <span class="ld-dist__bar-add" style="width: {{ $bar['add'] }}%"></span>
+                                        </span>
+                                    </span>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                         @error('newOwner') <span class="ld-error">{{ $message }}</span> @enderror
-                    </label>
+                    </section>
 
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('opportunities.reassign_reason') }} <span class="ld-req">*</span></span>
@@ -509,6 +581,9 @@
                     @if ($reassigned['moved'])
                         <p class="od-muted">{{ __('opportunities.reassigned_moved', ['count' => $reassigned['moved']]) }}</p>
                     @endif
+                    @if ($reassigned['quotes'] ?? 0)
+                        <p class="od-muted">{{ __('opportunities.reassigned_quotes', ['count' => $reassigned['quotes']]) }}</p>
+                    @endif
                 </div>
                 <footer class="ld-modal__foot od-success__foot">
                     <button type="button" class="vc-btn vc-btn--primary" wire:click="closeReassigned" autofocus>
@@ -517,5 +592,10 @@
                 </footer>
             </div>
         </div>
+    @endif
+
+    {{-- ── Popup sửa thông tin khách (Lead) ── --}}
+    @if ($editingLead && $this->canEditLead())
+        @include('livewire.leads.partials.edit-modal', ['lead' => $lead, 'branches' => collect()])
     @endif
 </div>

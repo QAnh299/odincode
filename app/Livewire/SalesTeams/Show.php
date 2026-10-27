@@ -127,7 +127,7 @@ class Show extends Component
     }
 
     /**
-     * Chỉ tiêu tháng của đội (doanh thu, học viên mới, Lead mới) – chỉ khi xem theo tháng.
+     * Chỉ tiêu tháng của đội (doanh thu, học viên mới) – chỉ khi xem theo tháng.
      */
     #[Computed]
     public function target(): array

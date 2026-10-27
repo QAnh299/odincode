@@ -10,6 +10,11 @@ class TeamSalesTarget extends Model
 {
     use HasCompositeKey, HasFactory;
 
+    // status (odin.sql): Active, Completed, Ended, Cancelled
+    const STATUS_ACTIVE = 'Active';
+
+    const STATUS_CANCELLED = 'Cancelled';
+
     protected $table = 'TeamSalesTargets';
 
     // Khoá chính ghép (target_id, team_id, target_month)

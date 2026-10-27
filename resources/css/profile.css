@@ -21,7 +21,8 @@
     max-width: 1200px;
     margin: 0 auto;
     color: var(--pf-ink);
-    animation: pf-in 0.35s ease-out both;
+    /* backwards: hết hiệu ứng thì bỏ transform, để popup (position: fixed) phủ cả trang thay vì chỉ trong khung */
+    animation: pf-in 0.35s ease-out backwards;
 }
 
 @keyframes pf-in {

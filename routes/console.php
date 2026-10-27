@@ -9,5 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-// HĐ23: kết thúc cơ hội ở Data đã xử lý quá hạn quyết định (14 ngày) mà khách chưa đồng ý, mỗi ngày lúc 00:10
+// Kết thúc cơ hội quá hạn, mỗi ngày lúc 00:10: Data đã có lịch hẹn quá 7 ngày từ buổi khách không đến mà chưa hẹn lại;
+// Data đã xử lý quá hạn quyết định (14 ngày) mà khách chưa đồng ý
 Schedule::command('opportunities:expire-undecided')->dailyAt('00:10');

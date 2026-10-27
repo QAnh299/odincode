@@ -50,7 +50,8 @@ class Kanban extends Component
         'overdue_appointment' => 0, // lịch hẹn đã qua giờ, chưa cập nhật kết quả
         'needs_quotation'     => 1, // stage Chốt chưa có báo giá
         'decision_due'        => 2, // Data đã xử lý sắp hết hạn quyết định
-        'not_contacted'       => 3, // Data chưa tương tác, chưa liên hệ lần nào
+        'recontact'           => 3, // không liên lạc được, đã tới lúc liên hệ lại
+        'not_contacted'       => 4, // Data chưa tương tác, chưa liên hệ lần nào
     ];
 
     // Chỉ hiện cơ hội cần xử lý
@@ -267,6 +268,7 @@ class Kanban extends Component
                     ->where('scheduled_time', '<=', now()),
                 'careResults',
             ])
+            ->withLastCare()
             ->orderByDesc('conversion_date')
             ->get();
 
@@ -308,6 +310,7 @@ class Kanban extends Component
                 $opp->overdue_appointments > 0                                                    => 'overdue_appointment',
                 $opp->needsQuotation()                                                            => 'needs_quotation',
                 $days !== null && $days <= self::DECISION_WARN_DAYS                               => 'decision_due',
+                $opp->recontactDue()                                                              => 'recontact',
                 $opp->stage_id === Stage::UNTOUCHED && $opp->care_results_count === 0             => 'not_contacted',
                 default                                                                           => null,
             };

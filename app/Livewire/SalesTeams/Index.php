@@ -2,6 +2,7 @@
 
 namespace App\Livewire\SalesTeams;
 
+use App\Livewire\SalesTeams\Concerns\ManagesTeamKpi;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Role;
@@ -23,11 +24,12 @@ use Livewire\WithPagination;
  * Giám đốc: chỉ xem. Sale Admin: thêm Tạo đội và Chỉnh sửa đội (popup) – trong Chỉnh sửa đội
  * đổi được trưởng nhóm và gắn Salesperson vào đội. Mỗi nhân viên chỉ thuộc một đội (Employees.team_id),
  * và một đội chỉ thuộc một chi nhánh: mọi nhân viên trong đội phải cùng chi nhánh (SalesTeam::branchId).
+ * Sale Admin còn đặt KPI hằng tháng cho từng đội (popup KPI ở cột Thao tác - ManagesTeamKpi).
  */
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use WithPagination;
+    use ManagesTeamKpi, WithPagination;
 
     const PER_PAGE = 10;
 
@@ -39,10 +41,10 @@ class Index extends Component
     #[Url(except: 'name')]
     public string $sort = 'name';
 
-    // Popup đang mở: '' | 'create' | 'edit'
+    // Popup đang mở: '' | 'create' | 'edit' | 'kpi'
     public string $modal = '';
 
-    // Đội đang sửa (popup edit)
+    // Đội đang sửa (popup edit, kpi)
     #[Locked]
     public ?string $teamId = null;
 
@@ -256,11 +258,18 @@ class Index extends Component
     }
 
     /**
-     * Lưu popup đang mở: Tạo đội hoặc Chỉnh sửa đội (tên, ngày thành lập, trưởng nhóm, thành viên).
+     * Lưu popup đang mở: Tạo đội, Chỉnh sửa đội (tên, ngày thành lập, trưởng nhóm, thành viên) hoặc KPI đội.
      */
     public function save(): void
     {
         $this->authorizeManage();
+
+        if ($this->modal === 'kpi') {
+            $this->saveKpi();
+
+            return;
+        }
+
         abort_unless(in_array($this->modal, ['create', 'edit'], true), 400);
         abort_if($this->modal === 'edit' && ! $this->editingTeam, 404);
 
