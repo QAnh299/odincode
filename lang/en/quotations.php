@@ -137,12 +137,10 @@ return [
         'header'   => 'Appointments & quotations to follow up today and tomorrow',
         'today'    => 'Quotation :code · :name expires today',
         'tomorrow' => 'Quotation :code · :name expires tomorrow',
-        'overdue'  => 'Quotation :code · :name has expired and will be auto-rejected',
+        'overdue'  => 'Quotation :code · :name expired :days days ago: extend or reject it',
         'time'     => 'Expires :date · contact the customer',
     ],
 
-    // Reason written to the opportunity history when an expired quotation is auto-rejected (step 15)
-    'expired_reason'     => 'Quotation :code expired without a reply from the customer.',
 
     // ── Quotation PDF (pdf/quotation) ──
     'pdf' => [
@@ -179,16 +177,28 @@ return [
         'confirm_blocked'   => [
             'not_author'      => 'Only the salesperson who created the quotation can confirm it.',
             'not_draft'       => 'The quotation is no longer a draft.',
-            'expired'         => 'The quotation has expired and cannot be confirmed. Create a new quotation.',
+            'expired'         => 'The quotation has expired. Extend it before confirming.',
             'has_order'       => 'The quotation already has an order.',
             'no_lines'        => 'The quotation has no courses.',
         ],
-        'reject_confirm'    => 'Customer did not accept quotation :code? It becomes Rejected and an in-progress opportunity becomes Lost (a Won one stays Won). To change courses, choose Edit instead.',
         'rejected_done'     => 'Quotation :code rejected.',
-        'expired_warning'   => 'This quotation has expired; it cannot be exported to PDF or confirmed',
+        'expired_warning'   => 'This quotation has expired. If the customer still wants it, choose Edit to extend the expiry date, then confirm; otherwise choose Reject.',
         // Step 14: after rejecting
         'close_reason'      => 'Customer did not accept quotation :code.',
+        'close_reason_no_response' => 'Customer did not respond to quotation :code before it expired.',
         'opportunity_lost'  => 'The opportunity is now Lost.',
+        'opportunity_archived' => 'The opportunity is now Archived.',
+        'reject_reason_title' => 'Why is quotation :code being rejected?',
+        'reject_reason' => [
+            'declined'    => 'Customer did not accept',
+            'no_response' => 'Customer did not respond before the quotation expired',
+        ],
+        'reject_reason_hint' => [
+            'declined'    => 'An in-progress opportunity becomes Lost.',
+            'no_response' => 'An in-progress opportunity becomes Archived, like an unreachable customer.',
+        ],
+        'reject_cancel' => 'Cancel',
+        'reject_submit' => 'Reject quotation',
         'opportunity_kept'  => 'The opportunity is already Won, so it stays Won.',
         // Progress
         'progress'          => 'Progress',

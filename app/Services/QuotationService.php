@@ -11,15 +11,14 @@ use App\Models\Role;
 use App\Models\SalesOrder;
 use App\Models\Stage;
 use App\Models\Voucher;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Nghiệp vụ báo giá giai đoạn A – C của quy trình (docs/quy-trinh-bao-gia-thanh-toan.md):
- * kiểm tra điều kiện lập (HĐ2), tính tiền và lưu báo giá Nháp (HĐ6, HĐ10), từ chối (HĐ12 – HĐ13),
- * kết thúc cơ hội khi khách không còn nhu cầu (HĐ14), tự từ chối báo giá quá hạn (HĐ15)
- * và xác nhận báo giá + tạo đơn hàng (HĐ16 – HĐ17; đơn mới có payment_type NULL = chưa xác định, mục 0.4).
+ * kiểm tra điều kiện lập (HĐ2), tính tiền và lưu báo giá Nháp (HĐ6 – HĐ10, sửa / gia hạn ở HĐ14),
+ * từ chối và kết thúc cơ hội (HĐ15 – HĐ16), kiểm tra hạn khi xác nhận (HĐ18)
+ * và xác nhận báo giá + tạo đơn hàng (HĐ19 – HĐ20; đơn mới có payment_type NULL = chưa xác định, mục 0.4).
  */
 class QuotationService
 {
@@ -29,9 +28,16 @@ class QuotationService
     // Số lượng tối đa một dòng khóa học (chặn nhập nhầm)
     const MAX_QUANTITY = 999;
 
+    // Lý do từ chối báo giá (HĐ15): khách không đồng ý → Lost; khách không phản hồi đến khi quá hạn → Archived,
+    // cùng quy tắc với quy trình xử lý cơ hội (không liên lạc được → Lưu trữ). Chốt 26/10/2026.
+    const REJECT_DECLINED = 'declined';
+    const REJECT_NO_RESPONSE = 'no_response';
+    const REJECT_REASONS = [self::REJECT_DECLINED, self::REJECT_NO_RESPONSE];
+
     /**
      * HĐ2: lý do không lập được báo giá trên cơ hội (khóa lang quotations.form.blocked.*), null = được lập.
-     * Chỉ Salesperson phụ trách cơ hội; cơ hội đã Chốt, InProgress hoặc Won, và không còn báo giá Nháp.
+     * Chỉ Salesperson phụ trách cơ hội; cơ hội đã Chốt, InProgress hoặc Won, và không còn báo giá Nháp
+     * (một cơ hội có một hoặc nhiều báo giá, nhưng mỗi lúc chỉ một báo giá Nháp).
      */
     public function blockerFor(Opportunity $opportunity, ?Employee $employee): ?string
     {
@@ -46,14 +52,24 @@ class QuotationService
     }
 
     /**
-     * Báo giá Nháp mà nhân viên được sửa (HĐ10): chính Salesperson lập, còn Nháp, chưa hết hạn.
+     * Báo giá mà nhân viên được sửa: chính Salesperson lập, còn Nháp. Báo giá đã quá hạn vẫn sửa được để gia hạn
+     * ngày hết hạn (chốt 25/10/2026).
      */
     public function canEdit(Quotation $quotation, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::SALESPERSON
             && $quotation->employee_id === $employee->employee_id
-            && $quotation->status === Quotation::STATUS_DRAFT
-            && ! $quotation->isExpired();
+            && $quotation->status === Quotation::STATUS_DRAFT;
+    }
+
+    /**
+     * Xuất PDF: Salesperson lập báo giá, báo giá chưa bị từ chối (Nháp – kể cả đã quá hạn – hoặc Đã xác nhận).
+     */
+    public function canExportPdf(Quotation $quotation, ?Employee $employee): bool
+    {
+        return $employee?->role_name === Role::SALESPERSON
+            && $quotation->employee_id === $employee->employee_id
+            && $quotation->status !== Quotation::STATUS_REJECTED;
     }
 
     /**
@@ -145,12 +161,13 @@ class QuotationService
     }
 
     /**
-     * Salesperson từ chối báo giá Nháp khi khách không đồng ý: báo giá → Từ chối và kết thúc cơ hội trong cùng giao dịch
-     * (đang xử lý → Lost, đã Won giữ nguyên; chốt 23/10/2026). Trả về true nếu cơ hội đã chuyển Lost.
+     * HĐ15 – HĐ16: Salesperson từ chối báo giá Nháp: báo giá → Từ chối và kết thúc cơ hội trong cùng giao dịch.
+     * Cơ hội đang xử lý → Lost (khách không đồng ý) hoặc Archived (khách không phản hồi đến khi báo giá quá hạn);
+     * đã Won giữ nguyên. Trả về true nếu cơ hội đã được kết thúc.
      */
-    public function reject(Quotation $quotation, Employee $employee): bool
+    public function reject(Quotation $quotation, Employee $employee, string $reason = self::REJECT_DECLINED): bool
     {
-        return DB::transaction(function () use ($quotation, $employee) {
+        return DB::transaction(function () use ($quotation, $employee, $reason) {
             $locked = Quotation::query()->whereKey($quotation->getKey())->lockForUpdate()->firstOrFail();
 
             abort_unless($employee->role_name === Role::SALESPERSON
@@ -159,10 +176,15 @@ class QuotationService
 
             $locked->update(['status' => Quotation::STATUS_REJECTED]);
 
-            // Khách không đồng ý = không mua: kết thúc luôn (đổi khóa học / số lượng thì SP sửa báo giá Nháp)
+            abort_unless(in_array($reason, self::REJECT_REASONS, true), 422);
+
+            // Khách không mua: kết thúc luôn (đổi khóa học / số lượng thì SP sửa báo giá Nháp)
+            $noResponse = $reason === self::REJECT_NO_RESPONSE;
+
             return $this->closeOpportunity(
                 $locked->opportunity,
-                __('quotations.detail.close_reason', ['code' => $locked->quotation_id], 'vi')
+                __($noResponse ? 'quotations.detail.close_reason_no_response' : 'quotations.detail.close_reason', ['code' => $locked->quotation_id], 'vi'),
+                $noResponse ? Opportunity::STATUS_ARCHIVED : Opportunity::STATUS_LOST
             );
         });
     }
@@ -213,51 +235,18 @@ class QuotationService
     }
 
     /**
-     * Kết thúc cơ hội khi báo giá bị từ chối: cơ hội đang xử lý → Lost (stage Lưu trữ, ghi lý do); đã Won → giữ Won.
-     * Trả về true nếu cơ hội đã chuyển Lost.
+     * Kết thúc cơ hội khi báo giá bị từ chối: cơ hội đang xử lý → Lost / Archived (stage Lưu trữ, ghi lý do); đã Won → giữ Won.
+     * Trả về true nếu cơ hội đã được kết thúc.
      */
-    public function closeOpportunity(Opportunity $opportunity, string $reason): bool
+    public function closeOpportunity(Opportunity $opportunity, string $reason, string $status = Opportunity::STATUS_LOST): bool
     {
         if ($opportunity->status !== Opportunity::STATUS_IN_PROGRESS) {
             return false;
         }
 
-        $opportunity->close(Opportunity::STATUS_LOST, $reason);
+        $opportunity->close($status, $reason);
 
         return true;
     }
 
-    /**
-     * HĐ15: báo giá Nháp quá hạn (hết hạn trước hôm nay) → Từ chối; cơ hội đang xử lý không còn báo giá Nháp
-     * nào khác → Lost; cơ hội đã Won giữ nguyên. Chạy hằng ngày (lệnh quotations:expire). Trả về số báo giá đã xử lý.
-     */
-    public function expireOverdue(?Carbon $today = null): int
-    {
-        $today ??= today();
-        $count = 0;
-
-        Quotation::query()
-            ->where('status', Quotation::STATUS_DRAFT)
-            ->whereDate('expiry_date', '<', $today->toDateString())
-            ->orderBy('quotation_id')
-            ->each(function (Quotation $quotation) use (&$count) {
-                DB::transaction(function () use ($quotation, &$count) {
-                    $locked = Quotation::query()->whereKey($quotation->getKey())->lockForUpdate()->first();
-
-                    if ($locked?->status !== Quotation::STATUS_DRAFT) {
-                        return;
-                    }
-
-                    $locked->update(['status' => Quotation::STATUS_REJECTED]);
-                    $count++;
-
-                    $opportunity = $locked->opportunity;
-                    if ($opportunity && ! $opportunity->quotations()->where('status', Quotation::STATUS_DRAFT)->exists()) {
-                        $this->closeOpportunity($opportunity, __('quotations.expired_reason', ['code' => $locked->quotation_id], 'vi'));
-                    }
-                });
-            });
-
-        return $count;
-    }
 }

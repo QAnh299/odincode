@@ -96,16 +96,6 @@
                     <x-icon name="check-circle" />{{ __('invoices.detail.confirm_transfer') }}
                 </button>
             @endif
-            @if ($this->canSimulate)
-                <button type="button" class="qt-btn qt-btn--ghost" wire:click="simulateTransfer" wire:loading.attr="disabled" wire:target="simulateTransfer"
-                    wire:confirm="{{ __('invoices.detail.simulate_confirm') }}" title="{{ __('invoices.detail.simulate_hint') }}">
-                    <x-icon name="refresh" />{{ __('invoices.detail.simulate') }}
-                </button>
-                <button type="button" class="qt-btn qt-btn--ghost" wire:click="simulateShortTransfer" wire:loading.attr="disabled" wire:target="simulateShortTransfer"
-                    title="{{ __('invoices.detail.simulate_hint') }}">
-                    <x-icon name="alert" />{{ __('invoices.detail.simulate_short') }}
-                </button>
-            @endif
             @if ($this->canEdit)
                 <a href="{{ route('salesperson.invoices.edit', $invoice) }}" class="qt-btn qt-btn--ghost"><x-icon name="edit" />{{ __('invoices.detail.edit') }}</a>
             @endif

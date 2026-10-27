@@ -37,6 +37,9 @@ class Show extends Component
     #[Locked]
     public bool $fromOpportunity = false;
 
+    // HĐ15: lý do từ chối đang chọn trong khung Từ chối báo giá (null = khung đang đóng)
+    public ?string $rejectReason = null;
+
     public function mount(Quotation $quotation): void
     {
         abort_unless(
@@ -73,30 +76,33 @@ class Show extends Component
     }
 
     /**
-     * Nút trên thanh thao tác theo quy trình. Draft còn hạn: đủ 4 nút; Draft quá hạn: chỉ Từ chối
-     * (HĐ8 và HĐ17 yêu cầu chưa hết hạn). 'url' = link, 'action' = hàm Livewire, 'disabled' = lý do khóa.
+     * Nút trên thanh thao tác (chỉ Salesperson lập báo giá). Nháp – kể cả đã quá hạn: Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối;
+     * Đã xác nhận: chỉ Xuất PDF; Từ chối: không có nút. 'url' = link, 'action' = hàm Livewire.
      *
      * @return array<int, array{key: string, icon: string, tone: string, url?: string, action?: string, confirm?: string, disabled?: string}>
      */
     #[Computed]
     public function actions(): array
     {
-        if (! $this->canAct) {
+        if (! $this->isAuthor() || $this->quotation->status === Quotation::STATUS_REJECTED) {
             return [];
         }
 
         $code = $this->quotation->quotation_id;
 
+        if (! $this->canAct) {
+            return [['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)]];
+        }
+
         $all = [
             ['key' => 'edit', 'icon' => 'edit', 'tone' => 'ghost', 'url' => route('salesperson.quotations.edit', $code)],       // HĐ10
             ['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)],  // HĐ7 - HĐ8
             ['key' => 'confirm', 'icon' => 'check-circle', 'tone' => 'primary', 'action' => 'confirm', 'confirm' => __('quotations.detail.confirm_confirm', ['code' => $code])], // HĐ16 - HĐ17
-            ['key' => 'reject', 'icon' => 'x', 'tone' => 'danger', 'action' => 'reject', 'confirm' => __('quotations.detail.reject_confirm', ['code' => $code])], // HĐ12 - HĐ13
+            ['key' => 'reject', 'icon' => 'x', 'tone' => 'danger', 'action' => 'startReject'], // HĐ15: mở khung chọn lý do
         ];
 
-        return $this->quotation->isExpired()
-            ? array_values(array_filter($all, fn ($button) => $button['key'] === 'reject'))
-            : $all;
+        // Báo giá quá hạn vẫn đủ nút: Chỉnh sửa để gia hạn; Xác nhận bị chặn và nhắc gia hạn (confirmBlocker 'expired')
+        return $all;
     }
 
 
@@ -136,17 +142,36 @@ class Show extends Component
     }
 
     /**
-     * Salesperson từ chối báo giá Nháp khi khách không đồng ý: báo giá → Từ chối, cơ hội đang xử lý → Lost (đã Won giữ nguyên).
+     * HĐ15: mở khung Từ chối báo giá để Salesperson chọn lý do (mặc định: khách không đồng ý).
+     */
+    public function startReject(): void
+    {
+        abort_unless($this->canAct, 403);
+
+        $this->rejectReason = QuotationService::REJECT_DECLINED;
+    }
+
+    public function cancelReject(): void
+    {
+        $this->rejectReason = null;
+    }
+
+    /**
+     * HĐ15 – HĐ16: Salesperson từ chối báo giá Nháp: báo giá → Từ chối; cơ hội đang xử lý → Lost (khách không đồng ý)
+     * hoặc Archived (khách không phản hồi đến khi quá hạn); đã Won giữ nguyên.
      */
     public function reject(QuotationService $service): void
     {
         abort_unless($this->canAct, 403);
+        $this->validate(['rejectReason' => ['required', 'in:'.implode(',', QuotationService::REJECT_REASONS)]]);
 
-        $closed = $service->reject($this->quotation, Auth::user()->employee);
+        $closed = $service->reject($this->quotation, Auth::user()->employee, $this->rejectReason);
+        $status = $this->rejectReason === QuotationService::REJECT_NO_RESPONSE ? 'opportunity_archived' : 'opportunity_lost';
 
+        $this->rejectReason = null;
         $this->reloadQuotation();
         $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.rejected_done', ['code' => $this->quotation->quotation_id])
-            .' '.__($closed ? 'quotations.detail.opportunity_lost' : 'quotations.detail.opportunity_kept')];
+            .' '.__($closed ? 'quotations.detail.'.$status : 'quotations.detail.opportunity_kept')];
     }
 
     public function render()

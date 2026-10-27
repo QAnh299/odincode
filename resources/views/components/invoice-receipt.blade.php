@@ -1,7 +1,8 @@
-@props(['order', 'invoice' => null, 'installment' => 1, 'issuedDate' => null])
+@props(['order', 'invoice' => null, 'installment' => 1, 'issuedDate' => null, 'type' => 'invoice'])
 
 @php
-    // Khung phiếu hóa đơn dùng chung cho trang tạo / sửa (livewire/invoices/form) và chi tiết (livewire/invoices/show).
+    // Khung phiếu hóa đơn dùng chung cho trang tạo / sửa (livewire/invoices/form) và chi tiết (livewire/invoices/show);
+    // type = 'order': cùng khung cho chi tiết đơn hàng (livewire/orders/show) – tiêu đề, ngày tạo và số đơn thay cho số hóa đơn.
     // Bố cục theo phiếu thu của ODIN: đầu phiếu (logo + chi nhánh), tiêu đề + ngày + số phiếu, thông tin khách,
     // bảng khóa học của đơn, tổng đơn / đã đóng / còn lại; phần riêng của từng trang đặt vào $slot (cuối phiếu).
     // Chỉ hiện trường có trong CSDL của nhóm (không có ngày sinh, CCCD).
@@ -13,7 +14,8 @@
     $lead = $quotation?->opportunity?->lead;
     $branch = $lead?->branch;
     $consultant = $invoice?->createdBy ?? $quotation?->employee;
-    $date = Carbon::parse($issuedDate ?? $invoice?->issued_date ?? today());
+    $isOrder = $type === 'order';
+    $date = Carbon::parse($isOrder ? ($order->created_at ?? today()) : ($issuedDate ?? $invoice?->issued_date ?? today()));
     $subtotal = (float) ($quotation?->details?->sum('line_total') ?? 0);
     $voucher = $quotation?->voucher;
     $discount = $voucher ? $voucher->discountFor($subtotal) : 0;
@@ -36,13 +38,17 @@
     </header>
 
     <div class="iv-doc__title">
-        <h2>{{ __('invoices.receipt.title') }}</h2>
+        <h2>{{ $isOrder ? __('orders.doc.title') : __('invoices.receipt.title') }}</h2>
         <p class="iv-doc__date">{{ Str::ucfirst($date->locale(app()->getLocale())->isoFormat(__('invoices.receipt.date_format'))) }}</p>
-        <p class="iv-doc__no">
-            {{ __('invoices.receipt.number') }}: <strong>{{ $invoice?->invoice_id ?? __('invoices.receipt.number_pending') }}</strong>
-            · {{ __('invoices.installment', ['number' => $installment]) }}
-            · {{ __('invoices.order') }} <strong>{{ $order->order_id }}</strong>
-        </p>
+        @if ($isOrder)
+            <p class="iv-doc__no">{{ __('orders.doc.number') }}: <strong>{{ $order->order_id }}</strong> · {{ __('invoices.receipt.quotation') }} <strong>{{ $quotation?->quotation_id ?? '—' }}</strong></p>
+        @else
+            <p class="iv-doc__no">
+                {{ __('invoices.receipt.number') }}: <strong>{{ $invoice?->invoice_id ?? __('invoices.receipt.number_pending') }}</strong>
+                · {{ __('invoices.installment', ['number' => $installment]) }}
+                · {{ __('invoices.order') }} <strong>{{ $order->order_id }}</strong>
+            </p>
+        @endif
     </div>
 
     {{-- Thông tin khách + đơn --}}
@@ -55,7 +61,10 @@
         {{-- Đơn chưa xác định hình thức: không hiện dòng này (SP chọn ở phần nhập bên dưới – HĐ21) --}}
         @if ($paymentType)
             <div><dt>{{ __('invoices.payment_type_label') }}</dt><dd>{{ __('invoices.payment_type.'.$paymentType) }}</dd></div>
+        @elseif ($isOrder)
+            <div><dt>{{ __('invoices.payment_type_label') }}</dt><dd>{{ __('orders.payment_type.none') }}</dd></div>
         @endif
+        {{ $info ?? '' }}
     </dl>
 
     {{-- Khóa học của đơn (từ báo giá đã xác nhận) --}}

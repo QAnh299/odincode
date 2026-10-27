@@ -10,6 +10,7 @@ use App\Livewire\Leads\Index as LeadIndex;
 use App\Livewire\Opportunities\Kanban as OpportunityKanban;
 use App\Livewire\Opportunities\Show as OpportunityShow;
 use App\Livewire\Orders\Index as OrderIndex;
+use App\Livewire\Orders\Show as OrderShow;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadConversion as LeadConversionReport;
@@ -48,6 +49,7 @@ Route::get('/quotations/{quotation}', QuotationShow::class)->name('quotations.sh
 
 // Đơn hàng - danh sách + tra cứu (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/orders', OrderIndex::class)->name('orders');
+Route::get('/orders/{order}', OrderShow::class)->name('orders.show');
 
 // Hóa đơn - danh sách + tra cứu (Giám đốc, Sale Admin, Kế toán, Sale Leader, Salesperson; Sale Leader xem của đội, Salesperson xem của mình)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');

@@ -420,19 +420,13 @@ class Show extends Component
 
 
     /**
-     * Nhãn "Phân vân · còn N ngày": số ngày còn lại của báo giá Nháp chưa hết hạn (HĐ11), hoặc ở Data đã xử lý
-     * là số ngày còn lại của hạn quyết định (khách đang cân nhắc); không có thì null.
+     * Nhãn "Phân vân · còn N ngày": ở Data đã xử lý là số ngày còn lại của hạn quyết định (khách đang cân nhắc);
+     * không có thì null. Báo giá không còn dùng nhãn này (chốt 25/10/2026).
      * Chỉ là nhãn tính ra, không phải trạng thái cơ hội.
      */
     #[Computed]
     public function undecidedDays(): ?int
     {
-        $draft = $this->quotations->first(fn ($q) => $q->status === Quotation::STATUS_DRAFT && ! $q->isExpired());
-
-        if ($draft) {
-            return $draft->daysUntilExpiry();
-        }
-
         $deadline = $this->opportunity->decisionDeadline();
 
         return $deadline ? max(0, (int) today()->diffInDays($deadline->copy()->startOfDay(), false)) : null;

@@ -137,12 +137,10 @@ return [
         'header'   => 'Lịch hẹn & báo giá cần theo dõi hôm nay, ngày mai',
         'today'    => 'Báo giá :code · :name hết hạn hôm nay',
         'tomorrow' => 'Báo giá :code · :name hết hạn ngày mai',
-        'overdue'  => 'Báo giá :code · :name đã quá hạn, sẽ tự từ chối',
+        'overdue'  => 'Báo giá :code · :name đã quá hạn :days ngày: gia hạn hoặc từ chối',
         'time'     => 'Hết hạn :date · liên hệ khách để chốt',
     ],
 
-    // Lý do ghi vào lịch sử cơ hội khi báo giá quá hạn tự từ chối (HĐ15)
-    'expired_reason'     => 'Báo giá :code quá hạn, khách không phản hồi.',
 
     // ── Mẫu PDF báo giá (pdf/quotation) ──
     'pdf' => [
@@ -179,15 +177,27 @@ return [
         'confirm_blocked'   => [
             'not_author'      => 'Chỉ Salesperson lập báo giá mới được xác nhận.',
             'not_draft'       => 'Báo giá không còn ở trạng thái Nháp.',
-            'expired'         => 'Báo giá đã quá hạn, không xác nhận được. Lập báo giá mới cho khách.',
+            'expired'         => 'Báo giá đã quá hạn, hãy gia hạn trước khi xác nhận.',
             'has_order'       => 'Báo giá đã có đơn hàng.',
             'no_lines'        => 'Báo giá chưa có khóa học nào.',
         ],
-        'reject_confirm'    => 'Khách không đồng ý báo giá :code? Báo giá chuyển sang Từ chối và cơ hội đang xử lý chuyển sang Thất bại (đã Thành công thì giữ nguyên). Muốn đổi khóa học thì chọn Chỉnh sửa.',
         'rejected_done'     => 'Đã từ chối báo giá :code.',
-        'expired_warning'   => 'Báo giá đã quá hạn; không thể xuất PDF hoặc xác nhận',
+        'expired_warning'   => 'Báo giá đã quá hạn. Khách còn nhu cầu thì chọn Chỉnh sửa để gia hạn ngày hết hạn rồi xác nhận; khách không mua thì chọn Từ chối.',
         'close_reason'      => 'Khách không đồng ý báo giá :code.',
+        'close_reason_no_response' => 'Khách không phản hồi báo giá :code đến khi quá hạn.',
         'opportunity_lost'  => 'Đã chuyển cơ hội sang Thất bại.',
+        'opportunity_archived' => 'Đã chuyển cơ hội sang Lưu trữ.',
+        'reject_reason_title' => 'Từ chối báo giá :code vì lý do nào?',
+        'reject_reason' => [
+            'declined'    => 'Khách không đồng ý',
+            'no_response' => 'Khách không phản hồi đến khi báo giá quá hạn',
+        ],
+        'reject_reason_hint' => [
+            'declined'    => 'Cơ hội đang xử lý chuyển sang Thất bại.',
+            'no_response' => 'Cơ hội đang xử lý chuyển sang Lưu trữ, giống trường hợp không liên lạc được.',
+        ],
+        'reject_cancel' => 'Hủy',
+        'reject_submit' => 'Từ chối báo giá',
         'opportunity_kept'  => 'Cơ hội đã Thành công nên giữ nguyên.',
         // Tiến trình
         'progress'          => 'Tiến trình',

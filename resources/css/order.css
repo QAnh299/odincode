@@ -1070,6 +1070,19 @@ select.od-control {
     text-decoration: underline;
 }
 
+/* Danh sách đơn hàng: cả dòng mở trang chi tiết đơn */
+.od-row-link {
+    cursor: pointer;
+}
+
+.od-row-link:hover > td {
+    background: var(--od-tint);
+}
+
+.od-row-link:hover .od-code__id {
+    text-decoration: underline;
+}
+
 a.od-mono.od-link {
     background: var(--od-tint);
 }

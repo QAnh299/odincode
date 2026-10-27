@@ -101,7 +101,8 @@ class InvoiceNotices
                         'received' => self::money($alert['amount']),
                         'amount'   => self::money($invoice->payment_amount),
                     ]),
-                    'time'  => __('invoices.notice.transfer_mismatch_time', ['time' => $alert['at']->format('d/m H:i')]),
+                    // Kế toán: kiểm tra và xác nhận; Salesperson: theo dõi, nhắc khách nếu chuyển thiếu
+                    'time'  => __($prefix === 'accountant' ? 'invoices.notice.transfer_mismatch_time' : 'invoices.notice.transfer_mismatch_time_sp', ['time' => $alert['at']->format('d/m H:i')]),
                     'url'   => route($prefix.'.invoices.show', $invoice),
                     // Lỗi cần xử lý xếp lên đầu chuông
                     'at'    => Carbon::create(1970),

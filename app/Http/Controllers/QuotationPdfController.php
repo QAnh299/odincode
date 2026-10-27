@@ -10,13 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * HĐ7 – HĐ8: Salesperson xuất PDF báo giá để tự gửi khách qua kênh khác (Zalo, email cá nhân, in giấy).
- * Chỉ người lập, báo giá còn Nháp và chưa hết hạn; trạng thái vẫn là Nháp (hệ thống không biết đã gửi hay chưa).
+ * Chỉ người lập, báo giá chưa bị từ chối (Nháp – kể cả quá hạn – hoặc Đã xác nhận); trạng thái không đổi.
  */
 class QuotationPdfController extends Controller
 {
     public function __invoke(Quotation $quotation, QuotationService $service): Response
     {
-        abort_unless($service->canEdit($quotation, Auth::user()->employee), 403);
+        abort_unless($service->canExportPdf($quotation, Auth::user()->employee), 403);
 
         $quotation->load([
             'details' => fn ($q) => $q->orderBy('course_id'),

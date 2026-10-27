@@ -24,6 +24,9 @@
     $hasQuotationRoute = Route::has($quotationRoute);
     $invoiceRoute = $this->routePrefix.'.invoices';
     $hasInvoiceRoute = Route::has($invoiceRoute);
+    // Tạo hóa đơn từ Quản lý đơn hàng: Salesperson lập báo giá, đơn Đang xử lý còn phần chưa lập hóa đơn
+    $invoiceService = app(\App\Services\InvoiceService::class);
+    $viewer = auth()->user()?->employee;
 
     $tone = fn (?string $status) => in_array($status, SalesOrder::STATUSES, true) ? ($status === SalesOrder::STATUS_COMPLETED ? 'completed' : 'progress') : 'all';
     $money = fn (float $amount) => number_format($amount, 0, ',', '.').' ₫';
@@ -333,14 +336,17 @@
                                 $percent = $order->progressPercent();
                                 $paymentType = in_array($order->payment_type, SalesOrder::PAYMENT_TYPES, true) ? $order->payment_type : Index::PAYMENT_NONE;
                             @endphp
-                            {{-- Chưa có trang chi tiết đơn hàng: khi có route {vai trò}.orders.show thì gắn link vào mã đơn
-                                 và cho bấm cả dòng (giống danh sách báo giá) --}}
-                            <tr wire:key="order-{{ $order->order_id }}">
+                            {{-- Bấm cả dòng (hoặc mã đơn) mở trang chi tiết đơn hàng ({vai trò}.orders.show), giống danh sách báo giá;
+                                 bấm vào các link khác trong dòng (báo giá, hóa đơn, tạo hóa đơn) thì đi theo link đó --}}
+                            @php $orderUrl = route($this->routePrefix.'.orders.show', $order); @endphp
+                            <tr wire:key="order-{{ $order->order_id }}" class="od-row-link"
+                                onclick="if (!event.target.closest('a')) window.location='{{ $orderUrl }}'">
                                 <td data-label="{{ __('orders.code') }}">
                                     <span class="od-code">
                                         <span class="od-code__icon"><x-icon name="file" /></span>
                                         <span class="od-stack">
-                                            <span class="od-code__id">{{ $this->highlight($order->order_id) }}</span>
+                                            <a href="{{ $orderUrl }}" class="od-code__id od-link"
+                                                title="{{ __('orders.detail.view', ['code' => $order->order_id]) }}">{{ $this->highlight($order->order_id) }}</a>
                                             <span class="od-stack__sub">{{ $order->created_at?->format('d/m/Y') }}</span>
                                         </span>
                                     </span>
@@ -398,6 +404,9 @@
                                                     <span class="od-tag od-tag--overdue">{{ __('orders.invoices_overdue', ['count' => $order->overdue_invoices_count]) }}</span>
                                                 @endif
                                             </span>
+                                        @endif
+                                        @if (in_array($invoiceService->blockerFor($order, $viewer), [null, 'missing_profile'], true))
+                                            <a href="{{ route('salesperson.invoices.create', $order) }}" class="od-link od-create-invoice">+ {{ __('orders.create_invoice') }}</a>
                                         @endif
                                     </span>
                                 </td>

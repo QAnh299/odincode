@@ -9,9 +9,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Nhắc báo giá Nháp đang chờ khách phản hồi cho Salesperson (chuông thông báo trên topbar) - HĐ11:
- * báo giá mình lập, còn Nháp, hết hạn hôm nay hoặc ngày mai (nhắc trước để kịp liên hệ khách trước khi
- * hệ thống tự từ chối ở HĐ15), và báo giá đã quá hạn nhưng chưa được tự từ chối (lệnh hằng ngày chưa chạy).
+ * Nhắc báo giá Nháp cho Salesperson lập báo giá (chuông thông báo trên topbar): hết hạn hôm nay hoặc ngày mai,
+ * và báo giá đã quá hạn – nhắc mỗi ngày cho tới khi SP xử lý (gia hạn bằng Chỉnh sửa, xác nhận hoặc từ chối).
+ * Báo giá quá hạn không tự đổi trạng thái (chốt 25/10/2026).
  * Không có bảng thông báo trong odin.sql nên suy ra trực tiếp từ báo giá (giống AppointmentReminders).
  */
 class QuotationReminders
@@ -47,7 +47,7 @@ class QuotationReminders
                 };
 
                 return [
-                    'title' => __($key, ['code' => $quotation->quotation_id, 'name' => $name]),
+                    'title' => __($key, ['code' => $quotation->quotation_id, 'name' => $name, 'days' => abs($days)]),
                     'time'  => __('quotations.reminder.time', ['date' => $quotation->expiry_date->format('d/m/Y')]),
                     'url'   => route('salesperson.quotations.show', $quotation),
                     'at'    => $quotation->expiry_date->copy()->endOfDay(),

@@ -54,14 +54,13 @@ return [
     ],
 
     // Thanh toán chuyển khoản (HĐ27 – HĐ29): ảnh QR theo chuẩn VietQR (img.vietqr.io) + webhook nhận giao dịch
-    // từ ngân hàng / cổng QR (SePay, Casso...). simulate = hiện nút "Giả lập giao dịch" để demo (mặc định chỉ local).
+    // từ ngân hàng / cổng QR (SePay, Casso...).
     'vietqr' => [
         'bank_id'        => env('VIETQR_BANK_ID', 'VCB'),
         'account_no'     => env('VIETQR_ACCOUNT_NO', '0000000000'),
         'account_name'   => env('VIETQR_ACCOUNT_NAME', 'ODIN LANGUAGE ACADEMY'),
         'template'       => env('VIETQR_TEMPLATE', 'compact2'),
         'webhook_secret' => env('BANK_WEBHOOK_SECRET'),
-        'simulate'       => env('PAYMENT_SIMULATION', env('APP_ENV') === 'local'),
     ],
 
 ];

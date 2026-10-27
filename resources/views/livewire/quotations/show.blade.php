@@ -115,15 +115,36 @@
                         </button>
                     @else
                         <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" wire:click="{{ $button['action'] }}"
-                            wire:confirm="{{ $button['confirm'] }}" wire:loading.attr="disabled" wire:target="{{ $button['action'] }}">
+                            @isset($button['confirm']) wire:confirm="{{ $button['confirm'] }}" @endisset wire:loading.attr="disabled" wire:target="{{ $button['action'] }}">
                             <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
                         </button>
                     @endif
                 @endforeach
             </div>
+            {{-- HĐ15: chọn lý do từ chối – không đồng ý → Thất bại, không phản hồi đến khi quá hạn → Lưu trữ --}}
+            @if ($rejectReason !== null)
+                <div class="qt-reject" role="group" aria-label="{{ __('quotations.detail.reject_reason_title', ['code' => $quotation->quotation_id]) }}">
+                    <p class="qt-reject__title">{{ __('quotations.detail.reject_reason_title', ['code' => $quotation->quotation_id]) }}</p>
+                    @foreach (\App\Services\QuotationService::REJECT_REASONS as $reason)
+                        <label class="qt-reject__option">
+                            <input type="radio" wire:model="rejectReason" value="{{ $reason }}">
+                            <span>
+                                <strong>{{ __('quotations.detail.reject_reason.'.$reason) }}</strong>
+                                <small>{{ __('quotations.detail.reject_reason_hint.'.$reason) }}</small>
+                            </span>
+                        </label>
+                    @endforeach
+                    <div class="qt-reject__buttons">
+                        <button type="button" class="qt-btn qt-btn--ghost" wire:click="cancelReject">{{ __('quotations.detail.reject_cancel') }}</button>
+                        <button type="button" class="qt-btn qt-btn--danger" wire:click="reject" wire:loading.attr="disabled" wire:target="reject">
+                            <x-icon name="x" />{{ __('quotations.detail.reject_submit') }}
+                        </button>
+                    </div>
+                </div>
+            @endif
             @if ($isExpired)
                 <p class="qt-actions__warning"><x-icon name="alert" />{{ __('quotations.detail.expired_warning') }}</p>
-            @else
+            @elseif ($this->canAct)
                 <p class="qt-actions__hint"><x-icon name="info" />{{ __('quotations.detail.confirm_hint') }}</p>
             @endif
         </section>
@@ -300,13 +321,18 @@
             @endif
 
             @if ($order)
-                {{-- Chưa có trang chi tiết đơn hàng: sau này gắn link route($prefix.'.orders.show', $order) vào mã đơn --}}
                 <section class="qt-card qt-panel-card">
                     <h2 class="qt-section-title">{{ __('quotations.detail.order') }}</h2>
                     <dl class="qt-info">
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.order_id') }}</dt>
-                            <dd><span class="qt-mono">{{ $order->order_id }}</span></dd>
+                            <dd>
+                                @if (Route::has($prefix.'.orders.show'))
+                                    <a href="{{ route($prefix.'.orders.show', $order) }}" class="qt-link qt-mono">{{ $order->order_id }}</a>
+                                @else
+                                    <span class="qt-mono">{{ $order->order_id }}</span>
+                                @endif
+                            </dd>
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.order_created') }}</dt>

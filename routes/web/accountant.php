@@ -3,6 +3,7 @@
 use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Invoices\Show as InvoiceShow;
 use App\Livewire\Orders\Index as OrderIndex;
+use App\Livewire\Orders\Show as OrderShow;
 use App\Livewire\Quotations\Index as QuotationIndex;
 use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\Revenue as RevenueReport;
@@ -18,6 +19,7 @@ Route::get('/quotations/{quotation}', QuotationShow::class)->name('quotations.sh
 
 // Đơn hàng - danh sách + tra cứu (chỉ xem; kế toán xem tất cả đơn hàng)
 Route::get('/orders', OrderIndex::class)->name('orders');
+Route::get('/orders/{order}', OrderShow::class)->name('orders.show');
 
 // Hóa đơn - danh sách + tra cứu (chỉ xem; kế toán xem tất cả hóa đơn)
 Route::get('/invoices', InvoiceIndex::class)->name('invoices');

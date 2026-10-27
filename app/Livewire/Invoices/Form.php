@@ -79,11 +79,12 @@ class Form extends Component
     }
 
     /**
-     * Đơn / lựa chọn là Toàn bộ thì số tiền luôn bằng số tối đa (còn lại − đang chờ).
+     * Đơn / lựa chọn là Toàn bộ thì số tiền luôn bằng số tối đa (còn lại − đang chờ); Trả góp chưa nhập số tiền
+     * thì mặc định bằng số tối đa, SP sửa lại số tiền của kỳ này.
      */
     private function fillFullAmount(): void
     {
-        if ($this->type === SalesOrder::PAYMENT_FULL) {
+        if ($this->type === SalesOrder::PAYMENT_FULL || ($this->type === SalesOrder::PAYMENT_INSTALLMENT && $this->amount === '')) {
             $this->amount = (string) (int) round($this->limits['max']);
         }
     }

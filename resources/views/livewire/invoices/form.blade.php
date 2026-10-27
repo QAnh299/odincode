@@ -112,12 +112,14 @@
                         <div class="iv-checks">
                             @foreach (Invoice::METHODS as $option)
                                 <label class="iv-check" wire:key="method-{{ $option }}">
-                                    <input type="radio" wire:model.live="method" value="{{ $option }}">
+                                    <input type="radio" wire:model.live="method" value="{{ $option }}" @disabled($invoiceId !== null)>
                                     <span>{{ __('invoices.method.'.$option) }}</span>
                                 </label>
                             @endforeach
                         </div>
-                        @if ($method === Invoice::METHOD_CASH)
+                        @if ($invoiceId !== null)
+                            <span class="qt-field__help">{{ __('invoices.form.method_locked') }}</span>
+                        @elseif ($method === Invoice::METHOD_CASH)
                             <span class="qt-field__help">{{ __('invoices.form.method_cash_help') }}</span>
                         @elseif ($method === Invoice::METHOD_BANK_TRANSFER)
                             <span class="qt-field__help">{{ __('invoices.form.method_transfer_help') }}</span>

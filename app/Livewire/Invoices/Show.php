@@ -3,7 +3,6 @@
 namespace App\Livewire\Invoices;
 
 use App\Models\Invoice;
-use App\Models\Role;
 use App\Services\InvoiceService;
 use App\Services\TransferAlerts;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +14,7 @@ use Livewire\Component;
  * Chi tiết một hóa đơn (mọi vai trò, phạm vi theo Invoice::visibleTo(); ngoài phạm vi → 404).
  * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md, giai đoạn D – G.
  *
- *   - Chuyển khoản Chờ thanh toán: hiện QR (HĐ27); hệ thống tự xác nhận khi nhận giao dịch khớp (HĐ29).
- *     Môi trường demo có nút "Giả lập giao dịch" gọi đúng hàm hệ thống dùng cho webhook.
+ *   - Chuyển khoản Chờ thanh toán: hiện QR (HĐ27); hệ thống tự xác nhận khi webhook nhận giao dịch khớp (HĐ29).
  *   - Tiền mặt Chờ thanh toán: "Đã gửi kế toán, chờ xác nhận" (HĐ30); kế toán đối chiếu và bấm Xác nhận (HĐ32).
  *   - Salesperson lập hóa đơn: sửa khi còn Chờ thanh toán (HĐ36); tạo hóa đơn kỳ tiếp khi đơn còn nợ (HĐ38).
  *   - Hóa đơn Quá hạn không nhận thanh toán (quyết định của nhóm); SP lập hóa đơn thay thế.
@@ -87,18 +85,6 @@ class Show extends Component
     }
 
     /**
-     * Nút giả lập giao dịch chuyển khoản (chỉ khi bật services.vietqr.simulate): SP lập hóa đơn hoặc kế toán.
-     */
-    #[Computed]
-    public function canSimulate(): bool
-    {
-        return (bool) config('services.vietqr.simulate')
-            && $this->invoice->status === Invoice::STATUS_UNPAID
-            && $this->invoice->payment_method === Invoice::METHOD_BANK_TRANSFER
-            && ($this->canEdit || $this->routePrefix === Role::ACCOUNTANT);
-    }
-
-    /**
      * HĐ32 → HĐ33: kế toán xác nhận đã nhận đủ tiền mặt.
      */
     public function approveCash(InvoiceService $service): void
@@ -130,42 +116,6 @@ class Show extends Component
         $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_confirmed', ['code' => $this->invoice->invoice_id])];
     }
 
-    /**
-     * Demo HĐ28 → HĐ29: giả lập ngân hàng báo có giao dịch đúng số tiền, nội dung = mã hóa đơn.
-     */
-    public function simulateTransfer(InvoiceService $service): void
-    {
-        abort_unless($this->canSimulate, 403);
-
-        $paid = $service->handleBankTransfer(
-            (float) $this->invoice->payment_amount,
-            $this->invoice->invoice_id,
-            'SIM-'.now()->format('YmdHis'),
-        );
-
-        $this->reloadInvoice();
-        $this->notice = $paid
-            ? ['tone' => 'success', 'text' => __('invoices.detail.transfer_matched', ['code' => $this->invoice->invoice_id])]
-            : ['tone' => 'danger', 'text' => __('invoices.detail.transfer_unmatched')];
-    }
-
-    /**
-     * Demo: giả lập khách chuyển thiếu (một nửa số tiền) để thử cảnh báo chuyển khoản lệch.
-     */
-    public function simulateShortTransfer(InvoiceService $service): void
-    {
-        abort_unless($this->canSimulate, 403);
-
-        $service->handleBankTransfer(
-            round((float) $this->invoice->payment_amount / 2, -3),
-            $this->invoice->invoice_id,
-            'SIM-'.now()->format('YmdHis'),
-        );
-
-        unset($this->transferAlert);
-        $this->notice = ['tone' => 'danger', 'text' => __('invoices.detail.transfer_short_simulated')];
-    }
-
     public function render()
     {
         return view('livewire.invoices.show')
@@ -175,7 +125,7 @@ class Show extends Component
     private function reloadInvoice(): void
     {
         $this->loadInvoice($this->invoice->fresh());
-        unset($this->canApproveCash, $this->canEdit, $this->canCreateNext, $this->canSimulate);
+        unset($this->canApproveCash, $this->canEdit, $this->canCreateNext);
     }
 
     private function loadInvoice(Invoice $invoice): void

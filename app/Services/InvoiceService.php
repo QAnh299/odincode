@@ -167,7 +167,6 @@ class InvoiceService
             $invoice->update([
                 'payment_amount' => $this->resolveAmount($order, $order->payment_type, $data['amount'], $invoice->invoice_id),
                 'due_date'       => $data['due_date'],
-                'payment_method' => $data['method'],
             ]);
 
             return $invoice->fresh();
