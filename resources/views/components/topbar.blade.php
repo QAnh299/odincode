@@ -32,41 +32,8 @@
 
         <x-language-switcher />
 
-        {{-- Salesperson: nhắc lịch hẹn hôm nay / ngày mai và lịch đã qua giờ chưa cập nhật (App\Services\AppointmentReminders)
-             + cơ hội không liên lạc được đã tới lúc liên hệ lại (App\Services\CareReminders)
-             + báo giá Nháp sắp hết hạn / quá hạn chờ khách phản hồi (App\Services\QuotationReminders), xếp theo thời điểm
-             Sale Leader: Lead Sale Admin vừa phân cho đội, chờ phân cho Salesperson (App\Services\LeadAssignmentNotices) --}}
-        @php
-            $employee = auth()->user()?->employee;
-            $bell = match ($employee?->role_name) {
-                \App\Models\Role::SALESPERSON => [
-                    'items'    => \App\Services\InvoiceNotices::for($employee)->sortByDesc('at')
-                        ->concat(\App\Services\AppointmentReminders::for($employee)
-                            ->concat(\App\Services\CareReminders::for($employee))
-                            ->concat(\App\Services\QuotationReminders::for($employee))
-                            ->sortBy('at'))
-                        ->values(),
-                    'subtitle' => __('quotations.reminder.header'),
-                    'footer'   => ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')],
-                ],
-                \App\Models\Role::SALE_LEADER => [
-                    'items'    => $leadNotices = \App\Services\LeadAssignmentNotices::for($employee),
-                    'subtitle' => null,
-                    'footer'   => $leadNotices->isNotEmpty()
-                        ? ['url' => route('sale_leader.leads', ['distribute' => 1]), 'label' => __('leads.notice.action')]
-                        : null,
-                ],
-                // Kế toán: hóa đơn tiền mặt chờ duyệt + hóa đơn vừa thanh toán (App\Services\InvoiceNotices)
-                \App\Models\Role::ACCOUNTANT => [
-                    'items'    => \App\Services\InvoiceNotices::for($employee),
-                    'subtitle' => __('invoices.notice.header', ['count' => \App\Services\InvoiceNotices::cashQueueCount()]),
-                    'footer'   => ['url' => route('accountant.invoices', ['cash_pending' => 1]), 'label' => __('invoices.notice.view_queue')],
-                ],
-                default => ['items' => collect(), 'subtitle' => null, 'footer' => null],
-            };
-        @endphp
-        <x-notification-bell :notifications="$bell['items']" :count="$bell['items']->count()"
-            :subtitle="$bell['subtitle']" :footer="$bell['footer']" />
+        {{-- Chuông thông báo theo vai trò, có đánh dấu đã đọc (App\Livewire\NotificationBell) --}}
+        <livewire:notification-bell />
 
         <span class="odin-topbar__divider d-none d-sm-block" aria-hidden="true"></span>
 

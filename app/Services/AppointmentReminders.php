@@ -47,6 +47,8 @@ class AppointmentReminders
                     'time'  => __('appointments.overdue_time', ['time' => $first->scheduled_time->format('d/m/Y H:i')]),
                     'url'   => route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),
                     'at'    => $first->scheduled_time,
+                    // Khác khóa với lời nhắc trước giờ hẹn để lịch chuyển sang quá giờ thì báo "chưa đọc" lại
+                    'key'   => 'appointment-overdue:'.$first->appointment_id,
                 ];
             })
             ->values();

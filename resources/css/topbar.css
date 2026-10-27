@@ -84,45 +84,282 @@
 }
 
 .odin-notify-menu {
-    width: 320px;
+    width: 380px;
     max-width: calc(100vw - 2rem);
     padding: 0;
     overflow: hidden;
+    border: 1px solid var(--odin-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
 }
 
 .odin-notify-menu__header {
-    padding: 0.85rem 1rem;
-    font-weight: 700;
+    padding: 0.9rem 1rem 0.75rem;
     border-bottom: 1px solid var(--odin-border);
 }
 
+.odin-notify-menu__head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.odin-notify-menu__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--odin-ink);
+    white-space: nowrap;
+}
+
+.odin-notify-menu__count {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--odin-primary) 12%, #fff);
+    color: var(--odin-primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Dòng mô tả dưới tiêu đề */
+.odin-notify-menu__sub {
+    display: block;
+    margin-top: 0.3rem;
+    color: #64748b;
+    font-size: 0.76rem;
+}
+
+.odin-notify-menu__mark-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--odin-primary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.15s;
+}
+
+.odin-notify-menu__mark-all svg {
+    width: 15px;
+    height: 15px;
+}
+
+.odin-notify-menu__mark-all:hover {
+    background: color-mix(in srgb, var(--odin-primary) 10%, #fff);
+}
+
+/* Danh sách thông báo: cuộn khi dài */
+.odin-notify-list {
+    max-height: min(440px, 65vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 .odin-notify-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem 0.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s;
+}
+
+.odin-notify-item:last-child {
+    border-bottom: 0;
+}
+
+.odin-notify-item:hover {
+    background: #f8fafc;
+}
+
+/* Chưa đọc: nền nhạt theo màu giao diện + vạch màu bên trái */
+.odin-notify-item.is-unread {
+    background: color-mix(in srgb, var(--odin-primary) 5%, #fff);
+}
+
+.odin-notify-item.is-unread:hover {
+    background: color-mix(in srgb, var(--odin-primary) 9%, #fff);
+}
+
+.odin-notify-item.is-unread::before {
+    content: "";
+    position: absolute;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--odin-primary);
+}
+
+.odin-notify-item__link {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.odin-notify-item__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+.odin-notify-item.is-unread .odin-notify-item__icon {
+    background: color-mix(in srgb, var(--odin-primary) 14%, #fff);
+    color: var(--odin-primary);
+}
+
+.odin-notify-item__icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.odin-notify-item__body {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    padding: 0.7rem 1rem;
-    border-radius: 0;
-    white-space: normal;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.odin-notify-item__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.odin-notify-item.is-unread .odin-notify-item__title {
+    color: var(--odin-ink);
+    font-weight: 600;
+}
+
+.odin-notify-item__link:hover .odin-notify-item__title {
+    color: var(--odin-primary);
 }
 
 .odin-notify-item__time {
-    font-size: 0.78rem;
-    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #94a3b8;
+    font-size: 0.74rem;
+}
+
+.odin-notify-item__time svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+/* Nút "Đã đọc": chấm tròn, rê chuột vào thì hiện dấu tích */
+.odin-notify-item__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--odin-primary);
+    transition: background-color 0.15s;
+}
+
+.odin-notify-item__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--odin-primary);
+}
+
+.odin-notify-item__mark svg {
+    display: none;
+    width: 16px;
+    height: 16px;
+}
+
+.odin-notify-item__mark:hover,
+.odin-notify-item__mark:focus-visible {
+    background: color-mix(in srgb, var(--odin-primary) 14%, #fff);
+}
+
+.odin-notify-item__mark:hover .odin-notify-item__dot,
+.odin-notify-item__mark:focus-visible .odin-notify-item__dot {
+    display: none;
+}
+
+.odin-notify-item__mark:hover svg,
+.odin-notify-item__mark:focus-visible svg {
+    display: block;
 }
 
 .odin-notify-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 2rem 1rem;
+    gap: 0.6rem;
+    padding: 2.25rem 1rem;
     color: #94a3b8;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
 }
 
-.odin-notify-empty svg {
-    width: 40px;
-    height: 40px;
+.odin-notify-empty__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f1f5f9;
+}
+
+.odin-notify-empty__icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+/* Link cuối menu */
+.odin-notify-menu__footer {
+    display: block;
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--odin-border);
+    background: #f8fafc;
+    color: var(--odin-primary);
+    font-size: 0.83rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.15s;
+}
+
+.odin-notify-menu__footer:hover {
+    background: color-mix(in srgb, var(--odin-primary) 8%, #fff);
 }
 
 /* Tài khoản */
@@ -223,29 +460,4 @@
 /* Nút ngôn ngữ cao bằng các nút icon */
 .odin-topbar .lang-btn {
     height: 40px;
-}
-
-/* Dòng mô tả dưới tiêu đề + link cuối menu thông báo */
-.odin-notify-menu__sub {
-    display: block;
-    margin-top: 0.15rem;
-    color: #64748b;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-.odin-notify-menu__footer {
-    display: block;
-    margin-top: 0.25rem;
-    padding: 0.6rem 0.75rem 0.35rem;
-    border-top: 1px solid var(--odin-border, #e2e8f0);
-    color: var(--odin-primary);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-}
-
-.odin-notify-menu__footer:hover {
-    text-decoration: underline;
 }
