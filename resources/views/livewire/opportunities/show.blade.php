@@ -227,7 +227,7 @@
                                         {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
                                         @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
                                             <span class="od-muted">
-                                                {{ $opp->stage_id === \App\Models\Stage::PROCESSED ? __('opportunities.care_failed_archived') : __('opportunities.care_failed_lost') }}
+                                                {{ __('opportunities.care_failed_lost') }}
                                             </span>
                                         @endif
                                     </div>
@@ -335,7 +335,14 @@
         {{-- ── Cột phải: thông tin khách hàng + cơ hội ─────────────── --}}
         <aside class="od-side">
             <section class="vc-card">
-                <h2 class="od-title">{{ __('opportunities.customer') }}</h2>
+                <div class="od-title-row">
+                    <h2 class="od-title">{{ __('opportunities.customer') }}</h2>
+                    @if ($this->canEditLead())
+                        <button type="button" class="vc-btn vc-btn--ghost od-title-row__btn" wire:click="startEditLead">
+                            <x-icon name="edit" />{{ __('leads.edit') }}
+                        </button>
+                    @endif
+                </div>
                 <dl class="od-info">
                     <dt>{{ __('leads.phone') }}</dt>
                     <dd>{{ $lead?->phone ?? '—' }}</dd>
@@ -585,5 +592,10 @@
                 </footer>
             </div>
         </div>
+    @endif
+
+    {{-- ── Popup sửa thông tin khách (Lead) ── --}}
+    @if ($editingLead && $this->canEditLead())
+        @include('livewire.leads.partials.edit-modal', ['lead' => $lead, 'branches' => collect()])
     @endif
 </div>

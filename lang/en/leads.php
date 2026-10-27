@@ -226,6 +226,10 @@ return [
     'conversion_date'        => 'Conversion date',
     'stage'                  => 'Stage',
     'became_student'         => 'Student :code',
+    'edit'                   => 'Edit',
+    'edit_title'             => 'Edit lead information',
+    'edit_save'              => 'Save changes',
+    'edit_saved'             => 'Lead information updated.',
 
     'status_name' => [
         'New'       => 'New',

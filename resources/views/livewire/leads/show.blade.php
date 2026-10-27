@@ -5,8 +5,7 @@
 @endphp
 
 <div class="vc st">
-    {{-- voucher.css (khung, bảng, nhãn) + lead.css (nhãn trạng thái, kênh liên hệ) + student.css (đầu trang, khối thông tin) --}}
-    @assets
+     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/student.css'])
     @endassets
 
@@ -20,6 +19,14 @@
         </span>
     </nav>
 
+    @if ($notice)
+        <div class="ld-notice" role="status">
+            <x-icon name="check-circle" />
+            <span class="ld-notice__text">{{ $notice }}</span>
+            <button type="button" class="ld-notice__close" wire:click="dismissNotice" aria-label="{{ __('leads.close') }}"><x-icon name="x" /></button>
+        </div>
+    @endif
+
     {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
     <section class="vc-card st-head">
         <div class="st-head__main">
@@ -32,6 +39,11 @@
                 </span>
             </div>
         </div>
+        @if ($this->canEditLead())
+            <button type="button" class="vc-btn vc-btn--primary" wire:click="startEditLead">
+                <x-icon name="edit" />{{ __('leads.edit') }}
+            </button>
+        @endif
     </section>
 
     {{-- ── Thông tin liên hệ ────────────────────────────────────────── --}}
@@ -97,4 +109,8 @@
             </div>
         @endif
     </section>
+
+    @if ($editingLead && $this->canEditLead())
+        @include('livewire.leads.partials.edit-modal', ['lead' => $lead, 'branches' => $this->branches])
+    @endif
 </div>

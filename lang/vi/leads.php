@@ -226,6 +226,10 @@ return [
     'conversion_date'        => 'Ngày chuyển đổi',
     'stage'                  => 'Giai đoạn',
     'became_student'         => 'Học viên :code',
+    'edit'                   => 'Sửa',
+    'edit_title'             => 'Sửa thông tin Lead',
+    'edit_save'              => 'Lưu thay đổi',
+    'edit_saved'             => 'Đã cập nhật thông tin Lead.',
 
     'status_name' => [
         'New'       => 'Mới',
