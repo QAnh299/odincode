@@ -429,8 +429,7 @@ INSERT INTO `SalesTeams` (`team_id`, `team_name`, `established_date`, `team_lead
 
 INSERT INTO `SalesTargets` (`target_id`, `target_name`, `target_type`, `unit`) VALUES
   ('TGT001', 'Doanh thu', 'Revenue', 'VND'),
-  ('TGT002', 'Hoc vien moi', 'NewStudents', 'nguoi'),
-  ('TGT003', 'Lead moi', 'NewLeads', 'Lead');
+  ('TGT002', 'Hoc vien moi', 'NewStudents', 'nguoi');
 
 INSERT INTO `Stages` (`stage_id`, `stage_name`, `sort_order`, `description`) VALUES
   ('STG001', 'Data chưa tương tác', 1, 'Cơ hội mới tạo, nhân viên chưa liên hệ với khách hàng.'),
@@ -478,9 +477,7 @@ INSERT INTO `TeamSalesTargets` (`target_id`, `team_id`, `target_month`, `target_
   ('TGT001', 'TEAM02', '2026-09-01', 170000000.00, 'Completed', '2026-10-01 09:00:00'),
   ('TGT001', 'TEAM02', '2026-10-01', 190000000.00, 'Active', '2026-10-01 09:00:00'),
   ('TGT002', 'TEAM01', '2026-10-01', 25.00, 'Active', '2026-10-01 09:00:00'),
-  ('TGT002', 'TEAM02', '2026-10-01', 20.00, 'Active', '2026-10-01 09:00:00'),
-  ('TGT003', 'TEAM01', '2026-10-01', 120.00, 'Active', '2026-10-01 09:00:00'),
-  ('TGT003', 'TEAM02', '2026-10-01', 100.00, 'Active', '2026-10-01 09:00:00');
+  ('TGT002', 'TEAM02', '2026-10-01', 20.00, 'Active', '2026-10-01 09:00:00');
 
 INSERT INTO `Leads`
   (`lead_id`, `full_name`, `phone`, `email`, `source_name`, `source_url`, `created_at`, `contact_method`, `status`, `branch_id`)

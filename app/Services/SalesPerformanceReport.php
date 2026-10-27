@@ -55,11 +55,11 @@ class SalesPerformanceReport
     // Việc cần xử lý (khoá trong alerts())
     const ALERTS = ['overdue_appointment', 'needs_quotation', 'decision_due', 'stale'];
 
-    // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh
+    // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh. KPI đội chỉ gồm doanh thu và học viên mới
+    // (số Lead được giao do Sale Admin phân bổ nên không làm chỉ tiêu của đội)
     const TARGETS = [
         'Revenue'     => 'revenue',
         'NewStudents' => 'students',
-        'NewLeads'    => 'assigned',
     ];
 
     // Chỉ số gốc (cộng dồn được); FLOATS là số thực (tiền, giờ, ngày)
@@ -192,7 +192,7 @@ class SalesPerformanceReport
     }
 
     /**
-     * Chỉ tiêu của các đội trong 1 tháng: [team_id => ['revenue' => ..., 'students' => ..., 'assigned' => ...]].
+     * Chỉ tiêu của các đội trong 1 tháng: [team_id => ['revenue' => ..., 'students' => ...]].
      */
     public function targets(string $month, ?array $teamIds = null): array
     {

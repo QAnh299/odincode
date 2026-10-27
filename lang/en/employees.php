@@ -157,6 +157,30 @@ return [
             'saved_edit'       => 'Team :name updated.',
         ],
 
+        // Monthly team KPI popup (Sale Admin, Actions column)
+        'kpi' => [
+            'title'         => 'Team KPIs',
+            'sub'           => 'Set the team\'s monthly targets.',
+            'month'         => 'Month',
+            'this_month'    => 'this month',
+            'status'        => 'Status',
+            'state_set'     => 'KPIs set',
+            'state_none'    => 'No KPIs yet',
+            'placeholder'   => 'Leave blank for no target',
+            'not_set'       => 'Not set',
+            'last_month'    => 'Last month: :value',
+            'hint_new'      => 'Enter at least one target and leave the others blank. Each month\'s KPIs are set once and cannot be changed after saving.',
+            'empty'         => 'Enter at least one target.',
+            'locked'        => 'KPIs for this month are already set and cannot be changed.',
+            'month_invalid' => 'KPIs can only be set for this month and the next 2 months.',
+            'saved'         => 'KPIs for :month saved for team :team.',
+
+            'types' => [
+                'Revenue'     => 'Revenue',
+                'NewStudents' => 'New students',
+            ],
+        ],
+
         'summary' => [
             'teams'   => 'Sales teams',
             'in_team' => 'Sales staff in a team',

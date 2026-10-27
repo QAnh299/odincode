@@ -195,6 +195,12 @@
                                                 <x-icon name="edit" />
                                                 <span class="visually-hidden">{{ __('employees.teams.form.edit') }} {{ $team->team_name }}</span>
                                             </button>
+                                            {{-- Sale Admin: đặt KPI tháng cho đội --}}
+                                            <button type="button" class="vc-icon-btn" wire:click="openKpi('{{ $team->team_id }}')"
+                                                title="{{ __('employees.teams.kpi.title') }}">
+                                                <x-icon name="trending" />
+                                                <span class="visually-hidden">{{ __('employees.teams.kpi.title') }} {{ $team->team_name }}</span>
+                                            </button>
                                         @endif
                                     </div>
                                 </td>
@@ -357,6 +363,100 @@
                         <span class="spinner-border spinner-border-sm" wire:loading wire:target="save" aria-hidden="true"></span>
                         {{ __('employees.teams.form.save') }}
                     </button>
+                </footer>
+            </form>
+        </div>
+    @endif
+
+    {{-- ── Popup KPI đội theo tháng (chỉ Sale Admin) ────────────────── --}}
+    @if ($modal === 'kpi' && $this->canManage && $this->editingTeam)
+        @php
+            $editing = $this->editingTeam;
+            $previous = $this->kpiPrevious;
+            $kpiSet = $this->kpiIsSet();
+        @endphp
+        <div class="ld-modal" wire:key="modal-team-kpi" x-data x-on:keydown.escape.window="$wire.closeModal()">
+            <div class="ld-modal__backdrop" wire:click="closeModal"></div>
+            <form class="ld-modal__dialog em-team-modal" role="dialog" aria-modal="true" aria-labelledby="em-kpi-title"
+                wire:submit="save">
+                <header class="ld-modal__head">
+                    <span class="ld-modal__icon"><x-icon name="trending" /></span>
+                    <div>
+                        <h2 class="ld-modal__title" id="em-kpi-title">
+                            {{ __('employees.teams.kpi.title') }}
+                            <span class="em-muted d-inline">· {{ $editing->team_name }} ({{ $editing->team_id }})</span>
+                        </h2>
+                        <p class="ld-modal__sub">{{ __('employees.teams.kpi.sub') }}</p>
+                    </div>
+                    <button type="button" class="ld-modal__close" wire:click="closeModal" aria-label="{{ __('employees.teams.form.close') }}">
+                        <x-icon name="x" />
+                    </button>
+                </header>
+
+                <div class="ld-modal__body ld-form">
+                    {{-- Tháng: .live để nạp KPI đã có của tháng được chọn --}}
+                    <label class="vc-field">
+                        <span class="vc-field__label">{{ __('employees.teams.kpi.month') }}<span class="ld-req">*</span></span>
+                        <select wire:model.live="form.month" class="vc-control @error('month') is-invalid @enderror">
+                            @foreach ($this->kpiMonths as $option)
+                                <option value="{{ $option }}">
+                                    {{ $this->kpiMonthLabel($option) }}@if ($loop->first) - {{ __('employees.teams.kpi.this_month') }}@endif
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('month')<span class="ld-error">{{ $message }}</span>@enderror
+                    </label>
+
+                    <div class="vc-field">
+                        <span class="vc-field__label">{{ __('employees.teams.kpi.status') }}</span>
+                        <span class="em-fixed" wire:loading.class="opacity-50" wire:target="form.month">
+                            {{ $kpiSet ? __('employees.teams.kpi.state_set') : __('employees.teams.kpi.state_none') }}
+                        </span>
+                    </div>
+
+                    @foreach ($this->kpiTypes as $type)
+                        @php
+                            $key = 'values.'.$type->target_id;
+                            $last = $previous[$type->target_id] ?? null;
+                        @endphp
+                        <label class="vc-field ld-form__wide" wire:key="kpi-{{ $type->target_id }}">
+                            <span class="vc-field__label">
+                                {{ $this->kpiTypeLabel($type) }}
+                                @if ($type->unit)
+                                    <span class="em-muted d-inline">({{ $type->unit }})</span>
+                                @endif
+                            </span>
+                            {{-- Tháng đã đặt KPI: khoá, chỉ xem --}}
+                            <input type="number" wire:model="form.values.{{ $type->target_id }}" min="0"
+                                step="{{ $this->kpiIsMoney($type) ? 1000 : 1 }}" inputmode="numeric" @disabled($kpiSet)
+                                placeholder="{{ $kpiSet ? __('employees.teams.kpi.not_set') : __('employees.teams.kpi.placeholder') }}"
+                                class="vc-control @error($key) is-invalid @enderror">
+                            @error($key)<span class="ld-error">{{ $message }}</span>@enderror
+                            @if ($last)
+                                <span class="ld-form__hint mb-0">
+                                    {{ __('employees.teams.kpi.last_month', ['value' => $this->kpiFormat($type, (float) $last->target_value)]) }}
+                                </span>
+                            @endif
+                        </label>
+                    @endforeach
+
+                    @error('values')<span class="ld-error ld-form__wide">{{ $message }}</span>@enderror
+                    @unless ($kpiSet)
+                        <p class="ld-form__hint ld-form__wide">{{ __('employees.teams.kpi.hint_new') }}</p>
+                    @endunless
+                </div>
+
+                <footer class="ld-modal__foot">
+                    @if ($kpiSet)
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeModal">{{ __('employees.teams.form.close') }}</button>
+                    @else
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeModal">{{ __('employees.teams.form.cancel') }}</button>
+                        <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="save">
+                            <span wire:loading.remove wire:target="save"><x-icon name="check" /></span>
+                            <span class="spinner-border spinner-border-sm" wire:loading wire:target="save" aria-hidden="true"></span>
+                            {{ __('employees.teams.form.save') }}
+                        </button>
+                    @endif
                 </footer>
             </form>
         </div>

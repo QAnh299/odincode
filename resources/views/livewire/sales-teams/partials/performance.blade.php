@@ -55,7 +55,7 @@
             ['won', 'check-circle', $number($perf['won']), null,
                 __('employees.perf.win_rate', ['rate' => $percent($perf['close_rate']), 'lost' => $number($perf['lost'])])],
             ['students', 'user-check', $number($perf['students']), 'students', null],
-            ['assigned', 'inbox', $number($perf['assigned']), 'assigned',
+            ['assigned', 'inbox', $number($perf['assigned']), null,
                 __('employees.perf.processed', ['rate' => $percent($perf['processed_rate'])])],
         ];
     @endphp
