@@ -300,7 +300,11 @@
                                                 @endphp
                                                 <div class="ld-dist__stepper">
                                                     <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', -1)" aria-label="−1">−</button>
+                                                    {{-- Chỉ nhận chữ số: chặn gõ/dán dấu âm, dấu thập phân, số mũ --}}
                                                     <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
+                                                        onkeydown="if (['-', '+', '.', ',', 'e', 'E'].includes(event.key)) event.preventDefault()"
+                                                        onpaste="if (! /^\d*$/.test(event.clipboardData.getData('text').trim())) event.preventDefault()"
+                                                        ondrop="event.preventDefault()"
                                                         wire:model.live.debounce.300ms="{{ $field }}.{{ $id }}"
                                                         aria-label="{{ $row['name'] }}">
                                                     <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', 1)" aria-label="+1">+</button>
