@@ -384,14 +384,6 @@
                             </dd>
                         </div>
                     </dl>
-                    {{-- HĐ18: SP lập báo giá tạo hóa đơn từ đơn còn nợ (InvoiceService::blockerFor) --}}
-                    @if ($this->canCreateInvoice)
-                        <div class="qt-order-actions">
-                            <a href="{{ route('salesperson.invoices.create', $order) }}" class="qt-btn qt-btn--primary">
-                                <x-icon name="plus" />{{ $invoiceCount > 0 ? __('quotations.detail.create_next_invoice') : __('quotations.detail.create_invoice') }}
-                            </a>
-                        </div>
-                    @endif
                 </section>
             @endif
         </div>

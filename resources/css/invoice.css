@@ -1336,11 +1336,6 @@ select.iv-control {
     flex: 1;
 }
 
-.qt-order-actions {
-    margin-top: 1rem;
-}
-
-.qt-order-actions a.qt-btn,
 .iv-pay a.qt-btn {
     text-decoration: none;
 }

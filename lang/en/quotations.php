@@ -173,7 +173,7 @@ return [
         'confirm_hint'      => 'Click Confirm when the customer agrees: the system creates the order, then you create an invoice.',
         'confirm_confirm'   => 'Has the customer accepted quotation :code? Confirming creates the order; the quotation can no longer be edited or rejected.',
         'confirm_title'     => 'Confirm quotation',
-        'confirmed_done'    => 'Quotation :code confirmed and order :order created. Click "Create invoice" in the Order block to bill the customer.',
+        'confirmed_done'    => 'Quotation :code confirmed and order :order created. Click "Create invoice" in the action bar to bill the customer.',
         // Step 17 not met
         'confirm_blocked'   => [
             'not_author'      => 'Only the salesperson who created the quotation can confirm it.',

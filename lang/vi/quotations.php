@@ -173,7 +173,7 @@ return [
         'confirm_hint'      => 'Bấm Xác nhận khi khách đồng ý: hệ thống tạo đơn hàng, sau đó bạn tạo hóa đơn cho khách.',
         'confirm_confirm'   => 'Khách đã đồng ý báo giá :code? Xác nhận sẽ tạo đơn hàng và không sửa hay từ chối báo giá được nữa.',
         'confirm_title'     => 'Xác nhận báo giá',
-        'confirmed_done'    => 'Đã xác nhận báo giá :code và tạo đơn hàng :order. Bấm "Tạo hóa đơn" ở khối Đơn hàng để lập hóa đơn cho khách.',
+        'confirmed_done'    => 'Đã xác nhận báo giá :code và tạo đơn hàng :order. Bấm "Tạo hóa đơn" trên thanh thao tác để lập hóa đơn cho khách.',
         // HĐ17 không đạt
         'confirm_blocked'   => [
             'not_author'      => 'Chỉ Salesperson lập báo giá mới được xác nhận.',

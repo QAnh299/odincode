@@ -77,7 +77,7 @@ class Show extends Component
 
     /**
      * Nút trên thanh thao tác (chỉ Salesperson lập báo giá). Nháp – kể cả đã quá hạn: Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối;
-     * Đã xác nhận: chỉ Xuất PDF; Từ chối: không có nút. 'url' = link, 'action' = hàm Livewire.
+     * Đã xác nhận: Tạo hóa đơn (khi đơn còn phần chưa lập hóa đơn) và Xuất PDF; Từ chối: không có nút. 'url' = link, 'action' = hàm Livewire.
      *
      * @return array<int, array{key: string, icon: string, tone: string, url?: string, action?: string, confirm?: string, disabled?: string}>
      */
@@ -91,7 +91,13 @@ class Show extends Component
         $code = $this->quotation->quotation_id;
 
         if (! $this->canAct) {
-            return [['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)]];
+            // Đã xác nhận: Tạo hóa đơn (HĐ18) đứng đầu thanh thao tác như trang chi tiết đơn hàng, sau đó Xuất PDF
+            $order = $this->quotation->order;
+            $create = $this->canCreateInvoice
+                ? [['key' => $order->invoices()->exists() ? 'create_next_invoice' : 'create_invoice', 'icon' => 'plus', 'tone' => 'primary', 'url' => route('salesperson.invoices.create', $order)]]
+                : [];
+
+            return [...$create, ['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)]];
         }
 
         $all = [
@@ -108,7 +114,7 @@ class Show extends Component
 
 
     /**
-     * HĐ18: nút "Tạo hóa đơn" ở khối Đơn hàng – Salesperson lập báo giá, đơn còn phần nợ chưa lập hóa đơn
+     * HĐ18: nút "Tạo hóa đơn" trên thanh thao tác – Salesperson lập báo giá, đơn còn phần nợ chưa lập hóa đơn
      * (gồm cả trường hợp khách thiếu email: biểu mẫu hóa đơn cho bổ sung ngay – HĐ20).
      */
     #[Computed]
