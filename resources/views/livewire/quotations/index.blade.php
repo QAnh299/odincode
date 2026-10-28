@@ -346,7 +346,7 @@
                                 </td>
                                 <td data-label="{{ __('quotations.order') }}">
                                     @if ($quotation->order)
-                                        <span class="qt-mono">{{ $this->highlight($quotation->order->order_id) }}</span>
+                                        <a href="{{ route($this->routePrefix.'.orders.show', $quotation->order) }}" class="qt-mono qt-link" onclick="event.stopPropagation()">{{ $this->highlight($quotation->order->order_id) }}</a>
                                     @else
                                         <span class="qt-muted">—</span>
                                     @endif
