@@ -47,6 +47,7 @@
             </p>
         @endif
 
+        <p style="padding:10px 12px;background:#f3f6f2;border-radius:8px;">📎 {{ __('invoices.pdf.attachment') }}</p>
         <p style="margin-top:20px;color:#6b7280;font-size:13px;">{{ __('invoices.mail.contact', ['name' => $invoice->createdBy?->full_name ?? '']) }}</p>
     </div>
 </body>

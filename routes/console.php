@@ -12,3 +12,6 @@ Artisan::command('inspire', function () {
 // Kết thúc cơ hội quá hạn, mỗi ngày lúc 00:10: Data đã có lịch hẹn quá 7 ngày từ buổi khách không đến mà chưa hẹn lại;
 // Data đã xử lý quá hạn quyết định (14 ngày) mà khách chưa đồng ý
 Schedule::command('opportunities:expire-undecided')->dailyAt('00:10');
+
+// Hóa đơn Chờ thanh toán đã qua hạn → Quá hạn, mỗi ngày lúc 00:15 (Salesperson gia hạn để mở lại)
+Schedule::command('invoices:mark-overdue')->dailyAt('00:15');

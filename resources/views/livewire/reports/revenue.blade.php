@@ -37,7 +37,7 @@
 <div class="vc rp">
     {{-- Giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
-        @vite(['resources/css/voucher.css', 'resources/css/report.css', 'resources/js/charts.js'])
+        @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
 
     <header class="vc-head">
@@ -50,12 +50,10 @@
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('reports.loading') }}
             </span>
-            {{-- Xuất Excel theo bộ lọc (Giám đốc, Sale Admin, Kế toán): đơn trong kỳ, thực thu, công nợ, hóa đơn quá hạn --}}
+            {{-- Xuất Excel (Giám đốc, Sale Admin, Kế toán): popup chọn kỳ, sheet, cột, xem trước – partials.report-export --}}
             @if ($this->canExport)
-                <button type="button" class="vc-btn vc-btn--primary" wire:click="export" wire:loading.attr="disabled" wire:target="export" @disabled(! $hasData)>
-                    <span wire:loading.remove wire:target="export"><x-icon name="file" /></span>
-                    <span class="spinner-border spinner-border-sm" wire:loading wire:target="export" aria-hidden="true"></span>
-                    {{ $L('export.button') }}
+                <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
+                    <x-icon name="file" />{{ $L('export.button') }}
                 </button>
             @endif
         </div>
@@ -115,7 +113,7 @@
 
     {{-- ── Tab ─────────────────────────────────────────────────────────── --}}
     <nav class="rp-tabs" role="tablist">
-        @foreach (Revenue::TABS as $key)
+        @foreach ($this->tabs() as $key)
             <button type="button" role="tab" wire:click="setTab('{{ $key }}')"
                 class="rp-tab {{ $tab === $key ? 'is-active' : '' }}" aria-selected="{{ $tab === $key ? 'true' : 'false' }}">
                 {{ $L('tab.'.$key) }}
@@ -145,6 +143,65 @@
 
                 @include('livewire.reports.partials.rv-kpis', ['kpis' => $kpis, 'prevLabel' => $prev['label'] ?? null])
 
+                {{-- Nhận định tự động trong kỳ: cùng lưới và kiểu thẻ với hàng chỉ số phía trên để thẳng hàng --}}
+                @if ($this->highlights !== [])
+                    <div class="rp-kpis rp-kpis--fit rv-insights" style="--n: {{ count($this->highlights) }}" aria-label="{{ $L('insight.title') }}">
+                        @foreach ($this->highlights as $item)
+                            <div class="rp-stat rv-insight" wire:key="insight-{{ $item['key'] }}">
+                                <div class="rp-stat__head">
+                                    <span class="rp-stat__icon"><x-icon :name="$item['icon']" /></span>
+                                    <span>{{ $L('insight.'.$item['key'].'_label') }}</span>
+                                </div>
+                                <div class="rv-insight__value" title="{{ $item['value'] }}">{{ $item['value'] }}</div>
+                                <div class="rp-stat__hint">{{ $item['detail'] }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Việc cần xử lý (tại thời điểm xem) – chỉ các vai trò có việc (Revenue::ROLE_VIEWS); Giám đốc, Sale Admin xem tổng quan --}}
+                @if ($this->roleView()['todo'] !== [])
+                @php $todo = $this->todo; @endphp
+                <section class="vc-card rp-card rv-todo" id="rv-todo">
+                    <h3 class="rp-card__title"><x-icon name="alert" />{{ $L('todo.title') }}</h3>
+                    <p class="rp-card__sub">{{ $L('todo.sub') }}</p>
+                    @if ($todo === [])
+                        <p class="rp-empty rp-empty--inline">{{ $L('todo.none') }}</p>
+                    @else
+                        <div class="rv-todo__groups">
+                            @foreach ($todo as $key => $group)
+                                <div class="rv-todo__group rv-todo__group--{{ $key }}" wire:key="todo-{{ $key }}">
+                                    <div class="rv-todo__head">
+                                        <strong>{{ $L('todo.'.$key, ['count' => $num($group['count'])]) }}</strong>
+                                        <span>{{ $money($group['amount']) }}</span>
+                                    </div>
+                                    <p class="rv-todo__hint">{{ $L('todo.'.$key.'_hint', ['days' => $key === 'cash' ? Revenue::STALE_CASH_DAYS : Revenue::STALE_ORDER_DAYS]) }}</p>
+                                    <ul class="rv-todo__list">
+                                        @foreach ($group['rows'] as $row)
+                                            @php $id = $row['invoice_id'] ?? $row['order_id']; @endphp
+                                            <li wire:key="todo-{{ $key }}-{{ $id }}">
+                                                <a href="{{ isset($row['invoice_id']) ? $this->invoiceUrl($id) : route($this->routePrefix.'.orders.show', $id) }}">{{ $id }}</a>
+                                                <span>{{ $row['customer'] }} · {{ $row['employee'] }}</span>
+                                                <span class="rp-num">
+                                                    @if ($key === 'transfer')
+                                                        {{ $L('todo.received', ['received' => $money($row['received']), 'amount' => $money($row['payment_amount'])]) }}
+                                                    @else
+                                                        {{ $money($row[$key === 'uninvoiced' ? 'uninvoiced' : 'payment_amount']) }}
+                                                    @endif
+                                                </span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                    @if ($group['url'] && $group['count'] > count($group['rows']))
+                                        <a href="{{ $group['url'] }}" class="rv-todo__more">{{ $L('todo.more', ['count' => $num($group['count'])]) }}</a>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+                @endif
+
                 {{-- Chỉ tiêu doanh thu của các tháng trong kỳ (TeamSalesTargets) --}}
                 @if ($t)
                     <section class="vc-card rp-card rv-target">
@@ -155,7 +212,12 @@
                         <div class="rv-progress" role="progressbar" aria-valuenow="{{ min(100, $t['rate'] ?? 0) }}" aria-valuemin="0" aria-valuemax="100">
                             <span style="width: {{ min(100, $t['rate'] ?? 0) }}%"></span>
                         </div>
-                        <p class="rp-card__sub">{{ $L('target.sub', ['actual' => $money($t['actual']), 'target' => $money($t['target'])]) }}</p>
+                        <dl class="rv-target__stats">
+                            <div><dt>{{ $L('target.actual') }}</dt><dd>{{ $money($t['actual']) }}</dd></div>
+                            <div><dt>{{ $L('target.goal') }}</dt><dd>{{ $money($t['target']) }}</dd></div>
+                            <div><dt>{{ $L('target.gap') }}</dt><dd>{{ $t['actual'] >= $t['target'] ? $L('target.reached') : $money($t['target'] - $t['actual']) }}</dd></div>
+                        </dl>
+                        <p class="rp-card__sub rv-target__source">{{ $L('target.source') }}</p>
                     </section>
                 @endif
 
@@ -177,6 +239,7 @@
                             $L('kpi.days_hint', ['count' => $num($p['days']['count']), 'avg' => $p['days']['avg'] === null ? '—' : $dec($p['days']['avg'])]), null],
                         ['transfer', 'wallet', $pct(RevenueReport::pct($c['transfer'], $c['collected'])), $L('kpi.transfer_hint', ['amount' => $money($c['transfer']), 'count' => $num($c['transfer_count'])]), null],
                         ['cash_queue', 'cash', $num($p['cash_queue']['count']), $L('kpi.cash_queue_hint', ['amount' => $money($p['cash_queue']['amount'])]), null],
+                        ['transfer_queue', 'alert', $num(count($p['transfers'])), $L('kpi.transfer_queue_hint', ['amount' => $money(array_sum(array_column($p['transfers'], 'payment_amount')))]), null],
                     ];
                 @endphp
 
@@ -295,6 +358,8 @@
                     </section>
                 </div>
 
+                {{-- Bảng chi tiết từng đơn / hóa đơn: Kế toán, Sale Leader, Salesperson (Giám đốc, Sale Admin chỉ xem tổng quan) --}}
+                @if ($this->roleView()['debt_lists'])
                 {{-- Đơn còn nợ: quá hạn trước, rồi còn lại cao nhất – bấm để xem hóa đơn của đơn --}}
                 <section class="vc-card rp-card">
                     <h3 class="rp-card__title">{{ $L('debt.orders') }}</h3>
@@ -380,9 +445,107 @@
                         </div>
                     @endif
                 </section>
+                @endif
                 @break
 
-            {{-- ══ 4. CƠ CẤU DOANH THU ═════════════════════════════════════ --}}
+            {{-- ══ 4. TỶ LỆ THU THEO THÁNG TẠO ĐƠN ═════════════════════════ --}}
+            @case('cohort')
+                @php $rows = $this->cohort; @endphp
+                <section class="vc-card rp-card">
+                    <h3 class="rp-card__title">{{ $L('cohort.title') }}</h3>
+                    <p class="rp-card__sub">{{ $L('cohort.sub') }}</p>
+                    @if ($rows === [])
+                        <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="rp-table rv-cohort">
+                                <thead>
+                                    <tr>
+                                        <th>{{ $L('cohort.month') }}</th>
+                                        <th class="rp-num">{{ $L('payments.orders') }}</th>
+                                        <th class="rp-num">{{ $L('metric.revenue') }}</th>
+                                        @foreach (Revenue::COHORT_HORIZONS as $n)
+                                            <th class="rp-num">{{ $L('cohort.after', ['days' => $n]) }}</th>
+                                        @endforeach
+                                        <th class="rp-num">{{ $L('cohort.now') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($rows as $row)
+                                        <tr wire:key="cohort-{{ $row['month'] }}">
+                                            <th scope="row">{{ substr($row['month'], 5, 2).'/'.substr($row['month'], 0, 4) }}</th>
+                                            <td class="rp-num">{{ $num($row['orders']) }}</td>
+                                            <td class="rp-num">{{ $money($row['revenue']) }}</td>
+                                            @foreach (array_merge($row['rates'], ['now' => $row['now']]) as $h => $rate)
+                                                {{-- Màu nền theo mức thu: càng đậm càng thu được nhiều --}}
+                                                <td class="rp-num rv-cohort__cell" @if ($rate !== null) style="--a: {{ round(min(100, $rate) / 100, 2) }}" @endif
+                                                    @if ($rate === null) title="{{ $L('cohort.too_new') }}" @endif>{{ $pct($rate) }}</td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </section>
+                @break
+
+            {{-- ══ 5. THEO NHÂN VIÊN ═══════════════════════════════════════ --}}
+            @case('employees')
+                @php $rows = $this->sortedEmployees(); @endphp
+                <section class="vc-card rp-card">
+                    <h3 class="rp-card__title">{{ $L('staff.title') }}</h3>
+                    <p class="rp-card__sub">{{ $L('staff.sub') }}</p>
+                    @if ($rows === [])
+                        <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="rp-table">
+                                <thead>
+                                    <tr>
+                                        <th class="rp-num">#</th>
+                                        <th>{{ $L('structure.employee') }}</th>
+                                        <th class="rp-num">{{ $L('payments.orders') }}</th>
+                                        @foreach (Revenue::EMPLOYEE_SORTS as $col)
+                                            <th class="rp-num">
+                                                <button type="button" wire:click="sortEmployees('{{ $col }}')" @class(['rv-sort', 'is-active' => $employeeSort === $col])
+                                                    aria-pressed="{{ $employeeSort === $col ? 'true' : 'false' }}">
+                                                    {{ $L('staff.'.$col) }}{{ $employeeSort === $col ? ($col === 'on_time' ? ' ▲' : ' ▼') : '' }}
+                                                </button>
+                                            </th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($rows as $i => $row)
+                                        <tr wire:key="staff-{{ $row['id'] }}">
+                                            <td class="rp-num">{{ $i + 1 }}</td>
+                                            <th scope="row">{{ $row['name'] }}</th>
+                                            <td class="rp-num">{{ $num($row['orders']) }}</td>
+                                            <td class="rp-num">{{ $money($row['collected']) }}</td>
+                                            <td class="rp-num">{{ $money($row['revenue']) }}</td>
+                                            <td class="rp-num">{{ $row['debt'] > 0 ? $money($row['debt']) : '—' }}</td>
+                                            <td class="rp-num">
+                                                {{ $pct($row['on_time']) }}<span class="rp-sub">{{ $L('staff.paid_count', ['count' => $row['paid_invoices']]) }}</span>
+                                            </td>
+                                            <td class="rp-num">
+                                                @if ($row['overdue_count'] > 0)
+                                                    <a href="{{ $this->listUrl('invoices', ['deadline' => 'overdue', 'employee' => $row['id']]) }}" class="rv-late">{{ $money($row['overdue_amount']) }}</a>
+                                                    <span class="rp-sub">{{ $L('debt.invoice_count', ['count' => $row['overdue_count']]) }}</span>
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </section>
+                @break
+
+            {{-- ══ 6. CƠ CẤU DOANH THU ═════════════════════════════════════ --}}
             @case('structure')
                 @php
                     $st = $this->structure;
@@ -467,14 +630,10 @@
                 @break
         @endswitch
 
-        {{-- Cách tính (giống các báo cáo khác) --}}
-        <details class="vc-card rp-card rp-method">
-            <summary>{{ $L('method.title') }}</summary>
-            <ul>
-                @foreach (__('reports.revenue.method.items') as $item)
-                    <li>{{ $item }}</li>
-                @endforeach
-            </ul>
-        </details>
+    @endif
+
+    {{-- Popup xuất Excel: chọn kỳ, tiêu chí, sheet, cột, xem trước (trait ReportExport) --}}
+    @if ($this->canExport)
+        @include('livewire.reports.partials.report-export')
     @endif
 </div>

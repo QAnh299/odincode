@@ -20,15 +20,16 @@ class TransferAlerts
     const TTL_DAYS = 30;
 
     /**
-     * Ghi lại lần chuyển lệch gần nhất của hóa đơn.
+     * Ghi lại lần chuyển lệch gần nhất của hóa đơn. $overdue = giao dịch vào hóa đơn đã Quá hạn (chờ SP gia hạn).
      */
-    public static function add(string $invoiceId, float $amount, ?Carbon $at = null): void
+    public static function add(string $invoiceId, float $amount, ?Carbon $at = null, bool $overdue = false): void
     {
         $alerts = self::all();
         $alerts[$invoiceId] = [
-            'amount' => $amount,
-            'at'     => ($at ?? now())->toIso8601String(),
-            'count'  => ($alerts[$invoiceId]['count'] ?? 0) + 1,
+            'amount'  => $amount,
+            'at'      => ($at ?? now())->toIso8601String(),
+            'count'   => ($alerts[$invoiceId]['count'] ?? 0) + 1,
+            'overdue' => $overdue,
         ];
 
         Cache::put(self::KEY, $alerts, now()->addDays(self::TTL_DAYS));
@@ -44,13 +45,18 @@ class TransferAlerts
     }
 
     /**
-     * @return array{amount: float, at: Carbon, count: int}|null
+     * @return array{amount: float, at: Carbon, count: int, overdue: bool}|null
      */
     public static function find(string $invoiceId): ?array
     {
         $alert = self::all()[$invoiceId] ?? null;
 
-        return $alert ? ['amount' => (float) $alert['amount'], 'at' => Carbon::parse($alert['at']), 'count' => (int) $alert['count']] : null;
+        return $alert ? [
+            'amount'  => (float) $alert['amount'],
+            'at'      => Carbon::parse($alert['at']),
+            'count'   => (int) $alert['count'],
+            'overdue' => (bool) ($alert['overdue'] ?? false),
+        ] : null;
     }
 
     /**

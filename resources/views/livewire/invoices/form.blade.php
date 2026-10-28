@@ -10,7 +10,8 @@
     $isFull = $type === SalesOrder::PAYMENT_FULL;
     $backUrl = $isEdit ? route('salesperson.invoices.show', $invoiceId) : route('salesperson.quotations.show', $order->quotation_id);
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
-    $editing = $isEdit ? Invoice::query()->with('createdBy')->find($invoiceId) : null;
+    $editing = $this->editing;
+    $locked = $this->transferLocked;
 @endphp
 
 <div class="qt qt-detail iv">
@@ -57,7 +58,17 @@
             <x-invoice-receipt :order="$order" :invoice="$editing" :installment="$this->nextInstallment" :issued-date="$this->issuedDate()">
                 <h3 class="iv-doc__part-title">{{ __('invoices.form.this_installment', ['number' => $this->nextInstallment]) }}</h3>
 
-                {{-- HĐ21 – HĐ22: chọn hình thức một lần cho đơn --}}
+                {{-- Hóa đơn Quá hạn: chọn hạn mới từ hôm nay để mở lại --}}
+                @if ($this->isOverdue)
+                    <p class="iv-doc__note"><x-icon name="alert" />{{ __('invoices.form.overdue_reopen') }}</p>
+                @endif
+
+                {{-- Có giao dịch chuyển khoản lệch: chỉ sửa hạn, số tiền / hình thức / phương thức giữ nguyên --}}
+                @if ($locked)
+                    <p class="iv-doc__note"><x-icon name="alert" />{{ __('invoices.form.transfer_locked') }}</p>
+                @endif
+
+                {{-- HĐ21 – HĐ22: chọn hình thức một lần cho đơn (sửa: chỉ hóa đơn đầu tiên và duy nhất) --}}
                 @if ($this->needsType)
                     <fieldset class="qt-field iv-form-block">
                         <legend class="qt-field__label">{{ __('invoices.payment_type_label') }} *</legend>
@@ -69,7 +80,7 @@
                                 </label>
                             @endforeach
                         </div>
-                        <span class="qt-field__help">{{ __('invoices.form.type_help') }}</span>
+                        <span class="qt-field__help">{{ $isEdit ? __('invoices.form.type_edit_help') : __('invoices.form.type_help') }}</span>
                         @error('paymentType')
                             <span class="qt-field__error">{{ $message }}</span>
                         @enderror
@@ -81,11 +92,13 @@
                     <label class="qt-field">
                         <span class="qt-field__label">{{ __('invoices.amount') }} (VNĐ) *</span>
                         <input type="number" min="1" step="1000" max="{{ $limits['max'] }}" wire:model="amount"
-                            @readonly($isFull) @disabled(! $type)
+                            @readonly($isFull || $locked) @disabled(! $type)
                             placeholder="{{ $type ? '' : __('invoices.form.pick_type_first') }}"
-                            @class(['qt-control', 'iv-amount-input', 'is-locked' => $isFull, 'is-invalid' => $errors->has('amount')])>
+                            @class(['qt-control', 'iv-amount-input', 'is-locked' => $isFull || $locked, 'is-invalid' => $errors->has('amount')])>
                         <span class="qt-field__help">
-                            @if ($isFull)
+                            @if ($locked)
+                                {{ __('invoices.form.amount_locked') }}
+                            @elseif ($isFull)
                                 {{ __('invoices.form.amount_full') }}
                             @elseif ($type)
                                 {{ __('invoices.form.amount_help', ['max' => $money($limits['max']), 'remaining' => $money($limits['remaining']), 'pending' => $money($limits['pending'])]) }}
@@ -100,24 +113,24 @@
 
                     <label class="qt-field">
                         <span class="qt-field__label">{{ __('invoices.due_date') }} *</span>
-                        <input type="date" wire:model="dueDate" min="{{ $this->issuedDate() }}" @class(['qt-control', 'is-invalid' => $errors->has('dueDate')])>
+                        <input type="date" wire:model="dueDate" min="{{ $this->isOverdue ? max($this->issuedDate(), today()->toDateString()) : $this->issuedDate() }}" @class(['qt-control', 'is-invalid' => $errors->has('dueDate')])>
                         @error('dueDate')
                             <span class="qt-field__error">{{ $message }}</span>
                         @enderror
                     </label>
 
-                    {{-- HĐ24: phương thức của hóa đơn này --}}
+                    {{-- HĐ24: phương thức của hóa đơn này (sửa được khi còn Chờ thanh toán, trừ khi có giao dịch lệch) --}}
                     <fieldset class="qt-field qt-field--wide">
                         <legend class="qt-field__label">{{ __('invoices.method_label') }} *</legend>
                         <div class="iv-checks">
                             @foreach (Invoice::METHODS as $option)
                                 <label class="iv-check" wire:key="method-{{ $option }}">
-                                    <input type="radio" wire:model.live="method" value="{{ $option }}" @disabled($invoiceId !== null)>
+                                    <input type="radio" wire:model.live="method" value="{{ $option }}" @disabled($locked)>
                                     <span>{{ __('invoices.method.'.$option) }}</span>
                                 </label>
                             @endforeach
                         </div>
-                        @if ($invoiceId !== null)
+                        @if ($locked)
                             <span class="qt-field__help">{{ __('invoices.form.method_locked') }}</span>
                         @elseif ($method === Invoice::METHOD_CASH)
                             <span class="qt-field__help">{{ __('invoices.form.method_cash_help') }}</span>

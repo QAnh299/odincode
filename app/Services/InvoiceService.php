@@ -15,13 +15,14 @@ use Illuminate\Support\Facades\Mail;
 
 /**
  * Nghiệp vụ hóa đơn và thanh toán, giai đoạn D – G của quy trình (docs/quy-trinh-bao-gia-thanh-toan.md):
- *   - Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26), sửa hóa đơn Chờ thanh toán (HĐ36): chỉ Salesperson lập báo giá của đơn.
+ *   - Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26), sửa hóa đơn Chờ thanh toán (HĐ36): chỉ Salesperson lập báo giá / hóa đơn.
  *   - Chuyển khoản: hệ thống so khớp giao dịch ngân hàng / cổng QR với hóa đơn (HĐ29), KHÔNG có kế toán.
  *   - Tiền mặt: kế toán đối chiếu và duyệt (HĐ32), ghi accountant_id.
  *   - Ghi nhận thanh toán (HĐ33 – HĐ35): hóa đơn Đã thanh toán, cập nhật đơn, cơ hội Won, email hóa đơn cho khách.
  *
- * Quyết định của nhóm: chỉ hóa đơn Unpaid (Chờ thanh toán) nhận thanh toán; hóa đơn Overdue không nhận và không tính
- * vào "đang chờ" khi tính số tiền tối đa của hóa đơn mới (để SP lập hóa đơn thay thế).
+ * Quyết định của nhóm: chỉ hóa đơn Unpaid (Chờ thanh toán) nhận thanh toán. Hóa đơn qua hạn được lệnh hằng ngày
+ * chuyển sang Overdue (không nhận thanh toán); SP gia hạn để mở lại chính hóa đơn đó, không lập hóa đơn thay thế
+ * (chốt 28/10/2026) – nên Overdue vẫn tính vào "đang chờ" khi tính số tiền tối đa của hóa đơn mới.
  */
 class InvoiceService
 {
@@ -48,12 +49,12 @@ class InvoiceService
     }
 
     /**
-     * Tổng tiền các hóa đơn đang chờ thanh toán (Unpaid) của đơn, trừ hóa đơn $except (khi sửa).
+     * Tổng tiền các hóa đơn chưa thanh toán (Chờ thanh toán + Quá hạn chờ gia hạn) của đơn, trừ hóa đơn $except (khi sửa).
      */
     public function pendingTotal(SalesOrder $order, ?string $except = null): float
     {
         return (float) $order->invoices()
-            ->where('status', Invoice::STATUS_UNPAID)
+            ->whereIn('status', [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE])
             ->when($except, fn ($q) => $q->where('invoice_id', '<>', $except))
             ->sum('payment_amount');
     }
@@ -84,13 +85,13 @@ class InvoiceService
     }
 
     /**
-     * Sửa hóa đơn (HĐ36): Salesperson lập hóa đơn, hóa đơn còn Chờ thanh toán.
+     * Sửa hóa đơn (HĐ36): Salesperson lập hóa đơn, hóa đơn Chờ thanh toán hoặc Quá hạn (sửa = gia hạn để mở lại).
      */
     public function canEdit(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::SALESPERSON
             && $invoice->created_by_employee_id === $employee->employee_id
-            && $invoice->status === Invoice::STATUS_UNPAID;
+            && in_array($invoice->status, [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE], true);
     }
 
     /**
@@ -153,9 +154,28 @@ class InvoiceService
     }
 
     /**
-     * HĐ36: SP sửa hóa đơn Chờ thanh toán (số tiền, hạn, phương thức) rồi kiểm tra lại số tiền như HĐ25.
+     * Sửa hóa đơn (chốt 28/10/2026): đổi hình thức của đơn chỉ khi đây là hóa đơn đầu tiên và duy nhất của đơn.
+     */
+    public function canChangePaymentType(Invoice $invoice): bool
+    {
+        return Invoice::query()->where('order_id', $invoice->order_id)->count() === 1;
+    }
+
+    /**
+     * Hệ thống đã nhận giao dịch chuyển khoản lệch số tiền cho hóa đơn: chỉ còn sửa được hạn thanh toán; số tiền,
+     * hình thức và phương thức giữ nguyên để kế toán đối chiếu sao kê (số tiền hóa đơn giữ nguyên – chốt 18/10/2026).
+     */
+    public function isTransferLocked(Invoice $invoice): bool
+    {
+        return TransferAlerts::find($invoice->invoice_id) !== null;
+    }
+
+    /**
+     * HĐ36: SP sửa hóa đơn Chờ thanh toán: hạn thanh toán, phương thức, số tiền (Trả góp) và hình thức của đơn
+     * (chỉ hóa đơn đầu tiên và duy nhất); số tiền kiểm tra lại như HĐ25. Có giao dịch lệch thì chỉ đổi hạn.
+     * Hóa đơn Quá hạn: hạn mới phải từ hôm nay trở đi, lưu xong hóa đơn quay về Chờ thanh toán (cùng mã, cùng QR).
      *
-     * @param  array{amount: float, due_date: string, method: string}  $data
+     * @param  array{payment_type: ?string, amount: float, due_date: string, method: string}  $data
      */
     public function update(Invoice $invoice, Employee $employee, array $data): Invoice
     {
@@ -164,10 +184,30 @@ class InvoiceService
             $invoice = Invoice::query()->whereKey($invoice->getKey())->lockForUpdate()->firstOrFail();
             abort_unless($this->canEdit($invoice, $employee), 409);
 
+            // Gia hạn hóa đơn Quá hạn: hạn mới từ hôm nay, mở lại về Chờ thanh toán
+            $reopen = $invoice->status === Invoice::STATUS_OVERDUE;
+            abort_if($reopen && $data['due_date'] < today()->toDateString(), 422);
+            $status = $reopen ? ['status' => Invoice::STATUS_UNPAID] : [];
+
+            if ($this->isTransferLocked($invoice)) {
+                $invoice->update(['due_date' => $data['due_date']] + $status);
+
+                return $invoice->fresh();
+            }
+
+            abort_unless(in_array($data['method'], Invoice::METHODS, true), 422);
+
+            $type = $order->payment_type;
+            if ($this->canChangePaymentType($invoice) && in_array($data['payment_type'] ?? null, SalesOrder::PAYMENT_TYPES, true)) {
+                $type = $data['payment_type'];
+                $order->update(['payment_type' => $type]);
+            }
+
             $invoice->update([
-                'payment_amount' => $this->resolveAmount($order, $order->payment_type, $data['amount'], $invoice->invoice_id),
+                'payment_amount' => $this->resolveAmount($order, $type, $data['amount'], $invoice->invoice_id),
                 'due_date'       => $data['due_date'],
-            ]);
+                'payment_method' => $data['method'],
+            ] + $status);
 
             return $invoice->fresh();
         });
@@ -219,9 +259,11 @@ class InvoiceService
                 'invoice'   => $code, 'invoice_status' => $invoice?->status, 'invoice_amount' => $invoice?->payment_amount,
             ]);
 
-            // Đúng hóa đơn chuyển khoản đang chờ nhưng lệch số tiền → báo lỗi cho kế toán và SP (không ghi nhận tiền)
-            if ($invoice && $invoice->status === Invoice::STATUS_UNPAID && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER) {
-                TransferAlerts::add($invoice->invoice_id, $amount, $paidAt);
+            // Đúng hóa đơn chuyển khoản nhưng lệch số tiền, hoặc hóa đơn đã Quá hạn (khách quét QR cũ) → báo kế toán và SP,
+            // không ghi nhận tiền; hóa đơn Quá hạn chờ SP gia hạn rồi kế toán đối chiếu, xác nhận
+            if ($invoice && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER
+                && in_array($invoice->status, [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE], true)) {
+                TransferAlerts::add($invoice->invoice_id, $amount, $paidAt, $invoice->status === Invoice::STATUS_OVERDUE);
             }
 
             return null;

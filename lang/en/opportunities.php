@@ -114,6 +114,7 @@ return [
     'care_closed_overdue'    => ':activity logged - :reason, the opportunity was moved to Archive (:status).',
     'quote_stage_moved'      => 'The opportunity moved to ":stage" - prepare a quotation for the customer.',
     'confirm_quote'          => 'Has the customer agreed to register? The opportunity will move to the Closed stage for a quotation.',
+    'confirm_quote_title'    => 'Create quotation',
     'apt_notes'              => 'Appointment notes',
     'care_result' => [
         'Success'     => 'Success',

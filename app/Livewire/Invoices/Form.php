@@ -15,6 +15,8 @@ use Livewire\Component;
 
 /**
  * Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26) và sửa hóa đơn Chờ thanh toán (HĐ36). Chỉ Salesperson.
+ * Sửa (chốt 28/10/2026): hạn thanh toán, phương thức, số tiền (Trả góp), hình thức của đơn (chỉ hóa đơn đầu tiên và
+ * duy nhất); có giao dịch chuyển khoản lệch thì chỉ sửa hạn.
  * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
  *
  *   - HĐ19 – HĐ20: khách phải có SĐT và email (để gửi email hóa đơn ở HĐ34); thiếu email thì SP bổ sung ngay tại đây.
@@ -58,6 +60,7 @@ class Form extends Component
             $this->amount = (string) (float) $model->payment_amount;
             $this->dueDate = $model->due_date->toDateString();
             $this->method = (string) $model->payment_method;
+            $this->paymentType = (string) $model->order->payment_type;
 
             return;
         }
@@ -115,12 +118,44 @@ class Form extends Component
     }
 
     /**
-     * HĐ21: có hiện hộp chọn hình thức không (chỉ khi tạo mới và đơn chưa có hình thức).
+     * HĐ21: có hiện hộp chọn hình thức không: tạo mới khi đơn chưa có hình thức; sửa khi đây là hóa đơn đầu tiên
+     * và duy nhất của đơn (và chưa có giao dịch lệch).
      */
     #[Computed]
     public function needsType(): bool
     {
-        return ! $this->invoiceId && app(InvoiceService::class)->needsPaymentType($this->order);
+        $service = app(InvoiceService::class);
+
+        return $this->invoiceId
+            ? ! $this->transferLocked && $service->canChangePaymentType($this->editing)
+            : $service->needsPaymentType($this->order);
+    }
+
+    /**
+     * Hóa đơn đang sửa (null khi tạo mới).
+     */
+    #[Computed]
+    public function editing(): ?Invoice
+    {
+        return $this->invoiceId ? Invoice::query()->with('createdBy')->find($this->invoiceId) : null;
+    }
+
+    /**
+     * Hóa đơn đang sửa đã Quá hạn: lưu với hạn mới (từ hôm nay) sẽ mở lại về Chờ thanh toán.
+     */
+    #[Computed]
+    public function isOverdue(): bool
+    {
+        return $this->editing?->status === Invoice::STATUS_OVERDUE;
+    }
+
+    /**
+     * Đã có giao dịch chuyển khoản lệch số tiền: chỉ sửa được hạn thanh toán.
+     */
+    #[Computed]
+    public function transferLocked(): bool
+    {
+        return $this->invoiceId !== null && app(InvoiceService::class)->isTransferLocked($this->editing);
     }
 
     /**
@@ -185,12 +220,15 @@ class Form extends Component
 
         $limits = $this->limits;
         $isFull = $this->type === SalesOrder::PAYMENT_FULL;
+        $locked = $this->transferLocked;
+        // Gia hạn hóa đơn Quá hạn: hạn mới từ hôm nay trở đi
+        $minDue = $this->isOverdue ? max($this->issuedDate(), today()->toDateString()) : $this->issuedDate();
 
         $this->validate([
             'paymentType' => $this->needsType ? ['required', Rule::in(SalesOrder::PAYMENT_TYPES)] : ['nullable'],
-            'amount'      => $isFull ? ['nullable'] : ['required', 'numeric', 'gt:0', 'lte:'.$limits['max']],
-            'dueDate'     => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$this->issuedDate()],
-            'method'      => ['required', Rule::in(Invoice::METHODS)],
+            'amount'      => $isFull || $locked ? ['nullable'] : ['required', 'numeric', 'gt:0', 'lte:'.$limits['max']],
+            'dueDate'     => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$minDue],
+            'method'      => $locked ? ['nullable'] : ['required', Rule::in(Invoice::METHODS)],
         ], [
             'amount.lte' => __('invoices.form.amount_max', ['max' => number_format($limits['max'], 0, ',', '.').' ₫']),
         ], [
@@ -201,7 +239,7 @@ class Form extends Component
         ]);
 
         $data = [
-            'payment_type' => $this->paymentType ?: null,
+            'payment_type' => $this->needsType ? ($this->paymentType ?: null) : null,
             'amount'       => $isFull ? $limits['max'] : (float) $this->amount,
             'due_date'     => $this->dueDate,
             'method'       => $this->method,
@@ -212,6 +250,7 @@ class Form extends Component
             : $service->create($this->order, $this->viewer(), $data);
 
         $key = match (true) {
+            $this->invoiceId !== null && $this->isOverdue    => 'invoices.form.reopened',
             $this->invoiceId !== null                        => 'invoices.form.updated',
             $invoice->payment_method === Invoice::METHOD_CASH => 'invoices.form.created_cash',
             default                                          => 'invoices.form.created_transfer',

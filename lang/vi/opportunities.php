@@ -114,6 +114,7 @@ return [
     'care_closed_overdue'    => 'Đã ghi nhận :activity - :reason, cơ hội chuyển sang Lưu trữ (:status).',
     'quote_stage_moved'      => 'Cơ hội đã chuyển sang ":stage" - lập báo giá cho khách hàng.',
     'confirm_quote'          => 'Khách đồng ý đăng ký? Cơ hội sẽ chuyển sang stage Chốt để lập báo giá.',
+    'confirm_quote_title'    => 'Tạo báo giá',
     'apt_notes'              => 'Ghi chú lịch hẹn',
     'care_result' => [
         'Success'     => 'Thành công',

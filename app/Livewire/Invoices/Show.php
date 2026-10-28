@@ -98,12 +98,13 @@ class Show extends Component
     }
 
     /**
-     * Lần chuyển khoản lệch số tiền gần nhất của hóa đơn (nếu có): hiện cảnh báo cho kế toán và SP.
+     * Lần chuyển khoản lệch số tiền / vào hóa đơn Quá hạn gần nhất (nếu có): hiện cảnh báo cho kế toán và SP.
      */
     #[Computed]
     public function transferAlert(): ?array
     {
-        return $this->invoice->status === Invoice::STATUS_UNPAID ? TransferAlerts::find($this->invoice->invoice_id) : null;
+        return in_array($this->invoice->status, [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE], true)
+            ? TransferAlerts::find($this->invoice->invoice_id) : null;
     }
 
     public function confirmTransfer(InvoiceService $service): void
@@ -125,7 +126,8 @@ class Show extends Component
     private function reloadInvoice(): void
     {
         $this->loadInvoice($this->invoice->fresh());
-        unset($this->canApproveCash, $this->canEdit, $this->canCreateNext);
+        // Tính lại mọi nút / cảnh báo theo trạng thái mới (đã thanh toán thì ẩn nút xác nhận, cảnh báo giao dịch lệch)
+        unset($this->canApproveCash, $this->canConfirmTransfer, $this->canEdit, $this->canCreateNext, $this->transferAlert);
     }
 
     private function loadInvoice(Invoice $invoice): void

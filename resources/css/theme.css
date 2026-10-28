@@ -83,3 +83,46 @@
     background: #fee2e2;
     color: #dc2626;
 }
+
+/* Popup xác nhận dùng chung (components/confirm-modal.blade.php). Hiện/ẩn do x-show (style inline display: none)
+   nên ở đây chỉ ghi đè display: none mặc định của .modal Bootstrap */
+.modal.odin-confirm {
+    display: block;
+}
+
+.odin-confirm .modal-dialog {
+    max-width: 420px;
+}
+
+.odin-confirm__icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--odin-primary) 14%, #fff);
+    color: var(--odin-primary);
+}
+
+.odin-confirm__icon--danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn.odin-confirm__ok {
+    color: #fff;
+    font-weight: 600;
+    background: var(--odin-primary);
+    border-color: var(--odin-primary);
+}
+
+.btn.odin-confirm__ok:hover,
+.btn.odin-confirm__ok:focus-visible {
+    color: #fff;
+    filter: brightness(0.92);
+}
+
+.btn.odin-confirm__ok--danger {
+    background: #dc2626;
+    border-color: #dc2626;
+}

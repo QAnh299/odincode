@@ -172,6 +172,7 @@ return [
         'coming_soon'       => 'This feature will be available in a later step',
         'confirm_hint'      => 'Click Confirm when the customer agrees: the system creates the order, then you create an invoice.',
         'confirm_confirm'   => 'Has the customer accepted quotation :code? Confirming creates the order; the quotation can no longer be edited or rejected.',
+        'confirm_title'     => 'Confirm quotation',
         'confirmed_done'    => 'Quotation :code confirmed and order :order created. Click "Create invoice" in the Order block to bill the customer.',
         // Step 17 not met
         'confirm_blocked'   => [

@@ -12,7 +12,8 @@ use Illuminate\Support\Collection;
  * Thông báo hóa đơn ở chuông trên topbar, suy ra từ dữ liệu (odin.sql không có bảng thông báo):
  *   - Kế toán: hóa đơn TIỀN MẶT đang Chờ thanh toán = hàng đợi cần đối chiếu và duyệt (HĐ30 – HĐ32);
  *     và hóa đơn vừa thanh toán thành công (HĐ33: "thông báo SP và kế toán").
- *   - Salesperson: hóa đơn mình lập vừa thanh toán thành công (chuyển khoản do hệ thống xác nhận / tiền mặt do kế toán duyệt).
+ *   - Salesperson: hóa đơn mình lập vừa thanh toán thành công (chuyển khoản do hệ thống xác nhận / tiền mặt do kế toán duyệt);
+ *     hóa đơn mình lập đã Quá hạn (liên hệ khách, gia hạn để mở lại).
  * "Vừa thanh toán" = ngày thanh toán từ đầu hôm qua tới nay (RECENT_DAYS); hóa đơn chuyển khoản không cần kế toán duyệt.
  */
 class InvoiceNotices
@@ -28,7 +29,8 @@ class InvoiceNotices
     {
         return match ($employee?->role_name) {
             Role::ACCOUNTANT  => self::transferAlerts(null, Role::ACCOUNTANT)->concat(self::cashQueue())->concat(self::recentlyPaid(null, Role::ACCOUNTANT)),
-            Role::SALESPERSON => self::transferAlerts($employee->employee_id, Role::SALESPERSON)->concat(self::recentlyPaid($employee->employee_id, Role::SALESPERSON)),
+            Role::SALESPERSON => self::transferAlerts($employee->employee_id, Role::SALESPERSON)->concat(self::overdue($employee->employee_id))
+                ->concat(self::recentlyPaid($employee->employee_id, Role::SALESPERSON)),
             default           => collect(),
         };
     }
@@ -86,7 +88,7 @@ class InvoiceNotices
 
         return Invoice::query()
             ->whereIn('invoice_id', array_keys($alerts))
-            ->where('status', Invoice::STATUS_UNPAID)
+            ->whereIn('status', [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE])
             ->where('payment_method', Invoice::METHOD_BANK_TRANSFER)
             ->when($creatorId, fn ($q) => $q->where('created_by_employee_id', $creatorId))
             ->with('order.quotation.opportunity.lead:lead_id,full_name')
@@ -95,7 +97,7 @@ class InvoiceNotices
                 $alert = TransferAlerts::find($invoice->invoice_id);
 
                 return [
-                    'title' => __('invoices.notice.transfer_mismatch', [
+                    'title' => __($invoice->status === Invoice::STATUS_OVERDUE ? 'invoices.notice.transfer_overdue' : 'invoices.notice.transfer_mismatch', [
                         'code'     => $invoice->invoice_id,
                         'name'     => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
                         'received' => self::money($alert['amount']),
@@ -109,6 +111,30 @@ class InvoiceNotices
                 ];
             })
             ->values();
+    }
+
+    /**
+     * Hóa đơn Salesperson lập đã Quá hạn (lệnh invoices:mark-overdue): nhắc liên hệ khách và gia hạn để mở lại.
+     */
+    private static function overdue(string $creatorId): Collection
+    {
+        return Invoice::query()
+            ->where('status', Invoice::STATUS_OVERDUE)
+            ->where('created_by_employee_id', $creatorId)
+            ->with('order.quotation.opportunity.lead:lead_id,full_name')
+            ->orderBy('due_date')
+            ->limit(self::LIMIT)
+            ->get()
+            ->map(fn (Invoice $invoice) => [
+                'title' => __('invoices.notice.overdue', [
+                    'code'   => $invoice->invoice_id,
+                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                    'amount' => self::money($invoice->payment_amount),
+                ]),
+                'time'  => __('invoices.notice.overdue_time', ['date' => $invoice->due_date?->format('d/m/Y')]),
+                'url'   => route('salesperson.invoices.show', $invoice),
+                'at'    => $invoice->due_date,
+            ]);
     }
 
     /**

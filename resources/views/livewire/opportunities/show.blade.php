@@ -50,8 +50,8 @@
             </div>
 
             @if ($this->canCreateQuotation())
-                <button type="button" class="vc-btn vc-btn--primary" wire:click="createQuotation"
-                    wire:confirm="{{ __('opportunities.confirm_quote') }}">
+                <button type="button" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="createQuotation"
+                    x-on:click="$dispatch('odin-confirm', { title: @js(__('opportunities.confirm_quote_title')), message: @js(__('opportunities.confirm_quote')), ok: @js(__('opportunities.create_quotation')), run: () => $wire.createQuotation() })">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </button>
             @elseif ($this->canStartQuotation())

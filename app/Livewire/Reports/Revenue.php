@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ReportExport;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\Role;
 use App\Models\SalesOrder;
 use App\Models\SalesTeam;
-use App\Services\ReportExcelWriter;
 use App\Services\RevenueReport;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -24,14 +24,66 @@ use Livewire\Component;
  * Phạm vi theo vai trò: Giám đốc, Sale Admin, Kế toán xem toàn bộ (lọc được theo chi nhánh / đội / nhân viên);
  * Sale Leader xem đơn của đội mình; Salesperson xem đơn mình phụ trách.
  *
- * 4 tab: Tổng quan, Thanh toán, Công nợ, Cơ cấu doanh thu. Mỗi tab chỉ tính số liệu khi được mở.
+ * Tối đa 6 tab: Tổng quan (việc cần xử lý, nhận định), Thanh toán, Công nợ, Tỷ lệ thu theo tháng, Theo nhân viên, Cơ cấu doanh thu;
+ * tab, nhóm việc, nhận định, chỉ tiêu và bảng chi tiết hiện theo vai trò (ROLE_VIEWS).
+ * Mỗi tab chỉ tính số liệu khi được mở; thẻ chỉ số bấm được để mở danh sách hóa đơn / đơn hàng tương ứng.
  * Doanh thu theo ngày tạo đơn, thực thu theo ngày thanh toán, công nợ tại thời điểm xem – xem App\Services\RevenueReport.
- * Cùng khung với báo cáo Chuyển đổi Lead (bộ lọc trên URL, kỳ so sánh, thẻ biểu đồ, xuất Excel).
+ * Cùng khung với các báo cáo khác: bộ lọc trên URL, kỳ so sánh, thẻ biểu đồ, popup xuất Excel (trait ReportExport).
  */
 #[Layout('layouts.app')]
 class Revenue extends Component
 {
-    const TABS = ['overview', 'payments', 'debt', 'structure'];
+    use ReportExport;
+
+    const TABS = ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'];
+
+    // Việc cần xử lý: tiền mặt chờ duyệt quá STALE_CASH_DAYS ngày; đơn chưa lập hóa đơn kỳ tiếp quá STALE_ORDER_DAYS ngày
+    const STALE_CASH_DAYS = 1;
+
+    const STALE_ORDER_DAYS = 7;
+
+    // Số dòng hiện trong mỗi nhóm việc cần xử lý
+    const TODO_ROWS = 5;
+
+    // Mốc ngày của bảng tỷ lệ thu theo tháng tạo đơn
+    const COHORT_HORIZONS = [7, 30, 60];
+
+    // Nhận định "đúng hạn tốt nhất" chỉ xét nhân viên có từ chừng này hóa đơn đã thu trong kỳ
+    const MIN_PAID_INVOICES = 3;
+
+    // Cột sắp xếp của bảng theo nhân viên
+    const EMPLOYEE_SORTS = ['collected', 'revenue', 'debt', 'on_time', 'overdue_amount'];
+
+    /*
+     * Nội dung báo cáo theo vai trò:
+     *   - Giám đốc, Sale Admin: chỉ số tổng quan toàn trung tâm (không có danh sách việc, không có bảng chi tiết từng đơn / hóa đơn).
+     *   - Kế toán: thu tiền và công nợ – việc cần làm là đối chiếu chuyển khoản, duyệt tiền mặt.
+     *   - Sale Leader: đội mình – chỉ tiêu đội, nhân viên trong đội, việc của đội (gia hạn, lập hóa đơn kỳ tiếp).
+     *   - Salesperson: đơn mình phụ trách – việc của mình, công nợ của khách mình.
+     * tabs: tab hiện; todo: nhóm việc cần xử lý; insights: nhận định; target: chỉ tiêu doanh thu; debt_lists: bảng đơn còn nợ / hóa đơn quá hạn.
+     */
+    const ROLE_VIEWS = [
+        Role::DIRECTOR => [
+            'tabs' => ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'], 'todo' => [],
+            'insights' => ['top_course', 'best_on_time', 'top_team', 'top_branch'], 'target' => true, 'debt_lists' => false,
+        ],
+        Role::SALE_ADMIN => [
+            'tabs' => ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'], 'todo' => [],
+            'insights' => ['top_course', 'best_on_time', 'top_team', 'top_branch'], 'target' => true, 'debt_lists' => false,
+        ],
+        Role::ACCOUNTANT => [
+            'tabs' => ['overview', 'payments', 'debt', 'cohort'], 'todo' => ['transfer', 'cash'],
+            'insights' => [], 'target' => false, 'debt_lists' => true,
+        ],
+        Role::SALE_LEADER => [
+            'tabs' => ['overview', 'payments', 'debt', 'employees', 'structure'], 'todo' => ['overdue', 'uninvoiced', 'transfer'],
+            'insights' => ['top_course', 'best_on_time'], 'target' => true, 'debt_lists' => true,
+        ],
+        Role::SALESPERSON => [
+            'tabs' => ['overview', 'payments', 'debt', 'structure'], 'todo' => ['overdue', 'uninvoiced', 'transfer'],
+            'insights' => ['top_course'], 'target' => false, 'debt_lists' => true,
+        ],
+    ];
 
     // Màu cố định theo chỉ số (cùng bảng màu các báo cáo khác – LeadSources::PALETTE)
     const COLORS = [
@@ -70,11 +122,36 @@ class Revenue extends Component
     #[Url(except: '')]
     public string $employee = '';
 
+    // Bảng theo nhân viên: cột đang sắp (giảm dần; riêng % đúng hạn tăng dần để thấy người cần nhắc trước)
+    #[Url(as: 'sort', except: 'collected')]
+    public string $employeeSort = 'collected';
+
     const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
 
     public function setTab(string $tab): void
     {
-        $this->tab = in_array($tab, self::TABS, true) ? $tab : 'overview';
+        $this->tab = in_array($tab, $this->tabs(), true) ? $tab : 'overview';
+    }
+
+    /**
+     * Cấu hình nội dung của vai trò đang xem (ROLE_VIEWS); vai trò lạ dùng cấu hình Salesperson (ít quyền nhất).
+     */
+    public function roleView(): array
+    {
+        return self::ROLE_VIEWS[$this->routePrefix] ?? self::ROLE_VIEWS[Role::SALESPERSON];
+    }
+
+    /**
+     * Tab hiện được theo vai trò, giữ thứ tự TABS.
+     */
+    public function tabs(): array
+    {
+        return array_values(array_intersect(self::TABS, $this->roleView()['tabs']));
+    }
+
+    public function sortEmployees(string $column): void
+    {
+        $this->employeeSort = in_array($column, self::EMPLOYEE_SORTS, true) ? $column : 'collected';
     }
 
     public function updatedTeam(): void
@@ -100,7 +177,7 @@ class Revenue extends Component
 
     public function activeTab(): string
     {
-        return in_array($this->tab, self::TABS, true) ? $this->tab : 'overview';
+        return in_array($this->tab, $this->tabs(), true) ? $this->tab : 'overview';
     }
 
     /* ── Phạm vi theo vai trò (giống báo cáo Chuyển đổi Lead; thêm Kế toán xem toàn bộ) ── */
@@ -321,7 +398,7 @@ class Revenue extends Component
         $metric = fn ($key) => __('reports.revenue.metric.'.$key);
 
         return [
-            'target' => $this->target(),
+            'target' => $this->roleView()['target'] ? $this->target() : null,
             'charts' => [
                 'trend' => ['type' => 'bar', 'unit' => 'money', 'labels' => $labels, 'series' => [
                     ['label' => $metric('revenue'), 'color' => self::COLORS['revenue'], 'data' => array_map(fn ($k) => $revenue[$k] ?? 0, $keys)],
@@ -389,6 +466,7 @@ class Revenue extends Component
             'on_time_rate' => RevenueReport::pct($c['on_time'], $c['invoices']),
             'days'         => ['median' => RevenueReport::median($days), 'avg' => $days ? round(array_sum($days) / count($days), 1) : null, 'count' => count($days)],
             'cash_queue'   => $this->report()->cashQueue($f),
+            'transfers'    => $this->transferQueue,
             'punctuality'  => $punctuality,
             'types'        => $types,
             'charts'       => [
@@ -442,47 +520,122 @@ class Revenue extends Component
             'courses'   => $courses,
             'branches'  => $this->canFilterEmployee ? $this->report()->byDimension($f, 'branch') : [],
             'teams'     => $this->canFilterTeam && ! $this->teamScope ? $this->report()->byDimension($f, 'team') : [],
-            'employees' => $this->canFilterEmployee ? $this->report()->byDimension($f, 'employee') : [],
+            // Theo nhân viên: xem tab "Theo nhân viên" (thêm công nợ, quá hạn, % đúng hạn)
+            'employees' => [],
             'chart'     => ['type' => 'bar_h', 'unit' => 'money', 'labels' => array_column($top, 'name'),
                 'series' => [['label' => __('reports.revenue.metric.revenue'), 'color' => self::COLORS['revenue'], 'data' => array_column($top, 'revenue')]]],
         ];
     }
 
-    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+    /* ── Việc cần xử lý + nhận định (tab Tổng quan) ──────────────────── */
 
-    public function export(ReportExcelWriter $writer)
+    #[Computed]
+    public function transferQueue(): array
     {
-        abort_unless($this->canExport, 403);
+        return $this->report()->transferQueue($this->filterValues(dates: false));
+    }
 
+    /**
+     * Các nhóm việc cần xử lý tại thời điểm xem (không theo bộ lọc ngày): [key => ['count', 'amount', 'rows' (tối đa TODO_ROWS), 'url']].
+     * Nhóm không có việc thì bỏ.
+     */
+    #[Computed]
+    public function todo(): array
+    {
+        $f = $this->filterValues(dates: false);
+        // Chỉ tính các nhóm việc của vai trò đang xem
+        $groups = array_intersect_key([
+            'overdue'    => fn () => [array_values(array_filter($this->report()->overdueInvoices($f), fn ($r) => $r['status'] === Invoice::STATUS_OVERDUE)),
+                'payment_amount', $this->listUrl('invoices', ['status' => [Invoice::STATUS_OVERDUE]])],
+            'uninvoiced' => fn () => [$this->report()->staleUninvoiced($f, self::STALE_ORDER_DAYS), 'uninvoiced', $this->listUrl('orders', ['invoice' => 'needs_invoice'])],
+            'transfer'   => fn () => [$this->transferQueue, 'payment_amount', null],
+            'cash'       => fn () => [$this->report()->staleCash($f, self::STALE_CASH_DAYS), 'payment_amount', $this->listUrl('invoices', ['cash_pending' => 1])],
+        ], array_flip($this->roleView()['todo']));
+
+        $out = [];
+        foreach (array_map(fn ($load) => $load(), $groups) as $key => [$rows, $amount, $url]) {
+            if ($rows) {
+                $out[$key] = ['count' => count($rows), 'amount' => array_sum(array_map(fn ($r) => (float) $r[$amount], $rows)),
+                    'rows' => array_slice($rows, 0, self::TODO_ROWS), 'url' => $url];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Nhận định tự động trong kỳ: khóa học doanh thu cao nhất, nhân viên thu đúng hạn tốt nhất,
+     * chi nhánh / đội thu tiền nhiều nhất. Không đủ số liệu thì bỏ.
+     *
+     * Mỗi nhận định hiện như một thẻ chỉ số: nhãn + biểu tượng, giá trị chính (tên), dòng phụ (số liệu).
+     *
+     * @return list<array{key: string, icon: string, value: string, detail: string}>
+     */
+    #[Computed]
+    public function highlights(): array
+    {
         $f = $this->filterValues();
-        $c = fn ($key) => __('reports.revenue.export.'.$key);
-        $method = fn ($m) => $m ? __('invoices.method.'.$m) : null;
-        $type = fn ($t) => __('reports.revenue.payment_type.'.(in_array($t, SalesOrder::PAYMENT_TYPES, true) ? $t : 'none'));
-        $time = fn ($v) => $v ? strtotime($v) : null;
+        $money = fn ($v) => number_format((float) $v, 0, ',', '.').' ₫';
+        $pct = fn ($v) => number_format((float) $v, 1, ',', '.').'%';
+        $detail = fn (string $key, array $params) => __('reports.revenue.insight.'.$key.'_detail', $params);
+        $r = $this->revenueTotals;
+        $out = [];
 
-        $debtOrders = $this->report()->debtOrders($this->filterValues(dates: false));
-        $overdue = $this->report()->overdueInvoices($this->filterValues(dates: false));
+        $course = $this->report()->byCourse($f)[0] ?? null;
+        if ($course && $course['revenue'] > 0) {
+            $out[] = ['key' => 'top_course', 'icon' => 'book', 'value' => $course['name'], 'detail' => $detail('top_course', [
+                'amount' => $money($course['revenue']), 'share' => $pct(RevenueReport::pct($course['revenue'], $r['revenue']) ?? 0)])];
+        }
 
-        $path = $writer->write([
-            ['name' => $c('sheet_orders'), 'columns' => [[$c('order'), 'text'], [$c('created'), 'datetime'], [$c('customer'), 'text'], [$c('employee'), 'text'],
-                [$c('payment_type'), 'text'], [$c('status'), 'text'], [$c('total'), 'money'], [$c('paid'), 'money'], [$c('remaining'), 'money']],
-                'rows' => array_map(fn ($r) => [$r['order_id'], $time($r['created_at']), $r['customer'], $r['employee'], $type($r['payment_type']),
-                    __('orders.status.'.$r['status']), (float) $r['total_amount'], (float) $r['paid_amount'], (float) $r['remaining_amount']], $this->report()->orderList($f))],
-            ['name' => $c('sheet_payments'), 'columns' => [[$c('invoice'), 'text'], [$c('order'), 'text'], [$c('installment'), 'int'], [$c('customer'), 'text'],
-                [$c('employee'), 'text'], [$c('method'), 'text'], [$c('amount'), 'money'], [$c('due'), 'datetime'], [$c('paid_at'), 'datetime']],
-                'rows' => array_map(fn ($r) => [$r['invoice_id'], $r['order_id'], (int) $r['payment_installment'], $r['customer'], $r['employee'],
-                    $method($r['payment_method']), (float) $r['payment_amount'], $time($r['due_date']), $time($r['payment_date'])], $this->report()->paymentList($f))],
-            ['name' => $c('sheet_debt'), 'columns' => [[$c('order'), 'text'], [$c('customer'), 'text'], [$c('phone'), 'text'], [$c('employee'), 'text'],
-                [$c('total'), 'money'], [$c('paid'), 'money'], [$c('remaining'), 'money'], [$c('unpaid_invoices'), 'money'], [$c('uninvoiced'), 'money'], [$c('late_days'), 'int']],
-                'rows' => array_map(fn ($r) => [$r['order_id'], $r['customer'], $r['phone'], $r['employee'], (float) $r['total_amount'], (float) $r['paid_amount'],
-                    (float) $r['remaining_amount'], (float) $r['unpaid'], (float) $r['uninvoiced'], (int) $r['late']], $debtOrders)],
-            ['name' => $c('sheet_overdue'), 'columns' => [[$c('invoice'), 'text'], [$c('order'), 'text'], [$c('customer'), 'text'], [$c('phone'), 'text'],
-                [$c('employee'), 'text'], [$c('method'), 'text'], [$c('amount'), 'money'], [$c('due'), 'datetime'], [$c('late_days'), 'int']],
-                'rows' => array_map(fn ($r) => [$r['invoice_id'], $r['order_id'], $r['customer'], $r['phone'], $r['employee'], $method($r['payment_method']),
-                    (float) $r['payment_amount'], $time($r['due_date']), (int) $r['late']], $overdue)],
-        ]);
+        if ($this->canFilterEmployee) {
+            $staff = array_filter($this->employeeRows, fn ($e) => $e['paid_invoices'] >= self::MIN_PAID_INVOICES);
+            usort($staff, fn ($a, $b) => $b['on_time'] <=> $a['on_time'] ?: $b['paid_invoices'] <=> $a['paid_invoices']);
+            if ($best = $staff[0] ?? null) {
+                $out[] = ['key' => 'best_on_time', 'icon' => 'check-circle', 'value' => $best['name'],
+                    'detail' => $detail('best_on_time', ['rate' => $pct($best['on_time']), 'count' => $best['paid_invoices']])];
+            }
 
-        return response()->download($path, 'bao-cao-doanh-thu-thanh-toan-'.now()->format('Ymd-His').'.xlsx')->deleteFileAfterSend();
+            $dimension = $this->canFilterTeam && ! $this->teamScope ? 'team' : 'branch';
+            $top = collect($this->report()->byDimension($f, $dimension))->sortByDesc('collected')->first();
+            if ($top && $top['collected'] > 0) {
+                $out[] = ['key' => 'top_'.$dimension, 'icon' => 'wallet', 'value' => $top['name'] ?? __('reports.revenue.structure.no_team'),
+                    'detail' => $detail('top_'.$dimension, ['amount' => $money($top['collected'])])];
+            }
+        }
+
+        // Chỉ giữ nhận định của vai trò đang xem
+        return array_values(array_filter($out, fn ($item) => in_array($item['key'], $this->roleView()['insights'], true)));
+    }
+
+    /* ── Tab: Tỷ lệ thu theo tháng tạo đơn ────────────────────────────── */
+
+    #[Computed]
+    public function cohort(): array
+    {
+        return $this->report()->collectionCohort($this->filterValues(), self::COHORT_HORIZONS);
+    }
+
+    /* ── Tab: Theo nhân viên ──────────────────────────────────────────── */
+
+    #[Computed]
+    public function employeeRows(): array
+    {
+        return $this->report()->collectionByEmployee($this->filterValues(), $this->filterValues(dates: false));
+    }
+
+    /**
+     * Bảng theo nhân viên đã sắp theo cột đang chọn, kèm hạng.
+     */
+    public function sortedEmployees(): array
+    {
+        $sort = in_array($this->employeeSort, self::EMPLOYEE_SORTS, true) ? $this->employeeSort : 'collected';
+        $rows = $this->employeeRows;
+        // % đúng hạn: thấp trước (người cần nhắc); người chưa có hóa đơn đã thu xếp cuối
+        usort($rows, $sort === 'on_time'
+            ? fn ($a, $b) => ($a['on_time'] === null) <=> ($b['on_time'] === null) ?: $a['on_time'] <=> $b['on_time']
+            : fn ($a, $b) => $b[$sort] <=> $a[$sort] ?: strcmp($a['name'], $b['name']));
+
+        return $rows;
     }
 
     /* ── Liên kết ─────────────────────────────────────────────────────── */
@@ -495,6 +648,246 @@ class Revenue extends Component
     public function orderInvoicesUrl(string $orderId): string
     {
         return route($this->routePrefix.'.invoices', ['q' => $orderId]);
+    }
+
+    /**
+     * Danh sách hóa đơn / đơn hàng đã lọc sẵn, kèm đội và nhân viên đang xem (nếu có).
+     */
+    public function listUrl(string $page, array $params = []): string
+    {
+        $scope = array_filter(['team' => $this->canFilterTeam ? $this->teamScope : null,
+            'employee' => $this->canFilterEmployee ? $this->employeeScope : null]);
+
+        return route($this->routePrefix.'.'.$page, $params + $scope);
+    }
+
+    /**
+     * Liên kết của thẻ chỉ số (null = thẻ không bấm được).
+     */
+    public function kpiUrl(string $key): ?string
+    {
+        $f = $this->filterValues();
+        $range = fn (string $from, string $to) => array_filter([$from => $f['from'], $to => $f['to']]);
+
+        return match ($key) {
+            'revenue', 'orders' => $this->listUrl('orders', $range('created_from', 'created_to')),
+            'collected'         => $this->listUrl('invoices', ['status' => [Invoice::STATUS_PAID]] + $range('paid_from', 'paid_to')),
+            'debt'              => $this->listUrl('orders', ['status' => [SalesOrder::STATUS_IN_PROGRESS]]),
+            'overdue'           => $this->listUrl('invoices', ['deadline' => 'overdue']),
+            'pending'           => $this->listUrl('invoices', ['status' => [Invoice::STATUS_UNPAID], 'deadline' => 'valid']),
+            'uninvoiced'        => $this->listUrl('orders', ['invoice' => 'needs_invoice']),
+            'cash_queue'        => $this->listUrl('invoices', ['cash_pending' => 1]),
+            'transfer_queue'    => ! in_array('transfer', $this->roleView()['todo'], true) ? null : route($this->routePrefix.'.reports.revenue', array_filter(['branch' => $this->branch, 'team' => $this->team, 'employee' => $this->employee])).'#rv-todo',
+            default             => null,
+        };
+    }
+
+    /* ── Xuất Excel (popup chọn kỳ / sheet / cột / xem trước - trait ReportExport) ── */
+
+    // Sheet: tổng hợp theo tháng · đơn trong kỳ · thực thu · công nợ · hóa đơn quá hạn · theo nhân viên
+    const EXPORT_SHEETS = ['summary', 'orders', 'payments', 'debt', 'overdue', 'employees'];
+
+    const EXPORT_LOCKED = ['summary' => 'month', 'orders' => 'order', 'payments' => 'invoice', 'debt' => 'order', 'overdue' => 'invoice', 'employees' => 'name'];
+
+    const EXPORT_DEFAULT_SHEETS = ['summary', 'debt', 'overdue', 'employees'];
+
+    const EXPORT_DEFAULT_COLUMNS = [
+        'summary'   => ['month', 'orders', 'revenue', 'collected', 'transfer', 'cash', 'collect_rate'],
+        'orders'    => ['order', 'created', 'customer', 'employee', 'payment_type', 'status', 'total', 'paid', 'remaining'],
+        'payments'  => ['invoice', 'order', 'installment', 'customer', 'employee', 'method', 'amount', 'due', 'paid_at'],
+        'debt'      => ['order', 'customer', 'phone', 'employee', 'total', 'paid', 'remaining', 'unpaid', 'uninvoiced', 'late'],
+        'overdue'   => ['invoice', 'order', 'customer', 'phone', 'employee', 'status', 'amount', 'due', 'late'],
+        'employees' => ['name', 'orders', 'revenue', 'collected', 'on_time', 'debt', 'overdue_count', 'overdue_amount'],
+    ];
+
+    // Tiêu chí riêng của popup ('' = tất cả)
+    public string $exportBranch = '';
+
+    public string $exportTeam = '';
+
+    public function exportColumnCatalog(): array
+    {
+        return [
+            'summary'   => ['month' => 'label', 'orders' => 'int', 'revenue' => 'money', 'collected' => 'money', 'transfer' => 'money', 'cash' => 'money', 'collect_rate' => 'percent'],
+            'orders'    => ['order' => 'label', 'created' => 'text', 'customer' => 'text', 'employee' => 'text', 'payment_type' => 'text', 'status' => 'text',
+                'total' => 'money', 'paid' => 'money', 'remaining' => 'money'],
+            'payments'  => ['invoice' => 'label', 'order' => 'text', 'installment' => 'int', 'customer' => 'text', 'employee' => 'text', 'method' => 'text',
+                'amount' => 'money', 'due' => 'text', 'paid_at' => 'text', 'on_time' => 'text'],
+            'debt'      => ['order' => 'label', 'customer' => 'text', 'phone' => 'text', 'employee' => 'text', 'total' => 'money', 'paid' => 'money',
+                'remaining' => 'money', 'unpaid' => 'money', 'uninvoiced' => 'money', 'late' => 'int'],
+            'overdue'   => ['invoice' => 'label', 'order' => 'text', 'customer' => 'text', 'phone' => 'text', 'employee' => 'text', 'status' => 'text',
+                'method' => 'text', 'amount' => 'money', 'due' => 'text', 'late' => 'int'],
+            'employees' => ['name' => 'label', 'orders' => 'int', 'revenue' => 'money', 'collected' => 'money', 'paid_invoices' => 'int', 'on_time' => 'percent',
+                'debt' => 'money', 'overdue_count' => 'int', 'overdue_amount' => 'money'],
+        ];
+    }
+
+    public function exportLabel(string $key, array $replace = []): string
+    {
+        return __('reports.revenue.export.'.$key, $replace);
+    }
+
+    public function exportFilterFields(): array
+    {
+        $teams = $this->exportBranch === '' ? $this->teams
+            : $this->teams->filter(fn ($team) => $team->branchId() === $this->exportBranch);
+
+        return [
+            ['model' => 'exportBranch', 'label' => __('reports.branch'), 'all' => __('reports.all_branches'),
+                'options' => $this->branches->pluck('branch_name', 'branch_id')->all()],
+            ['model' => 'exportTeam', 'label' => __('reports.sales_performance.team'), 'all' => __('reports.sales_performance.all_teams'),
+                'options' => $teams->pluck('team_name', 'team_id')->all()],
+        ];
+    }
+
+    public function updatedExportBranch(): void
+    {
+        $this->exportTeam = '';
+    }
+
+    protected function resetExportFilters(): void
+    {
+        $this->reset('exportBranch', 'exportTeam');
+    }
+
+    protected function exportCriteria(): array
+    {
+        $branch = $this->branches->firstWhere('branch_id', $this->exportBranch);
+        $team = $this->teams->firstWhere('team_id', $this->exportTeam);
+        $parts = array_filter([
+            $branch ? __('reports.branch').': '.$branch->branch_name : null,
+            $team ? __('reports.sales_performance.team').': '.$team->team_name : null,
+        ]);
+
+        return [
+            ['branch' => $branch?->branch_id, 'team' => $team?->team_id, 'employee' => null],
+            $parts ? implode(' · ', $parts) : $this->exportLabel('scope_all'),
+        ];
+    }
+
+    /**
+     * Số liệu cho các sheet cần xuất: phần theo kỳ (đơn, thực thu, theo tháng) dùng kỳ của popup;
+     * công nợ, hóa đơn quá hạn tính tại thời điểm xuất.
+     */
+    protected function exportData(array $period, array $filters, array $sheets): array
+    {
+        $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters;
+        $now = ['from' => null, 'to' => null] + $filters;
+        $need = fn (string ...$names) => (bool) array_intersect($names, $sheets);
+
+        return [
+            'revenue'   => $this->report()->revenueTotals($f),
+            'collected' => $this->report()->collectionTotals($f),
+            'months'    => $need('summary') ? [
+                'keys'      => $period['months'],
+                'revenue'   => $this->report()->revenueByPeriod($f, 'month'),
+                'orders'    => $this->report()->ordersInPeriod($f)->selectRaw("DATE_FORMAT(so.created_at, '%Y-%m') AS k, COUNT(*) AS v")
+                    ->groupBy('k')->pluck('v', 'k')->all(),
+                'collected' => $this->report()->collectionsByPeriod($f, 'month'),
+            ] : null,
+            'orders'    => $need('orders') ? $this->report()->orderList($f) : [],
+            'payments'  => $need('payments') ? $this->report()->paymentList($f) : [],
+            'debt'      => $need('debt') ? $this->report()->debtOrders($now) : [],
+            'overdue'   => $need('overdue') ? $this->report()->overdueInvoices($now) : [],
+            'employees' => $need('employees') ? $this->report()->collectionByEmployee($f, $now) : [],
+        ];
+    }
+
+    protected function exportRows(string $sheet, array $data): array
+    {
+        $date = fn ($v) => $v ? CarbonImmutable::parse($v)->format('d/m/Y') : null;
+        $method = fn ($m) => $m ? __('invoices.method.'.$m) : null;
+        $type = fn ($t) => __('reports.revenue.payment_type.'.(in_array($t, SalesOrder::PAYMENT_TYPES, true) ? $t : 'none'));
+        $total = fn (array $values) => ['total', ['_stt' => '', array_key_first($values) => $this->exportLabel('total')] + $values];
+        $sum = fn (array $rows, string $key) => array_sum(array_map(fn ($r) => (float) $r[$key], $rows));
+
+        switch ($sheet) {
+            case 'summary':
+                $m = $data['months'];
+                $rev = $data['revenue'];
+                $col = $data['collected'];
+                $rows = [$total(['month' => null, 'orders' => $rev['orders'], 'revenue' => $rev['revenue'], 'collected' => $col['collected'],
+                    'transfer' => $col['transfer'], 'cash' => $col['cash'], 'collect_rate' => RevenueReport::pct($col['collected'], $rev['revenue'])])];
+                foreach ($m['keys'] as $k) {
+                    $got = ($m['collected'][$k]['transfer'] ?? 0) + ($m['collected'][$k]['cash'] ?? 0);
+                    $rows[] = ['item', ['month' => $this->exportLabel('month', ['month' => $this->monthLabel($k)]), 'orders' => (int) ($m['orders'][$k] ?? 0),
+                        'revenue' => $m['revenue'][$k] ?? 0, 'collected' => $got, 'transfer' => $m['collected'][$k]['transfer'] ?? 0,
+                        'cash' => $m['collected'][$k]['cash'] ?? 0, 'collect_rate' => RevenueReport::pct($got, $m['revenue'][$k] ?? 0)]];
+                }
+
+                return $rows;
+
+            case 'orders':
+                $rows = $data['orders'];
+
+                return array_merge([$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount')])],
+                    array_map(fn ($r) => ['item', ['order' => $r['order_id'], 'created' => $date($r['created_at']), 'customer' => $r['customer'], 'employee' => $r['employee'],
+                        'payment_type' => $type($r['payment_type']), 'status' => __('orders.status.'.$r['status']),
+                        'total' => (float) $r['total_amount'], 'paid' => (float) $r['paid_amount'], 'remaining' => (float) $r['remaining_amount']]], $rows));
+
+            case 'payments':
+                $rows = $data['payments'];
+
+                return array_merge([$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
+                    array_map(fn ($r) => ['item', ['invoice' => $r['invoice_id'], 'order' => $r['order_id'], 'installment' => (int) $r['payment_installment'],
+                        'customer' => $r['customer'], 'employee' => $r['employee'], 'method' => $method($r['payment_method']), 'amount' => (float) $r['payment_amount'],
+                        'due' => $date($r['due_date']), 'paid_at' => $date($r['payment_date']),
+                        'on_time' => $this->exportLabel(substr((string) $r['payment_date'], 0, 10) <= (string) $r['due_date'] ? 'on_time_yes' : 'on_time_no')]], $rows));
+
+            case 'debt':
+                $rows = $data['debt'];
+
+                return array_merge([$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount'),
+                    'unpaid' => $sum($rows, 'unpaid'), 'uninvoiced' => $sum($rows, 'uninvoiced')])],
+                    array_map(fn ($r) => ['item', ['order' => $r['order_id'], 'customer' => $r['customer'], 'phone' => $r['phone'], 'employee' => $r['employee'],
+                        'total' => (float) $r['total_amount'], 'paid' => (float) $r['paid_amount'], 'remaining' => (float) $r['remaining_amount'],
+                        'unpaid' => (float) $r['unpaid'], 'uninvoiced' => (float) $r['uninvoiced'], 'late' => (int) $r['late']]], $rows));
+
+            case 'overdue':
+                $rows = $data['overdue'];
+
+                return array_merge([$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
+                    array_map(fn ($r) => ['item', ['invoice' => $r['invoice_id'], 'order' => $r['order_id'], 'customer' => $r['customer'], 'phone' => $r['phone'],
+                        'employee' => $r['employee'], 'status' => __('invoices.status.'.$r['status']), 'method' => $method($r['payment_method']),
+                        'amount' => (float) $r['payment_amount'], 'due' => $date($r['due_date']), 'late' => (int) $r['late']]], $rows));
+
+            default:
+                $rows = $data['employees'];
+                usort($rows, fn ($a, $b) => $b['collected'] <=> $a['collected'] ?: strcmp($a['name'], $b['name']));
+                $paid = array_sum(array_column($rows, 'paid_invoices'));
+
+                return array_merge([$total(['name' => null, 'orders' => array_sum(array_column($rows, 'orders')), 'revenue' => $sum($rows, 'revenue'),
+                    'collected' => $sum($rows, 'collected'), 'paid_invoices' => $paid,
+                    'on_time' => RevenueReport::pct(array_sum(array_column($rows, 'on_time_count')), $paid),
+                    'debt' => $sum($rows, 'debt'), 'overdue_count' => array_sum(array_column($rows, 'overdue_count')), 'overdue_amount' => $sum($rows, 'overdue_amount')])],
+                    array_map(fn ($r) => ['item', array_intersect_key($r, $this->exportColumnCatalog()['employees'])], $rows));
+        }
+    }
+
+    protected function exportSheetMeta(string $sheet, array $data, array $period): array
+    {
+        $meta = ['unit' => $this->exportLabel('unit')];
+        if (in_array($sheet, ['debt', 'overdue'], true)) {
+            $meta['notes'] = [$this->exportLabel('note_now', ['date' => now()->format('d/m/Y')])];
+        }
+
+        return $meta;
+    }
+
+    protected function exportFileName(): string
+    {
+        return 'bao-cao-doanh-thu-thanh-toan';
+    }
+
+    /**
+     * Năm chọn được trong popup xuất: từ năm có đơn hàng sớm nhất đến năm hiện tại.
+     */
+    public function exportYears(): array
+    {
+        $first = SalesOrder::query()->min('created_at');
+        $current = (int) now()->year;
+
+        return range($current, $first ? min($current, (int) CarbonImmutable::parse($first)->year) : $current);
     }
 
     /* ── Tiện ích ─────────────────────────────────────────────────────── */

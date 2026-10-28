@@ -52,6 +52,7 @@
     </div>
 
     <x-logout-modal />
+    <x-confirm-modal />
 
     @livewireScripts
 </body>

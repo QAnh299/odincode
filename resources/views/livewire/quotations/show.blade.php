@@ -113,34 +113,49 @@
                         <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" disabled title="{{ $button['disabled'] }}">
                             <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
                         </button>
+                    @elseif (isset($button['confirm']))
+                        {{-- Hỏi xác nhận bằng popup của hệ thống (components/confirm-modal.blade.php) --}}
+                        <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" wire:loading.attr="disabled" wire:target="{{ $button['action'] }}"
+                            x-on:click="$dispatch('odin-confirm', { title: @js(__('quotations.detail.'.$button['key'].'_title')), message: @js($button['confirm']), ok: @js(__('quotations.detail.'.$button['key'])), run: () => $wire.call(@js($button['action'])) })">
+                            <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
+                        </button>
                     @else
                         <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" wire:click="{{ $button['action'] }}"
-                            @isset($button['confirm']) wire:confirm="{{ $button['confirm'] }}" @endisset wire:loading.attr="disabled" wire:target="{{ $button['action'] }}">
+                            wire:loading.attr="disabled" wire:target="{{ $button['action'] }}">
                             <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
                         </button>
                     @endif
                 @endforeach
             </div>
-            {{-- HĐ15: chọn lý do từ chối – không đồng ý → Thất bại, không phản hồi đến khi quá hạn → Lưu trữ --}}
+            {{-- HĐ15: popup chọn lý do từ chối – không đồng ý → Thất bại, không phản hồi đến khi quá hạn → Lưu trữ --}}
             @if ($rejectReason !== null)
-                <div class="qt-reject" role="group" aria-label="{{ __('quotations.detail.reject_reason_title', ['code' => $quotation->quotation_id]) }}">
-                    <p class="qt-reject__title">{{ __('quotations.detail.reject_reason_title', ['code' => $quotation->quotation_id]) }}</p>
-                    @foreach (\App\Services\QuotationService::REJECT_REASONS as $reason)
-                        <label class="qt-reject__option">
-                            <input type="radio" wire:model="rejectReason" value="{{ $reason }}">
-                            <span>
-                                <strong>{{ __('quotations.detail.reject_reason.'.$reason) }}</strong>
-                                <small>{{ __('quotations.detail.reject_reason_hint.'.$reason) }}</small>
-                            </span>
-                        </label>
-                    @endforeach
-                    <div class="qt-reject__buttons">
-                        <button type="button" class="qt-btn qt-btn--ghost" wire:click="cancelReject">{{ __('quotations.detail.reject_cancel') }}</button>
-                        <button type="button" class="qt-btn qt-btn--danger" wire:click="reject" wire:loading.attr="disabled" wire:target="reject">
-                            <x-icon name="x" />{{ __('quotations.detail.reject_submit') }}
-                        </button>
+                <div class="modal d-block odin-confirm" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="qtRejectTitle"
+                    x-data x-on:keydown.escape.window="$wire.cancelReject()">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content odin-logout-modal">
+                            <div class="modal-body p-4">
+                                <div class="odin-confirm__icon odin-confirm__icon--danger mx-auto mb-3"><x-icon name="x" /></div>
+                                <h2 class="h5 fw-bold mb-3 text-center" id="qtRejectTitle">{{ __('quotations.detail.reject_reason_title', ['code' => $quotation->quotation_id]) }}</h2>
+                                @foreach (\App\Services\QuotationService::REJECT_REASONS as $reason)
+                                    <label class="qt-reject__option">
+                                        <input type="radio" wire:model="rejectReason" value="{{ $reason }}">
+                                        <span>
+                                            <strong>{{ __('quotations.detail.reject_reason.'.$reason) }}</strong>
+                                            <small>{{ __('quotations.detail.reject_reason_hint.'.$reason) }}</small>
+                                        </span>
+                                    </label>
+                                @endforeach
+                                <div class="d-flex gap-2 mt-3">
+                                    <button type="button" class="btn btn-light flex-fill" wire:click="cancelReject">{{ __('quotations.detail.reject_cancel') }}</button>
+                                    <button type="button" class="btn flex-fill odin-confirm__ok odin-confirm__ok--danger" wire:click="reject" wire:loading.attr="disabled" wire:target="reject">
+                                        {{ __('quotations.detail.reject_submit') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="modal-backdrop fade show"></div>
             @endif
             @if ($isExpired)
                 <p class="qt-actions__warning"><x-icon name="alert" />{{ __('quotations.detail.expired_warning') }}</p>

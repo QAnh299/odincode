@@ -1258,3 +1258,159 @@
     text-decoration: underline;
 }
 
+
+/* ── Báo cáo doanh thu & thanh toán: thẻ bấm được, việc cần xử lý, nhận định, tỷ lệ thu theo tháng, sắp xếp ── */
+a.rv-stat-link {
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+}
+
+a.rv-stat-link:hover,
+a.rv-stat-link:focus-visible {
+    border-color: var(--vc-primary);
+    transform: translateY(-1px);
+}
+
+.rv-todo .rp-card__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.rv-todo__groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+}
+
+.rv-todo__group {
+    padding: 0.75rem 0.85rem;
+    border: 1.5px solid var(--vc-border);
+    border-left: 4px solid #eda100;
+    border-radius: 12px;
+    background: var(--vc-surface);
+}
+
+.rv-todo__group--overdue,
+.rv-todo__group--transfer {
+    border-left-color: #e34948;
+}
+
+.rv-todo__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.92rem;
+}
+
+.rv-todo__head span {
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.rv-todo__hint {
+    margin: 0.2rem 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--vc-muted);
+}
+
+.rv-todo__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.84rem;
+}
+
+.rv-todo__list li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    border-top: 1px dashed var(--vc-border);
+}
+
+.rv-todo__list li span:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--vc-muted);
+}
+
+.rv-todo__more {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/* Nhận định: dùng .rp-kpis / .rp-stat như hàng chỉ số; giá trị là tên nên cỡ chữ nhỏ hơn số liệu, tối đa 2 dòng */
+.rv-insights {
+    margin-top: -0.25rem;
+}
+
+.rv-insight__value {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.6em;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+/* Thẻ chỉ tiêu: 3 số liệu cùng hàng + nguồn chỉ tiêu */
+.rv-target__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0.85rem 0 0.4rem;
+}
+
+.rv-target__stats div {
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    background: var(--vc-tint);
+}
+
+.rv-target__stats dt {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--vc-muted);
+}
+
+.rv-target__stats dd {
+    margin: 0.15rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.rv-target__source {
+    font-style: italic;
+}
+
+@media (max-width: 640px) {
+    .rv-target__stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Ô tỷ lệ thu: nền xanh đậm dần theo % đã thu (--a từ 0 đến 1) */
+.rv-cohort__cell {
+    background: rgba(27, 175, 122, calc(var(--a, 0) * 0.45));
+}
+
+.rv-sort {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.rv-sort.is-active {
+    color: var(--vc-primary);
+    font-weight: 700;
+}

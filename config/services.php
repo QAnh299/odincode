@@ -54,7 +54,7 @@ return [
     ],
 
     // Thanh toán chuyển khoản (HĐ27 – HĐ29): ảnh QR theo chuẩn VietQR (img.vietqr.io) + webhook nhận giao dịch
-    // từ ngân hàng / cổng QR (SePay, Casso...).
+    // từ SePay (header Authorization: Apikey BANK_WEBHOOK_SECRET).
     'vietqr' => [
         'bank_id'        => env('VIETQR_BANK_ID', 'VCB'),
         'account_no'     => env('VIETQR_ACCOUNT_NO', '0000000000'),

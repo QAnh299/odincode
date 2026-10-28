@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 // ── Auth ──────────────────────────────────────────────────────────────
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
-// ── Webhook giao dịch chuyển khoản từ ngân hàng / cổng QR (HĐ29) - xác thực bằng X-Webhook-Secret ──
+// ── Webhook giao dịch chuyển khoản từ SePay (HĐ29) - xác thực bằng header Authorization: Apikey ... ──
 Route::post('/payments/bank-webhook', BankWebhookController::class)->middleware('throttle:60,1')->name('api.payments.bank-webhook');
 
 Route::middleware('auth:sanctum')->group(function () {

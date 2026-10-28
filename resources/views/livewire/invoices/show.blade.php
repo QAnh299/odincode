@@ -84,28 +84,35 @@
         <div class="qt-actions__buttons">
             @if ($this->canApproveCash)
                 {{-- HĐ32: kế toán đã đối chiếu số tiền khách nộp khớp hóa đơn --}}
-                <button type="button" class="qt-btn qt-btn--primary" wire:click="approveCash" wire:loading.attr="disabled" wire:target="approveCash"
-                    wire:confirm="{{ __('invoices.detail.approve_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)]) }}">
+                <button type="button" class="qt-btn qt-btn--primary" wire:loading.attr="disabled" wire:target="approveCash"
+                    x-on:click="$dispatch('odin-confirm', { title: @js(__('invoices.detail.approve_title')), message: @js(__('invoices.detail.approve_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)])), ok: @js(__('invoices.detail.approve_cash')), run: () => $wire.approveCash() })">
                     <x-icon name="check-circle" />{{ __('invoices.detail.approve_cash') }}
                 </button>
             @endif
             @if ($this->canConfirmTransfer)
                 {{-- Ngoại lệ: khách chuyển lệch số tiền, kế toán đối chiếu sao kê rồi xác nhận thủ công --}}
-                <button type="button" class="qt-btn qt-btn--primary" wire:click="confirmTransfer" wire:loading.attr="disabled" wire:target="confirmTransfer"
-                    wire:confirm="{{ __('invoices.detail.confirm_transfer_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)]) }}">
+                <button type="button" class="qt-btn qt-btn--primary" wire:loading.attr="disabled" wire:target="confirmTransfer"
+                    x-on:click="$dispatch('odin-confirm', { title: @js(__('invoices.detail.confirm_transfer_title')), message: @js(__('invoices.detail.confirm_transfer_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)])), ok: @js(__('invoices.detail.confirm_transfer')), run: () => $wire.confirmTransfer() })">
                     <x-icon name="check-circle" />{{ __('invoices.detail.confirm_transfer') }}
                 </button>
             @endif
             @if ($this->canEdit)
-                <a href="{{ route('salesperson.invoices.edit', $invoice) }}" class="qt-btn qt-btn--ghost"><x-icon name="edit" />{{ __('invoices.detail.edit') }}</a>
+                <a href="{{ route('salesperson.invoices.edit', $invoice) }}" class="qt-btn qt-btn--ghost"><x-icon name="edit" />{{ $status === Invoice::STATUS_OVERDUE ? __('invoices.detail.extend') : __('invoices.detail.edit') }}</a>
             @endif
             @if ($this->canCreateNext)
                 <a href="{{ route('salesperson.invoices.create', $order) }}" class="qt-btn qt-btn--ghost"><x-icon name="plus" />{{ __('invoices.detail.create_next') }}</a>
             @endif
         </div>
         @if ($alert = $this->transferAlert)
-            {{-- Khách chuyển lệch số tiền: hệ thống không ghi nhận, báo kế toán và SP --}}
-            <p class="qt-notice qt-notice--danger" role="alert"><x-icon name="alert" />{{ __('invoices.detail.transfer_mismatch', [
+            {{-- Khách chuyển lệch số tiền hoặc chuyển vào hóa đơn đã Quá hạn: hệ thống không ghi nhận, báo kế toán và SP --}}
+            @php
+                $alertKey = match (true) {
+                    $status === Invoice::STATUS_OVERDUE => 'transfer_overdue',
+                    $alert['overdue'] => 'transfer_after_reopen',
+                    default => 'transfer_mismatch',
+                };
+            @endphp
+            <p class="qt-notice qt-notice--danger" role="alert"><x-icon name="alert" />{{ __('invoices.detail.'.$alertKey, [
                 'received' => $money($alert['amount']), 'amount' => $money($invoice->payment_amount), 'time' => $alert['at']->format('d/m/Y H:i'),
             ]) }}</p>
         @endif

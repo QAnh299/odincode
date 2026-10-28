@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
  *   - Công nợ    = remaining_amount của đơn Đang xử lý TẠI THỜI ĐIỂM XEM (không theo bộ lọc ngày), chia thành:
  *                  quá hạn (hóa đơn chưa thanh toán đã qua hạn hoặc trạng thái Overdue), đã lập hóa đơn chờ thu (chưa tới hạn),
  *                  chưa lập hóa đơn (= còn lại − tổng hóa đơn chưa thanh toán, không âm).
- *   - Tuổi nợ tính theo due_date so với hôm nay (không dựa vào trạng thái Overdue – chưa có bước chuyển sang Overdue).
+ *   - Tuổi nợ tính theo due_date so với hôm nay. Hóa đơn qua hạn được lệnh invoices:mark-overdue chuyển sang Overdue
+ *     lúc 00:15 hằng ngày; vẫn xét theo due_date để hóa đơn vừa qua hạn trong ngày cũng được tính là quá hạn.
  *
  * Gán đơn cho người phụ trách Cơ hội (SalesOrders → Quotations → Opportunities.employee_id), đội = đội hiện tại của
  * người đó, chi nhánh = chi nhánh của khách (Leads.branch_id). Mọi truy vấn cộng tổng bằng SQL.
@@ -159,6 +160,8 @@ class RevenueReport
         return (float) DB::table('TeamSalesTargets as t')
             ->join('SalesTargets as st', 'st.target_id', '=', 't.target_id')
             ->where('st.target_type', 'Revenue')
+            // Bỏ chỉ tiêu đã huỷ (cùng cách tính với báo cáo Hiệu quả Sales)
+            ->where('t.status', '<>', 'Cancelled')
             ->whereIn(DB::raw("DATE_FORMAT(t.target_month, '%Y-%m')"), $months)
             ->when($teams !== null, fn ($q) => $q->whereIn('t.team_id', $teams))
             ->sum('t.target_value');
@@ -233,9 +236,9 @@ class RevenueReport
 
     /**
      * Hóa đơn chưa thanh toán của các đơn còn nợ, đã phân bổ vào phần còn lại của đơn ('counted').
-     * Hóa đơn Overdue không nhận thanh toán nữa và SP lập hóa đơn thay thế cho cùng khoản nợ (InvoiceService),
-     * nên mỗi đơn: hóa đơn Unpaid chiếm phần còn lại trước, rồi Overdue (mới nhất trước), không vượt remaining_amount.
-     * Hóa đơn Overdue đã được thay thế hết có counted = 0, không tính vào công nợ.
+     * Mỗi đơn: hóa đơn Unpaid chiếm phần còn lại trước, rồi Overdue (mới nhất trước), không vượt remaining_amount.
+     * Từ 28/10/2026 SP gia hạn hóa đơn Overdue thay vì lập hóa đơn thay thế; phép phân bổ này vẫn giữ để dữ liệu cũ
+     * (hóa đơn Overdue đã có hóa đơn thay thế, counted = 0) không bị tính trùng vào công nợ.
      *
      * @return array<string, array{remaining: float, invoices: list<array>}> theo order_id
      */
@@ -311,7 +314,7 @@ class RevenueReport
 
         $rows = $this->orders($f)->where('so.status', SalesOrder::STATUS_IN_PROGRESS)->where('so.remaining_amount', '>', 0)
             ->select('so.order_id', 'so.quotation_id', 'so.created_at', 'so.total_amount', 'so.paid_amount', 'so.remaining_amount', 'so.payment_type',
-                'l.full_name as customer', 'l.phone', 'e.full_name as employee')
+                'l.full_name as customer', 'l.phone', 'op.employee_id', 'e.full_name as employee')
             ->get()->map(function ($r) use ($open) {
                 $invoices = array_filter($open[$r->order_id]['invoices'] ?? [], fn ($i) => $i['counted'] > 0);
                 $unpaid = array_sum(array_column($invoices, 'counted'));
@@ -344,7 +347,7 @@ class RevenueReport
             ->where(fn ($q) => $q->where('i.due_date', '<', $today)->orWhere('i.status', Invoice::STATUS_OVERDUE))
             ->when($superseded, fn ($q) => $q->whereNotIn('i.invoice_id', $superseded))
             ->select('i.invoice_id', 'i.order_id', 'i.status', 'i.payment_method', 'i.payment_amount', 'i.due_date', 'i.payment_installment',
-                'l.full_name as customer', 'l.phone', 'e.full_name as employee')
+                'l.full_name as customer', 'l.phone', 'op.employee_id', 'e.full_name as employee')
             ->selectRaw('GREATEST(1, DATEDIFF(?, i.due_date)) AS late', [$today])
             ->orderByDesc('late')->orderByDesc('i.payment_amount')
             ->when($limit, fn ($q) => $q->limit($limit))
@@ -402,6 +405,139 @@ class RevenueReport
         usort($rows, fn ($a, $b) => $b['revenue'] <=> $a['revenue'] ?: $b['collected'] <=> $a['collected']);
 
         return $rows;
+    }
+
+    /* ── Việc cần xử lý (tại thời điểm xem) ───────────────────────────── */
+
+    /**
+     * Hóa đơn chuyển khoản đang có cảnh báo giao dịch (lệch số tiền / chuyển vào hóa đơn Quá hạn) – TransferAlerts.
+     * Cảnh báo lưu trong cache nên chỉ dùng để nhắc việc, không cộng vào thực thu.
+     */
+    public function transferQueue(array $f): array
+    {
+        $alerts = TransferAlerts::all();
+        if (! $alerts) {
+            return [];
+        }
+
+        return $this->orders($f)->join('Invoices as i', 'i.order_id', '=', 'so.order_id')
+            ->whereIn('i.invoice_id', array_keys($alerts))
+            ->whereIn('i.status', [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE])
+            ->where('i.payment_method', Invoice::METHOD_BANK_TRANSFER)
+            ->select('i.invoice_id', 'i.status', 'i.payment_amount', 'l.full_name as customer', 'e.full_name as employee')
+            ->orderBy('i.invoice_id')->get()
+            ->map(function ($r) {
+                $alert = TransferAlerts::find($r->invoice_id);
+
+                return (array) $r + ['received' => $alert['amount'], 'at' => $alert['at']];
+            })->all();
+    }
+
+    /**
+     * Hóa đơn tiền mặt chờ kế toán duyệt đã lập từ $days ngày trước trở về trước (cũ nhất trước).
+     */
+    public function staleCash(array $f, int $days): array
+    {
+        return $this->orders($f)->join('Invoices as i', 'i.order_id', '=', 'so.order_id')
+            ->where('i.status', Invoice::STATUS_UNPAID)->where('i.payment_method', Invoice::METHOD_CASH)
+            ->where('i.issued_date', '<=', today()->subDays($days)->toDateString())
+            ->select('i.invoice_id', 'i.issued_date', 'i.payment_amount', 'l.full_name as customer', 'e.full_name as employee')
+            ->orderBy('i.issued_date')->get()->map(fn ($r) => (array) $r)->all();
+    }
+
+    /**
+     * Đơn Đang xử lý còn nợ nhưng không có hóa đơn nào đang chờ, tạo từ $days ngày trước – SP cần lập hóa đơn kỳ tiếp.
+     */
+    public function staleUninvoiced(array $f, int $days): array
+    {
+        $before = now()->subDays($days);
+
+        return array_values(array_filter($this->debtOrders($f),
+            fn ($r) => (int) $r['invoices'] === 0 && (float) $r['uninvoiced'] > 0 && $r['created_at'] <= $before->toDateTimeString()));
+    }
+
+    /* ── Tỷ lệ thu theo tháng tạo đơn ─────────────────────────────────── */
+
+    /**
+     * Mỗi tháng tạo đơn (đơn tạo trong kỳ): doanh thu và % đã thu sau mỗi mốc ngày $horizons kể từ ngày tạo đơn.
+     * Mốc chỉ tính trên các đơn đã đủ tuổi (tạo cách hôm nay ít nhất N ngày); tháng chưa có đơn đủ tuổi → null.
+     *
+     * @return list<array{month: string, orders: int, revenue: float, rates: array<int, ?float>, now: ?float}>
+     */
+    public function collectionCohort(array $f, array $horizons): array
+    {
+        $paidWithin = fn (int $n) => "(SELECT COALESCE(SUM(x.payment_amount), 0) FROM Invoices x WHERE x.order_id = so.order_id
+            AND x.status = '".Invoice::STATUS_PAID."' AND x.payment_date <= DATE_ADD(so.created_at, INTERVAL $n DAY)) AS p$n";
+
+        $q = $this->ordersInPeriod($f)->select('so.order_id', 'so.total_amount', 'so.paid_amount')
+            ->selectRaw("DATE_FORMAT(so.created_at, '%Y-%m') AS m, DATEDIFF(NOW(), so.created_at) AS age");
+        foreach ($horizons as $n) {
+            $q->selectRaw($paidWithin((int) $n));
+        }
+
+        $months = [];
+        foreach ($q->get() as $r) {
+            $row = &$months[$r->m];
+            $row ??= ['month' => $r->m, 'orders' => 0, 'revenue' => 0.0, 'paid' => 0.0,
+                'base' => array_fill_keys($horizons, 0.0), 'got' => array_fill_keys($horizons, 0.0)];
+            $row['orders']++;
+            $row['revenue'] += (float) $r->total_amount;
+            $row['paid'] += (float) $r->paid_amount;
+            foreach ($horizons as $n) {
+                if ((int) $r->age >= $n) {
+                    $row['base'][$n] += (float) $r->total_amount;
+                    $row['got'][$n] += (float) $r->{'p'.$n};
+                }
+            }
+            unset($row);
+        }
+        ksort($months);
+
+        return array_map(fn ($m) => [
+            'month' => $m['month'], 'orders' => $m['orders'], 'revenue' => $m['revenue'],
+            'rates' => array_combine($horizons, array_map(fn ($n) => $m['base'][$n] > 0 ? self::pct($m['got'][$n], $m['base'][$n]) : null, $horizons)),
+            'now'   => self::pct($m['paid'], $m['revenue']),
+        ], array_values($months));
+    }
+
+    /* ── Theo nhân viên phụ trách ─────────────────────────────────────── */
+
+    /**
+     * Mỗi Salesperson có số liệu: doanh thu, thực thu, % đúng hạn (trong kỳ); công nợ, hóa đơn quá hạn (tại thời điểm xem).
+     *
+     * @return list<array{id: string, name: string, orders: int, revenue: float, collected: float, paid_invoices: int, on_time: ?float, debt: float, overdue_count: int, overdue_amount: float}>
+     */
+    public function collectionByEmployee(array $f, array $now): array
+    {
+        $rows = [];
+        $row = function (string $id, ?string $name) use (&$rows) {
+            $rows[$id] ??= ['id' => $id, 'name' => $name ?? $id, 'orders' => 0, 'revenue' => 0.0, 'collected' => 0.0, 'paid_invoices' => 0,
+                'on_time_count' => 0, 'debt' => 0.0, 'overdue_count' => 0, 'overdue_amount' => 0.0];
+        };
+
+        foreach ($this->byDimension($f, 'employee') as $r) {
+            $row((string) $r['id'], $r['name']);
+            $rows[$r['id']]['orders'] = $r['orders'];
+            $rows[$r['id']]['revenue'] = $r['revenue'];
+            $rows[$r['id']]['collected'] = $r['collected'];
+        }
+        foreach ($this->paymentsInPeriod($f)->selectRaw('op.employee_id AS id, MAX(e.full_name) AS name, COUNT(*) AS n, SUM(DATE(i.payment_date) <= i.due_date) AS on_time')
+            ->groupBy('op.employee_id')->get() as $r) {
+            $row((string) $r->id, $r->name);
+            $rows[$r->id]['paid_invoices'] = (int) $r->n;
+            $rows[$r->id]['on_time_count'] = (int) $r->on_time;
+        }
+        foreach ($this->debtOrders($now) as $r) {
+            $row((string) $r['employee_id'], $r['employee']);
+            $rows[$r['employee_id']]['debt'] += (float) $r['remaining_amount'];
+        }
+        foreach ($this->overdueInvoices($now) as $r) {
+            $row((string) $r['employee_id'], $r['employee']);
+            $rows[$r['employee_id']]['overdue_count']++;
+            $rows[$r['employee_id']]['overdue_amount'] += (float) $r['payment_amount'];
+        }
+
+        return array_values(array_map(fn ($r) => $r + ['on_time' => self::pct($r['on_time_count'], $r['paid_invoices'])], $rows));
     }
 
     /* ── Danh sách cho xuất Excel ─────────────────────────────────────── */
