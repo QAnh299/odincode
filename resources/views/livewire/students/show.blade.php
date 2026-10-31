@@ -255,7 +255,7 @@
                             <li>
                                 <a href="{{ route($this->routePrefix.'.students.show', $other) }}" class="vc-mono">{{ $other->student_id }}</a>
                                 <span class="st-sub st-sub--inline">{{ $other->conversion_date?->format('d/m/Y') }}</span>
-                                <span class="vc-badge st-tone--{{ $other->status }}">{{ __('students.status_name.'.$other->status) }}</span>
+                                <span class="vc-badge st-tone--{{ $other->status }}"><span class="vc-badge__dot"></span>{{ __('students.status_name.'.$other->status) }}</span>
                             </li>
                         @endforeach
                     </ul>

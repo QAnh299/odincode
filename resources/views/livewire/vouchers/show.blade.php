@@ -179,6 +179,7 @@
                                 </td>
                                 <td data-label="{{ __('vouchers.status') }}">
                                     <span class="vc-badge vc-q--{{ \Illuminate\Support\Str::lower($quotation->status) }}">
+                                        <span class="vc-badge__dot"></span>
                                         {{ $quotationStatus($quotation->status) }}
                                     </span>
                                 </td>

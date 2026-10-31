@@ -85,3 +85,22 @@ body {
 .dropdown-menu {
     overflow: hidden;
 }
+
+/* Nhãn trạng thái: chỉ chấm + chữ theo màu trạng thái, không nền / viền */
+.vc-badge.vc-badge,
+.iv-badge.iv-badge,
+.od-badge.od-badge,
+.qt-badge.qt-badge,
+.ed-status.ed-status,
+.cd-badge.cd-badge {
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+}
+
+.vc-badge__dot,
+.iv-badge__dot,
+.od-badge__dot,
+.qt-badge__dot {
+    box-shadow: none !important;
+}
