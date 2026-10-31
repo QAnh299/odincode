@@ -73,7 +73,7 @@ function buildConfig(spec) {
             hoverBackgroundColor: s.color,
             borderColor: "#fff",
             borderWidth: stacked ? { [horizontal ? "left" : "bottom"]: 2 } : 0,
-            borderRadius: stacked ? 0 : 4,
+            borderRadius: 0,
             borderSkipped: "start",
             maxBarThickness: 36,
             categoryPercentage: 0.7,
@@ -84,7 +84,7 @@ function buildConfig(spec) {
     const tooltip = {
         backgroundColor: "#111827",
         padding: 10,
-        cornerRadius: 8,
+        cornerRadius: 0,
         boxPadding: 4,
         usePointStyle: true,
         callbacks: {
@@ -189,7 +189,7 @@ function scatterConfig(spec) {
                 tooltip: {
                     backgroundColor: "#111827",
                     padding: 10,
-                    cornerRadius: 8,
+                    cornerRadius: 0,
                     boxPadding: 4,
                     usePointStyle: true,
                     callbacks: {
