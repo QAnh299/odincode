@@ -222,10 +222,6 @@ class Index extends Component
             ->with([
                 'opportunity:opportunity_id,lead_id,employee_id',
                 'opportunity.employee:employee_id,full_name',
-                // Khoá học = dòng của báo giá có đơn hàng đã đóng tiền (học viên từ lần thanh toán đầu tiên)
-                'opportunity.quotations' => fn ($q) => $q
-                    ->whereHas('order', fn ($o) => $o->where('paid_amount', '>', 0))
-                    ->with('details.course:course_id,course_name'),
             ])
             ->orderByDesc('conversion_date')
             ->orderByDesc('student_id')

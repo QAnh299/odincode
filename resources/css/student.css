@@ -64,17 +64,6 @@
     white-space: nowrap;
 }
 
-.st-course {
-    display: inline-block;
-    margin: 0.1rem 0.25rem 0.1rem 0;
-    padding: 0.15rem 0.55rem;
-    border-radius: 8px;
-    background: var(--vc-tint);
-    color: var(--vc-primary);
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
 /* ══ Chi tiết ════════════════════════════════════════════════════════ */
 
 .st-head {

@@ -146,7 +146,6 @@
                             <th>{{ __('students.code') }}</th>
                             <th>{{ __('students.student') }}</th>
                             <th>{{ __('students.phone') }}</th>
-                            <th>{{ __('students.course') }}</th>
                             <th>{{ __('students.conversion_date') }}</th>
                             @unless ($isSalesperson)
                                 <th>{{ __('students.owner') }}</th>
@@ -157,13 +156,7 @@
                     </thead>
                     <tbody>
                         @foreach ($students as $student)
-                            @php
-                                $url = route($this->routePrefix.'.students.show', $student);
-                                $courseNames = $student->opportunity?->quotations
-                                    ->flatMap(fn ($q) => $q->details)
-                                    ->map(fn ($d) => $d->course?->course_name)
-                                    ->filter()->unique()->values() ?? collect();
-                            @endphp
+                            @php $url = route($this->routePrefix.'.students.show', $student); @endphp
                             <tr wire:key="student-{{ $student->student_id }}" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('students.code') }}">
                                     <a href="{{ $url }}" class="vc-mono" onclick="event.stopPropagation()">{{ $student->student_id }}</a>
@@ -175,13 +168,6 @@
                                     @endif
                                 </td>
                                 <td data-label="{{ __('students.phone') }}" class="st-nowrap">{{ $student->phone }}</td>
-                                <td data-label="{{ __('students.course') }}">
-                                    @forelse ($courseNames as $name)
-                                        <span class="st-course">{{ $name }}</span>
-                                    @empty
-                                        <span class="st-sub">—</span>
-                                    @endforelse
-                                </td>
                                 <td data-label="{{ __('students.conversion_date') }}" class="st-nowrap">
                                     {{ $student->conversion_date?->format('d/m/Y') }}
                                 </td>
