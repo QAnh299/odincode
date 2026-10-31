@@ -21,7 +21,6 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('courses.title') }}</h1>
-            <p class="vc-head__sub">{{ __('courses.subtitle') }}</p>
         </div>
     </header>
 

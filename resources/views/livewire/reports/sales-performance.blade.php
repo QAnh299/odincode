@@ -85,7 +85,6 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ $sp('title') }} · {{ $monthText }}</h1>
-            <p class="vc-head__sub">{{ $sp('subtitle') }}</p>
         </div>
         <div class="rp-head__actions">
             <span class="vc-results__loading" wire:loading.delay wire:target.except="export">

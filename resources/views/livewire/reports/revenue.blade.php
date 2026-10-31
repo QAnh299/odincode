@@ -43,7 +43,7 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ $L('title') }}</h1>
-            <p class="vc-head__sub">{{ $L('subtitle') }} · <strong>{{ $this->scopeLabel() }}</strong></p>
+            <p class="vc-head__sub"><strong>{{ $this->scopeLabel() }}</strong></p>
         </div>
         <div class="rp-head__actions">
             <span class="vc-results__loading" wire:loading.delay wire:target.except="export">

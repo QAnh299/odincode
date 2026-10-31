@@ -23,7 +23,6 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('students.title') }}</h1>
-            <p class="vc-head__sub">{{ __('students.subtitle') }}</p>
         </div>
     </header>
 

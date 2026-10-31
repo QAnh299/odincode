@@ -11,15 +11,11 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('opportunities.title') }}</h1>
-            <p class="vc-head__sub">
-                @if ($this->isSalesperson())
-                    {{ __('opportunities.subtitle') }}
-                @elseif ($this->routePrefix === 'sale_leader')
+            @if ($this->routePrefix === 'sale_leader')
+                <p class="vc-head__sub">
                     {{ $this->activeTeam ? __('opportunities.subtitle_team', ['team' => $this->activeTeam->team_name]) : __('opportunities.subtitle_no_team') }}
-                @else
-                    {{ __('opportunities.subtitle_all') }}
-                @endif
-            </p>
+                </p>
+            @endif
         </div>
         <p class="ok-total">
             {!! __('opportunities.result_count', ['count' => '<strong>'.$total.'</strong>']) !!}

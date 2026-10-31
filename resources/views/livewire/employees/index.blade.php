@@ -30,18 +30,14 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('employees.title') }}</h1>
-            <p class="vc-head__sub">
-                @if ($this->routePrefix === Role::DIRECTOR)
-                    {{ __('employees.subtitle') }}
-                @elseif ($this->canFilterScope)
-                    <x-icon name="shield" />{{ __('employees.subtitle_sale_admin') }}
-                @else
+            @unless ($this->routePrefix === Role::DIRECTOR || $this->canFilterScope)
+                <p class="vc-head__sub">
                     <x-icon name="shield" />
                     {{ $this->ownTeam
                         ? __('employees.subtitle_team', ['team' => $this->ownTeam->team_name])
                         : __('employees.subtitle_no_team') }}
-                @endif
-            </p>
+                </p>
+            @endunless
         </div>
     </header>
 

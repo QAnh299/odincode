@@ -37,7 +37,6 @@
 
     {{-- ── Khối dính khi cuộn: thẻ trạng thái + tổng tiền + thanh công cụ + chip bộ lọc ── --}}
     <div class="iv-sticky">
-        <p class="iv-subtitle">{{ __('invoices.subtitle') }}</p>
 
         <div class="iv-overview">
             {{-- Thẻ trạng thái (bấm để lọc ngay, bấm lại bỏ lọc; số đếm theo mọi bộ lọc trừ trạng thái) --}}

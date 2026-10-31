@@ -22,13 +22,9 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ __('leads.title') }}</h1>
-            <p class="vc-head__sub">
-                @if ($this->fixedBranch)
-                    {{ __('leads.subtitle_branch', ['branch' => $this->fixedBranch->branch_name]) }}
-                @else
-                    {{ __('leads.subtitle') }}
-                @endif
-            </p>
+            @if ($this->fixedBranch)
+                <p class="vc-head__sub">{{ __('leads.subtitle_branch', ['branch' => $this->fixedBranch->branch_name]) }}</p>
+            @endif
         </div>
 
         @if ($this->canManage)

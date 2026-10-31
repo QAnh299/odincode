@@ -44,7 +44,6 @@
 
     {{-- ── Khối dính khi cuộn: thẻ trạng thái + tổng tiền + thanh công cụ + chip bộ lọc ── --}}
     <div class="od-sticky">
-        <p class="od-subtitle">{{ __('orders.subtitle') }}</p>
 
         {{-- Thẻ trạng thái (bấm để lọc ngay, bấm lại bỏ lọc; số đếm theo mọi bộ lọc trừ trạng thái) --}}
         <nav class="od-tabs" aria-label="{{ __('orders.status_label') }}">
