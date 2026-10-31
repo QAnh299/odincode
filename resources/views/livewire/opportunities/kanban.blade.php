@@ -10,7 +10,7 @@
     {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ __('opportunities.title') }}</h1>
+            <h1 class="visually-hidden">{{ __('opportunities.title') }}</h1>
             @if ($this->routePrefix === 'sale_leader')
                 <p class="vc-head__sub">
                     {{ $this->activeTeam ? __('opportunities.subtitle_team', ['team' => $this->activeTeam->team_name]) : __('opportunities.subtitle_no_team') }}
