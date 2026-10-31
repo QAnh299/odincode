@@ -33,11 +33,18 @@ use Livewire\Component;
  *
  * Gọn khi có nhiều cơ hội: việc cần xử lý lên đầu cột (biểu tượng góc thẻ, bộ lọc "Cần xử lý"),
  * mỗi cột hiện PAGE_SIZE thẻ rồi "Xem thêm", cột Lưu trữ mặc định thu gọn.
+ *
+ * Hai kiểu xem trên cùng dữ liệu: Kanban hoặc danh sách; tìm theo khách hàng, SĐT, email, mã cơ hội.
  */
 #[Layout('layouts.app')]
 class Kanban extends Component
 {
     const PRESETS = ['today', 'yesterday', 'last7', 'month'];
+
+    const VIEWS = ['kanban', 'list'];
+
+    // default = việc gấp lên đầu; newest = ngày chuyển đổi mới nhất; value = giá trị dự kiến cao nhất
+    const SORTS = ['default', 'newest', 'value'];
 
     // Số thẻ hiện mỗi lần trong một cột; "Xem thêm" tải thêm chừng ấy
     const PAGE_SIZE = 20;
@@ -53,6 +60,20 @@ class Kanban extends Component
         'recontact'           => 3, // không liên lạc được, đã tới lúc liên hệ lại
         'not_contacted'       => 4, // Data chưa tương tác, chưa liên hệ lần nào
     ];
+
+    // Kiểu xem, sắp xếp - có thể bị sửa từ URL nên luôn đọc qua activeView(), activeSort()
+    #[Url(except: 'kanban')]
+    public string $view = 'kanban';
+
+    #[Url(except: 'default')]
+    public string $sort = 'default';
+
+    #[Url(except: '')]
+    public string $search = '';
+
+    // Lọc theo Stage ngay trên cột Giai đoạn (chỉ dạng danh sách) - '' = Tất cả; không đặt tên $stage vì trùng biến trong view
+    #[Url(as: 'stage', except: '')]
+    public string $stageFilter = '';
 
     // Chỉ hiện cơ hội cần xử lý
     #[Url(except: false)]
@@ -95,20 +116,47 @@ class Kanban extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('from', 'to', 'team', 'employee', 'urgent', 'shown');
+        $this->reset('from', 'to', 'team', 'employee', 'urgent', 'search', 'stageFilter', 'shown');
     }
 
     public function hasFilters(): bool
     {
-        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent;
+        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent || $this->search !== '' || $this->stageFilter !== '';
     }
 
     // Đổi bộ lọc thì mỗi cột hiện lại từ đầu
     public function updated(string $property): void
     {
-        if (in_array($property, ['from', 'to', 'team', 'employee'], true)) {
+        if (in_array($property, ['from', 'to', 'team', 'employee', 'search', 'stageFilter'], true)) {
             $this->shown = [];
         }
+    }
+
+    public function setView(string $view): void
+    {
+        $this->view = in_array($view, self::VIEWS, true) ? $view : 'kanban';
+        $this->shown = [];
+
+        // Kanban đã chia sẵn theo Stage nên không giữ bộ lọc này
+        if ($this->activeView() === 'kanban') {
+            $this->stageFilter = '';
+        }
+    }
+
+    public function setSort(string $sort): void
+    {
+        $this->sort = in_array($sort, self::SORTS, true) ? $sort : 'default';
+        $this->shown = [];
+    }
+
+    public function activeView(): string
+    {
+        return in_array($this->view, self::VIEWS, true) ? $this->view : 'kanban';
+    }
+
+    public function activeSort(): string
+    {
+        return in_array($this->sort, self::SORTS, true) ? $this->sort : 'default';
     }
 
     public function toggleUrgent(): void
@@ -203,7 +251,7 @@ class Kanban extends Component
      */
     public function activePreset(): ?string
     {
-        if (! $this->hasFilters()) {
+        if ($this->from === '' && $this->to === '') {
             return '';
         }
 
@@ -258,6 +306,9 @@ class Kanban extends Component
                 fn ($q) => $q->where('employee_id', $this->employee))
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
+            ->when(trim($this->search) !== '', fn ($q) => $this->applySearch($q))
+            ->when($this->activeView() === 'list' && $this->stages->contains('stage_id', $this->stageFilter),
+                fn ($q) => $q->where('stage_id', $this->stageFilter))
             ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
 
             // Việc cần xử lý: số báo giá, lịch hẹn đã qua giờ chưa cập nhật, số lần liên hệ
@@ -279,16 +330,39 @@ class Kanban extends Component
             $opportunities = $opportunities->whereNotNull('urgency')->values();
         }
 
-        // Trong mỗi cột: việc gấp lên đầu (cùng mức thì sắp hạn gần hơn trước), còn lại giữ thứ tự ngày chuyển đổi
-        $columns = $opportunities->groupBy('stage_id')->map(fn (Collection $cards) => $cards
-            ->sortBy(fn (Opportunity $opp) => [self::URGENCY[$opp->urgency] ?? 99, $opp->urgency_days ?? 0])
-            ->values());
+        // Mặc định: việc gấp lên đầu (cùng mức thì sắp hạn gần hơn trước), còn lại giữ thứ tự ngày chuyển đổi
+        $opportunities = match ($this->activeSort()) {
+            'newest' => $opportunities,
+            'value'  => $opportunities->sortByDesc(fn (Opportunity $opp) => (float) $opp->expected_value)->values(),
+            default  => $opportunities
+                ->sortBy(fn (Opportunity $opp) => [self::URGENCY[$opp->urgency] ?? 99, $opp->urgency_days ?? 0])
+                ->values(),
+        };
+
+        $columns = $opportunities->groupBy('stage_id');
 
         return view('livewire.opportunities.kanban', [
-            'columns'     => $columns,
-            'total'       => $opportunities->count(),
-            'urgentCount' => $urgentCount,
+            'columns'       => $columns,
+            'opportunities' => $opportunities,
+            'total'         => $opportunities->count(),
+            'totalValue'    => $opportunities->sum('expected_value'),
+            'urgentCount'   => $urgentCount,
         ])->title(__('opportunities.title'));
+    }
+
+    /**
+     * Tìm theo tên, SĐT, email khách hoặc mã cơ hội.
+     */
+    protected function applySearch($query): void
+    {
+        $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
+
+        $query->where(fn ($q) => $q
+            ->where('opportunity_id', 'like', $like)
+            ->orWhereHas('lead', fn ($l) => $l
+                ->where('full_name', 'like', $like)
+                ->orWhere('phone', 'like', $like)
+                ->orWhere('email', 'like', $like)));
     }
 
     /**

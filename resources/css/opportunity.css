@@ -23,6 +23,8 @@
     flex-wrap: wrap;
     gap: 0.85rem;
     align-items: flex-end;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--vc-border);
 }
 
 .ok-filter > label.vc-field:not(.ok-filter__select) {
@@ -65,13 +67,125 @@
     color: var(--vc-on-primary);
 }
 
+/* Chỉ hiện với Sale Leader: đội đang xem */
+.ok-subtitle {
+    margin: 0 0 0.75rem;
+}
+
+/* ── Thanh công cụ: bên trái kiểu xem, sắp xếp, tổng số; bên phải tìm kiếm + 2 nút icon ── */
+
+.ok-toolbar {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ok-toolbar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+}
+
+.ok-toolbar__info {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.ok-toolbar__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.75rem;
+}
+
+.ok-toolbar__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ok .ok-search {
+    width: 420px;
+    min-height: 42px;
+    margin-bottom: 0;
+}
+
+.ok-tool-btn {
+    position: relative;
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1.5px solid var(--vc-border);
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.ok-tool-btn:hover,
+.ok-tool-btn[aria-expanded="true"],
+.ok-tool-btn.is-active {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+/* Chấm đỏ ở góc nút: số việc cần xử lý */
+.ok-tool-btn__dot {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: #dc2626;
+    box-shadow: 0 0 0 2px var(--vc-surface);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.ok-sort {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.6rem;
+    color: var(--vc-muted);
+}
+
+.ok-sort__btn {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--vc-ink);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ok-sort__btn:hover {
+    color: var(--vc-primary);
+}
+
+.ok-sort__btn.is-active {
+    color: var(--vc-primary);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 /* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
 
 /* Các cột chia đều chiều ngang (tối thiểu 280px, thiếu chỗ thì cuộn ngang); cột Lưu trữ thu gọn là dải hẹp */
 .ok-board {
     display: flex;
     align-items: stretch;
-    gap: 1rem;
+    gap: 0.85rem;
     padding-bottom: 0.75rem;
     overflow-x: auto;
     transition: opacity 0.15s;
@@ -82,26 +196,25 @@
     pointer-events: none;
 }
 
-/* Mỗi stage một màu nhạt (theo sort_order): viền cột, vạch đầu cột, viền trái thẻ */
-.ok-col--1 { --stage: #64748b; } /* Data chưa tương tác */
-.ok-col--2 { --stage: #0ea5e9; } /* Data đã có lịch hẹn */
-.ok-col--3 { --stage: #f59e0b; } /* Data đã xử lý */
-.ok-col--4 { --stage: #22c55e; } /* Chốt */
-.ok-col--5 { --stage: #a8a29e; } /* Lưu trữ */
+/* Mỗi stage một màu đậm đủ cho chữ trắng (theo sort_order) */
+.ok-col--1 { --stage: #475569; } /* Data chưa tương tác */
+.ok-col--2 { --stage: #0369a1; } /* Data đã có lịch hẹn */
+.ok-col--3 { --stage: #b45309; } /* Data đã xử lý */
+.ok-col--4 { --stage: #15803d; } /* Chốt */
+.ok-col--5 { --stage: #78716c; } /* Lưu trữ */
 
 .ok-col {
     display: flex;
     flex: 1 1 0;
     flex-direction: column;
     min-width: 280px;
-    border: 1.5px solid color-mix(in srgb, var(--stage, #94a3b8) 28%, #fff);
-    border-top: 4px solid color-mix(in srgb, var(--stage, #94a3b8) 55%, #fff);
-    border-radius: var(--vc-radius);
-    background: color-mix(in srgb, var(--stage, #94a3b8) 5%, #f8faf8);
+    background: color-mix(in srgb, var(--stage, #94a3b8) 6%, #fff);
 }
 
 .ok-col__head {
-    padding: 0.9rem 1rem 0.75rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--stage, #94a3b8);
+    color: #fff;
 }
 
 .ok-col__title {
@@ -109,12 +222,21 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+    min-height: 22px;
 }
 
 .ok-col__title h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ok-col__sum {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .ok-col__count {
@@ -123,37 +245,27 @@
     min-width: 26px;
     height: 22px;
     padding: 0 0.45rem;
-    border-radius: 999px;
     background: var(--vc-surface);
-    color: var(--vc-muted);
+    color: var(--stage, var(--vc-muted));
     font-size: 0.78rem;
     font-weight: 700;
-}
-
-.ok-col__sum {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--vc-primary);
 }
 
 .ok-col__body {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.5rem;
     min-height: 120px;
-    padding: 0 0.75rem 0.85rem;
+    padding: 0.6rem;
 }
 
-/* Nút "Xem thêm" cuối cột / "Xem N cơ hội" khi cột Lưu trữ thu gọn */
+/* Nút "Xem thêm" cuối cột / cuối danh sách */
 .ok-col__more {
     width: 100%;
     margin-top: auto; /* đẩy xuống đáy cột để các cột thẳng hàng */
     padding: 0.6rem;
     border: 1.5px dashed var(--vc-border);
-    border-radius: 12px;
     background: transparent;
     color: var(--vc-primary);
     font-size: 0.85rem;
@@ -172,12 +284,8 @@
     padding: 0.15rem;
     border: 0;
     background: transparent;
-    color: var(--vc-muted);
+    color: #fff;
     cursor: pointer;
-}
-
-.ok-col__toggle:hover {
-    color: var(--vc-primary);
 }
 
 .vc .ok-col__toggle .odin-icon {
@@ -199,13 +307,13 @@
     gap: 0.75rem;
     padding: 0.9rem 0;
     border: 0;
-    background: transparent;
-    color: var(--vc-ink);
+    background: var(--stage, #94a3b8);
+    color: #fff;
     cursor: pointer;
 }
 
 .ok-col__rail:hover {
-    color: var(--vc-primary);
+    background: color-mix(in srgb, var(--stage, #94a3b8) 88%, #000);
 }
 
 /* Mũi tên (←) mở rộng sang trái */
@@ -223,18 +331,10 @@
     writing-mode: vertical-rl;
 }
 
-/* Bộ lọc "Cần xử lý" */
-.ok-preset--urgent {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
 .ok-col__empty {
     margin: 0;
     padding: 1.5rem 0.5rem;
     border: 1.5px dashed var(--vc-border);
-    border-radius: 12px;
     color: var(--vc-muted);
     font-size: 0.85rem;
     text-align: center;
@@ -244,15 +344,13 @@
 
 .ok-card {
     display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--vc-border);
+    background: var(--vc-surface);
     color: inherit;
     text-decoration: none;
-    flex-direction: column;
-    gap: 0.45rem;
-    padding: 0.85rem 0.95rem;
-    border: 1px solid var(--vc-border);
-    border-left: 3px solid color-mix(in srgb, var(--stage, #94a3b8) 45%, #fff);
-    border-radius: 14px;
-    background: var(--vc-surface);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     transition: box-shadow 0.15s, border-color 0.15s;
 }
@@ -261,11 +359,34 @@
 .ok-card:focus-visible {
     outline: none;
     color: inherit;
-    border-color: color-mix(in srgb, var(--stage, #94a3b8) 45%, #fff);
+    border-color: var(--stage, #94a3b8);
     box-shadow: var(--vc-shadow);
 }
 
+.ok-card__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+/* Tên class có "avatar" nên giữ được hình tròn (xem quy tắc vuông góc trong app.css) */
+.ok-card__avatar {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--stage, var(--vc-primary)) 14%, #fff);
+    color: var(--stage, var(--vc-primary));
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 .ok-card__name {
+    min-width: 0;
+    font-size: 0.92rem;
     font-weight: 700;
     overflow-wrap: anywhere;
 }
@@ -274,22 +395,20 @@
 .ok-status--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
 .ok-status--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-.ok-card .ok-status {
-    align-self: flex-start;
-}
-
-/* Stage Chốt chưa có báo giá: thẻ nổi bật để salesperson lập báo giá */
 /* Thẻ cần xử lý: giữ nền và viền như thẻ thường, chỉ thêm biểu tượng nhỏ ở góc phải trên */
 .ok-card--attention {
     position: relative;
-    padding-right: 2.2rem;
+}
+
+.ok-card--attention .ok-card__head {
+    padding-right: 1.5rem;
 }
 
 /* Biểu tượng góc phải trên của thẻ, rê chuột hiện việc cần xử lý */
 .ok-card__alert {
     position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
+    top: 0.7rem;
+    right: 0.65rem;
     display: inline-flex;
     color: #d97706;
 }
@@ -299,33 +418,37 @@
     height: 18px;
 }
 
-.ok-card__value {
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: var(--vc-primary);
-}
-
-.ok-card__meta {
-    display: grid;
-    gap: 0.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    color: var(--vc-muted);
-    font-size: 0.82rem;
-}
-
-.ok-card__meta li {
+/* Hai đầu mỗi dòng: SĐT - thời gian, giá trị - người phụ trách */
+.ok-card__row {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    justify-content: space-between;
+    gap: 0.5rem;
     min-width: 0;
+    font-size: 0.8rem;
 }
 
-.vc .ok-card__meta .odin-icon,
-.vc .ok-card__date .odin-icon {
-    width: 14px;
-    height: 14px;
+.ok-card__info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.vc .ok-card__info .odin-icon {
+    width: 13px;
+    height: 13px;
+    color: var(--vc-muted);
+}
+
+.ok-card__date,
+.ok-card__owner {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--vc-muted);
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ok-card__foot {
@@ -333,36 +456,129 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding-top: 0.45rem;
-    border-top: 1px solid var(--vc-border);
+    margin-top: 0.1rem;
 }
 
 .ok-card__foot .vc-mono {
+    flex-shrink: 0;
+    color: var(--vc-muted);
+    font-size: 0.72rem;
+}
+
+.ok-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.45rem;
+    align-items: center;
+    min-width: 0;
+}
+
+.ok-tag {
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--vc-border);
+    color: var(--vc-ink);
+    font-size: 0.74rem;
+    font-weight: 500;
+}
+
+/* ── Xem dưới dạng danh sách ───────────────────────────────────────── */
+
+.ok-list__customer {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ok-list__customer .ok-card__avatar {
+    --stage: var(--vc-primary);
+}
+
+.ok-list__name {
+    display: block;
+    color: var(--vc-ink);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ok-list__code {
     font-size: 0.75rem;
 }
 
-/* Người phụ trách (Sale Leader, Giám đốc) */
-.ok-card__owner {
+.ok-stage {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    background: var(--stage, #94a3b8);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ok-list .ok-status {
+    display: flex;
+    margin-top: 0.25rem;
+}
+
+.ok-list__todo {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: var(--vc-ink);
+    color: #b45309;
     font-size: 0.82rem;
-    font-weight: 600;
 }
 
-.vc .ok-card__owner .odin-icon {
-    width: 14px;
-    height: 14px;
-    color: var(--vc-muted);
+.ok-list .ok-col__more {
+    margin-top: 0.85rem;
 }
 
-.ok-card__date {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: var(--vc-muted);
-    font-size: 0.78rem;
+.ok-list__empty {
+    margin-top: 0.85rem;
+}
+
+/* Bộ lọc Stage nằm trong tiêu đề cột Giai đoạn, trông như chữ tiêu đề */
+.ok-th-select {
+    max-width: 190px;
+    padding: 0.1rem 0.1rem 0.1rem 0;
+    border: 0;
+    outline-offset: 2px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.ok-th-select:hover {
+    color: var(--vc-primary);
+}
+
+.ok-th-select.is-active {
+    color: var(--vc-primary);
+    font-weight: 700;
+}
+
+/* Tên giai đoạn trong danh sách xổ xuống giữ nguyên chữ thường */
+.ok-th-select option {
+    color: var(--vc-ink);
+    font-weight: 500;
+    text-transform: none;
+}
+
+/* Màn nhỏ: bảng thành thẻ, bỏ dòng tiêu đề nhưng vẫn giữ bộ lọc Giai đoạn */
+@media (max-width: 991.98px) {
+    .ok-list .vc-table thead,
+    .ok-list .vc-table thead tr {
+        display: block;
+    }
+
+    .ok-list .vc-table th:not(.ok-th-filter) {
+        display: none;
+    }
+
+    .ok-list .vc-table th.ok-th-filter {
+        display: block;
+    }
 }
 
 @media (max-width: 991.98px) {
@@ -378,6 +594,16 @@
 }
 
 @media (max-width: 575.98px) {
+    .ok-toolbar__tools {
+        width: 100%;
+    }
+
+    .ok .ok-search {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+
     .ok-col:not(.is-collapsed) {
         flex-basis: 85%;
         min-width: 85%;

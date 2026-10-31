@@ -59,6 +59,25 @@ return [
         'Archived'   => 'Archived',
     ],
     'result_count'       => ':count opportunity(ies)',
+    'column_count'       => ':count opportunity(ies)',
+    'view_by'            => 'View as',
+    'view_kanban'        => 'Kanban',
+    'view_list'          => 'List',
+    'search_placeholder' => 'Search customer, phone, opportunity code...',
+    'filters'            => 'Filters',
+    'sort_by'            => 'Sort by',
+    'sort' => [
+        'default' => 'Default',
+        'newest'  => 'Newest',
+        'value'   => 'Highest value',
+    ],
+    'list' => [
+        'stage_all' => 'Stage: All',
+        'customer' => 'Customer',
+        'phone'    => 'Phone',
+        'source'   => 'Source',
+        'todo'     => 'To do',
+    ],
 
     // Conversion date filter
     'filter_title'       => 'Filter by conversion date',

@@ -59,6 +59,25 @@ return [
         'Archived'   => 'Lưu trữ',
     ],
     'result_count'       => ':count Opportunity',
+    'column_count'       => ':count cơ hội',
+    'view_by'            => 'Xem dưới dạng',
+    'view_kanban'        => 'Kanban',
+    'view_list'          => 'Danh sách',
+    'search_placeholder' => 'Tìm khách hàng, SĐT, mã cơ hội...',
+    'filters'            => 'Bộ lọc',
+    'sort_by'            => 'Sắp xếp theo',
+    'sort' => [
+        'default' => 'Mặc định',
+        'newest'  => 'Mới nhất',
+        'value'   => 'Giá trị cao nhất',
+    ],
+    'list' => [
+        'stage_all' => 'Giai đoạn: Tất cả',
+        'customer' => 'Khách hàng',
+        'phone'    => 'Số điện thoại',
+        'source'   => 'Nguồn',
+        'todo'     => 'Việc cần xử lý',
+    ],
 
     // Bộ lọc ngày chuyển đổi
     'filter_title'       => 'Lọc theo ngày chuyển đổi',
