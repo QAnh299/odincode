@@ -57,7 +57,7 @@
     {{-- ── Điều hướng: mở từ cơ hội thì quay lại cơ hội, ngược lại về danh sách báo giá ── --}}
     @php $backToOpportunity = $fromOpportunity && $opportunityUrl; @endphp
     <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $backToOpportunity ? $opportunityUrl : $listUrl }}" class="qt-crumb__back">
+        <a href="{{ $backToOpportunity ? $opportunityUrl : $listUrl }}" class="odin-back">
             <x-icon name="arrow-left" />{{ $backToOpportunity ? __('quotations.detail.back_opportunity', ['code' => $opportunity->opportunity_id]) : __('quotations.detail.back') }}
         </a>
         <span class="qt-crumb__path">

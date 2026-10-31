@@ -19,12 +19,7 @@
         @vite(['resources/css/voucher.css', 'resources/css/student.css'])
     @endassets
 
-    {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
-    <header class="vc-head">
-        <div>
-            <h1 class="vc-head__title">{{ __('students.title') }}</h1>
-        </div>
-    </header>
+    <h1 class="visually-hidden">{{ __('students.title') }}</h1>
 
     {{-- ── Thống kê theo trạng thái (bấm để lọc) ───────────────────── --}}
     <div class="vc-summary st-summary">

@@ -61,7 +61,7 @@ body {
    - popup, menu thả xuống, thông báo: bo góc nhẹ (khối ngay bên dưới) */
 *:not(.spinner-border, .spinner-grow, input[type="radio"], .auth-blobs span, .dot, [class*="__dot"], [class*="__thumb"], [class*="avatar"],
     .modal-content, .ld-modal__dialog, .dropdown-menu, .alert, .toast,
-    .ld-notice, .qt-notice, .od-notice, .pw-alert, .auth-alert, .pf-toast) {
+    .ld-notice, .qt-notice, .od-notice, .pw-alert, .auth-alert, .pf-toast, .odin-back) {
     border-radius: 0 !important;
 }
 
@@ -77,6 +77,56 @@ body {
 .auth-alert,
 .pf-toast {
     border-radius: 10px !important;
+}
+
+/* Nút Quay lại ở đầu trang chi tiết: dùng chung mọi trang */
+.odin-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem 0.4rem 0.65rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px !important;
+    background: var(--bs-body-bg);
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.odin-back svg {
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+    transition: transform 0.15s;
+}
+
+.odin-back:hover {
+    border-color: var(--odin-primary);
+    background: color-mix(in srgb, var(--odin-primary) 6%, var(--bs-body-bg));
+    color: var(--odin-primary);
+}
+
+.odin-back:hover svg {
+    transform: translateX(-2px);
+}
+
+.odin-back:focus-visible {
+    outline: 2px solid var(--odin-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .odin-back,
+    .odin-back svg {
+        transition: none;
+    }
+
+    .odin-back:hover svg {
+        transform: none;
+    }
 }
 
 /* Nội dung vuông bên trong không chườm ra ngoài góc bo */

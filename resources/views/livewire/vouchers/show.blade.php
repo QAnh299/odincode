@@ -33,7 +33,7 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ route($this->routePrefix.'.vouchers') }}" class="vc-crumb__back">
+        <a href="{{ route($this->routePrefix.'.vouchers') }}" class="odin-back">
             <x-icon name="arrow-left" />{{ __('vouchers.back') }}
         </a>
         <span class="vc-crumb__path">

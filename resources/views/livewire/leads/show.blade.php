@@ -11,7 +11,7 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="vc-crumb__back"><x-icon name="arrow-left" />{{ __('leads.back') }}</a>
+        <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('leads.back') }}</a>
         <span class="vc-crumb__path">
             <a href="{{ $listUrl }}">{{ __('leads.title') }}</a>
             <x-icon name="chevron" />

@@ -60,11 +60,7 @@
 }
 
 .cd-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
     margin-bottom: 0.9rem;
-    border-radius: 10px;
 }
 
 .cd-head__title {
@@ -305,6 +301,36 @@
 .cd-note .odin-icon {
     width: 14px;
     height: 14px;
+}
+
+/* Card đủ rộng: mô tả bên trái, thông tin bên phải; hai cột cao bằng nhau, 3 ô chia đều chiều cao */
+.cd-area-content {
+    container-type: inline-size;
+}
+
+@container (min-width: 560px) {
+    .cd-overview {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 210px;
+        gap: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .cd-overview .cd-desc,
+    .cd-overview .cd-facts {
+        margin-bottom: 0;
+    }
+
+    .cd-overview .cd-facts {
+        grid-template-columns: minmax(0, 1fr);
+        grid-auto-rows: 1fr;
+    }
+
+    .cd-overview .cd-fact {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
 }
 
 /* ── Thống kê: 4 ô 2×2 ─────────────────────────────────────────────── */

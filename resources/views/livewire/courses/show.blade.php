@@ -46,7 +46,7 @@
 
     {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
     <header class="cd-head">
-        <a href="{{ $listUrl }}" class="btn btn-sm btn-outline-secondary cd-back">
+        <a href="{{ $listUrl }}" class="odin-back cd-back">
             <x-icon name="arrow-left" />{{ __('courses.back_to_list') }}
         </a>
 
@@ -121,32 +121,36 @@
             <div class="card-body">
                 <h2 class="cd-card__title">{{ __('courses.content') }}</h2>
 
-                <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
-                @if (filled($course->description))
-                    {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
-                    <div class="cd-desc">
-                        @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
-                            <p>{{ $paragraph }}</p>
-                        @endforeach
+                <div class="cd-overview">
+                    <div class="cd-overview__main">
+                        <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
+                        @if (filled($course->description))
+                            {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
+                            <div class="cd-desc">
+                                @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
+                                    <p>{{ $paragraph }}</p>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="cd-desc text-body-secondary fst-italic">{{ __('courses.no_description') }}</p>
+                        @endif
                     </div>
-                @else
-                    <p class="cd-desc text-body-secondary fst-italic">{{ __('courses.no_description') }}</p>
-                @endif
 
-                <dl class="cd-facts">
-                    <div class="cd-fact">
-                        <dt><x-icon name="clock" />{{ __('courses.duration') }}</dt>
-                        <dd>{{ $course->duration ?: '—' }}</dd>
-                    </div>
-                    <div class="cd-fact">
-                        <dt><x-icon name="wallet" />{{ __('courses.price') }}</dt>
-                        <dd>{{ $course->displayPrice() }}</dd>
-                    </div>
-                    <div class="cd-fact">
-                        <dt><x-icon name="percent" />{{ __('courses.vat') }}</dt>
-                        <dd>{{ $course->displayVat() }}</dd>
-                    </div>
-                </dl>
+                    <dl class="cd-facts">
+                        <div class="cd-fact">
+                            <dt><x-icon name="clock" />{{ __('courses.duration') }}</dt>
+                            <dd>{{ $course->duration ?: '—' }}</dd>
+                        </div>
+                        <div class="cd-fact">
+                            <dt><x-icon name="wallet" />{{ __('courses.price') }}</dt>
+                            <dd>{{ $course->displayPrice() }}</dd>
+                        </div>
+                        <div class="cd-fact">
+                            <dt><x-icon name="percent" />{{ __('courses.vat') }}</dt>
+                            <dd>{{ $course->displayVat() }}</dd>
+                        </div>
+                    </dl>
+                </div>
 
                 <p class="cd-note mb-0">
                     <x-icon name="calendar" />

@@ -48,7 +48,7 @@
 
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ $L('title') }}</h1>
+            <h1 class="visually-hidden">{{ $L('title') }}</h1>
             <p class="vc-head__sub"><strong>{{ $this->scopeLabel() }}</strong></p>
         </div>
         <div class="rp-head__actions">

@@ -20,7 +20,7 @@
     @endassets
 
     <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $backUrl }}" class="qt-crumb__back">
+        <a href="{{ $backUrl }}" class="odin-back">
             <x-icon name="arrow-left" />{{ $isEdit ? __('invoices.form.back_invoice') : __('invoices.form.back_quotation') }}
         </a>
         <span class="qt-crumb__path">

@@ -21,7 +21,7 @@
     {{-- ── Tiêu đề + nút thao tác ───────────────────────────────────── --}}
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ __('leads.title') }}</h1>
+            <h1 class="visually-hidden">{{ __('leads.title') }}</h1>
             @if ($this->fixedBranch)
                 <p class="vc-head__sub">{{ __('leads.subtitle_branch', ['branch' => $this->fixedBranch->branch_name]) }}</p>
             @endif

@@ -29,7 +29,7 @@
     @endassets
 
     <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="qt-crumb__back"><x-icon name="arrow-left" />{{ __('invoices.detail.back') }}</a>
+        <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('invoices.detail.back') }}</a>
         <span class="qt-crumb__path">
             <a href="{{ $listUrl }}">{{ __('invoices.title') }}</a>
             <x-icon name="chevron" />

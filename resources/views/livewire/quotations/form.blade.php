@@ -17,7 +17,7 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $backUrl }}" class="qt-crumb__back">
+        <a href="{{ $backUrl }}" class="odin-back">
             <x-icon name="arrow-left" />{{ $isEdit ? __('quotations.form.back_quotation') : __('quotations.form.back_opportunity') }}
         </a>
         <span class="qt-crumb__path">

@@ -15,7 +15,7 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ route($this->routePrefix.'.opportunities') }}" class="vc-crumb__back">
+        <a href="{{ route($this->routePrefix.'.opportunities') }}" class="odin-back">
             <x-icon name="arrow-left" />{{ __('opportunities.back') }}
         </a>
         <span class="vc-crumb__path">

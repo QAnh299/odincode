@@ -29,7 +29,7 @@
     {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ __('employees.title') }}</h1>
+            <h1 class="visually-hidden">{{ __('employees.title') }}</h1>
             @unless ($this->routePrefix === Role::DIRECTOR || $this->canFilterScope)
                 <p class="vc-head__sub">
                     <x-icon name="shield" />

@@ -37,7 +37,7 @@
     @endassets
 
     @unless ($forced)
-        <a href="{{ route('profile') }}" class="pw-back">{!! $icon('arrow') !!}{{ __('change_password.back') }}</a>
+        <a href="{{ route('profile') }}" class="odin-back pw-back">{!! $icon('arrow') !!}{{ __('change_password.back') }}</a>
     @endunless
 
     <div class="pw-grid">

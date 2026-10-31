@@ -49,13 +49,6 @@
     margin-bottom: 1.25rem;
 }
 
-.vc-head__title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-}
-
 .vc-head__sub {
     margin: 0.2rem 0 0;
     color: var(--vc-muted);
@@ -618,25 +611,6 @@ select.vc-control {
     gap: 0.75rem 1rem;
     margin-bottom: 1.1rem;
     font-size: 0.88rem;
-}
-
-.vc-crumb__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.85rem;
-    border: 1.5px solid var(--vc-border);
-    border-radius: 10px;
-    background: var(--vc-surface);
-    color: var(--vc-ink);
-    font-weight: 600;
-    text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
-}
-
-.vc-crumb__back:hover {
-    border-color: var(--vc-primary);
-    color: var(--vc-primary);
 }
 
 .vc-crumb__path {

@@ -24,7 +24,7 @@
     {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ __('employees.teams.title') }}</h1>
+            <h1 class="visually-hidden">{{ __('employees.teams.title') }}</h1>
         </div>
 
         {{-- Tạo đội: chỉ Sale Admin --}}

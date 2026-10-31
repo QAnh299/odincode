@@ -985,25 +985,6 @@ select.qt-control {
     font-size: 0.88rem;
 }
 
-.qt-crumb__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.85rem;
-    border: 1.5px solid var(--qt-border);
-    border-radius: 10px;
-    background: var(--qt-surface);
-    color: var(--qt-ink);
-    font-weight: 600;
-    text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
-}
-
-.qt-crumb__back:hover {
-    border-color: var(--qt-primary);
-    color: var(--qt-primary);
-}
-
 .qt-crumb__path {
     display: inline-flex;
     align-items: center;

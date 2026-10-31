@@ -30,22 +30,7 @@
 /* ── Quay lại ─────────────────────────────────────────────────────── */
 
 .ed-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
     margin-bottom: 1rem;
-    padding: 0.35rem 0.75rem 0.35rem 0.55rem;
-    border-radius: 999px;
-    color: var(--ed-muted);
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: background-color 0.15s, color 0.15s;
-}
-
-.ed-back:hover {
-    background: var(--ed-tint);
-    color: var(--ed-primary);
 }
 
 /* ── Thẻ hồ sơ ────────────────────────────────────────────────────── */

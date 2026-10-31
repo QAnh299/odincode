@@ -46,7 +46,7 @@
 
     <header class="vc-head">
         <div>
-            <h1 class="vc-head__title">{{ $ls('title') }}</h1>
+            <h1 class="visually-hidden">{{ $ls('title') }}</h1>
         </div>
         <div class="rp-head__actions">
             <span class="vc-results__loading" wire:loading.delay wire:target.except="export">

@@ -44,7 +44,7 @@
         @vite('resources/css/employee-detail.css')
     @endassets
 
-    <a href="{{ $listUrl }}" class="ed-back">
+    <a href="{{ $listUrl }}" class="odin-back ed-back">
         <x-icon name="arrow-left" />{{ __('employees.back_to_list') }}
     </a>
 

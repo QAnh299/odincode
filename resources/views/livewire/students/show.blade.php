@@ -19,7 +19,7 @@
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="vc-crumb__back"><x-icon name="arrow-left" />{{ __('students.back') }}</a>
+        <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('students.back') }}</a>
         <span class="vc-crumb__path">
             <a href="{{ $listUrl }}">{{ __('students.title') }}</a>
             <x-icon name="chevron" />
