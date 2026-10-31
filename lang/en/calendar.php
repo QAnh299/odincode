@@ -12,6 +12,9 @@ return [
     'next'          => 'Next month',
     'close'         => 'Close list',
     'open'          => 'Open',
+    'previous_page' => 'Previous page',
+    'next_page'     => 'Next page',
+    'page'          => 'Page :page/:pages',
     'overdue'       => 'Overdue',
     'empty'         => 'No activities on this day.',
 

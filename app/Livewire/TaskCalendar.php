@@ -16,11 +16,17 @@ use Livewire\Component;
  */
 class TaskCalendar extends Component
 {
+    // Số việc mỗi trang của danh sách ngày (vừa chiều cao lưới tháng)
+    const DAY_PAGE_SIZE = 3;
+
     #[Locked]
     public string $month = '';
 
     #[Locked]
     public string $day = '';
+
+    #[Locked]
+    public int $dayPage = 1;
 
     public function mount(): void
     {
@@ -42,12 +48,24 @@ class TaskCalendar extends Component
     {
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) && str_starts_with($day, $this->month.'-')) {
             $this->day = $day;
+            $this->dayPage = 1;
         }
     }
 
     public function closeDay(): void
     {
         $this->day = '';
+        $this->dayPage = 1;
+    }
+
+    public function previousDayPage(): void
+    {
+        $this->dayPage = max(1, $this->dayPage - 1);
+    }
+
+    public function nextDayPage(): void
+    {
+        $this->dayPage++;
     }
 
     protected function goTo(CarbonImmutable $month): void
@@ -55,6 +73,7 @@ class TaskCalendar extends Component
         $this->month = $month->format('Y-m');
         $today = now()->toDateString();
         $this->day = str_starts_with($today, $this->month.'-') ? $today : '';
+        $this->dayPage = 1;
         unset($this->items);
     }
 
@@ -107,8 +126,19 @@ class TaskCalendar extends Component
             ? $this->items
             : collect(app(SalesCalendar::class)->month(Auth::user()->employee, CarbonImmutable::now()));
 
+        // Việc cần làm chưa quá hạn trước, rồi quá hạn, cuối cùng đã xong; trong mỗi nhóm theo thời gian
+        $dayItems = $this->items->where('day', $this->day)
+            ->sortBy(fn ($item) => [$item['done'] ? 2 : ($item['overdue'] ? 1 : 0), $item['at']->timestamp, $item['key']])
+            ->values();
+        $pages = max(1, (int) ceil($dayItems->count() / self::DAY_PAGE_SIZE));
+        $page = min($this->dayPage, $pages);
+
         return view('livewire.task-calendar', [
-            'dayItems'   => $this->items->where('day', $this->day)->values(),
+            'dayItems'   => $dayItems->forPage($page, self::DAY_PAGE_SIZE)->values(),
+            'dayTotal'   => $dayItems->count(),
+            'dayDone'    => $dayItems->where('done', true)->count(),
+            'dayPages'   => $pages,
+            'page'       => $page,
             'todayCount' => $today->where('day', now()->toDateString())->where('done', false)->count(),
         ]);
     }

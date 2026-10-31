@@ -12,6 +12,9 @@ return [
     'next'          => 'Tháng sau',
     'close'         => 'Đóng danh sách',
     'open'          => 'Mở',
+    'previous_page' => 'Trang trước',
+    'next_page'     => 'Trang sau',
+    'page'          => 'Trang :page/:pages',
     'overdue'       => 'Quá hạn',
     'empty'         => 'Không có hoạt động nào trong ngày này.',
 

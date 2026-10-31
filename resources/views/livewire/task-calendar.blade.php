@@ -69,10 +69,11 @@
 
         @if ($selected)
             <div class="odin-cal__list">
+                <div class="odin-cal__list-inner">
                 <div class="odin-cal__list-head">
                     <div>
                         <strong>{{ __('calendar.weekday.'.$selected->dayOfWeekIso) }}, {{ $selected->format('d/m/Y') }}</strong>
-                        <span>{{ __('calendar.day_summary', ['total' => $dayItems->count(), 'done' => $dayItems->where('done', true)->count()]) }}</span>
+                        <span>{{ __('calendar.day_summary', ['total' => $dayTotal, 'done' => $dayDone]) }}</span>
                     </div>
                     <button type="button" class="odin-cal__close" wire:click="closeDay" aria-label="{{ __('calendar.close') }}">×</button>
                 </div>
@@ -101,6 +102,15 @@
                     @empty
                         <p class="odin-cal__empty">{{ __('calendar.empty') }}</p>
                     @endforelse
+                </div>
+
+                @if ($dayPages > 1)
+                    <div class="odin-cal__pager">
+                        <button type="button" class="odin-cal__nav" wire:click="previousDayPage" @disabled($page <= 1) aria-label="{{ __('calendar.previous_page') }}">‹</button>
+                        <span>{{ __('calendar.page', ['page' => $page, 'pages' => $dayPages]) }}</span>
+                        <button type="button" class="odin-cal__nav" wire:click="nextDayPage" @disabled($page >= $dayPages) aria-label="{{ __('calendar.next_page') }}">›</button>
+                    </div>
+                @endif
                 </div>
             </div>
         @endif

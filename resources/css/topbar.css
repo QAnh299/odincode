@@ -46,11 +46,11 @@
     width: 40px;
     height: 40px;
     padding: 0;
-    border: 1px solid var(--odin-border);
+    border: 0;
     border-radius: 10px;
-    background: #fff;
+    background: transparent;
     color: #475569;
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+    transition: color 0.15s, background-color 0.15s;
 }
 
 .odin-icon-btn svg {
@@ -61,7 +61,7 @@
 .odin-icon-btn:hover,
 .odin-icon-btn:focus-visible,
 .odin-icon-btn[aria-expanded="true"]:not([data-odin-sidebar-toggle]) {
-    border-color: var(--odin-primary);
+    background: color-mix(in srgb, var(--odin-primary) 9%, #fff);
     color: var(--odin-primary);
 }
 
@@ -652,11 +652,34 @@ button.odin-cal__day:hover {
 }
 
 .odin-cal__list {
-    display: flex;
-    flex-direction: column;
+    position: relative;
     width: min(400px, calc(100vw - 2rem));
     min-width: 0;
     border-left: 1px solid var(--odin-border);
+}
+
+/* Lấp đúng chiều cao cột lịch, không kéo dài khung theo số việc */
+.odin-cal__list-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.odin-cal__pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--odin-border);
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.odin-cal__nav:disabled {
+    border-color: var(--odin-border);
+    color: #cbd5e1;
+    cursor: not-allowed;
 }
 
 .odin-cal__list-head {
@@ -785,6 +808,10 @@ button.odin-cal__day:hover {
     .odin-cal__list {
         border-top: 1px solid var(--odin-border);
         border-left: 0;
+    }
+
+    .odin-cal__list-inner {
+        position: static;
     }
 
     .odin-cal__items {
