@@ -429,6 +429,17 @@ return [
             'cohort'   => 'Cohort theo tháng',
         ],
 
+        'chart' => [
+            'source'       => 'Nguồn Lead',
+            'method'       => 'Kênh liên hệ',
+            'period'       => 'Xem theo',
+            'share'        => 'Chỉ số',
+            'rate'         => 'Trục dọc',
+            'period_auto'  => 'Tự động',
+            'period_month' => 'Tháng',
+            'period_week'  => 'Tuần',
+        ],
+
         'period' => [
             'month' => 'tháng',
             'week'  => 'tuần',
@@ -496,6 +507,10 @@ return [
             'leads'              => 'Số Lead',
             'funnel'             => 'Phễu chuyển đổi',
             'funnel_sub'         => 'Số Lead tạo trong kỳ đã đi tới từng bước (tính tới hiện tại)',
+            'funnel_rate'        => ':rate so với bước trước · :total tổng',
+            'funnel_start'       => 'Điểm bắt đầu phễu',
+            'share'              => 'Lead theo nguồn',
+            'share_sub'          => 'Tỷ trọng của từng nguồn theo chỉ số đã chọn',
             'of_total'           => '(:rate tổng)',
             'outcomes'           => 'Kết quả hiện tại của Lead',
             'outcomes_sub'       => 'Lead tạo trong kỳ theo trạng thái xử lý',

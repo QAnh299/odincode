@@ -425,6 +425,17 @@ return [
             'cohort'   => 'Monthly cohorts',
         ],
 
+        'chart' => [
+            'source'       => 'Lead source',
+            'method'       => 'Contact channel',
+            'period'       => 'View by',
+            'share'        => 'Metric',
+            'rate'         => 'Vertical axis',
+            'period_auto'  => 'Automatic',
+            'period_month' => 'Month',
+            'period_week'  => 'Week',
+        ],
+
         'period' => [
             'month' => 'month',
             'week'  => 'week',
@@ -492,6 +503,10 @@ return [
             'leads'              => 'Leads',
             'funnel'             => 'Conversion funnel',
             'funnel_sub'         => 'Leads created in the period that reached each step (to date)',
+            'funnel_rate'        => ':rate of previous step · :total of total',
+            'funnel_start'       => 'Top of the funnel',
+            'share'              => 'Leads by source',
+            'share_sub'          => 'Share of each source for the selected metric',
             'of_total'           => '(:rate of total)',
             'outcomes'           => 'Current lead outcomes',
             'outcomes_sub'       => 'Leads created in the period by status',

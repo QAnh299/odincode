@@ -14,7 +14,7 @@
 
 @if ($exportOpen)
     @teleport('body')
-    <div class="ld-modal vc rp-portal" wire:key="lc-export" x-data x-on:keydown.escape.window="$wire.closeExport()">
+    <div class="ld-modal vc rp-portal rp--lc" wire:key="lc-export" x-data x-on:keydown.escape.window="$wire.closeExport()">
         <div class="ld-modal__backdrop" wire:click="closeExport"></div>
         <form class="ld-modal__dialog lx" role="dialog" aria-modal="true" aria-labelledby="lx-title" wire:submit="export">
             <header class="lx__head">

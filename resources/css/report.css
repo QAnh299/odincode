@@ -1414,3 +1414,188 @@ a.rv-stat-link:focus-visible {
     color: var(--vc-primary);
     font-weight: 700;
 }
+
+/* ── Giao diện khung báo cáo vuông góc: chỉ trang chuyển đổi Lead (.rp--lc) ── */
+
+.rp--lc .rp-stat,
+.rp--lc .vc-card {
+    box-shadow: none;
+    border-width: 1px;
+    border-color: #d8dde3;
+}
+
+.rp--lc .rp-kpis {
+    gap: 0.75rem;
+}
+
+.rp-grid--panels {
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.rp-panel {
+    min-width: 0;
+    margin-bottom: 0.75rem;
+    border: 1px solid #d8dde3;
+    background: var(--vc-surface);
+}
+
+.rp-grid--panels .rp-panel {
+    margin-bottom: 0;
+}
+
+.rp-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #d8dde3;
+}
+
+.rp-panel__title {
+    margin: 0;
+    color: var(--vc-ink);
+    font-size: 0.98rem;
+    font-weight: 700;
+}
+
+.rp-panel__toggle {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--vc-ink);
+    cursor: pointer;
+}
+
+.rp-panel__toggle .odin-icon {
+    transform: rotate(-90deg);
+    transition: transform 0.15s;
+}
+
+.rp-panel__toggle.is-closed .odin-icon {
+    transform: rotate(90deg);
+}
+
+.rp-panel__body {
+    padding: 0.75rem 0.85rem 0.85rem;
+}
+
+.rp-panel__filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+    margin-bottom: 0.6rem;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.rp-panel__filter span {
+    white-space: nowrap;
+}
+
+.rp-panel__filter .vc-control {
+    width: auto;
+    min-width: 170px;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.84rem;
+}
+
+/* Phễu chuyển đổi */
+.rp-funnel {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.rp-funnel__value {
+    fill: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.rp-funnel__name {
+    fill: var(--vc-ink);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.rp-funnel__rate {
+    fill: var(--vc-muted);
+    font-size: 13px;
+}
+
+/* Màu nhấn trang chuyển đổi Lead: cùng bảng màu biểu đồ, mỗi thẻ / khung 1 màu theo thứ tự.
+   Nút chính vẫn theo màu giao diện (--vc-primary). */
+.rp--lc {
+    --rp-accent: #2a78d6;
+}
+
+.rp--lc .rp-stat:nth-child(5n + 1),
+.rp--lc .rp-panel:nth-child(6n + 1) { --rp-tone: #2a78d6; }
+.rp--lc .rp-stat:nth-child(5n + 2),
+.rp--lc .rp-panel:nth-child(6n + 2) { --rp-tone: #eb6834; }
+.rp--lc .rp-stat:nth-child(5n + 3),
+.rp--lc .rp-panel:nth-child(6n + 3) { --rp-tone: #6250d6; }
+.rp--lc .rp-stat:nth-child(5n + 4),
+.rp--lc .rp-panel:nth-child(6n + 4) { --rp-tone: #1baf7a; }
+.rp--lc .rp-stat:nth-child(5n + 5),
+.rp--lc .rp-panel:nth-child(6n + 5) { --rp-tone: #eda100; }
+.rp--lc .rp-panel:nth-child(6n + 6) { --rp-tone: #e87ba4; }
+
+.rp--lc .rp-stat {
+    border-top: 3px solid var(--rp-tone);
+}
+
+.rp--lc .rp-stat__icon {
+    background: color-mix(in srgb, var(--rp-tone) 14%, #fff);
+    color: var(--rp-tone);
+}
+
+.rp--lc .rp-stat__value {
+    color: color-mix(in srgb, var(--rp-tone) 80%, #111827);
+}
+
+.rp--lc .rp-panel {
+    border-top: 3px solid var(--rp-tone, var(--rp-accent));
+}
+
+.rp--lc .rp-panel__head {
+    background: color-mix(in srgb, var(--rp-tone, var(--rp-accent)) 7%, #fff);
+}
+
+.rp--lc .rp-tab.is-active {
+    border-bottom-color: var(--rp-accent);
+    color: var(--rp-accent);
+}
+
+.rp--lc .rp-table thead th {
+    background: #eaf2fb;
+    color: #24507f;
+}
+
+.rp--lc .rp-row--total th,
+.rp--lc .rp-row--total td,
+.rp--lc .rp-table .is-sorted {
+    background: #eaf2fb;
+}
+
+.rp--lc .rp-bar {
+    background: linear-gradient(to right, #cfe2f8 var(--w), transparent var(--w));
+}
+
+.rp--lc .rp-heat td:not(.is-empty) {
+    background: color-mix(in srgb, var(--rp-accent) var(--a, 0%), transparent);
+}
+
+.rp--lc .rp-cohort__cell {
+    background: color-mix(in srgb, var(--rp-accent) calc(var(--a, 0%) * 0.4), transparent);
+}

@@ -6,6 +6,7 @@ use App\Livewire\Reports\Concerns\ExportPeriod;
 use App\Models\Branch;
 use App\Models\CareResult;
 use App\Models\Employee;
+use App\Models\Lead;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Services\LeadConversionReport;
@@ -78,6 +79,23 @@ class LeadConversion extends Component
 
     const COHORT_METRICS = ['won', 'converted', 'student'];
 
+    // Bộ lọc riêng trong từng khung biểu đồ: khung => loại lọc (tính tiếp trên kết quả của bộ lọc chung)
+    const PANELS = [
+        'funnel'         => 'source',
+        'share'          => 'share',
+        'outcomes'       => 'method',
+        'trend_count'    => 'period',
+        'trend_rate'     => 'source',
+        'scatter'        => 'rate',
+        'rates'          => 'method',
+        'methods'        => 'source',
+        'response_count' => 'source',
+        'response_rate'  => 'source',
+        'close'          => 'source',
+        'activities'     => 'source',
+        'touches'        => 'source',
+    ];
+
     // Xuất Excel: các sheet, cột luôn có của từng sheet (không bỏ chọn được), số dòng xem trước trong popup
     const EXPORT_SHEETS = ['summary', 'leads', 'care', 'appointments'];
 
@@ -121,6 +139,9 @@ class LeadConversion extends Component
 
     #[Url(except: 'won')]
     public string $cohortMetric = 'won';
+
+    // Giá trị bộ lọc riêng của từng khung biểu đồ: [khung => giá trị]
+    public array $chart = [];
 
     // Tiêu chí riêng của popup xuất ('' = tất cả), không theo bộ lọc trên màn hình
     public string $exportBranch = '';
@@ -374,7 +395,7 @@ class LeadConversion extends Component
     #[Computed]
     public function overview(): array
     {
-        $s = $this->summary;
+        $s = $this->report()->summarize($this->panelFacts('funnel'));
         $label = fn ($key) => __('reports.lead_conversion.overview.'.$key);
 
         // Phễu: Lead → (Cơ hội) → các stage sau stage đầu → Học viên
@@ -394,34 +415,62 @@ class LeadConversion extends Component
                 'value'   => $value,
                 'rate'    => $i ? LeadConversionReport::pct($value, $steps[$i - 1][1]) : null,
                 'overall' => LeadConversionReport::pct($value, $s['leads']),
-                'prev'    => $i ? $steps[$i - 1][0] : null,
             ];
         }
 
-        $outcomes = array_values(array_filter(LeadConversionReport::OUTCOMES, fn ($o) => $s[$o] > 0));
+        // Lead theo nguồn: tỷ trọng theo chỉ số chọn trong khung
+        $metric = $this->panelValue('share');
+        $bySource = [];
+        foreach ($this->groupFacts(fn ($f) => $f['source']) as $source => $facts) {
+            $bySource[(string) $source] = $this->report()->summarize($facts)[$metric];
+        }
+        arsort($bySource);
+        $bySource = array_filter($bySource);
+        $sources = array_map('strval', array_keys($bySource));
+        $colors = $this->colorMap($this->sources, $sources);
 
-        // Xu hướng theo kỳ tạo Lead
-        $groups = $this->groupFacts(fn ($f) => $this->periodKey($f['created']));
-        $keys = $this->periodKeys(array_column($this->facts, 'created'));
-        $rows = array_map(fn ($k) => $this->report()->summarize($groups[$k] ?? []), $keys);
-        $labels = array_map(fn ($k) => $this->periodLabel($k), $keys);
+        $o = $this->report()->summarize($this->panelFacts('outcomes'));
+        $outcomes = array_values(array_filter(LeadConversionReport::OUTCOMES, fn ($key) => $o[$key] > 0));
+
+        $trendPeriod = $this->panelValue('trend_count') ?: $this->period;
+        [$countLabels, $countRows] = $this->trendRows($this->facts, $trendPeriod);
+        [$rateLabels, $rateRows] = $this->trendRows($this->panelFacts('trend_rate'), $this->period);
 
         $rateMetrics = $this->seesAll ? ['conversion_rate', 'win_rate'] : ['win_rate', 'close_rate'];
 
         return [
-            'funnel' => $funnel,
-            'charts' => [
-                'funnel'   => ['type' => 'bar_h', 'unit' => 'count', 'labels' => array_column($funnel, 'name'),
-                    'series' => [['label' => $label('reached'), 'color' => self::COLORS['leads'], 'data' => array_column($funnel, 'value')]]],
+            'funnel'       => $funnel,
+            'trend_period' => $trendPeriod,
+            'charts'       => [
+                'share'    => ['type' => 'pie', 'unit' => 'count', 'labels' => $sources,
+                    'series' => [['label' => $this->shareLabel($metric), 'data' => array_values($bySource),
+                        'colors' => array_map(fn ($source) => $colors[$source], $sources)]]],
                 'outcomes' => ['type' => 'doughnut', 'unit' => 'count',
-                    'labels' => array_map(fn ($o) => __('reports.lead_conversion.outcome.'.$o), $outcomes),
-                    'series' => [['label' => $label('leads'), 'data' => array_map(fn ($o) => $s[$o], $outcomes),
-                        'colors' => array_map(fn ($o) => self::COLORS[$o], $outcomes)]]],
-                'trend_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => $labels,
-                    'series' => $this->series($rows, ['leads', 'won'])],
-                'trend_rate' => ['type' => 'line', 'unit' => 'percent', 'labels' => $labels,
-                    'series' => $this->series($rows, $rateMetrics)],
+                    'labels' => array_map(fn ($key) => __('reports.lead_conversion.outcome.'.$key), $outcomes),
+                    'series' => [['label' => $label('leads'), 'data' => array_map(fn ($key) => $o[$key], $outcomes),
+                        'colors' => array_map(fn ($key) => self::COLORS[$key], $outcomes)]]],
+                'trend_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => $countLabels,
+                    'series' => $this->series($countRows, ['leads', 'won'])],
+                'trend_rate' => ['type' => 'line', 'unit' => 'percent', 'labels' => $rateLabels,
+                    'series' => $this->series($rateRows, $rateMetrics)],
             ],
+        ];
+    }
+
+    /**
+     * Xu hướng theo kỳ tạo Lead: [nhãn các kỳ, chỉ số từng kỳ].
+     */
+    protected function trendRows(array $facts, string $period): array
+    {
+        $groups = [];
+        foreach ($facts as $f) {
+            $groups[$this->periodKey($f['created'], $period)][] = $f;
+        }
+        $keys = $this->periodKeys(array_column($facts, 'created'), $period);
+
+        return [
+            array_map(fn ($key) => $this->periodLabel($key, $period), $keys),
+            array_map(fn ($key) => $this->report()->summarize($groups[$key] ?? []), $keys),
         ];
     }
 
@@ -438,31 +487,46 @@ class LeadConversion extends Component
 
         $colors = $this->colorMap($this->sources, array_column($rows, 'name'));
 
-        // Theo kênh liên hệ
-        $methods = [];
-        foreach ($this->groupFacts(fn ($f) => $f['method']) as $method => $facts) {
-            $methods[] = $this->report()->summarize($facts) + ['name' => __('leads.method.'.$method)];
-        }
-        usort($methods, fn ($a, $b) => $b['leads'] <=> $a['leads']);
-
         $rateMetrics = $this->seesAll ? ['conversion_rate', 'win_rate', 'close_rate'] : ['win_rate', 'close_rate'];
+
+        // Biểu đồ tỷ lệ theo nguồn lọc theo kênh; tỷ lệ theo kênh lọc theo nguồn
+        $rateGroups = [];
+        foreach ($this->panelFacts('rates') as $f) {
+            $rateGroups[$f['source']][] = $f;
+        }
+        $rateRows = [];
+        foreach ($rateGroups as $source => $facts) {
+            $rateRows[] = $this->report()->summarize($facts) + ['name' => (string) $source];
+        }
+        usort($rateRows, fn ($a, $b) => $b['leads'] <=> $a['leads']);
+
+        $methodGroups = [];
+        foreach ($this->panelFacts('methods') as $f) {
+            $methodGroups[$f['method']][] = $f;
+        }
+        $methodRows = [];
+        foreach ($methodGroups as $method => $facts) {
+            $methodRows[] = $this->report()->summarize($facts) + ['name' => __('leads.method.'.$method)];
+        }
+        usort($methodRows, fn ($a, $b) => $b['leads'] <=> $a['leads']);
+
+        $yMetric = $this->panelValue('scatter');
 
         return [
             'rows'    => $rows,
-            'methods' => $methods,
             'total'   => $this->summary,
             'charts'  => [
                 // Số Lead (trục ngang) × tỷ lệ chốt (trục dọc): nguồn nhiều nhưng kém chất lượng nằm góc phải dưới
                 'scatter' => ['type' => 'scatter', 'unit' => 'percent', 'xUnit' => 'count',
                     'xLabel' => __('reports.lead_conversion.metric.leads'),
-                    'yLabel' => __('reports.lead_conversion.metric.win_rate'),
+                    'yLabel' => __('reports.lead_conversion.metric.'.$yMetric),
                     'labels' => [],
                     'series' => array_map(fn ($r) => ['label' => $r['name'], 'color' => $colors[$r['name']],
-                        'data' => [['x' => $r['leads'], 'y' => $r['win_rate'] ?? 0]]], $rows)],
-                'rates'   => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rows, 'name'),
-                    'series' => $this->series($rows, $rateMetrics)],
-                'methods' => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($methods, 'name'),
-                    'series' => $this->series($methods, $rateMetrics)],
+                        'data' => [['x' => $r['leads'], 'y' => $r[$yMetric] ?? 0]]], $rows)],
+                'rates'   => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rateRows, 'name'),
+                    'series' => $this->series($rateRows, $rateMetrics)],
+                'methods' => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($methodRows, 'name'),
+                    'series' => $this->series($methodRows, $rateMetrics)],
             ],
         ];
     }
@@ -504,28 +568,11 @@ class LeadConversion extends Component
         }
         unset($step);
 
-        // Thời gian phản hồi đầu tiên: phân bố và tỷ lệ chốt theo từng nhóm (chỉ Lead đã giao)
         $assigned = array_values(array_filter($facts, fn ($f) => $f['outcome'] !== LeadConversionReport::OUTCOME_NEW));
-        $responseGroups = array_fill_keys(array_merge(array_keys(self::RESPONSE_BUCKETS), ['none']), []);
-        foreach ($assigned as $f) {
-            $h = $hours($f['created'], $f['first_contact']);
-            $responseGroups[$h === null ? 'none' : $this->bucket($h, self::RESPONSE_BUCKETS)][] = $f;
-        }
-        $responseRows = [];
-        foreach ($responseGroups as $key => $group) {
-            $responseRows[] = $this->report()->summarize($group) + ['name' => $label('response.'.$key)];
-        }
-
-        // Thời gian chốt (ngày, Lead đã chốt)
-        $closeCounts = array_fill_keys(array_keys(self::CLOSE_BUCKETS), 0);
-        foreach ($facts as $f) {
-            if ($f['won_at']) {
-                $closeCounts[$this->bucket(max(0, $f['won_at'] - $f['created']) / 86400, self::CLOSE_BUCKETS)]++;
-            }
-        }
-
         $within24 = count(array_filter($assigned, fn ($f) => ($h = $hours($f['created'], $f['first_contact'])) !== null && $h <= 24));
         $stuck = $this->report()->stuck($facts);
+        $countRows = $this->responseRows($this->panelFacts('response_count'));
+        $rateRows = $this->responseRows($this->panelFacts('response_rate'));
         $open = count(array_filter($facts, fn ($f) => $f['outcome'] === LeadConversionReport::OUTCOME_OPEN));
         $untouched = count(array_filter($facts, fn ($f) => $f['outcome'] === LeadConversionReport::OUTCOME_OPEN && ! $f['first_contact']));
 
@@ -538,17 +585,56 @@ class LeadConversion extends Component
             'stuck'     => array_slice($stuck, 0, self::STUCK_LIMIT),
             'stuck_count' => count($stuck),
             'charts'    => [
-                'response_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => array_column($responseRows, 'name'),
+                'response_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => array_column($countRows, 'name'),
                     'series' => [['label' => __('reports.lead_conversion.metric.leads'), 'color' => self::COLORS['leads'],
-                        'data' => array_column($responseRows, 'leads')]]],
-                'response_rate'  => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($responseRows, 'name'),
-                    'series' => $this->series($responseRows, ['win_rate'])],
+                        'data' => array_column($countRows, 'leads')]]],
+                'response_rate'  => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rateRows, 'name'),
+                    'series' => $this->series($rateRows, ['win_rate'])],
                 'close'          => ['type' => 'bar', 'unit' => 'count',
                     'labels' => array_map(fn ($k) => $label('close.'.$k), array_keys(self::CLOSE_BUCKETS)),
                     'series' => [['label' => __('reports.lead_conversion.metric.won'), 'color' => self::COLORS['won'],
-                        'data' => array_values($closeCounts)]]],
+                        'data' => array_values($this->closeCounts($this->panelFacts('close')))]]],
             ],
         ];
+    }
+
+    /**
+     * Thời gian phản hồi đầu tiên: chỉ số theo từng nhóm thời gian (chỉ Lead đã giao).
+     */
+    protected function responseRows(array $facts): array
+    {
+        $groups = array_fill_keys(array_merge(array_keys(self::RESPONSE_BUCKETS), ['none']), []);
+        foreach ($facts as $f) {
+            if ($f['outcome'] === LeadConversionReport::OUTCOME_NEW) {
+                continue;
+            }
+            $key = $f['first_contact']
+                ? $this->bucket(max(0, $f['first_contact'] - $f['created']) / 3600, self::RESPONSE_BUCKETS)
+                : 'none';
+            $groups[$key][] = $f;
+        }
+
+        $rows = [];
+        foreach ($groups as $key => $group) {
+            $rows[] = $this->report()->summarize($group) + ['name' => __('reports.lead_conversion.velocity.response.'.$key)];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Số Lead đã chốt theo nhóm thời gian chốt (ngày).
+     */
+    protected function closeCounts(array $facts): array
+    {
+        $counts = array_fill_keys(array_keys(self::CLOSE_BUCKETS), 0);
+        foreach ($facts as $f) {
+            if ($f['won_at']) {
+                $counts[$this->bucket(max(0, $f['won_at'] - $f['created']) / 86400, self::CLOSE_BUCKETS)]++;
+            }
+        }
+
+        return $counts;
     }
 
     /* ── Tab 4: Chất lượng chăm sóc ───────────────────────────────────── */
@@ -562,38 +648,12 @@ class LeadConversion extends Component
         $appointments = $this->report()->appointments($ids);
         $results = CareResult::RESULTS;
 
-        // Kết quả theo hoạt động chăm sóc
-        $activityNames = DB::table('CareActivities')->orderBy('activity_id')->pluck('activity_name', 'activity_id');
-        $activities = [];
-        foreach ($activityNames as $id => $name) {
-            $activities[$id] = ['name' => $name, 'total' => 0] + array_fill_keys($results, 0);
-        }
-        foreach ($contacts as $c) {
-            $activities[$c['activity']] ??= ['name' => $c['activity'], 'total' => 0] + array_fill_keys($results, 0);
-            $activities[$c['activity']]['total']++;
-            $activities[$c['activity']][$c['result']] = ($activities[$c['activity']][$c['result']] ?? 0) + 1;
-        }
-        foreach ($activities as &$a) {
-            foreach ($results as $r) {
-                $a['rate'][$r] = LeadConversionReport::pct($a[$r], $a['total']);
-            }
-        }
-        unset($a);
-        $activities = array_values(array_filter($activities, fn ($a) => $a['total'] > 0));
+        $activities = $this->activityRows($contacts);
+        $touches = $this->touchRows($this->panelFacts('touches'));
 
-        // Tỷ lệ thắng theo số lần liên hệ (Lead đã đóng)
-        $closedFacts = array_filter($facts, fn ($f) => in_array($f['outcome'], [
-            LeadConversionReport::OUTCOME_WON, LeadConversionReport::OUTCOME_LOST, LeadConversionReport::OUTCOME_ARCHIVED,
-        ], true));
-        $last = self::CONTACT_BUCKETS[array_key_last(self::CONTACT_BUCKETS)];
-        $touchGroups = array_fill_keys(self::CONTACT_BUCKETS, []);
-        foreach ($closedFacts as $f) {
-            $touchGroups[min($f['contacts'], $last)][] = $f;
-        }
-        $touches = [];
-        foreach (array_filter($touchGroups) as $n => $group) {
-            $touches[] =$this->report()->summarize($group) + ['name' => __('reports.lead_conversion.care.touches_'.($n === $last ? 'more' : 'n'), ['n' => $n])];
-        }
+        // Biểu đồ kết quả liên hệ: chỉ các lần liên hệ của Lead khớp bộ lọc trong khung
+        $panelIds = array_flip(array_merge(...array_column($this->panelFacts('activities'), 'opportunities') ?: [[]]));
+        $activityChart = $this->activityRows(array_filter($contacts, fn ($c) => isset($panelIds[$c['opportunity']])));
 
         // Lịch hẹn theo loại
         $types = [];
@@ -645,14 +705,62 @@ class LeadConversion extends Component
             'heat_hours'   => $hourRange,
             'heat_max'     => $maxCell,
             'charts'       => [
-                'activities' => ['type' => 'stacked_h', 'unit' => 'percent', 'labels' => array_column($activities, 'name'),
+                'activities' => ['type' => 'stacked_h', 'unit' => 'percent', 'labels' => array_column($activityChart, 'name'),
                     'series' => array_map(fn ($r) => ['label' => __('reports.lead_conversion.care.result.'.$r), 'color' => self::COLORS[$r],
-                        'data' => array_map(fn ($a) => $a['rate'][$r] ?? 0, $activities)], $results)],
+                        'data' => array_map(fn ($a) => $a['rate'][$r] ?? 0, $activityChart)], $results)],
                 'touches'    => ['type' => 'bar', 'unit' => 'percent',
                     'labels' => array_map(fn ($t) => $t['name'].' (n='.$t['leads'].')', $touches),
                     'series' => $this->series($touches, ['close_rate'])],
             ],
         ];
+    }
+
+    /**
+     * Kết quả liên hệ theo hoạt động chăm sóc (bỏ hoạt động chưa có lần liên hệ).
+     */
+    protected function activityRows(array $contacts): array
+    {
+        $results = CareResult::RESULTS;
+        $activities = [];
+        foreach (DB::table('CareActivities')->orderBy('activity_id')->pluck('activity_name', 'activity_id') as $id => $name) {
+            $activities[$id] = ['name' => $name, 'total' => 0] + array_fill_keys($results, 0);
+        }
+        foreach ($contacts as $c) {
+            $activities[$c['activity']] ??= ['name' => $c['activity'], 'total' => 0] + array_fill_keys($results, 0);
+            $activities[$c['activity']]['total']++;
+            $activities[$c['activity']][$c['result']] = ($activities[$c['activity']][$c['result']] ?? 0) + 1;
+        }
+        foreach ($activities as &$a) {
+            foreach ($results as $r) {
+                $a['rate'][$r] = LeadConversionReport::pct($a[$r], $a['total']);
+            }
+        }
+        unset($a);
+
+        return array_values(array_filter($activities, fn ($a) => $a['total'] > 0));
+    }
+
+    /**
+     * Tỷ lệ thắng theo số lần liên hệ (Lead đã đóng).
+     */
+    protected function touchRows(array $facts): array
+    {
+        $closed = [LeadConversionReport::OUTCOME_WON, LeadConversionReport::OUTCOME_LOST, LeadConversionReport::OUTCOME_ARCHIVED];
+        $last = self::CONTACT_BUCKETS[array_key_last(self::CONTACT_BUCKETS)];
+        $groups = array_fill_keys(self::CONTACT_BUCKETS, []);
+        foreach ($facts as $f) {
+            if (in_array($f['outcome'], $closed, true)) {
+                $groups[min($f['contacts'], $last)][] = $f;
+            }
+        }
+
+        $rows = [];
+        foreach (array_filter($groups) as $n => $group) {
+            $rows[] = $this->report()->summarize($group)
+                + ['name' => __('reports.lead_conversion.care.touches_'.($n === $last ? 'more' : 'n'), ['n' => $n])];
+        }
+
+        return $rows;
     }
 
     /* ── Tab 5: Cohort theo tháng tạo Lead ────────────────────────────── */
@@ -1222,6 +1330,73 @@ class LeadConversion extends Component
     }
 
     /**
+     * Các lựa chọn của bộ lọc trong khung: [giá trị => nhãn]; khoá '' = không lọc.
+     */
+    protected function panelOptions(string $panel): array
+    {
+        $t = fn ($key) => __('reports.lead_conversion.'.$key);
+        $labels = fn (array $keys, callable $label) => array_combine($keys, array_map($label, $keys));
+
+        return match (self::PANELS[$panel]) {
+            'method' => ['' => __('reports.all')] + $labels(Lead::CONTACT_METHODS, fn ($method) => __('leads.method.'.$method)),
+            'period' => ['' => $t('chart.period_auto'), 'month' => $t('chart.period_month'), 'week' => $t('chart.period_week')],
+            'share'  => $labels($this->seesAll ? ['leads', 'opportunities', 'won', 'students'] : ['leads', 'won', 'students'],
+                fn ($key) => $this->shareLabel($key)),
+            'rate'   => $labels($this->seesAll ? ['win_rate', 'close_rate', 'conversion_rate'] : ['win_rate', 'close_rate'],
+                fn ($key) => $t('metric.'.$key)),
+            default  => ['' => __('reports.all')] + array_combine($this->sources, $this->sources),
+        };
+    }
+
+    protected function shareLabel(string $metric): string
+    {
+        return match ($metric) {
+            'opportunities' => __('reports.lead_conversion.overview.step_opportunities'),
+            'students'      => __('reports.lead_conversion.overview.step_students'),
+            'won'           => __('reports.lead_conversion.metric.won'),
+            default         => __('reports.lead_conversion.metric.leads'),
+        };
+    }
+
+    /**
+     * Giá trị đã kiểm tra của bộ lọc trong khung (không hợp lệ thì về lựa chọn đầu tiên).
+     */
+    public function panelValue(string $panel): string
+    {
+        $options = $this->panelOptions($panel);
+        $value = (string) ($this->chart[$panel] ?? '');
+
+        return array_key_exists($value, $options) ? $value : (string) array_key_first($options);
+    }
+
+    /**
+     * Dữ liệu cho ô lọc trong khung biểu đồ (components/report-panel).
+     */
+    public function panelFilter(string $panel): array
+    {
+        return [
+            'model'   => 'chart.'.$panel,
+            'label'   => __('reports.lead_conversion.chart.'.self::PANELS[$panel]),
+            'options' => $this->panelOptions($panel),
+            'value'   => $this->panelValue($panel),
+        ];
+    }
+
+    /**
+     * Lead của 1 khung biểu đồ: kết quả bộ lọc chung, thu hẹp theo nguồn / kênh chọn trong khung.
+     */
+    protected function panelFacts(string $panel): array
+    {
+        $kind = self::PANELS[$panel];
+        $value = $this->panelValue($panel);
+        if ($value === '' || ! in_array($kind, ['source', 'method'], true)) {
+            return $this->facts;
+        }
+
+        return array_values(array_filter($this->facts, fn ($f) => $f[$kind] === $value));
+    }
+
+    /**
      * Nhóm các Lead theo 1 khoá.
      */
     protected function groupFacts(callable $key): array
@@ -1276,41 +1451,42 @@ class LeadConversion extends Component
         return (int) date('Y', $time) * 12 + (int) date('n', $time) - 1;
     }
 
-    protected function periodKey(int $time): string
+    protected function periodKey(int $time, ?string $period = null): string
     {
-        return $this->period === 'month' ? date('Y-m', $time) : date('o-W', $time);
+        return ($period ?? $this->period) === 'month' ? date('Y-m', $time) : date('o-W', $time);
     }
 
     /**
      * Các kỳ liên tiếp từ thời điểm nhỏ nhất đến lớn nhất (không bỏ trống kỳ không có số liệu).
      */
-    protected function periodKeys(array $times): array
+    protected function periodKeys(array $times, ?string $period = null): array
     {
         if (! $times) {
             return [];
         }
 
-        $month = $this->period === 'month';
+        $period ??= $this->period;
+        $month = $period === 'month';
         $cursor = CarbonImmutable::createFromTimestamp(min($times), config('app.timezone'));
         $cursor = $month ? $cursor->startOfMonth() : $cursor->startOfWeek();
         $end = max($times);
 
         $keys = [];
         while ($cursor->getTimestamp() <= $end) {
-            $keys[] = $this->periodKey($cursor->getTimestamp());
+            $keys[] = $this->periodKey($cursor->getTimestamp(), $period);
             $cursor = $month ? $cursor->addMonth() : $cursor->addWeek();
         }
 
         return $keys;
     }
 
-    public function periodLabel(string $key): string
+    public function periodLabel(string $key, ?string $period = null): string
     {
         if (! preg_match('/^(\d{4})-(\d{2})$/', $key, $m)) {
             return $key;
         }
 
-        return $this->period === 'month'
+        return ($period ?? $this->period) === 'month'
             ? "$m[2]/$m[1]"
             : __('reports.week_label', ['week' => (int) $m[2], 'year' => $m[1]]);
     }

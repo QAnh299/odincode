@@ -40,7 +40,7 @@
     $hasData = $s['leads'] > 0;
 @endphp
 
-<div class="vc rp">
+<div class="vc rp rp--lc">
     {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
@@ -49,7 +49,7 @@
     <header class="vc-head">
         <div>
             <h1 class="vc-head__title">{{ $L('title') }}</h1>
-            <p class="vc-head__sub">{{ $L('subtitle') }} · <strong>{{ $this->scopeLabel() }}</strong></p>
+            <p class="vc-head__sub"><strong>{{ $this->scopeLabel() }}</strong></p>
         </div>
         <div class="rp-head__actions">
             <span class="vc-results__loading" wire:loading.delay wire:target.except="export">
@@ -165,31 +165,44 @@
 
                 @include('livewire.reports.partials.lc-kpis', ['kpis' => $kpis, 'prevLabel' => $prev['label'] ?? null])
 
-                <div class="rp-grid">
-                    <section class="vc-card rp-card">
-                        <h3 class="rp-card__title">{{ $L('overview.funnel') }}</h3>
-                        <p class="rp-card__sub">{{ $L('overview.funnel_sub') }}</p>
-                        <div class="rp-chart" style="height: {{ max(220, count($o['funnel']) * 46 + 40) }}px"
-                            wire:key="lc-funnel-{{ md5(json_encode($o['charts']['funnel'])) }}" wire:ignore
-                            x-data="odinChart(@js($o['charts']['funnel']))">
-                            <canvas x-ref="canvas" role="img" aria-label="{{ $L('overview.funnel') }}"></canvas>
-                        </div>
-                        <ol class="rp-steps">
-                            @foreach (array_slice($o['funnel'], 1) as $step)
-                                <li>
-                                    <span>{{ $step['prev'] }} → {{ $step['name'] }}</span>
-                                    <strong>{{ $pct($step['rate']) }} <span class="rp-sub rp-sub--inline">{{ $L('overview.of_total', ['rate' => $pct($step['overall'])]) }}</span></strong>
-                                </li>
-                            @endforeach
-                        </ol>
-                    </section>
+                @php
+                    $fTop = max(array_column($o['funnel'], 'value') ?: [0]);
+                    $fRows = count($o['funnel']);
+                    $fWidth = fn ($v) => $fTop ? max(0.16, $v / $fTop) * 400 : 0;
+                @endphp
+                <div class="rp-grid rp-grid--panels">
+                    <x-report-panel id="lc-funnel" :title="$L('overview.funnel')" :sub="$L('overview.funnel_sub')" :filter="$this->panelFilter('funnel')">
+                        @if (! $fTop)
+                            <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
+                        @else
+                            {{-- Phễu: mỗi bước 1 hình thang, cạnh trên theo số của bước, cạnh dưới theo số của bước sau --}}
+                            <svg class="rp-funnel" viewBox="0 0 720 {{ $fRows * 58 }}" role="img" aria-label="{{ $L('overview.funnel') }}">
+                                @foreach ($o['funnel'] as $i => $step)
+                                    @php
+                                        $top = $fWidth($step['value']);
+                                        $bottom = isset($o['funnel'][$i + 1]) ? $fWidth($o['funnel'][$i + 1]['value']) : $top * 0.8;
+                                        $y = $i * 58;
+                                    @endphp
+                                    <polygon points="{{ 200 - $top / 2 }},{{ $y }} {{ 200 + $top / 2 }},{{ $y }} {{ 200 + $bottom / 2 }},{{ $y + 55 }} {{ 200 - $bottom / 2 }},{{ $y + 55 }}"
+                                        fill="{{ LeadConversion::PALETTE[$i % count(LeadConversion::PALETTE)] }}" />
+                                    <text class="rp-funnel__value" x="200" y="{{ $y + 34 }}">{{ $num($step['value']) }}</text>
+                                    <text class="rp-funnel__name" x="425" y="{{ $y + 24 }}">{{ $step['name'] }}</text>
+                                    <text class="rp-funnel__rate" x="425" y="{{ $y + 43 }}">
+                                        {{ $step['rate'] === null ? $L('overview.funnel_start') : $L('overview.funnel_rate', ['rate' => $pct($step['rate']), 'total' => $pct($step['overall'])]) }}
+                                    </text>
+                                @endforeach
+                            </svg>
+                        @endif
+                    </x-report-panel>
 
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-outcomes', 'spec' => $o['charts']['outcomes'],
-                        'title' => $L('overview.outcomes'), 'sub' => $L('overview.outcomes_sub'), 'height' => 320])
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-trend-count', 'spec' => $o['charts']['trend_count'],
-                        'title' => $L('overview.trend_count', ['period' => $L('period.'.$this->period)]), 'sub' => $L('overview.trend_count_sub')])
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-trend-rate', 'spec' => $o['charts']['trend_rate'],
-                        'title' => $L('overview.trend_rate', ['period' => $L('period.'.$this->period)]), 'sub' => $L('overview.trend_rate_sub')])
+                    <x-report-panel id="lc-share" :title="$L('overview.share')" :sub="$L('overview.share_sub')" :filter="$this->panelFilter('share')"
+                        :spec="$o['charts']['share']" :height="340" />
+                    <x-report-panel id="lc-trend-count" :title="$L('overview.trend_count', ['period' => $L('period.'.$o['trend_period'])])" :sub="$L('overview.trend_count_sub')"
+                        :filter="$this->panelFilter('trend_count')" :spec="$o['charts']['trend_count']" />
+                    <x-report-panel id="lc-trend-rate" :title="$L('overview.trend_rate', ['period' => $L('period.'.$this->period)])" :sub="$L('overview.trend_rate_sub')"
+                        :filter="$this->panelFilter('trend_rate')" :spec="$o['charts']['trend_rate']" />
+                    <x-report-panel id="lc-outcomes" :title="$L('overview.outcomes')" :sub="$L('overview.outcomes_sub')" :filter="$this->panelFilter('outcomes')"
+                        :spec="$o['charts']['outcomes']" :height="300" wide />
                 </div>
                 @break
 
@@ -197,9 +210,7 @@
             @case('sources')
                 @php $d = $this->bySource; @endphp
 
-                <section class="vc-card rp-card">
-                    <h3 class="rp-card__title">{{ $L('sources.table') }}</h3>
-                    <p class="rp-card__sub">{{ $L('sources.table_sub') }}</p>
+                <x-report-panel id="lc-sources-table" :title="$L('sources.table')" :sub="$L('sources.table_sub')">
                     <div class="table-responsive">
                         <table class="rp-table">
                             <thead>
@@ -252,13 +263,12 @@
                             </tfoot>
                         </table>
                     </div>
-                </section>
+                </x-report-panel>
 
-                <div class="rp-grid">
+                <div class="rp-grid rp-grid--panels">
                     @foreach (['scatter', 'rates', 'methods'] as $key)
-                        @include('livewire.reports.partials.chart-card', ['id' => 'lc-src-'.$key, 'spec' => $d['charts'][$key],
-                            'title' => $L('sources.chart.'.$key), 'sub' => $L('sources.chart.'.$key.'_sub'),
-                            'height' => 320, 'wide' => $key === 'methods'])
+                        <x-report-panel :id="'lc-src-'.$key" :title="$L('sources.chart.'.$key)" :sub="$L('sources.chart.'.$key.'_sub')"
+                            :filter="$this->panelFilter($key)" :spec="$d['charts'][$key]" :height="320" :wide="$key === 'methods'" />
                     @endforeach
                 </div>
                 @break
@@ -278,9 +288,7 @@
 
                 @include('livewire.reports.partials.lc-kpis', ['kpis' => $kpis, 'prevLabel' => null])
 
-                <section class="vc-card rp-card">
-                    <h3 class="rp-card__title">{{ $L('velocity.steps') }}</h3>
-                    <p class="rp-card__sub">{{ $L('velocity.steps_sub') }}</p>
+                <x-report-panel id="lc-velocity-steps" :title="$L('velocity.steps')" :sub="$L('velocity.steps_sub')">
                     <div class="table-responsive">
                         <table class="rp-table">
                             <thead>
@@ -305,23 +313,20 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
+                </x-report-panel>
 
-                <div class="rp-grid">
+                <div class="rp-grid rp-grid--panels">
                     @foreach (['response_count', 'response_rate', 'close'] as $key)
-                        @include('livewire.reports.partials.chart-card', ['id' => 'lc-vel-'.$key, 'spec' => $v['charts'][$key],
-                            'title' => $L('velocity.chart.'.$key), 'sub' => $L('velocity.chart.'.$key.'_sub')])
+                        <x-report-panel :id="'lc-vel-'.$key" :title="$L('velocity.chart.'.$key)" :sub="$L('velocity.chart.'.$key.'_sub')"
+                            :filter="$this->panelFilter($key)" :spec="$v['charts'][$key]" :wide="$key === 'close'" />
                     @endforeach
                 </div>
 
-                <section class="vc-card rp-card">
-                    <h3 class="rp-card__title">{{ $L('velocity.stuck') }}</h3>
-                    <p class="rp-card__sub">
-                        {{ $L('velocity.stuck_sub', collect(LeadConversionReport::STUCK_DAYS)->mapWithKeys(fn ($d, $id) => [strtolower($id) => $d])->all()) }}
-                        @if ($v['stuck_count'] > count($v['stuck']))
-                            {{ $L('velocity.stuck_more', ['shown' => count($v['stuck']), 'count' => $v['stuck_count']]) }}
-                        @endif
-                    </p>
+                @php
+                    $stuckSub = $L('velocity.stuck_sub', collect(LeadConversionReport::STUCK_DAYS)->mapWithKeys(fn ($d, $id) => [strtolower($id) => $d])->all())
+                        .($v['stuck_count'] > count($v['stuck']) ? ' '.$L('velocity.stuck_more', ['shown' => count($v['stuck']), 'count' => $v['stuck_count']]) : '');
+                @endphp
+                <x-report-panel id="lc-stuck" :title="$L('velocity.stuck')" :sub="$stuckSub">
                     @if (! $v['stuck'])
                         <p class="rp-empty rp-empty--inline">{{ $L('velocity.stuck_none') }}</p>
                     @else
@@ -363,7 +368,7 @@
                             </table>
                         </div>
                     @endif
-                </section>
+                </x-report-panel>
                 @break
 
             {{-- ══ 4. CHẤT LƯỢNG CHĂM SÓC ═════════════════════════════════ --}}
@@ -382,18 +387,15 @@
 
                 @include('livewire.reports.partials.lc-kpis', ['kpis' => $kpis, 'prevLabel' => null])
 
-                <div class="rp-grid">
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-care-activities', 'spec' => $c['charts']['activities'],
-                        'title' => $L('care.activities'), 'sub' => $L('care.activities_sub'),
-                        'height' => max(200, count($c['activities']) * 56 + 60)])
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-care-touches', 'spec' => $c['charts']['touches'],
-                        'title' => $L('care.touches'), 'sub' => $L('care.touches_sub')])
+                <div class="rp-grid rp-grid--panels">
+                    <x-report-panel id="lc-care-activities" :title="$L('care.activities')" :sub="$L('care.activities_sub')"
+                        :filter="$this->panelFilter('activities')" :spec="$c['charts']['activities']" />
+                    <x-report-panel id="lc-care-touches" :title="$L('care.touches')" :sub="$L('care.touches_sub')"
+                        :filter="$this->panelFilter('touches')" :spec="$c['charts']['touches']" />
                 </div>
 
-                <div class="rp-grid">
-                    <section class="vc-card rp-card">
-                        <h3 class="rp-card__title">{{ $L('care.activity_table') }}</h3>
-                        <p class="rp-card__sub">{{ $L('care.activity_table_sub') }}</p>
+                <div class="rp-grid rp-grid--panels">
+                    <x-report-panel id="lc-care-activity-table" :title="$L('care.activity_table')" :sub="$L('care.activity_table_sub')">
                         <div class="table-responsive">
                             <table class="rp-table">
                                 <thead>
@@ -420,11 +422,9 @@
                                 </tbody>
                             </table>
                         </div>
-                    </section>
+                    </x-report-panel>
 
-                    <section class="vc-card rp-card">
-                        <h3 class="rp-card__title">{{ $L('care.appointments') }}</h3>
-                        <p class="rp-card__sub">{{ $L('care.appointments_sub') }}</p>
+                    <x-report-panel id="lc-care-appointments" :title="$L('care.appointments')" :sub="$L('care.appointments_sub')">
                         <div class="table-responsive">
                             <table class="rp-table">
                                 <thead>
@@ -453,12 +453,10 @@
                                 </tbody>
                             </table>
                         </div>
-                    </section>
+                    </x-report-panel>
                 </div>
 
-                <section class="vc-card rp-card">
-                    <h3 class="rp-card__title">{{ $L('care.heatmap') }}</h3>
-                    <p class="rp-card__sub">{{ $L('care.heatmap_sub') }}</p>
+                <x-report-panel id="lc-care-heatmap" :title="$L('care.heatmap')" :sub="$L('care.heatmap_sub')">
                     @if (! $c['total'])
                         <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
                     @else
@@ -493,29 +491,23 @@
                             </table>
                         </div>
                     @endif
-                </section>
+                </x-report-panel>
                 @break
 
             {{-- ══ 5. COHORT THEO THÁNG ═══════════════════════════════════ --}}
             @case('cohort')
                 @php $co = $this->cohort; @endphp
 
-                <section class="vc-card rp-card">
-                    <div class="rp-card__head">
-                        <div>
-                            <h3 class="rp-card__title">{{ $L('cohort.title_'.$co['metric']) }}</h3>
-                            <p class="rp-card__sub">{{ $L('cohort.sub') }}</p>
-                        </div>
-                        <label class="vc-field">
-                            <span class="vc-field__label">{{ $L('cohort.metric') }}</span>
-                            <select wire:model.live="cohortMetric" class="vc-control">
-                                @foreach (LeadConversion::COHORT_METRICS as $metric)
-                                    @continue($metric === 'converted' && ! $seesAll)
-                                    <option value="{{ $metric }}" @selected($metric === $co['metric'])>{{ $L('cohort.metric_'.$metric) }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                    </div>
+                @php
+                    $cohortOptions = [];
+                    foreach (LeadConversion::COHORT_METRICS as $metric) {
+                        if ($metric !== 'converted' || $seesAll) {
+                            $cohortOptions[$metric] = $L('cohort.metric_'.$metric);
+                        }
+                    }
+                @endphp
+                <x-report-panel id="lc-cohort-table" :title="$L('cohort.title_'.$co['metric'])" :sub="$L('cohort.sub')"
+                    :filter="['model' => 'cohortMetric', 'label' => $L('cohort.metric'), 'options' => $cohortOptions, 'value' => $co['metric']]">
                     @if (! $co['rows'])
                         <p class="rp-empty rp-empty--inline">{{ __('reports.no_data') }}</p>
                     @else
@@ -550,11 +542,10 @@
                             </table>
                         </div>
                     @endif
-                </section>
+                </x-report-panel>
 
                 @if ($co['rows'])
-                    @include('livewire.reports.partials.chart-card', ['id' => 'lc-cohort', 'spec' => $co['chart'],
-                        'title' => $L('cohort.chart'), 'sub' => $L('cohort.chart_sub')])
+                    <x-report-panel id="lc-cohort" :title="$L('cohort.chart')" :sub="$L('cohort.chart_sub')" :spec="$co['chart']" />
                 @endif
                 @break
         @endswitch
