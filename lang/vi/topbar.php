@@ -11,4 +11,6 @@ return [
     'unread_count'     => ':count chưa đọc',
     'profile'          => 'Thông tin tài khoản',
     'change_password'  => 'Đổi mật khẩu',
+    'settings'         => 'Cài đặt',
+    'language'         => 'Ngôn ngữ',
 ];

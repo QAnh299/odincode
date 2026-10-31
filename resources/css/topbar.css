@@ -461,3 +461,344 @@
 .odin-topbar .lang-btn {
     height: 40px;
 }
+
+/* ── Popup Cài đặt (components/settings-modal.blade.php) ───────────── */
+
+.odin-settings-modal__section + .odin-settings-modal__section {
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--odin-border);
+}
+
+.odin-settings-modal__languages {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.odin-settings-modal__language {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--odin-border);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.odin-settings-modal__language:hover,
+.odin-settings-modal__language:has(input:checked) {
+    border-color: var(--odin-primary);
+}
+
+.odin-settings-modal__language input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--odin-primary);
+}
+
+/* ── Lịch việc cần làm (livewire/task-calendar.blade.php) ──────────── */
+
+.odin-cal.dropdown-menu {
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+    padding: 0;
+    overflow: hidden;
+}
+
+.odin-cal__panel {
+    display: flex;
+    max-height: calc(100vh - 80px);
+}
+
+.odin-cal__month {
+    flex: 0 0 auto;
+    width: min(400px, 100%);
+    padding: 1rem;
+}
+
+.odin-cal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.odin-cal__heading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.odin-cal__heading strong {
+    font-size: 1rem;
+}
+
+.odin-cal__heading span,
+.odin-cal__list-head span {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.odin-cal__nav,
+.odin-cal__close {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--odin-border);
+    background: #fff;
+    color: #334155;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.odin-cal__nav:hover,
+.odin-cal__close:hover {
+    border-color: var(--odin-primary);
+    color: var(--odin-primary);
+}
+
+.odin-cal__close {
+    flex-shrink: 0;
+    border-color: transparent;
+}
+
+.odin-cal__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.odin-cal__weekday {
+    padding-bottom: 0.2rem;
+    color: #64748b;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.odin-cal__day {
+    position: relative;
+    height: 50px;
+    padding: 0.2rem 0.3rem;
+    border: 1px solid var(--odin-border);
+    background: #fff;
+    color: #1f2937;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    vertical-align: top;
+}
+
+button.odin-cal__day:hover {
+    border-color: var(--odin-primary);
+}
+
+.odin-cal__day.is-outside {
+    background: #f6f7f9;
+    color: #b6bdc8;
+}
+
+.odin-cal__day.is-today {
+    border-color: #64748b;
+    box-shadow: inset 0 0 0 1px #64748b;
+}
+
+.odin-cal__day.is-selected {
+    border-color: var(--odin-primary);
+    box-shadow: inset 0 0 0 1px var(--odin-primary);
+    background: color-mix(in srgb, var(--odin-primary) 7%, #fff);
+}
+
+.odin-cal__count {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    min-width: 20px;
+    padding: 0 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+}
+
+.odin-cal__count.is-todo,
+.odin-cal__legend .is-todo { background: #dbeafe; color: #1d4ed8; }
+.odin-cal__count.is-overdue,
+.odin-cal__legend .is-overdue { background: #fee2d5; color: #c2410c; }
+.odin-cal__count.is-done,
+.odin-cal__legend .is-done { background: #d9f2e6; color: #15803d; }
+
+.odin-cal__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+    margin-top: 0.75rem;
+    color: #64748b;
+    font-size: 0.74rem;
+}
+
+.odin-cal__legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.odin-cal__legend i {
+    width: 14px;
+    height: 10px;
+}
+
+.odin-cal__list {
+    display: flex;
+    flex-direction: column;
+    width: min(400px, calc(100vw - 2rem));
+    min-width: 0;
+    border-left: 1px solid var(--odin-border);
+}
+
+.odin-cal__list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--odin-border);
+}
+
+.odin-cal__list-head > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.odin-cal__items {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.75rem;
+    overflow-y: auto;
+}
+
+.odin-cal__item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--odin-border);
+}
+
+.odin-cal__item.is-done .odin-cal__name {
+    color: #64748b;
+    text-decoration: line-through;
+}
+
+.odin-cal__check {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.odin-cal__check.is-on {
+    border-color: #15803d;
+    background: #15803d;
+    color: #fff;
+}
+
+.odin-cal__item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.odin-cal__item-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+}
+
+.odin-cal__tag {
+    padding: 0.05rem 0.4rem;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.odin-cal__tag.is-test { background: #fee2d5; color: #c2410c; }
+.odin-cal__tag.is-consultation { background: #ede9fe; color: #6d28d9; }
+.odin-cal__tag.is-initial { background: #dbeafe; color: #1d4ed8; }
+.odin-cal__tag.is-recontact { background: #fef3c7; color: #b45309; }
+.odin-cal__tag.is-quotation { background: #fce7f3; color: #be185d; }
+.odin-cal__tag.is-care { background: #d9f2e6; color: #15803d; }
+.odin-cal__tag.is-late { background: #dc2626; color: #fff; }
+
+.odin-cal__name {
+    margin-top: 0.1rem;
+    color: #1f2937;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.odin-cal__detail {
+    overflow: hidden;
+    color: #64748b;
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.odin-cal__open {
+    flex-shrink: 0;
+    color: var(--odin-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.odin-cal__open:hover {
+    text-decoration: underline;
+}
+
+.odin-cal__empty {
+    margin: 1.5rem 0;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+@media (max-width: 840px) {
+    .odin-cal__panel {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .odin-cal__list {
+        border-top: 1px solid var(--odin-border);
+        border-left: 0;
+    }
+
+    .odin-cal__items {
+        overflow-y: visible;
+    }
+}
+
+.odin-settings-modal__section .odin-theme-swatches {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+@media (max-width: 520px) {
+    .odin-settings-modal__section .odin-theme-swatches {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}

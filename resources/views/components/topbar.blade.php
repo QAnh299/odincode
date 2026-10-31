@@ -28,9 +28,10 @@
     </div>
 
     <div class="odin-topbar__right">
-        <x-theme-picker />
-
-        <x-language-switcher />
+        {{-- Lịch việc cần làm: Salesperson (các việc suy ra từ dữ liệu của chính họ) --}}
+        @if (auth()->user()?->role_name === \App\Models\Role::SALESPERSON)
+            <livewire:task-calendar />
+        @endif
 
         {{-- Chuông thông báo theo vai trò, có đánh dấu đã đọc (App\Livewire\NotificationBell) --}}
         <livewire:notification-bell />

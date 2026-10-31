@@ -1,17 +1,4 @@
-/* ── Bộ chọn màu giao diện (components/theme-picker.blade.php) ───────── */
-
-.odin-theme-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--odin-primary);
-    box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--odin-border);
-}
-
-.odin-theme-menu {
-    width: 232px;
-    padding: 0.85rem;
-}
+/* ── Bộ chọn màu giao diện (components/settings-modal.blade.php) ───── */
 
 .odin-theme-menu__title {
     font-size: 0.8rem;

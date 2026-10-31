@@ -11,4 +11,6 @@ return [
     'unread_count'     => ':count unread',
     'profile'          => 'My profile',
     'change_password'  => 'Change password',
+    'settings'         => 'Settings',
+    'language'         => 'Language',
 ];

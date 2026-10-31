@@ -99,6 +99,13 @@ document.addEventListener("click", (event) => {
     }
 });
 
+// Đổi ngôn ngữ trong popup Cài đặt: chuyển tới route lang.switch rồi quay lại trang đang xem
+document.addEventListener("change", (event) => {
+    if (event.target.matches("[data-odin-language]")) {
+        window.location.href = event.target.dataset.odinLanguage;
+    }
+});
+
 document.addEventListener("input", (event) => {
     if (event.target.matches("[data-odin-theme-custom]")) {
         applyTheme(event.target.value);
