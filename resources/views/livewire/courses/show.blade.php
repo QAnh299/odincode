@@ -121,27 +121,17 @@
             <div class="card-body">
                 <h2 class="cd-card__title">{{ __('courses.content') }}</h2>
 
-                {{-- Ảnh khóa học (public/images/courses/{mã}.jpg) bên trái, tổng quan bên phải --}}
-                @php $image = $course->imageUrl(); @endphp
-                <div class="cd-overview {{ $image ? 'has-image' : '' }}">
-                    @if ($image)
-                        <img src="{{ $image }}" alt="{{ $course->course_name }}" class="cd-cover" width="500" height="333">
-                    @endif
-
-                    <div class="cd-overview__text">
-                        <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
-                        @if (filled($course->description))
-                            {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
-                            <div class="cd-desc">
-                                @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
-                                    <p>{{ $paragraph }}</p>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="cd-desc text-body-secondary fst-italic">{{ __('courses.no_description') }}</p>
-                        @endif
+                <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
+                @if (filled($course->description))
+                    {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
+                    <div class="cd-desc">
+                        @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
+                            <p>{{ $paragraph }}</p>
+                        @endforeach
                     </div>
-                </div>
+                @else
+                    <p class="cd-desc text-body-secondary fst-italic">{{ __('courses.no_description') }}</p>
+                @endif
 
                 <dl class="cd-facts">
                     <div class="cd-fact">

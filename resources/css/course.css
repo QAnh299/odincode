@@ -243,29 +243,6 @@
     color: var(--bs-secondary-color);
 }
 
-/* Ảnh khóa học bên trái + tổng quan bên phải; màn hẹp thì ảnh nằm trên */
-.cd-overview.has-image {
-    display: grid;
-    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-    gap: 1.25rem;
-    align-items: start;
-    margin-bottom: 1.25rem;
-}
-
-.cd-overview.has-image .cd-desc {
-    margin-bottom: 0;
-}
-
-.cd-cover {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    border-radius: 12px;
-    background: var(--bs-tertiary-bg);
-}
-
 .cd-desc {
     margin-bottom: 1.25rem;
     line-height: 1.65;
@@ -560,14 +537,6 @@
 }
 
 @media (max-width: 575.98px) {
-    .cd-overview.has-image {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .cd-cover {
-        max-width: 500px;
-    }
-
     .cd-facts {
         grid-template-columns: minmax(0, 1fr);
     }

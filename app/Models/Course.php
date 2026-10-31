@@ -86,23 +86,6 @@ class Course extends Model
     }
 
     /**
-     * Ảnh minh hoạ khóa học: file public/images/courses/{course_id}.{jpg|jpeg|png|webp}.
-     * Bảng Courses không có cột ảnh nên ảnh đặt theo mã khóa học; không có file thì trả null.
-     */
-    public function imageUrl(): ?string
-    {
-        foreach (['jpg', 'jpeg', 'png', 'webp'] as $ext) {
-            $path = "images/courses/{$this->course_id}.{$ext}";
-
-            if (is_file(public_path($path))) {
-                return asset($path).'?v='.filemtime(public_path($path));
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Các dòng báo giá (QuotationDetails) của khóa học, đã nối với Quotations.
      * Khóa chính (quotation_id, course_id) nên mỗi báo giá có đúng 1 dòng cho khóa học này.
      *
