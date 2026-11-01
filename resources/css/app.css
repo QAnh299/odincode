@@ -59,9 +59,9 @@ body {
 /* Toàn site vuông góc, trừ:
    - phần tử cần hình tròn để dùng được / dễ nhìn (spinner, radio, chấm trạng thái, ảnh đại diện, núm công tắc)
    - popup, menu thả xuống, thông báo: bo góc nhẹ (khối ngay bên dưới) */
-*:not(.spinner-border, .spinner-grow, input[type="radio"], .auth-blobs span, .dot, [class*="__dot"], [class*="__thumb"], [class*="avatar"],
+*:not(.spinner-border, .spinner-grow, input[type="radio"], .dot, [class*="__dot"], [class*="__thumb"], [class*="avatar"],
     .modal-content, .ld-modal__dialog, .dropdown-menu, .alert, .toast,
-    .ld-notice, .qt-notice, .od-notice, .pw-alert, .auth-alert, .pf-toast, .odin-back) {
+    .ld-notice, .qt-notice, .od-notice, .pw-alert, .auth-alert, .pf-toast, .odin-back, .lang-btn) {
     border-radius: 0 !important;
 }
 
@@ -75,7 +75,8 @@ body {
 .od-notice,
 .pw-alert,
 .auth-alert,
-.pf-toast {
+.pf-toast,
+.lang-btn {
     border-radius: 10px !important;
 }
 

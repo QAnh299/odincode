@@ -1,80 +1,33 @@
 <div class="auth-page">
-    <div class="auth-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+    @foreach (['tl', 'tr', 'bl', 'br'] as $corner)
+        <img src="{{ asset('images/login-corner.svg') }}" alt="" class="auth-corner auth-corner--{{ $corner }}">
+    @endforeach
 
-    {{-- ── Header ───────────────────────────────────────────────────── --}}
-    <header class="auth-header">
-        <div class="header-brand">
-            <img src="{{ asset('images/favicon.png') }}" alt="">
-            <div>
-                <strong>ODIN</strong>
-                <small>Language Center</small>
-            </div>
-        </div>
+    <div class="auth-lang">
         <x-language-switcher />
-    </header>
+    </div>
 
     <main class="auth-main">
         <div class="auth-shell">
             {{-- ── Cột trái: thương hiệu ────────────────────────────── --}}
             <aside class="auth-brand">
+                <img src="{{ asset('images/logoodin-sidebar.png') }}" alt="ODIN Language Center" class="brand-logo">
+
                 <div>
-                    <span class="brand-tag"><span class="dot"></span>ODIN CRM</span>
-                    <h2 class="brand-title">
-                        {{ __('auth.brand_title') }}<br>
-                        <span>{{ __('auth.brand_highlight') }}</span>
-                    </h2>
-                    <p class="brand-sub">{{ __('auth.brand_sub') }}</p>
+                    <h2 class="brand-title">{{ __('auth.brand_title') }}</h2>
+                    <ul class="brand-points">
+                        @foreach (['brand_point_leads', 'brand_point_classes', 'brand_point_care'] as $point)
+                            <li><span class="dot" aria-hidden="true"></span>{{ __('auth.'.$point) }}</li>
+                        @endforeach
+                    </ul>
                 </div>
 
-                <div class="pipeline" aria-hidden="true">
-                    @foreach ([['stage_new', 100], ['stage_consulting', 68], ['stage_won', 42]] as [$stage, $width])
-                        <div class="pipeline-row">
-                            <div class="pipeline-label"><span>{{ __('auth.'.$stage) }}</span></div>
-                            <div class="pipeline-track"><span style="width: {{ $width }}%"></span></div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="brand-features">
-                    <div>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                        {{ __('auth.feature_leads') }}
-                    </div>
-                    <div>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
-                        {{ __('auth.feature_care') }}
-                    </div>
-                    <div>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M3 3v18h18" />
-                            <path d="m19 9-5 5-4-4-3 3" />
-                        </svg>
-                        {{ __('auth.feature_revenue') }}
-                    </div>
-                </div>
+                <p class="brand-copy">© {{ date('Y') }} ODIN Language Center. {{ __('auth.rights') }}</p>
             </aside>
 
             {{-- ── Cột phải: form đăng nhập ─────────────────────────── --}}
             <section class="auth-panel">
-                <div class="panel-top">
-                    <img src="{{ asset('images/logoodin-trim.png') }}" alt="ODIN Language Center" class="panel-logo">
-                    <span class="secure-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                        {{ __('auth.secure') }}
-                    </span>
-                </div>
+                <img src="{{ asset('images/logoodin-trim.png') }}" alt="ODIN Language Center" class="panel-logo">
 
                 <div class="auth-form">
                     @if ($mode === 'forgot')
@@ -112,11 +65,11 @@
                         <form wire:submit="sendTemporaryPassword" novalidate>
                             <div class="mb-4">
                                 <label for="identifier" class="field-label">{{ __('forgot_password.identifier') }}</label>
-                                <div class="input-icon">
+                                <div class="input-wrap">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="M4 4h16v16H4z" />
-                                        <path d="m22 6-10 7L2 6" />
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
                                     </svg>
                                     <input type="text" id="identifier" autocomplete="username" autofocus
                                         class="form-control @error('identifier') is-invalid @enderror"
@@ -140,7 +93,7 @@
                             </button>
                         </form>
 
-                        <div class="text-center mt-3">
+                        <div class="auth-links auth-links--back">
                             <a href="#" class="forgot-link" wire:click.prevent="switchMode('login')">
                                 &larr; {{ __('forgot_password.back_to_login') }}
                             </a>
@@ -150,13 +103,12 @@
                         {{-- Tên đăng nhập --}}
                         <div class="mb-3">
                             <label for="username" class="field-label">{{ __('auth.username') }}</label>
-                            <div class="input-icon">
+                            <div class="input-wrap">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <rect x="3" y="4" width="18" height="16" rx="2" />
-                                    <circle cx="9" cy="10" r="2" />
-                                    <path d="M15 8h2M15 12h2M7 16h10" />
-                                </svg>
+                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
                                 <input type="text" id="username" autocomplete="username" autofocus
                                     class="form-control @error('username') is-invalid @enderror" wire:model="username"
                                     placeholder="{{ __('auth.username_placeholder') }}">
@@ -167,17 +119,14 @@
                         </div>
 
                         {{-- Mật khẩu --}}
-                        <div class="mb-4" x-data="{ show: false }">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label for="password" class="field-label">{{ __('auth.password_label') }}</label>
-                                <a href="#" class="forgot-link" wire:click.prevent="switchMode('forgot')">{{ __('auth.forgot_password') }}</a>
-                            </div>
-                            <div class="input-icon">
+                        <div class="mb-2" x-data="{ show: false }">
+                            <label for="password" class="field-label">{{ __('auth.password_label') }}</label>
+                            <div class="input-wrap">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                </svg>
+                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
                                 <input :type="show ? 'text' : 'password'" type="password" id="password"
                                     autocomplete="current-password"
                                     class="form-control @error('password') is-invalid @enderror" wire:model="password"
@@ -204,15 +153,14 @@
                             @enderror
                         </div>
 
+                        <div class="auth-links">
+                            <a href="#" class="forgot-link" wire:click.prevent="switchMode('forgot')">{{ __('auth.forgot_password') }}</a>
+                        </div>
+
                         <button type="submit" class="btn btn-odin w-100" wire:loading.attr="disabled"
                             wire:target="login">
                             <span wire:loading.remove wire:target="login">
                                 {{ __('auth.login_button') }}
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ms-1"
-                                    aria-hidden="true">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
                             </span>
                             <span wire:loading wire:target="login">
                                 <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
@@ -220,19 +168,10 @@
                             </span>
                         </button>
                     </form>
+
+                    <p class="auth-note">{{ __('auth.no_account') }}</p>
                     @endif
-
-                    <div class="role-note">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                            <path d="m9 12 2 2 4-4" />
-                        </svg>
-                        {{ __('auth.role_note') }}
-                    </div>
                 </div>
-
-                <div class="panel-footer">© {{ date('Y') }} ODIN Language Center</div>
             </section>
         </div>
     </main>
