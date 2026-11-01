@@ -10,7 +10,7 @@
     --od-on-primary: var(--odin-on-primary, #fff);
     --od-accent: var(--odin-accent, #fcda43);
     --od-tint: color-mix(in srgb, var(--od-primary) 9%, #fff);
-    --od-page: #f6f8f5;
+    --od-page: var(--odin-page-bg);
     --od-surface: #fff;
     --od-border: #e6ebe4;
     --od-ink: #1f2937;

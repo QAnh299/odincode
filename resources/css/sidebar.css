@@ -21,7 +21,25 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    background: #f6f8f5;
+    position: relative;
+    background: var(--odin-page-bg);
+}
+
+/* Hoạ tiết nền: tô bằng màu chính qua mask nên đổi theo màu giao diện.
+   Không dùng isolation/z-index ở đây: modal trong trang phải nằm trên backdrop của Bootstrap */
+.odin-main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--odin-primary);
+    opacity: 0.07;
+    pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 260 260%22%3E%3Cg transform=%22translate%2826 30%29%22%3E%3Cpath d=%22M0 12C22 1 46 1 68 8C50 19 24 23 0 12Z%22/%3E%3Cpath d=%22M-10 36C12 25 36 25 58 32C40 43 14 47 -10 36Z%22 opacity=%22.7%22/%3E%3Cpath d=%22M0 60C18 51 36 51 54 56C38 65 18 69 0 60Z%22 opacity=%22.45%22/%3E%3C/g%3E%3Cg transform=%22translate%28160 150%29 rotate%28-24%29%22%3E%3Cpath d=%22M0 10C18 1 38 1 56 7C41 16 20 19 0 10Z%22/%3E%3Cpath d=%22M-8 30C10 21 30 21 48 27C33 36 12 39 -8 30Z%22 opacity=%22.7%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22160%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22180%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22200%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22160%22 cy=%2256%22 r=%223%22/%3E%3Ccircle cx=%22180%22 cy=%2256%22 r=%223%22/%3E%3Ccircle cx=%22160%22 cy=%2276%22 r=%223%22/%3E%3Ccircle cx=%2240%22 cy=%22176%22 r=%223%22/%3E%3Ccircle cx=%2260%22 cy=%22176%22 r=%223%22/%3E%3Ccircle cx=%2240%22 cy=%22196%22 r=%223%22/%3E%3C/g%3E%3Cpath d=%22M78 130A36 36 0 0 1 114 94M60 130A54 54 0 0 1 114 76%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22/%3E%3C/svg%3E") 0 0 / 260px 260px;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 260 260%22%3E%3Cg transform=%22translate%2826 30%29%22%3E%3Cpath d=%22M0 12C22 1 46 1 68 8C50 19 24 23 0 12Z%22/%3E%3Cpath d=%22M-10 36C12 25 36 25 58 32C40 43 14 47 -10 36Z%22 opacity=%22.7%22/%3E%3Cpath d=%22M0 60C18 51 36 51 54 56C38 65 18 69 0 60Z%22 opacity=%22.45%22/%3E%3C/g%3E%3Cg transform=%22translate%28160 150%29 rotate%28-24%29%22%3E%3Cpath d=%22M0 10C18 1 38 1 56 7C41 16 20 19 0 10Z%22/%3E%3Cpath d=%22M-8 30C10 21 30 21 48 27C33 36 12 39 -8 30Z%22 opacity=%22.7%22/%3E%3C/g%3E%3Cg%3E%3Ccircle cx=%22160%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22180%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22200%22 cy=%2236%22 r=%223%22/%3E%3Ccircle cx=%22160%22 cy=%2256%22 r=%223%22/%3E%3Ccircle cx=%22180%22 cy=%2256%22 r=%223%22/%3E%3Ccircle cx=%22160%22 cy=%2276%22 r=%223%22/%3E%3Ccircle cx=%2240%22 cy=%22176%22 r=%223%22/%3E%3Ccircle cx=%2260%22 cy=%22176%22 r=%223%22/%3E%3Ccircle cx=%2240%22 cy=%22196%22 r=%223%22/%3E%3C/g%3E%3Cpath d=%22M78 130A36 36 0 0 1 114 94M60 130A54 54 0 0 1 114 76%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22/%3E%3C/svg%3E") 0 0 / 260px 260px;
+}
+
+.odin-main > main {
+    position: relative;
 }
 
 /* Sidebar (offcanvas trên màn nhỏ, cố định trên màn ≥ lg) */

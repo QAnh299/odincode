@@ -10,7 +10,7 @@
     --iv-on-primary: var(--odin-on-primary, #fff);
     --iv-accent: var(--odin-accent, #fcda43);
     --iv-tint: color-mix(in srgb, var(--iv-primary) 9%, #fff);
-    --iv-page: #f6f8f5;
+    --iv-page: var(--odin-page-bg);
     --iv-surface: #fff;
     --iv-border: #e6ebe4;
     --iv-ink: #1f2937;

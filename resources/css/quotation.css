@@ -10,7 +10,7 @@
     --qt-on-primary: var(--odin-on-primary, #fff);
     --qt-accent: var(--odin-accent, #fcda43);
     --qt-tint: color-mix(in srgb, var(--qt-primary) 9%, #fff);
-    --qt-page: #f6f8f5;
+    --qt-page: var(--odin-page-bg);
     --qt-surface: #fff;
     --qt-border: #e6ebe4;
     --qt-ink: #1f2937;
