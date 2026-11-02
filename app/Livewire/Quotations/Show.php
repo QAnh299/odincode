@@ -128,9 +128,9 @@ class Show extends Component
 
     /**
      * HĐ16 → HĐ17: Salesperson xác nhận báo giá khi khách đồng ý. Không đạt điều kiện thì báo lý do, không đổi gì;
-     * đạt thì một giao dịch: báo giá → Đã xác nhận + tạo đơn hàng, rồi gợi ý tạo hóa đơn (HĐ18).
+     * đạt thì một giao dịch: báo giá → Đã xác nhận + tạo đơn hàng, rồi chuyển sang chi tiết đơn hàng để tạo hóa đơn (HĐ18).
      */
-    public function confirm(QuotationService $service): void
+    public function confirm(QuotationService $service)
     {
         abort_unless($this->canAct, 403);
 
@@ -142,9 +142,10 @@ class Show extends Component
 
         $order = $service->confirm($this->quotation, Auth::user()->employee);
 
-        $this->reloadQuotation();
-        unset($this->canCreateInvoice);
-        $this->notice = ['tone' => 'success', 'text' => __('quotations.detail.confirmed_done', ['code' => $this->quotation->quotation_id, 'order' => $order->order_id])];
+        // Chuyển sang chi tiết đơn hàng vừa tạo để Salesperson lập hóa đơn (HĐ18)
+        session()->flash('order_notice', __('quotations.detail.confirmed_done', ['code' => $this->quotation->quotation_id, 'order' => $order->order_id]));
+
+        return $this->redirectRoute('salesperson.orders.show', $order, navigate: false);
     }
 
     /**

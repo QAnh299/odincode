@@ -1195,3 +1195,126 @@ a.od-mono.od-link {
         min-width: 160px;
     }
 }
+
+/* ── Chi tiết đơn hàng (livewire/orders/show) ────────────────────────
+   Khung trang, thẻ, bảng lấy từ quotation.css (.qt-*); ở đây chỉ có thẻ tổng quan thanh toán. */
+
+.od-sum {
+    padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.od-sum__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.od-sum__head .qt-section-title {
+    margin: 0;
+}
+
+.od-sum__stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+}
+
+.od-sum__stat {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--qt-border);
+    border-radius: 14px;
+    background: var(--qt-page);
+}
+
+.od-sum__stat dt {
+    margin-bottom: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--qt-muted);
+}
+
+.od-sum__stat dd {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.od-sum__stat.is-paid dd {
+    color: var(--qt-primary);
+}
+
+.od-sum__stat.is-remaining dd {
+    color: var(--qt-warning);
+}
+
+.od-sum__stat.is-zero dd {
+    color: var(--qt-muted);
+}
+
+.od-sum__progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.od-sum__bar {
+    flex: 1;
+    display: block;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e5e7eb;
+}
+
+.od-sum__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--qt-primary), color-mix(in srgb, var(--qt-primary) 70%, var(--qt-accent)));
+}
+
+.od-sum__pct {
+    min-width: 3rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: right;
+    color: var(--qt-muted);
+}
+
+/* Tên + dòng phụ (mã khóa học / kỳ hóa đơn / người xác nhận) trong ô bảng */
+.od-course {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.od-course small {
+    font-size: 0.78rem;
+    color: var(--qt-muted);
+}
+
+.od-break {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+    .od-sum__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 479.98px) {
+    .od-sum__stat dd {
+        font-size: 1.05rem;
+    }
+
+    .od-sum__head .qt-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

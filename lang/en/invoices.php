@@ -206,6 +206,7 @@ return [
         'confirm_transfer_confirm' => 'Bank statement checked: confirm :amount received by transfer for invoice :code? This cannot be undone.',
         'confirm_transfer_title' => 'Confirm bank transfer',
         'confirm_transfer_hint' => 'Exact transfers are recorded automatically. Confirm manually only when the customer transferred a different amount and the bank statement shows the full invoice amount has been received.',
+        'transfer_received'  => 'Invoice :code has been paid by bank transfer; the invoice email was sent to the customer.',
         'transfer_confirmed' => 'Transfer confirmed for invoice :code. The salesperson and accountants were notified; the invoice email was sent to the customer.',
         'transfer_mismatch' => 'The customer sent :received at :time, which differs from the invoice amount :amount, so it was not recorded. The accountant checks the bank statement; if short, the salesperson asks the customer to pay the rest; once paid in full, the accountant confirms the transfer.',
         'edit'             => 'Edit invoice',

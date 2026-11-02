@@ -27,6 +27,9 @@ class Show extends Component
     // Thông báo sau thao tác: ['tone' => success|info|danger, 'text' => ...]
     public ?array $notice = null;
 
+    // Trạng thái hóa đơn lúc trang hiển thị lần gần nhất (checkPayment so sánh để biết vừa được thanh toán)
+    public ?string $shownStatus = null;
+
     public function mount(Invoice $invoice): void
     {
         abort_unless(
@@ -117,6 +120,28 @@ class Show extends Component
         $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_confirmed', ['code' => $this->invoice->invoice_id])];
     }
 
+    /**
+     * HĐ29: trang hóa đơn chuyển khoản Chờ thanh toán tự kiểm tra lại (wire:poll) để thấy ngay khi webhook ghi nhận
+     * thanh toán, không cần tải lại trang.
+     */
+    public function checkPayment(): void
+    {
+        // $invoice được Livewire nạp lại từ CSDL mỗi request, nên so với trạng thái trang đang hiển thị ($shownStatus)
+        $status = $this->invoice->status;
+
+        if ($status === $this->shownStatus) {
+            $this->skipRender();
+
+            return;
+        }
+
+        $this->reloadInvoice();
+
+        if ($status === Invoice::STATUS_PAID) {
+            $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_received', ['code' => $this->invoice->invoice_id])];
+        }
+    }
+
     public function render()
     {
         return view('livewire.invoices.show')
@@ -132,6 +157,7 @@ class Show extends Component
 
     private function loadInvoice(Invoice $invoice): void
     {
+        $this->shownStatus = $invoice->status;
         $this->invoice = $invoice->load([
             'order.invoices' => fn ($q) => $q->orderBy('payment_installment'),
             // Khung phiếu (x-invoice-receipt): khóa học, voucher, khách + chi nhánh, nhân viên

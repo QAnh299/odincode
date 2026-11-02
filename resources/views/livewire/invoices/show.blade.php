@@ -22,7 +22,7 @@
     $paymentType = in_array($order?->payment_type, SalesOrder::PAYMENT_TYPES, true) ? $order->payment_type : null;
 @endphp
 
-<div class="qt qt-detail iv">
+<div class="qt qt-detail iv" @if ($isUnpaid && $isTransfer) wire:poll.5s="checkPayment" @endif>
     {{-- Dùng lại khung trang chi tiết của báo giá (quotation.css) + nhãn trạng thái hóa đơn (invoice.css) --}}
     @assets
         @vite(['resources/css/quotation.css', 'resources/css/invoice.css'])

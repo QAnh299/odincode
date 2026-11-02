@@ -11,13 +11,15 @@ use Livewire\Component;
 
 /**
  * Chi tiết một đơn hàng (chỉ xem; mọi vai trò, phạm vi theo SalesOrder::visibleTo(); ngoài phạm vi → 404).
- * Trình bày cùng khung phiếu với chi tiết hóa đơn (x-invoice-receipt, type = order): khách, khóa học của báo giá
- * đã xác nhận, tổng tiền / đã thanh toán / còn lại (giá trị ĐÃ LƯU trong SalesOrders) và lịch sử các kỳ hóa đơn. Salesperson lập báo giá được tạo hóa đơn kỳ tiếp (HĐ18).
+ * Bố cục thẻ như chi tiết báo giá: tổng quan thanh toán (tổng tiền / đã thanh toán / còn lại – giá trị ĐÃ LƯU trong SalesOrders),
+ * khóa học của báo giá đã xác nhận, lịch sử các kỳ hóa đơn, khách hàng. Salesperson lập báo giá được tạo hóa đơn kỳ tiếp (HĐ18).
  */
 #[Layout('layouts.app')]
 class Show extends Component
 {
     public SalesOrder $order;
+
+    public ?array $notice = null;
 
     public function mount(SalesOrder $order): void
     {
@@ -28,15 +30,18 @@ class Show extends Component
 
         $this->order = $order->load([
             'invoices' => fn ($q) => $q->orderBy('payment_installment'),
-            'invoices.createdBy',
             'invoices.accountant',
             'quotation.details' => fn ($q) => $q->orderBy('course_id'),
             'quotation.details.course',
             'quotation.voucher',
             'quotation.employee',
-            // Đầu phiếu (x-invoice-receipt): chi nhánh của khách
-            'quotation.opportunity.lead.branch',
+            'quotation.opportunity.lead',
         ]);
+
+        // Vừa xác nhận báo giá (HĐ17) → báo đơn hàng đã được tạo
+        if ($text = session('order_notice')) {
+            $this->notice = ['tone' => 'success', 'text' => $text];
+        }
     }
 
     #[Computed]

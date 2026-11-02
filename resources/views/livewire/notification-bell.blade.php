@@ -1,5 +1,5 @@
 {{-- Chuông thông báo (App\Livewire\NotificationBell). wire:ignore.self giữ trạng thái mở của dropdown Bootstrap khi Livewire cập nhật lại --}}
-<div class="dropdown">
+<div class="dropdown" wire:poll.15s>
     <button class="odin-icon-btn position-relative" type="button" data-bs-toggle="dropdown"
         data-bs-auto-close="outside" aria-expanded="false" aria-label="{{ __('topbar.notifications') }}"
         title="{{ __('topbar.notifications') }}" wire:ignore.self>

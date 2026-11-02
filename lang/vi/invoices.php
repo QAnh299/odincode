@@ -206,6 +206,7 @@ return [
         'confirm_transfer_confirm' => 'Đã đối chiếu sao kê và xác nhận nhận :amount chuyển khoản cho hóa đơn :code? Thao tác này không hoàn tác được.',
         'confirm_transfer_title' => 'Xác nhận thu chuyển khoản',
         'confirm_transfer_hint' => 'Hệ thống tự ghi nhận khi khách chuyển đúng số tiền qua mã QR. Chỉ xác nhận thủ công khi khách chuyển lệch hoặc không qua mã QR và sao kê ngân hàng cho thấy khách đã chuyển đủ số tiền hóa đơn.',
+        'transfer_received'  => 'Hóa đơn :code đã được thanh toán bằng chuyển khoản; email hóa đơn đã gửi cho khách.',
         'transfer_confirmed' => 'Đã xác nhận chuyển khoản cho hóa đơn :code. Salesperson và kế toán đã nhận thông báo; email hóa đơn đã gửi cho khách.',
         'transfer_mismatch' => 'Khách đã chuyển :received lúc :time, khác số tiền hóa đơn :amount nên hệ thống chưa ghi nhận. Kế toán kiểm tra sao kê; nếu còn thiếu, Salesperson nhắc khách chuyển đủ; khi đã đủ, kế toán xác nhận đã nhận chuyển khoản.',
         'edit'             => 'Sửa hóa đơn',

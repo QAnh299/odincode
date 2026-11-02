@@ -831,9 +831,12 @@ class Index extends Component
 
     /**
      * Sắp xếp theo danh sách trắng SORTS, luôn có thứ tự phụ theo mã để phân trang ổn định.
+     * Đơn Đang xử lý luôn đứng trước đơn Hoàn thành; kiểu sắp xếp đã chọn áp dụng trong từng nhóm.
      */
     private function applySort(Builder $query): void
     {
+        $query->orderByRaw('CASE WHEN SalesOrders.status = ? THEN 0 ELSE 1 END', [SalesOrder::STATUS_IN_PROGRESS]);
+
         match ($this->activeSort()) {
             'oldest'         => $query->orderBy('SalesOrders.created_at')->orderBy('SalesOrders.order_id'),
             'remaining_desc' => $query->orderByDesc('SalesOrders.remaining_amount')->orderBy('SalesOrders.order_id'),
