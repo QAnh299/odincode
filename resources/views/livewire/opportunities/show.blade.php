@@ -50,12 +50,12 @@
             </div>
 
             @if ($this->canCreateQuotation())
-                <button type="button" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="createQuotation"
+                <button type="button" class="vc-btn od-btn--text" wire:loading.attr="disabled" wire:target="createQuotation"
                     x-on:click="$dispatch('odin-confirm', { title: @js(__('opportunities.confirm_quote_title')), message: @js(__('opportunities.confirm_quote')), ok: @js(__('opportunities.create_quotation')), run: () => $wire.createQuotation() })">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </button>
             @elseif ($this->canStartQuotation())
-                <a href="{{ route('salesperson.quotations.create', $opp) }}" class="vc-btn vc-btn--primary">
+                <a href="{{ route('salesperson.quotations.create', $opp) }}" class="vc-btn od-btn--text">
                     <x-icon name="file" />{{ __('opportunities.create_quotation') }}
                 </a>
             @endif
@@ -106,7 +106,7 @@
 
                     <div class="od-tabs__actions">
                         @if ($tab === 'care' && $this->needsContact())
-                            <button type="button" class="vc-btn vc-btn--primary" wire:click="startCare" @disabled(! $canLog)
+                            <button type="button" class="vc-btn od-btn--text" wire:click="startCare" @disabled(! $canLog)
                                 title="{{ $this->careLockHint() }}">
                                 <x-icon name="phone" />{{ $nextActivity ? __('opportunities.care_log', ['activity' => $nextActivity->activity_name]) : __('opportunities.care_log_short') }}
                             </button>

@@ -1088,6 +1088,19 @@
     color: var(--vc-primary);
 }
 
+/* Nút chữ xanh, không nền; rê chuột mới hiện nền xanh (VD: Ghi nhận Chốt đăng ký) */
+.vc .od-btn--text {
+    background: transparent;
+    color: var(--vc-primary);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.vc .od-btn--text:not(:disabled):hover,
+.vc .od-btn--text:not(:disabled):focus-visible {
+    background: var(--vc-primary);
+    color: var(--vc-on-primary);
+}
+
 .od-checks--stack {
     flex-direction: column;
     gap: 0.45rem;
