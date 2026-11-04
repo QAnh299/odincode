@@ -7,7 +7,10 @@
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $listUrl = route($this->routePrefix.'.students');
     $opportunityUrl = $this->opportunityUrl();
-    $quotationRoute = $this->routePrefix.'.quotations.show';
+    // Liên kết sang chi tiết khóa học / báo giá / đơn hàng / hóa đơn khi vai trò có trang đó
+    $detailUrl = fn (string $name, $model) => \Illuminate\Support\Facades\Route::has($route = $this->routePrefix.'.'.$name.'.show')
+        ? route($route, $model)
+        : null;
 @endphp
 
 <div class="vc st">
@@ -77,7 +80,11 @@
                                 @foreach ($quotation->details as $detail)
                                     <tr wire:key="detail-{{ $detail->course_id }}">
                                         <td data-label="{{ __('students.course') }}">
-                                            <span class="st-name">{{ $detail->course?->course_name ?? $detail->course_id }}</span>
+                                            @if ($detail->course && ($courseUrl = $detailUrl('courses', $detail->course)))
+                                                <a href="{{ $courseUrl }}" class="st-name">{{ $detail->course->course_name }}</a>
+                                            @else
+                                                <span class="st-name">{{ $detail->course?->course_name ?? $detail->course_id }}</span>
+                                            @endif
                                             <span class="st-sub vc-mono">{{ $detail->course_id }}</span>
                                         </td>
                                         <td data-label="{{ __('students.duration') }}">{{ $detail->course?->duration ?: '—' }}</td>
@@ -96,7 +103,16 @@
                 <section class="vc-card vc-results">
                     <h2 class="st-title st-title--bar">{{ __('students.payment_title') }}</h2>
                     <dl class="st-pay">
-                        <div><dt>{{ __('students.order') }}</dt><dd><span class="vc-mono">{{ $order->order_id }}</span></dd></div>
+                        <div>
+                            <dt>{{ __('students.order') }}</dt>
+                            <dd>
+                                @if ($orderUrl = $detailUrl('orders', $order))
+                                    <a href="{{ $orderUrl }}" class="vc-mono">{{ $order->order_id }}</a>
+                                @else
+                                    <span class="vc-mono">{{ $order->order_id }}</span>
+                                @endif
+                            </dd>
+                        </div>
                         <div><dt>{{ __('students.payment_type') }}</dt><dd>{{ __('orders.payment_type.'.$order->payment_type) }}</dd></div>
                         <div><dt>{{ __('students.total') }}</dt><dd>{{ $money($order->total_amount) }}</dd></div>
                         <div><dt>{{ __('students.paid') }}</dt><dd class="st-paid">{{ $money($order->paid_amount) }}</dd></div>
@@ -104,8 +120,8 @@
                             <div>
                                 <dt>{{ __('students.quotation') }}</dt>
                                 <dd>
-                                    @if (\Illuminate\Support\Facades\Route::has($quotationRoute))
-                                        <a href="{{ route($quotationRoute, $quotation) }}" class="vc-mono">{{ $quotation->quotation_id }}</a>
+                                    @if ($quotationUrl = $detailUrl('quotations', $quotation))
+                                        <a href="{{ $quotationUrl }}" class="vc-mono">{{ $quotation->quotation_id }}</a>
                                     @else
                                         <span class="vc-mono">{{ $quotation->quotation_id }}</span>
                                     @endif
@@ -134,7 +150,13 @@
                                     @foreach ($order->invoices as $invoice)
                                         <tr wire:key="invoice-{{ $invoice->invoice_id }}">
                                             <td data-label="{{ __('students.installment') }}">{{ __('students.installment_no', ['no' => $invoice->payment_installment]) }}</td>
-                                            <td data-label="{{ __('students.invoice') }}"><span class="vc-mono">{{ $invoice->invoice_id }}</span></td>
+                                            <td data-label="{{ __('students.invoice') }}">
+                                                @if ($invoiceUrl = $detailUrl('invoices', $invoice))
+                                                    <a href="{{ $invoiceUrl }}" class="vc-mono">{{ $invoice->invoice_id }}</a>
+                                                @else
+                                                    <span class="vc-mono">{{ $invoice->invoice_id }}</span>
+                                                @endif
+                                            </td>
                                             <td data-label="{{ __('students.amount') }}" class="text-lg-end">{{ $money($invoice->payment_amount) }}</td>
                                             <td data-label="{{ __('students.method') }}">{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '—' }}</td>
                                             <td data-label="{{ __('students.payment_date') }}" class="st-nowrap">{{ $invoice->payment_date ? \Illuminate\Support\Carbon::parse($invoice->payment_date)->format('d/m/Y H:i') : '—' }}</td>

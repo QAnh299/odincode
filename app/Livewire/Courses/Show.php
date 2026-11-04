@@ -31,7 +31,8 @@ class Show extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    // Số báo giá mỗi trang ở mục Báo giá
+    const PER_PAGE = 5;
 
     public Course $course;
 

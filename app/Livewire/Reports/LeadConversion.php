@@ -129,9 +129,6 @@ class LeadConversion extends Component
     public string $branch = '';
 
     #[Url(except: '')]
-    public string $source = '';
-
-    #[Url(except: '')]
     public string $team = '';
 
     #[Url(except: '')]
@@ -159,7 +156,7 @@ class LeadConversion extends Component
 
     public string $exportTab = 'summary';
 
-    const FILTERS = ['from', 'to', 'branch', 'source', 'team', 'employee'];
+    const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
 
     public function setTab(string $tab): void
     {
@@ -1318,7 +1315,6 @@ class LeadConversion extends Component
             'from'     => $this->validDate($this->from) ? $this->from : null,
             'to'       => $this->validDate($this->to) ? $this->to : null,
             'branch'   => $this->branchScope,
-            'source'   => in_array($this->source, $this->sources, true) ? $this->source : null,
             'team'     => $this->teamScope === null ? '__none__' : ($this->teamScope ?: null),
             'employee' => $this->employeeScope,
         ];

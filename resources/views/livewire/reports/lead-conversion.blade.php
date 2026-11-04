@@ -87,15 +87,6 @@
                 </select>
             </label>
         @endif
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('reports.dimension.source') }}</span>
-            <select wire:model.live="source" class="vc-control">
-                <option value="">{{ __('reports.all') }}</option>
-                @foreach ($this->sources as $option)
-                    <option value="{{ $option }}">{{ $option }}</option>
-                @endforeach
-            </select>
-        </label>
         @if ($this->canFilterTeam)
             <label class="vc-field">
                 <span class="vc-field__label">{{ __('reports.sales_performance.team') }}</span>
