@@ -25,3 +25,6 @@ storage/app/public/livewire-tmp/tn6BXak7pGp9OM3ezIl3HHaluwOQQP-metaQsOASSAzLnBwd
 storage/app/public/lessons/attachments/fr7m9W5icfctf4ZvIFFOc0qRJjRfKbbhZLLSauBr.docx
 /public/build
 .DS_Store
+
+# Biến môi trường Azure chứa mật khẩu – không commit
+azure/app-settings.local.json
