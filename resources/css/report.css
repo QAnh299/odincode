@@ -710,10 +710,6 @@
     white-space: nowrap;
 }
 
-.rv-types {
-    margin-top: 12px;
-}
-
 /* Popup đưa ra <body> bằng @teleport (popup xuất báo cáo chuyển đổi Lead), gốc mang class .vc để giữ biến màu:
    bỏ khung rộng tối đa / căn giữa / hiệu ứng của trang để lớp mờ phủ toàn màn hình */
 .vc.rp-portal {
@@ -1598,4 +1594,25 @@ a.rv-stat-link:focus-visible {
 
 .rp--lc .rp-cohort__cell {
     background: color-mix(in srgb, var(--rp-accent) calc(var(--a, 0%) * 0.4), transparent);
+}
+
+/* Bảng chỉ số ngắn: cột đầu là nhãn, các cột số chia đều để thẳng hàng */
+.rp-table--fixed {
+    table-layout: fixed;
+    /* Màn hẹp: giữ đủ chỗ cho số (ô không xuống dòng), khung .table-responsive cuộn ngang thay vì chữ đè cột */
+    min-width: 620px;
+}
+
+.rp-table--fixed th:first-child {
+    width: 28%;
+}
+
+.rp-table--fixed th:not(:first-child),
+.rp-table--fixed td {
+    width: 18%;
+}
+
+/* Bảng 4 cột đặt dưới bảng 5 cột: 3 cột đầu thẳng với 3 cột đầu bảng trên, cột cuối chiếm chỗ 2 cột (số căn phải nên thẳng cột cuối) */
+.rp-table--fixed.rp-table--span-last th:last-child {
+    width: 36%;
 }

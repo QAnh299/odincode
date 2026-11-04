@@ -58,8 +58,10 @@ function buildConfig(spec) {
                 backgroundColor: s.color + (spec.type === "area" ? "33" : "ff"),
                 fill: spec.type === "area" ? "origin" : false,
                 borderWidth: 2,
-                tension: 0.25,
-                pointRadius: spec.labels.length > 20 ? 0 : 3,
+                // s.dash: đường tham chiếu (vd. chỉ tiêu) – nét đứt, không chấm điểm
+                borderDash: s.dash ? [6, 4] : [],
+                tension: s.dash ? 0 : 0.25,
+                pointRadius: s.dash || spec.labels.length > 20 ? 0 : 3,
                 pointHoverRadius: 5,
                 pointBackgroundColor: s.color,
                 pointBorderColor: "#fff",

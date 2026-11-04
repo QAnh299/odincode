@@ -219,6 +219,14 @@
                         </dl>
                         <p class="rp-card__sub rv-target__source">{{ $L('target.source') }}</p>
                     </section>
+
+                    {{-- Tiến độ đạt chỉ tiêu theo tháng (kỳ từ 2 tháng trở lên) --}}
+                    @if ($t['chart'])
+                        <div class="rp-grid">
+                            @include('livewire.reports.partials.chart-card', ['id' => 'rv-target', 'spec' => $t['chart'], 'wide' => true, 'height' => 280,
+                                'title' => $L('target.chart'), 'sub' => $L('target.chart_sub')])
+                        </div>
+                    @endif
                 @endif
 
                 <div class="rp-grid">
@@ -256,7 +264,7 @@
                     <h3 class="rp-card__title">{{ $L('payments.punctuality') }}</h3>
                     <p class="rp-card__sub">{{ $L('payments.punctuality_sub') }}</p>
                     <div class="table-responsive">
-                        <table class="rp-table">
+                        <table class="rp-table rp-table--fixed">
                             <thead>
                                 <tr>
                                     <th>{{ $L('payments.method') }}</th>
@@ -283,8 +291,14 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="table-responsive rv-types">
-                        <table class="rp-table">
+                </section>
+
+                {{-- Doanh thu theo hình thức thanh toán: thẻ riêng (số cột khác bảng đúng hạn) --}}
+                <section class="vc-card rp-card">
+                    <h3 class="rp-card__title">{{ $L('payments.types_table') }}</h3>
+                    <p class="rp-card__sub">{{ $L('payments.types_sub') }}</p>
+                    <div class="table-responsive">
+                        <table class="rp-table rp-table--fixed rp-table--span-last">
                             <thead>
                                 <tr>
                                     <th>{{ $L('payments.type') }}</th>
@@ -324,6 +338,11 @@
 
                 <p class="rp-hint">{{ $L('debt.note') }}</p>
                 @include('livewire.reports.partials.rv-kpis', ['kpis' => $kpis, 'prevLabel' => null])
+
+                <div class="rp-grid">
+                    @include('livewire.reports.partials.chart-card', ['id' => 'rv-debt-mix', 'spec' => $dd['mix'], 'wide' => true, 'height' => 150,
+                        'title' => $L('debt.mix'), 'sub' => $L('debt.mix_sub')])
+                </div>
 
                 <div class="rp-grid">
                     @include('livewire.reports.partials.chart-card', ['id' => 'rv-aging', 'spec' => $dd['chart'], 'height' => 260,

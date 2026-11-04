@@ -90,6 +90,7 @@ class Revenue extends Component
         'revenue'     => '#2a78d6',
         'collected'   => '#1baf7a',
         'target'      => '#c3cad5',
+        'target_line' => '#6b7280',
         'transfer'    => '#6250d6',
         'cash'        => '#eda100',
         'Full'        => '#2a78d6',
@@ -447,7 +448,32 @@ class Revenue extends Component
             'target' => $target,
             'actual' => $actual,
             'rate'   => RevenueReport::pct($actual, $target),
+            'chart'  => count($months) > 1 ? $this->targetChart($months, $teams) : null,
         ];
+    }
+
+    /**
+     * Doanh thu lũy kế so với chỉ tiêu lũy kế theo tháng (kỳ từ 2 tháng). Tháng chưa tới không vẽ doanh thu.
+     */
+    protected function targetChart(array $months, ?array $teams): array
+    {
+        $revenue = $this->report()->revenueByMonth($this->filterValues(), $months);
+        $targets = $this->report()->revenueTargetByMonth($months, $teams);
+        $now = now()->format('Y-m');
+
+        $actual = $goal = [];
+        $sumActual = $sumGoal = 0.0;
+        foreach ($months as $month) {
+            $sumActual += $revenue[$month] ?? 0;
+            $sumGoal += $targets[$month] ?? 0;
+            $actual[] = $month <= $now ? $sumActual : null;
+            $goal[] = $sumGoal;
+        }
+
+        return ['type' => 'line', 'unit' => 'money', 'labels' => array_map(fn ($m) => $this->monthLabel($m), $months), 'series' => [
+            ['label' => __('reports.revenue.target.cumulative_revenue'), 'color' => self::COLORS['revenue'], 'data' => $actual],
+            ['label' => __('reports.revenue.target.cumulative_target'), 'color' => self::COLORS['target_line'], 'data' => $goal, 'dash' => true],
+        ]];
     }
 
     /* ── Tab 2: Thanh toán ────────────────────────────────────────────── */
@@ -504,7 +530,24 @@ class Revenue extends Component
                 // Mỗi cột một màu theo mức trễ (Chart.js nhận mảng màu cho backgroundColor)
                 'series' => [['label' => __('reports.revenue.debt.amount'), 'data' => array_map(fn ($k) => $aging[$k]['amount'], $keys),
                     'color' => array_map(fn ($k) => self::COLORS[$k], $keys)]]],
+            'mix'      => $this->debtMix(),
         ];
+    }
+
+    /**
+     * Cơ cấu công nợ: một thanh chồng quá hạn / chờ thu / chưa lập hóa đơn (màu cùng biểu đồ tuổi nợ), nhãn kèm tỷ lệ.
+     */
+    protected function debtMix(): array
+    {
+        $d = $this->debt;
+        $parts = ['overdue' => self::COLORS['more'], 'pending' => self::COLORS['not_due'], 'uninvoiced' => self::COLORS['none']];
+
+        return ['type' => 'stacked_h', 'unit' => 'money', 'labels' => [__('reports.revenue.debt.mix_label')],
+            'series' => array_map(fn ($key) => [
+                'label' => __('reports.revenue.kpi.'.$key).' · '.number_format(RevenueReport::pct($d[$key], $d['remaining']) ?? 0, 1, ',', '.').'%',
+                'color' => $parts[$key],
+                'data'  => [$d[$key]],
+            ], array_keys($parts))];
     }
 
     /* ── Tab 4: Cơ cấu doanh thu ──────────────────────────────────────── */

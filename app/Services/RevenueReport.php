@@ -168,6 +168,43 @@ class RevenueReport
     }
 
     /**
+     * Chỉ tiêu doanh thu theo từng tháng: [Y-m => chỉ tiêu] (cùng điều kiện với revenueTarget).
+     */
+    public function revenueTargetByMonth(array $months, ?array $teams): array
+    {
+        if (! $months || $teams === []) {
+            return [];
+        }
+
+        $key = "DATE_FORMAT(t.target_month, '%Y-%m')";
+
+        return DB::table('TeamSalesTargets as t')
+            ->join('SalesTargets as st', 'st.target_id', '=', 't.target_id')
+            ->where('st.target_type', 'Revenue')
+            ->where('t.status', '<>', 'Cancelled')
+            ->whereIn(DB::raw($key), $months)
+            ->when($teams !== null, fn ($q) => $q->whereIn('t.team_id', $teams))
+            ->selectRaw("$key AS k, SUM(t.target_value) AS v")->groupByRaw($key)
+            ->pluck('v', 'k')->map(fn ($v) => (float) $v)->all();
+    }
+
+    /**
+     * Doanh thu theo từng tháng của $months (theo ngày tạo đơn, bỏ qua bộ lọc ngày): [Y-m => doanh thu].
+     */
+    public function revenueByMonth(array $f, array $months): array
+    {
+        if (! $months) {
+            return [];
+        }
+
+        $key = "DATE_FORMAT(so.created_at, '%Y-%m')";
+
+        return $this->orders($f)->whereIn(DB::raw($key), $months)
+            ->selectRaw("$key AS k, SUM(so.total_amount) AS v")->groupByRaw($key)
+            ->pluck('v', 'k')->map(fn ($v) => (float) $v)->all();
+    }
+
+    /**
      * Doanh thu của các tháng $months (theo ngày tạo đơn, bỏ qua bộ lọc ngày) – so với chỉ tiêu tháng.
      */
     public function revenueInMonths(array $f, array $months): float
