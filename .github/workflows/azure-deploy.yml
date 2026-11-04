@@ -17,6 +17,9 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, pdo_mysql, gd, zip, intl, dom
 
+      - name: Tạo thư mục storage (Git không lưu thư mục rỗng)
+        run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public bootstrap/cache
+
       - name: Composer install (production)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
