@@ -104,13 +104,17 @@ cp .env.example .env          # Windows CMD: copy .env.example .env
 php artisan key:generate
 ```
 
-**4. Tạo cơ sở dữ liệu:** import file `dataset demo SQL/odin.sql` vào MySQL. File này tự tạo database `odin`, các bảng nghiệp vụ và dữ liệu demo.
+**4. Tạo cơ sở dữ liệu:** import lần lượt 2 file trong `dataset demo SQL/` vào MySQL:
+
+1. `odin.sql` – tạo database `odin` và các bảng nghiệp vụ.
+2. `odin_data.sql` – toàn bộ dữ liệu demo (chạy một lần, trên database vừa tạo).
 
 ```bash
 mysql -u root -p < "dataset demo SQL/odin.sql"
+mysql -u root -p < "dataset demo SQL/odin_data.sql"
 ```
 
-Hoặc mở phpMyAdmin → **Import** → chọn `odin.sql`.
+Hoặc mở phpMyAdmin → **Import** → chọn `odin.sql`, rồi Import tiếp `odin_data.sql`.
 
 Sau đó sửa `DB_USERNAME` / `DB_PASSWORD` trong `.env` cho đúng với máy của bạn.
 
@@ -142,7 +146,7 @@ npm run dev         # terminal 2 (Vite dev server)
 
 ## 3. Tài khoản demo
 
-Có trong `odin.sql`. Mật khẩu của tất cả tài khoản: **`password`**
+Có trong `odin_data.sql`. Mật khẩu của tất cả tài khoản: **`password`**
 
 | Tên đăng nhập | Họ tên | Vai trò |
 |---|---|---|
@@ -188,7 +192,9 @@ odincode/
 │   └── ...                       # Cấu hình chuẩn của Laravel
 │
 ├── database/migrations/          # CHỈ chứa bảng hệ thống Laravel (sessions, cache, jobs, tokens)
-├── dataset demo SQL/odin.sql     # ★ Schema + dữ liệu demo — nguồn chuẩn của CSDL
+├── dataset demo SQL/
+│   ├── odin.sql                  # ★ Tạo database + bảng nghiệp vụ — nguồn chuẩn của CSDL
+│   └── odin_data.sql             # Toàn bộ dữ liệu demo (import sau odin.sql)
 │
 ├── lang/                         # File dịch
 │   ├── vi/                       # Tiếng Việt (menu.php, topbar.php, theme.php, auth.php...)
@@ -360,7 +366,7 @@ Các route có token gửi kèm header: `Authorization: Bearer {token}`. Nhóm r
 
 ## 9. Cơ sở dữ liệu
 
-- **`dataset demo SQL/odin.sql` là nguồn chuẩn** của toàn bộ bảng nghiệp vụ (tên bảng dạng PascalCase như `Leads`, `Employees`; khoá chính dạng chuỗi như `LEAD001`, `EMP001`).
+- **`dataset demo SQL/odin.sql` là nguồn chuẩn** của toàn bộ bảng nghiệp vụ; dữ liệu demo nằm riêng trong `odin_data.sql` (tên bảng dạng PascalCase như `Leads`, `Employees`; khoá chính dạng chuỗi như `LEAD001`, `EMP001`).
 - **Không** tạo migration cho bảng nghiệp vụ. Thư mục `database/migrations` chỉ chứa bảng hệ thống của Laravel: `sessions`, `cache`, `jobs`, `personal_access_tokens`.
 - Model trong `app/Models` được viết khớp với `odin.sql`. Khi sửa cấu trúc bảng thì sửa `odin.sql` trước, sau đó cập nhật model tương ứng.
 

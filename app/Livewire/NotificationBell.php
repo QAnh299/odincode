@@ -15,7 +15,7 @@ use Livewire\Component;
 /**
  * Chuông thông báo trên topbar. Thông báo suy ra từ dữ liệu (odin.sql không có bảng thông báo):
  *   - Salesperson: hóa đơn vừa thanh toán (InvoiceNotices) + nhắc lịch hẹn (AppointmentReminders)
- *     + cơ hội tới lúc liên hệ lại (CareReminders) + báo giá sắp / quá hạn (QuotationReminders)
+ *     + cơ hội chưa liên hệ lần nào / tới lúc liên hệ lại (CareReminders) + báo giá sắp / quá hạn (QuotationReminders)
  *   - Sale Leader: Lead Sale Admin vừa phân cho đội (LeadAssignmentNotices)
  *   - Kế toán: hóa đơn tiền mặt chờ duyệt + hóa đơn vừa thanh toán (InvoiceNotices)
  * Trạng thái "đã đọc" lưu trong cache theo tài khoản (bảng cache là bảng hệ thống của Laravel);

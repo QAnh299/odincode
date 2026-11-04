@@ -36,15 +36,16 @@ class QuotationService
 
     /**
      * HĐ2: lý do không lập được báo giá trên cơ hội (khóa lang quotations.form.blocked.*), null = được lập.
-     * Chỉ Salesperson phụ trách cơ hội; cơ hội đã Chốt, InProgress hoặc Won, và không còn báo giá Nháp
-     * (một cơ hội có một hoặc nhiều báo giá, nhưng mỗi lúc chỉ một báo giá Nháp).
+     * Chỉ Salesperson phụ trách cơ hội; cơ hội đã Chốt, hoặc khách vừa đồng ý đăng ký ở Data chưa tương tác /
+     * Data đã xử lý (Opportunity::agreedToRegister - lưu báo giá mới chuyển sang Chốt); InProgress hoặc Won,
+     * và không còn báo giá Nháp (một cơ hội có một hoặc nhiều báo giá, nhưng mỗi lúc chỉ một báo giá Nháp).
      */
     public function blockerFor(Opportunity $opportunity, ?Employee $employee): ?string
     {
         return match (true) {
             $employee?->role_name !== Role::SALESPERSON,
             $opportunity->employee_id !== $employee->employee_id => 'not_owner',
-            $opportunity->stage_id !== Stage::CLOSED => 'not_closed',
+            $opportunity->stage_id !== Stage::CLOSED && ! $opportunity->agreedToRegister() => 'not_closed',
             ! in_array($opportunity->status, [Opportunity::STATUS_IN_PROGRESS, Opportunity::STATUS_WON], true) => 'closed_status',
             $opportunity->quotations()->where('status', Quotation::STATUS_DRAFT)->exists() => 'has_draft',
             default => null,
@@ -106,7 +107,8 @@ class QuotationService
     /**
      * HĐ6 (lập mới) / HĐ10 (sửa Nháp): tính thành tiền theo giá và VAT hiện tại của khóa học, lưu báo giá Nháp
      * và toàn bộ dòng chi tiết trong một giao dịch. $lines = [course_id => số lượng], đã kiểm tra ở biểu mẫu (HĐ4).
-     * Lập mới: khóa dòng cơ hội rồi kiểm tra lại HĐ2 để hai lần bấm cùng lúc không tạo hai báo giá Nháp.
+     * Lập mới: khóa dòng cơ hội rồi kiểm tra lại HĐ2 để hai lần bấm cùng lúc không tạo hai báo giá Nháp;
+     * báo giá đầu tiên (cơ hội chưa ở Chốt) chuyển cơ hội sang stage Chốt.
      *
      * @param  array{expiry_date: string, voucher_id: ?string, notes: ?string, lines: array<string, int>}  $data
      */
@@ -116,6 +118,10 @@ class QuotationService
             if ($quotation === null) {
                 $locked = Opportunity::query()->whereKey($opportunity->getKey())->lockForUpdate()->firstOrFail();
                 abort_if($this->blockerFor($locked, $employee) !== null, 409);
+
+                if ($locked->stage_id !== Stage::CLOSED) {
+                    $locked->moveToStage(Stage::CLOSED, 'Khách đồng ý đăng ký - lập báo giá.');
+                }
 
                 $quotation = new Quotation([
                     'opportunity_id' => $opportunity->opportunity_id,

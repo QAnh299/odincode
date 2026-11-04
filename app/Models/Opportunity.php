@@ -20,8 +20,11 @@ class Opportunity extends Model
 
     const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
 
-    // Data đã xử lý: số ngày để khách quyết định, tính từ lần liên hệ "Chốt đăng ký" đầu tiên ở stage
+    // Data đã xử lý: số ngày để khách quyết định, tính từ lúc chuyển sang stage này
     const DECISION_DAYS = 14;
+
+    // Data chưa tương tác: được phân quá số ngày này mà chưa liên hệ lần nào → nhắc trên chuông thông báo
+    const FIRST_CONTACT_DAYS = 1;
 
     // Không liên lạc được: lần liên hệ tiếp theo sau số ngày này (hệ thống nhắc khi tới hạn)
     const RECONTACT_DAYS = 1;
@@ -191,6 +194,33 @@ class Opportunity extends Model
                 || ! $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->exists());
     }
 
+    /**
+     * Khách đồng ý đăng ký, được lập báo giá đầu tiên: đang xử lý ở Data chưa tương tác (đã "Liên hệ ban đầu"
+     * thành công) hoặc Data đã xử lý (đã "Chốt đăng ký" thành công, chưa quá hạn quyết định) - tính từ lúc vào stage.
+     * Lưu báo giá (kể cả Nháp) mới chuyển cơ hội sang stage Chốt.
+     */
+    public function agreedToRegister(): bool
+    {
+        $activity = [Stage::UNTOUCHED => CareActivity::INITIAL, Stage::PROCESSED => CareActivity::DECISION][$this->stage_id] ?? null;
+
+        return $activity !== null
+            && $this->status === self::STATUS_IN_PROGRESS
+            && ! $this->decisionDeadline()?->isPast()
+            && $this->careResults()
+                ->where('activity_id', $activity)
+                ->where('result', CareResult::RESULT_SUCCESS)
+                ->where('performed_at', '>=', $this->stageEnteredAt())
+                ->exists();
+    }
+
+    public function firstContactDue(): bool
+    {
+        return $this->stage_id === Stage::UNTOUCHED
+            && $this->status === self::STATUS_IN_PROGRESS
+            && $this->conversion_date->lte(now()->subDays(self::FIRST_CONTACT_DAYS))
+            && ! (isset($this->care_results_count) ? $this->care_results_count > 0 : $this->careResults()->exists());
+    }
+
     public function needsQuotation(): bool
     {
         return $this->stage_id === Stage::CLOSED
@@ -204,9 +234,7 @@ class Opportunity extends Model
             return null;
         }
 
-        $first = $this->decisionContacts()->min('performed_at');
-
-        return $first ? Carbon::parse($first)->addDays(self::DECISION_DAYS) : null;
+        return $this->stageEnteredAt()->copy()->addDays(self::DECISION_DAYS);
     }
 
     public function closeIfDecisionOverdue(?Carbon $at = null): bool
@@ -220,9 +248,11 @@ class Opportunity extends Model
         $days = self::DECISION_DAYS;
         $last = $this->decisionContacts()->orderByDesc('performed_at')->orderByDesc('result_id')->value('result');
 
-        $this->close(self::STATUS_ARCHIVED, $last === CareResult::RESULT_UNREACHABLE
-            ? "Không liên lạc được quá {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên"
-            : "Khách không ra quyết định sau {$days} ngày kể từ lần liên hệ chốt đăng ký đầu tiên");
+        $this->close(self::STATUS_ARCHIVED, match ($last) {
+            null                            => "Không liên hệ chốt đăng ký trong {$days} ngày kể từ khi chuyển sang Data đã xử lý",
+            CareResult::RESULT_UNREACHABLE  => "Không liên lạc được trong {$days} ngày kể từ khi chuyển sang Data đã xử lý",
+            default                         => "Khách không ra quyết định sau {$days} ngày kể từ khi chuyển sang Data đã xử lý",
+        });
 
         return true;
     }

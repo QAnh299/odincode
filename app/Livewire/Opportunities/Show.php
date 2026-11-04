@@ -54,7 +54,7 @@ use Livewire\Component;
  *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
  *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
  *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → "Tạo báo giá" (→ Chốt); Thất bại → Lost;
- *     quá 14 ngày từ lần liên hệ chốt đăng ký đầu tiên mà khách chưa đồng ý → Archived.
+ *     quá 14 ngày từ khi chuyển sang Data đã xử lý mà khách chưa đồng ý → Archived.
  * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
  * Phần Báo giá chỉ hiện ở stage Chốt (hoặc khi đã có báo giá).
  */
@@ -353,7 +353,7 @@ class Show extends Component
             return $this->closeOpportunity(Opportunity::STATUS_LOST, $reason.$notes, 'opportunities.care_closed_lost', $params);
         }
 
-        // Data đã xử lý: quá hạn quyết định (14 ngày từ lần liên hệ chốt đầu tiên) mà khách chưa đồng ý → Archived
+        // Data đã xử lý: quá hạn quyết định (14 ngày từ khi chuyển sang stage) mà khách chưa đồng ý → Archived
         if ($this->opportunity->stage_id === Stage::PROCESSED && $this->opportunity->closeIfDecisionOverdue($time)) {
             $this->refreshStage();
 
@@ -410,14 +410,12 @@ class Show extends Component
     // ── Tạo báo giá ───────────────────────────────────────────────────
 
     /**
-     * Khách đồng ý đăng ký (Data chưa tương tác – đăng ký ngay / Data đã xử lý – chốt đăng ký):
-     * chuyển sang stage Chốt rồi mở biểu mẫu lập báo giá (HĐ1 → HĐ2).
+     * Khách đồng ý đăng ký (Data chưa tương tác – đăng ký ngay / Data đã xử lý – chốt đăng ký): mở biểu mẫu
+     * lập báo giá (HĐ1 → HĐ2). Cơ hội giữ stage hiện tại; lưu báo giá (kể cả Nháp) mới chuyển sang Chốt.
      */
     public function createQuotation()
     {
         abort_unless($this->canCreateQuotation(), 403);
-
-        $this->opportunity->moveToStage(Stage::CLOSED, 'Khách đồng ý đăng ký - lập báo giá.');
 
         return $this->redirectRoute('salesperson.quotations.create', $this->opportunity, navigate: false);
     }
@@ -944,8 +942,8 @@ class Show extends Component
     /**
      * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách), khi cơ hội chưa qua stage Chốt,
      * chưa kết thúc (Lost / Archived) và khách chưa đóng tiền lần nào, chưa thành học viên.
-     * Ở stage Chốt (đang lập báo giá, chờ thanh toán) vẫn chuyển được. Xét theo thanh toán thực tế chứ không theo
-     * trạng thái Won vì dữ liệu gốc (odin.sql) đặt mọi cơ hội ở stage Chốt là Won kể cả khi chưa có báo giá.
+     * Ở stage Chốt (đang lập báo giá, chờ thanh toán) vẫn chuyển được. Xét theo thanh toán thực tế (đã đóng tiền
+     * kỳ nào chưa) chứ không theo trạng thái Won, vì Won chỉ có khi đã thanh toán đủ.
      */
     #[Computed]
     public function reassignOptions(): Collection
@@ -1173,10 +1171,7 @@ class Show extends Component
      */
     public function canCreateQuotation(): bool
     {
-        return $this->isOwner()
-            && in_array($this->opportunity->stage_id, [Stage::UNTOUCHED, Stage::PROCESSED], true)
-            && $this->stageContactDone
-            && ! $this->opportunity->decisionDeadline()?->isPast();
+        return $this->isOwner() && $this->opportunity->agreedToRegister();
     }
 
     /**

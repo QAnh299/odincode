@@ -118,6 +118,8 @@ return [
     'care_hint_wait'         => 'Contact again from :time.',
     'recontact_title'        => 'Contact :name again',
     'recontact_time'         => 'Unreachable · contact again from :time',
+    'first_contact_title'    => 'Contact :name for the first time',
+    'first_contact_time'     => 'Assigned on :time',
     'care_time'              => 'Contact time',
     'care_result_label'      => 'Result',
     'care_result_required'   => 'Please choose the contact result.',
@@ -132,7 +134,7 @@ return [
     'care_closed_unreachable' => ':activity logged - :reason, the opportunity was moved to Archive (Archived).',
     'care_closed_overdue'    => ':activity logged - :reason, the opportunity was moved to Archive (:status).',
     'quote_stage_moved'      => 'The opportunity moved to ":stage" - prepare a quotation for the customer.',
-    'confirm_quote'          => 'Has the customer agreed to register? The opportunity will move to the Closed stage for a quotation.',
+    'confirm_quote'          => 'Has the customer agreed to register? Saving the quotation (even as a draft) moves the opportunity to the Closed stage.',
     'confirm_quote_title'    => 'Create quotation',
     'apt_notes'              => 'Appointment notes',
     'care_result' => [

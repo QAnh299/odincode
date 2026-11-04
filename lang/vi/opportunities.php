@@ -118,6 +118,8 @@ return [
     'care_hint_wait'         => 'Liên hệ lại từ :time.',
     'recontact_title'        => 'Liên hệ lại :name',
     'recontact_time'         => 'Không liên lạc được · liên hệ lại từ :time',
+    'first_contact_title'    => 'Chưa liên hệ :name',
+    'first_contact_time'     => 'Được phân từ :time',
     'care_time'              => 'Thời gian liên hệ',
     'care_result_label'      => 'Kết quả',
     'care_result_required'   => 'Vui lòng chọn kết quả liên hệ.',
@@ -132,7 +134,7 @@ return [
     'care_closed_unreachable' => 'Đã ghi nhận :activity - :reason, cơ hội chuyển sang Lưu trữ (Archived).',
     'care_closed_overdue'    => 'Đã ghi nhận :activity - :reason, cơ hội chuyển sang Lưu trữ (:status).',
     'quote_stage_moved'      => 'Cơ hội đã chuyển sang ":stage" - lập báo giá cho khách hàng.',
-    'confirm_quote'          => 'Khách đồng ý đăng ký? Cơ hội sẽ chuyển sang stage Chốt để lập báo giá.',
+    'confirm_quote'          => 'Khách đồng ý đăng ký? Lưu báo giá (kể cả Nháp) sẽ chuyển cơ hội sang stage Chốt.',
     'confirm_quote_title'    => 'Tạo báo giá',
     'apt_notes'              => 'Ghi chú lịch hẹn',
     'care_result' => [

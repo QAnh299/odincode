@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      *
      * Các bảng nghiệp vụ (Accounts, Employees, Leads, ...) được tạo bằng file
-     * "dataset demo SQL/odin.sql". Migration chỉ tạo bảng hệ thống của Laravel.
+     * "dataset demo SQL/odin.sql" (dữ liệu demo: odin_data.sql). Migration chỉ tạo bảng hệ thống của Laravel.
      */
     public function up(): void
     {
