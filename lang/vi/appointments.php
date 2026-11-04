@@ -47,6 +47,7 @@ return [
         'Overdue'   => 'Chờ cập nhật',
         'Success'   => 'Khách đã đến',
         'Failed'    => 'Khách không đến',
+        'Cancelled' => 'Đã hủy',
     ],
 
     // Chuông thông báo

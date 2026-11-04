@@ -182,7 +182,8 @@ CREATE TABLE `Appointments` (
   `opportunity_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`appointment_id`, `appointment_type`),
   CHECK (`appointment_type` IN ('Test', 'Consultation')),
-  CHECK (`status` IN ('Scheduled', 'Success', 'Failed')),
+  -- Cancelled: Salesperson hủy buổi hẹn trước giờ hẹn (khách không tham gia buổi đó nữa)
+  CHECK (`status` IN ('Scheduled', 'Success', 'Failed', 'Cancelled')),
   CONSTRAINT `fk_appointments_employee_id` FOREIGN KEY (`employee_id`)
     REFERENCES `Employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_appointments_opportunity_id` FOREIGN KEY (`opportunity_id`)

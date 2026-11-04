@@ -187,6 +187,14 @@ return [
     'apt_clash'             => 'Schedule clash: you already have a :type appointment at :time (:code).',
     'apt_result'            => 'Appointment result',
     'apt_result_required'   => 'Please enter the appointment result.',
+    'apt_cancel'            => 'Cancel appointment',
+    'apt_cancel_reason'     => 'Cancellation reason',
+    'apt_cancel_placeholder' => 'E.g. The customer only wants the test, not the consultation',
+    'apt_cancel_required'   => 'Please enter why the appointment is cancelled.',
+    'apt_cannot_cancel'     => 'Cannot cancel: the appointment time has passed or it already has a result.',
+    'apt_cancelled'         => 'Appointment cancelled.',
+    'apt_cancelled_moved'   => 'Appointment cancelled - the customer attended the remaining sessions, the opportunity moved to ":stage".',
+    'apt_cancelled_lost'    => 'Appointment cancelled - the customer has no appointments left, the opportunity was moved to Archive (Lost).',
     'apt_result_placeholder' => [
         'Test'         => 'E.g. 5.5 points, Pre-intermediate level',
         'Consultation' => 'E.g. IELTS 6.5 roadmap, suggested IELTS Foundation course',
@@ -196,6 +204,7 @@ return [
         'Scheduled' => 'Scheduled',
         'Success'   => 'Attended',
         'Failed'    => 'No-show',
+        'Cancelled' => 'Cancelled',
     ],
 
     'quotations'           => 'Quotations',

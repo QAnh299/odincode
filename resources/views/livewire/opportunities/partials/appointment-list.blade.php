@@ -74,8 +74,33 @@
                                 <x-icon name="x" />{{ __('opportunities.mark_absent') }}
                             </button>
                         </div>
+                    @elseif ($row->can_reschedule && $this->cancelKey === $row->appointment_id.'-'.$row->appointment_type)
+                        {{-- Hủy buổi hẹn trước giờ hẹn: bắt buộc lý do (lưu nối vào ghi chú lịch hẹn) --}}
+                        <form class="od-attend" wire:submit="saveCancel">
+                            <label class="vc-field">
+                                <span class="vc-field__label">{{ __('opportunities.apt_cancel_reason') }} <span class="ld-req">*</span></span>
+                                <textarea wire:model="cancelReason" rows="2" maxlength="500"
+                                    class="vc-control od-textarea @error('cancelReason') is-invalid @enderror"
+                                    placeholder="{{ __('opportunities.apt_cancel_placeholder') }}"></textarea>
+                                @error('cancelReason') <span class="ld-error">{{ $message }}</span> @enderror
+                            </label>
+                            <div class="od-apt__actions">
+                                <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeForm">{{ __('leads.cancel') }}</button>
+                                <button type="submit" class="vc-btn od-btn--danger" wire:loading.attr="disabled" wire:target="saveCancel">
+                                    <x-icon name="x" />{{ __('opportunities.apt_cancel') }}
+                                </button>
+                            </div>
+                        </form>
                     @elseif ($row->status === 'Scheduled')
                         <p class="od-muted od-apt__wait"><x-icon name="clock" />{{ __('opportunities.apt_wait_hint') }}</p>
+                        @if ($row->can_reschedule)
+                            <div class="od-apt__actions">
+                                <button type="button" class="vc-btn vc-btn--ghost"
+                                    wire:click="startCancel('{{ $row->appointment_id }}', '{{ $row->appointment_type }}')">
+                                    <x-icon name="x" />{{ __('opportunities.apt_cancel') }}
+                                </button>
+                            </div>
+                        @endif
                     @endif
                 </li>
             @endforeach

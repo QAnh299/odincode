@@ -111,6 +111,11 @@ class Show extends Component
 
     public string $attendResult = '';
 
+    // Hủy buổi hẹn: dòng đang mở ("APT006-Test") và lý do hủy
+    public ?string $cancelKey = null;
+
+    public string $cancelReason = '';
+
     public function mount(Opportunity $opportunity): void
     {
         abort_unless(
@@ -137,7 +142,7 @@ class Show extends Component
 
     public function closeForm(): void
     {
-        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newNotes', 'editKeys', 'editTimes', 'attendKey', 'attendResult');
+        $this->reset('form', 'careTime', 'careResult', 'careNotes', 'newTypes', 'newTimes', 'newNotes', 'editKeys', 'editTimes', 'attendKey', 'attendResult', 'cancelKey', 'cancelReason');
         $this->resetValidation();
     }
 
@@ -518,7 +523,81 @@ class Show extends Component
     }
 
     /**
-     * Mọi loại lịch hẹn của Opportunity (Test, Tư vấn) đều đã có lần khách đến
+     * Loại lịch hẹn khách còn tham gia: buổi gần nhất của loại đó không bị hủy.
+     *
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection>
+     */
+    protected function activeAppointmentTypes(): Collection
+    {
+        return $this->opportunityAppointments()
+            ->orderBy('scheduled_time')
+            ->get(['appointment_type', 'status'])
+            ->groupBy('appointment_type')
+            ->reject(fn (Collection $rows) => $rows->last()->status === Appointment::STATUS_CANCELLED);
+    }
+
+    /**
+     * Hủy buổi hẹn trước giờ hẹn: mở ô ghi lý do.
+     */
+    public function startCancel(string $appointmentId, string $type): void
+    {
+        $this->closeForm();
+        $this->cancelKey = $appointmentId.'-'.$type;
+    }
+
+    /**
+     * Hủy buổi hẹn (chưa tới giờ, còn chờ), bắt buộc lý do - ghi nối vào ghi chú lịch hẹn. Sau khi hủy:
+     *   - không còn buổi nào đang chờ và chưa đến buổi nào → khách bỏ hẳn → Lưu trữ (Lost);
+     *   - các loại còn tham gia đều đã có buổi khách đến → Data đã xử lý;
+     *   - còn lại giữ nguyên stage.
+     */
+    public function saveCancel(): void
+    {
+        abort_unless($this->canCreateAppointment(), 403);
+
+        [$id, $type] = array_pad(explode('-', (string) $this->cancelKey, 2), 2, '');
+
+        $this->validate(
+            ['cancelReason' => ['required', 'string', 'max:500']],
+            ['cancelReason.required' => __('opportunities.apt_cancel_required')],
+            ['cancelReason' => __('opportunities.apt_cancel_reason')],
+        );
+        $reason = trim($this->cancelReason);
+
+        $query = $this->opportunityAppointments()
+            ->where('appointment_id', $id)
+            ->where('appointment_type', $type)
+            ->where('status', Appointment::STATUS_SCHEDULED)
+            ->where('scheduled_time', '>', now());
+        $row = (clone $query)->first(['notes']);
+
+        if (! $row) {
+            $this->notice = ['tone' => 'danger', 'text' => __('opportunities.apt_cannot_cancel')];
+
+            return;
+        }
+
+        $this->tab = 'appointments';
+        $query->update([
+            'status' => Appointment::STATUS_CANCELLED,
+            'notes'  => ($row->notes ? $row->notes."\n" : '').'Lý do hủy: '.$reason,
+        ]);
+        $this->closeForm();
+
+        $statuses = $this->opportunityAppointments()->pluck('status');
+        $text = match (true) {
+            ! $statuses->contains(Appointment::STATUS_SCHEDULED) && ! $statuses->contains(Appointment::STATUS_SUCCESS)
+                => $this->closeOpportunity(Opportunity::STATUS_LOST, 'Khách hủy lịch hẹn: '.$reason, 'opportunities.apt_cancelled_lost', []),
+            $this->advanceStageIfDone() => __('opportunities.apt_cancelled_moved', ['stage' => $this->opportunity->stage->stage_name]),
+            default => __('opportunities.apt_cancelled'),
+        };
+
+        $this->notice = ['tone' => 'success', 'text' => $text];
+        $this->refreshAppointments();
+    }
+
+    /**
+     * Mọi loại lịch hẹn của Opportunity (Test, Tư vấn) đều đã có lần khách đến (bỏ qua loại khách đã hủy)
      * → chuyển sang "Data đã xử lý" nếu đang ở stage trước đó. Trả về true nếu đã chuyển.
      */
     protected function advanceStageIfDone(): bool
@@ -529,11 +608,9 @@ class Show extends Component
             return false;
         }
 
-        $rows = $this->opportunityAppointments()->get(['appointment_type', 'status']);
-        $types = $rows->pluck('appointment_type')->unique();
-        $done = $rows->where('status', Appointment::STATUS_SUCCESS)->pluck('appointment_type')->unique();
+        $types = $this->activeAppointmentTypes();
 
-        if ($types->isEmpty() || $types->diff($done)->isNotEmpty()) {
+        if ($types->isEmpty() || $types->contains(fn (Collection $rows) => ! $rows->contains('status', Appointment::STATUS_SUCCESS))) {
             return false;
         }
 
@@ -584,10 +661,11 @@ class Show extends Component
             return $this->stageContactDone ? Appointment::TYPES : [];
         }
 
-        $rows = $this->opportunityAppointments()->get(['appointment_type', 'status']);
+        // Loại khách đã hủy không hẹn lại
+        $types = $this->activeAppointmentTypes();
 
-        return array_values(array_filter(Appointment::TYPES, function ($type) use ($rows) {
-            $statuses = $rows->where('appointment_type', $type)->pluck('status');
+        return array_values(array_filter(Appointment::TYPES, function ($type) use ($types) {
+            $statuses = $types->get($type, collect())->pluck('status');
 
             return $statuses->contains(Appointment::STATUS_FAILED)
                 && ! $statuses->contains(Appointment::STATUS_SUCCESS)

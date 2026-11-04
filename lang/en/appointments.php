@@ -47,6 +47,7 @@ return [
         'Overdue'   => 'Awaiting result',
         'Success'   => 'Attended',
         'Failed'    => 'No-show',
+        'Cancelled' => 'Cancelled',
     ],
 
     // Notification bell

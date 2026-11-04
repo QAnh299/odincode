@@ -187,6 +187,14 @@ return [
     'apt_clash'             => 'Trùng lịch: bạn đã có lịch :type lúc :time (:code).',
     'apt_result'            => 'Kết quả buổi hẹn',
     'apt_result_required'   => 'Vui lòng ghi kết quả buổi hẹn.',
+    'apt_cancel'            => 'Hủy lịch',
+    'apt_cancel_reason'     => 'Lý do hủy',
+    'apt_cancel_placeholder' => 'VD: Khách chỉ muốn test, không cần tư vấn',
+    'apt_cancel_required'   => 'Vui lòng ghi lý do hủy lịch hẹn.',
+    'apt_cannot_cancel'     => 'Không hủy được: lịch hẹn đã tới giờ hẹn hoặc đã có kết quả.',
+    'apt_cancelled'         => 'Đã hủy lịch hẹn.',
+    'apt_cancelled_moved'   => 'Đã hủy lịch hẹn - khách đã tham gia các buổi còn lại, cơ hội chuyển sang ":stage".',
+    'apt_cancelled_lost'    => 'Đã hủy lịch hẹn - khách không còn buổi hẹn nào, cơ hội chuyển sang Lưu trữ (Lost).',
     'apt_result_placeholder' => [
         'Test'         => 'VD: 5.5 điểm, trình độ Pre-intermediate',
         'Consultation' => 'VD: Tư vấn lộ trình IELTS 6.5, đề xuất khóa IELTS Foundation',
@@ -196,6 +204,7 @@ return [
         'Scheduled' => 'Đã lên lịch',
         'Success'   => 'Khách đã đến',
         'Failed'    => 'Khách không đến',
+        'Cancelled' => 'Đã hủy',
     ],
 
     'quotations'           => 'Báo giá',

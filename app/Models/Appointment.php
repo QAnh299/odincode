@@ -25,6 +25,7 @@ class Appointment extends Model
     const STATUS_SCHEDULED = 'Scheduled';
     const STATUS_SUCCESS = 'Success';
     const STATUS_FAILED = 'Failed';
+    const STATUS_CANCELLED = 'Cancelled';
 
     protected $table = 'Appointments';
 
