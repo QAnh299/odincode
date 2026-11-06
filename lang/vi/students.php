@@ -74,7 +74,7 @@ return [
         'Archived'   => 'Lưu trữ',
     ],
     'courses_title'      => 'Khóa học đã đăng ký',
-    'no_order'           => 'Không tìm thấy đơn hàng đã thanh toán đủ của học viên này.',
+    'no_order'           => 'Không tìm thấy đơn hàng đã thanh toán của học viên này.',
     'duration'           => 'Thời lượng',
     'unit_price'         => 'Học phí',
     'quantity'           => 'Số lượng',

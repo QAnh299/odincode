@@ -1,7 +1,7 @@
 -- ============================================================
 -- DU LIEU DEMO ODIN CRM - toan bo du lieu mau trong mot file
 -- Chay SAU odin.sql (tao CSDL va bang), mot lan, tren CSDL vua tao.
--- Gom theo thu tu: du lieu goc -> bo sung 1 -> bo sung 2 -> sua du lieu 04/11/2026.
+-- Gom theo thu tu: du lieu goc -> bo sung 1 -> bo sung 2 -> sua du lieu 04/11/2026 -> sua du lieu 06/11/2026.
 -- ============================================================
 USE `odin`;
 SET NAMES utf8mb4;
@@ -32814,5 +32814,132 @@ insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amou
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV858', '2026-10-29', '2026-11-01', 5500000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD699', 1, 'EMP005', NULL);
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD699';
 insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD651', 'Nguyễn Hữu Chi', '0799903964', 'chinh289@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP992');
+
+-- ============================================================
+-- SUA DU LIEU DEMO - ODIN CRM (06/11/2026)
+-- Phan 5/5: quy tac Won / hoc vien quay lai lan thanh toan thanh cong dau tien.
+--   - Co hoi da dong it nhat mot ky (dang tra gop do) -> Won + co hoc vien (STD652 tro di),
+--     ngay tro thanh hoc vien = ngay thanh toan hoa don dau tien.
+-- ============================================================
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2819';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD652', 'Tô Thu Hoa', '0548020648', 'hoatt313@example.test', NULL, '2026-06-08 08:26:00', 'Studying', 'OPP2819');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2906';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD653', 'Chu Hải Thắng', '0352391552', 'thangch961@example.test', NULL, '2026-07-24 09:41:00', 'Studying', 'OPP2906');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2544';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD654', 'Dương Minh Long', '0734348252', 'longdm525@example.test', NULL, '2026-08-02 19:45:00', 'Studying', 'OPP2544');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1393';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD655', 'Trịnh Khánh Hiếu', '0985718640', 'hieutk298@example.test', NULL, '2026-08-08 16:53:00', 'Studying', 'OPP1393');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2935';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD656', 'Mai Đức Giang', '0800558307', 'giangmd860@example.test', NULL, '2026-08-12 17:00:00', 'Studying', 'OPP2935');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP358';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD657', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-20 12:30:00', 'Studying', 'OPP358');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP259';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD658', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-30 16:58:00', 'Studying', 'OPP259');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2382';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD659', 'Trịnh Mỹ Thảo', '0972931158', 'thaotm420@example.test', NULL, '2026-09-02 08:29:00', 'Studying', 'OPP2382');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP369';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD660', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-09-02 19:48:00', 'Studying', 'OPP369');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP413';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD661', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-09-03 10:33:00', 'Studying', 'OPP413');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1246';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD662', 'Trịnh Thanh Ngân', '0730778685', 'ngantt735@example.test', NULL, '2026-09-04 21:55:00', 'Studying', 'OPP1246');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2565';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD663', 'Huỳnh Phương Khôi', '0567084703', 'khoihp380@example.test', NULL, '2026-09-05 20:52:00', 'Studying', 'OPP2565');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1851';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD664', 'Phan Hải Lan', '0536084539', 'lanph313@example.test', NULL, '2026-09-09 08:05:00', 'Studying', 'OPP1851');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3648';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD665', 'Đỗ Đức Hoa', '0309677324', 'hoadd656@example.test', NULL, '2026-09-14 08:19:00', 'Studying', 'OPP3648');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1552';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD666', 'Đặng Bảo Vy', '0974767376', 'vydb569@example.test', NULL, '2026-09-15 12:21:00', 'Studying', 'OPP1552');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP003';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD667', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-17 11:00:00', 'Studying', 'OPP003');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP942';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD668', 'Nguyễn Minh Giang', '0878195378', 'giangnm801@example.test', NULL, '2026-09-20 08:20:00', 'Studying', 'OPP942');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3024';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD669', 'Phan Đức Mai', '0734173762', 'maipd749@example.test', NULL, '2026-09-22 13:06:00', 'Studying', 'OPP3024');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2054';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD670', 'Đỗ Thị Quỳnh', '0390184112', 'quynhdt800@example.test', NULL, '2026-09-23 15:49:00', 'Studying', 'OPP2054');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1440';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD671', 'Bùi Kim Hiếu', '0889897005', 'hieubk580@example.test', NULL, '2026-09-24 08:36:00', 'Studying', 'OPP1440');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP007';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD672', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-24 10:00:00', 'Studying', 'OPP007');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2767';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD673', 'Vũ Anh Anh', '0504391622', 'anhva909@example.test', NULL, '2026-09-24 16:19:00', 'Studying', 'OPP2767');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP494';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD674', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-25 18:50:00', 'Studying', 'OPP494');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1709';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD675', 'Hà Tuấn Ngọc', '0847232186', 'ngocht702@example.test', NULL, '2026-09-26 08:10:00', 'Studying', 'OPP1709');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3559';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD676', 'Hoàng Hữu Linh', '0955412940', 'linhhh861@example.test', NULL, '2026-09-28 08:09:00', 'Studying', 'OPP3559');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2236';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD677', 'Tô Thanh Nam', '0869880047', 'namtt156@example.test', NULL, '2026-09-28 17:17:00', 'Studying', 'OPP2236');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1881';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD678', 'Nguyễn Quốc Khôi', '0559892202', 'khoinq809@example.test', NULL, '2026-10-01 09:32:00', 'Studying', 'OPP1881');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP513';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD679', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-10-01 11:50:00', 'Studying', 'OPP513');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1874';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD680', 'Bùi Phương Mai', '0764123139', 'maibp318@example.test', NULL, '2026-10-02 08:28:00', 'Studying', 'OPP1874');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP517';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD681', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-10-03 11:59:00', 'Studying', 'OPP517');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3425';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD682', 'Lý Nhật Tùng', '0519310617', 'tungln547@example.test', NULL, '2026-10-04 08:43:00', 'Studying', 'OPP3425');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3781';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD683', 'Nguyễn Hữu Khôi', '0538919978', 'khoinh797@example.test', NULL, '2026-10-05 08:01:00', 'Studying', 'OPP3781');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3262';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD684', 'Hoàng Bảo Sơn', '0590391185', 'sonhb731@example.test', NULL, '2026-10-06 08:18:00', 'Studying', 'OPP3262');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3356';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD685', 'Nguyễn Quốc Trúc', '0941502462', 'trucnq1@example.test', NULL, '2026-10-06 08:26:00', 'Studying', 'OPP3356');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3034';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD686', 'Lê Ngọc Minh', '0869149519', 'minhln588@example.test', NULL, '2026-10-06 17:16:00', 'Studying', 'OPP3034');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2049';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD687', 'Đặng Thanh Phong', '0876094878', 'phongdt926@example.test', NULL, '2026-10-07 08:02:00', 'Studying', 'OPP2049');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2585';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD688', 'Võ Mỹ Mai', '0593119387', 'maivm341@example.test', NULL, '2026-10-07 08:30:00', 'Studying', 'OPP2585');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1690';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD689', 'Hồ Nhật Giang', '0930079624', 'gianghn966@example.test', NULL, '2026-10-07 08:47:00', 'Studying', 'OPP1690');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3495';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD690', 'Hồ Gia Hà', '0867997078', 'hahg103@example.test', NULL, '2026-10-08 08:04:00', 'Studying', 'OPP3495');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3214';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD691', 'Dương Đức Bình', '0594653076', 'binhdd738@example.test', NULL, '2026-10-08 18:11:00', 'Studying', 'OPP3214');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP573';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD692', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-10 11:20:00', 'Studying', 'OPP573');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP477';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD693', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-10 11:46:00', 'Studying', 'OPP477');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1860';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD694', 'Hoàng Thanh Dũng', '0334590508', 'dunght813@example.test', NULL, '2026-10-11 10:09:00', 'Studying', 'OPP1860');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP560';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD695', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-12 12:41:00', 'Studying', 'OPP560');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1876';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD696', 'Đinh Kim Uyên', '0785011934', 'uyendk355@example.test', NULL, '2026-10-12 14:11:00', 'Studying', 'OPP1876');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2997';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD697', 'Hà Gia Khôi', '0885866808', 'khoihg419@example.test', NULL, '2026-10-15 08:32:00', 'Studying', 'OPP2997');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2794';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD698', 'Hồ Hoài My', '0812459724', 'myhh75@example.test', NULL, '2026-10-16 09:56:00', 'Studying', 'OPP2794');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3578';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD699', 'Hoàng Đức Anh', '0936899457', 'anhhd217@example.test', NULL, '2026-10-18 08:16:00', 'Studying', 'OPP3578');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3521';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD700', 'Hoàng Minh Bình', '0705264662', 'binhhm471@example.test', NULL, '2026-10-18 09:21:00', 'Studying', 'OPP3521');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3825';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD701', 'Hoàng Văn Yến', '0968134631', 'yenhv407@example.test', NULL, '2026-10-19 08:30:00', 'Studying', 'OPP3825');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3176';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD702', 'Bùi Phương Trang', '0565082730', 'trangbp681@example.test', NULL, '2026-10-19 13:20:00', 'Studying', 'OPP3176');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2434';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD703', 'Đinh Đức Thư', '0895406430', 'thudd178@example.test', NULL, '2026-10-20 19:23:00', 'Studying', 'OPP2434');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3523';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD704', 'Phan Gia Giang', '0915567205', 'giangpg265@example.test', NULL, '2026-10-22 09:02:00', 'Studying', 'OPP3523');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1459';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD705', 'Đinh Thanh Ngọc', '0330972679', 'ngocdt849@example.test', NULL, '2026-10-24 08:11:00', 'Studying', 'OPP1459');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2270';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD706', 'Phan Mỹ Ngân', '0542620177', 'nganpm796@example.test', NULL, '2026-10-25 17:33:00', 'Studying', 'OPP2270');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP989';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD707', 'Lý Hữu Quân', '0399148230', 'quanlh449@example.test', NULL, '2026-10-25 19:06:00', 'Studying', 'OPP989');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2438';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD708', 'Ngô Hữu Vy', '0522787732', 'vynh773@example.test', NULL, '2026-10-26 10:12:00', 'Studying', 'OPP2438');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1450';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD709', 'Trịnh Hoài Trang', '0597279206', 'trangth902@example.test', NULL, '2026-10-28 08:15:00', 'Studying', 'OPP1450');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3117';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD710', 'Trần Quốc Trúc', '0968374043', 'tructq392@example.test', NULL, '2026-10-28 08:50:00', 'Studying', 'OPP3117');
+update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2983';
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD711', 'Hồ Quốc Ly', '0575859073', 'lyhq105@example.test', NULL, '2026-10-28 11:20:00', 'Studying', 'OPP2983');
 
 COMMIT;

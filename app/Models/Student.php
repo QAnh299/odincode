@@ -75,7 +75,7 @@ class Student extends Model
     }
 
     /**
-     * Tạo học viên khi đơn hàng thanh toán đủ - Hoàn tất (gọi từ SalesOrder khi lưu).
+     * Tạo học viên ở lần thanh toán thành công đầu tiên của đơn (gọi từ SalesOrder khi lưu).
      * Thông tin lấy từ Lead của Opportunity; Opportunity đã có học viên thì bỏ qua.
      */
     public static function enrollFromOrder(SalesOrder $order): ?self

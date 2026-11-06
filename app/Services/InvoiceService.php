@@ -276,7 +276,7 @@ class InvoiceService
 
     /**
      * HĐ33 – HĐ35 trong một giao dịch: hóa đơn → Đã thanh toán (ngày thanh toán; mã kế toán nếu tiền mặt);
-     * đơn tăng đã thanh toán, tính lại còn lại, Completed khi hết nợ (SalesOrder tự tạo học viên, cơ hội → Won).
+     * đơn tăng đã thanh toán, tính lại còn lại, Completed khi hết nợ; lần thanh toán đầu: cơ hội → Won (SalesOrder tự tạo học viên).
      * Sau khi giao dịch xong: gửi email hóa đơn cho khách (HĐ34) – lỗi gửi chỉ ghi log, không hoàn tác thanh toán.
      */
     public function recordPayment(Invoice $invoice, ?string $accountantId, Carbon $paidAt): Invoice
@@ -304,9 +304,9 @@ class InvoiceService
                 'status'           => $remaining <= 0 ? SalesOrder::STATUS_COMPLETED : SalesOrder::STATUS_IN_PROGRESS,
             ]);
 
-            // Thanh toán đủ (đơn Hoàn tất) → cơ hội Won, rời Kanban sang Danh sách học viên
+            // Lần thanh toán thành công đầu tiên (trả toàn bộ hoặc kỳ trả góp đầu) → cơ hội Won, khách thành học viên
             $opportunity = $order->quotation?->opportunity;
-            if ($remaining <= 0 && $opportunity && $opportunity->status !== Opportunity::STATUS_WON) {
+            if ($opportunity && $opportunity->status !== Opportunity::STATUS_WON) {
                 $opportunity->update(['status' => Opportunity::STATUS_WON]);
             }
 

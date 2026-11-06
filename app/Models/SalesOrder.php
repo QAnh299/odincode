@@ -53,13 +53,13 @@ class SalesOrder extends Model
     ];
 
     /**
-     * Đơn hàng thanh toán đủ (chuyển sang Hoàn tất: trả toàn bộ hoặc kỳ trả góp cuối) → khách trở thành học viên
-     * (chốt 04/11/2026). enrollFromOrder bỏ qua Opportunity đã có học viên.
+     * Đơn hàng có lần thanh toán thành công đầu tiên (trả toàn bộ hoặc kỳ trả góp đầu) → khách trở thành học viên
+     * (chốt 06/11/2026). Các kỳ sau không tạo thêm: enrollFromOrder bỏ qua Opportunity đã có học viên.
      */
     protected static function booted(): void
     {
         static::saved(function (self $order) {
-            if ($order->status === self::STATUS_COMPLETED && ($order->wasRecentlyCreated || $order->wasChanged('status'))) {
+            if ((float) $order->paid_amount > 0 && ($order->wasRecentlyCreated || $order->wasChanged('paid_amount'))) {
                 Student::enrollFromOrder($order);
             }
         });

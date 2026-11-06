@@ -1021,7 +1021,7 @@ class Show extends Component
      * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách), khi cơ hội chưa qua stage Chốt,
      * chưa kết thúc (Lost / Archived) và khách chưa đóng tiền lần nào, chưa thành học viên.
      * Ở stage Chốt (đang lập báo giá, chờ thanh toán) vẫn chuyển được. Xét theo thanh toán thực tế (đã đóng tiền
-     * kỳ nào chưa) chứ không theo trạng thái Won, vì Won chỉ có khi đã thanh toán đủ.
+     * kỳ nào chưa) chứ không theo trạng thái Won, vì Won chỉ có từ lần thanh toán thành công đầu tiên.
      */
     #[Computed]
     public function reassignOptions(): Collection

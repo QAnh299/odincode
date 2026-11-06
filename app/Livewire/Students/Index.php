@@ -18,7 +18,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Danh sách học viên + tra cứu. Học viên = Opportunity đã thanh toán toàn bộ học phí (đơn hàng Hoàn tất).
+ * Danh sách học viên + tra cứu. Học viên = Opportunity đã có lần thanh toán thành công (toàn bộ hoặc kỳ trả góp đầu).
  * Dùng chung cho mọi vai trò, phạm vi theo Student::visibleTo():
  *   - Giám đốc, Sale Admin, Kế toán: tất cả; lọc theo Đội rồi đến Salesperson của đội.
  *   - Sale Leader: học viên của đội mình; lọc theo Salesperson trong đội.

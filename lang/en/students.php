@@ -74,7 +74,7 @@ return [
         'Archived'   => 'Archived',
     ],
     'courses_title'      => 'Registered courses',
-    'no_order'           => 'No fully paid order found for this student.',
+    'no_order'           => 'No paid order found for this student.',
     'duration'           => 'Duration',
     'unit_price'         => 'Tuition',
     'quantity'           => 'Qty',
