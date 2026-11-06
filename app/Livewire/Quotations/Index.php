@@ -23,7 +23,7 @@ use Livewire\WithPagination;
  * báo giá làm ở trang chi tiết (bước sau). Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán (Kế toán chỉ xem).
  *
- * Phạm vi dữ liệu luôn theo Quotation::visibleTo(): Giám đốc / Sale Admin / Kế toán xem tất cả,
+ * Phạm vi dữ liệu luôn theo Quotation::visibleTo(): Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách,
  * Sale Leader xem của đội mình, Salesperson xem của chính mình.
  *
  * Tìm kiếm (cập nhật ngay): nhiều từ khóa (AND), mỗi từ khóa khớp ít nhất một trường (OR);

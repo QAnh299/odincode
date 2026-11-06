@@ -491,7 +491,7 @@ class Revenue extends Component
         return [
             'on_time_rate' => RevenueReport::pct($c['on_time'], $c['invoices']),
             'days'         => ['median' => RevenueReport::median($days), 'avg' => $days ? round(array_sum($days) / count($days), 1) : null, 'count' => count($days)],
-            'cash_queue'   => $this->report()->cashQueue($f),
+            'cash_queue'   => $this->report()->cashQueue($this->workScope($f)),
             'transfers'    => $this->transferQueue,
             'punctuality'  => $punctuality,
             'types'        => $types,
@@ -575,7 +575,18 @@ class Revenue extends Component
     #[Computed]
     public function transferQueue(): array
     {
-        return $this->report()->transferQueue($this->filterValues(dates: false));
+        return $this->report()->transferQueue($this->workScope($this->filterValues(dates: false)));
+    }
+
+    /**
+     * Hàng đợi việc của Kế toán (tiền mặt chờ xác nhận, chuyển khoản lệch) chỉ gồm cơ sở kế toán phụ trách
+     * (Employee::coveredBranchIds); số liệu báo cáo vẫn theo bộ lọc, toàn hệ thống.
+     */
+    private function workScope(array $f): array
+    {
+        return $this->routePrefix === Role::ACCOUNTANT
+            ? $f + ['branches' => Auth::user()->employee?->coveredBranchIds() ?: ['']]
+            : $f;
     }
 
     /**
@@ -592,7 +603,7 @@ class Revenue extends Component
                 'payment_amount', $this->listUrl('invoices', ['status' => [Invoice::STATUS_OVERDUE]])],
             'uninvoiced' => fn () => [$this->report()->staleUninvoiced($f, self::STALE_ORDER_DAYS), 'uninvoiced', $this->listUrl('orders', ['invoice' => 'needs_invoice'])],
             'transfer'   => fn () => [$this->transferQueue, 'payment_amount', null],
-            'cash'       => fn () => [$this->report()->staleCash($f, self::STALE_CASH_DAYS), 'payment_amount', $this->listUrl('invoices', ['cash_pending' => 1])],
+            'cash'       => fn () => [$this->report()->staleCash($this->workScope($f), self::STALE_CASH_DAYS), 'payment_amount', $this->listUrl('invoices', ['cash_pending' => 1])],
         ], array_flip($this->roleView()['todo']));
 
         $out = [];

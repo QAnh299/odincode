@@ -1686,3 +1686,50 @@ select.iv-control {
         text-align: left;
     }
 }
+
+/* Nút tải ảnh QR: icon tròn nổi ở góc trên phải ảnh (Salesperson gửi khách qua Zalo / email) */
+.iv-qr__frame {
+    position: relative;
+    width: fit-content;
+    max-width: 240px;
+    margin: 0 auto;
+}
+
+.iv-qr__frame .iv-qr__img {
+    margin-bottom: 0.5rem;
+}
+
+.iv-qr__download {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--iv-primary);
+    cursor: pointer;
+    transition: color 0.15s, transform 0.15s;
+}
+
+.iv-qr__download .odin-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.iv-qr__download:hover,
+.iv-qr__download:focus-visible {
+    color: #003d0b;
+    transform: translateY(1px);
+    outline: none;
+}
+
+.iv-qr__download:disabled {
+    opacity: 0.5;
+    cursor: progress;
+    transform: none;
+}

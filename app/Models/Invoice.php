@@ -72,7 +72,7 @@ class Invoice extends Model
 
     /**
      * Hóa đơn mà nhân viên được phép xem: theo báo giá của đơn hàng (Quotation::visibleTo).
-     * Giám đốc / Sale Admin / Kế toán xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
+     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của đội mình, Salesperson xem của chính mình.
      */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {

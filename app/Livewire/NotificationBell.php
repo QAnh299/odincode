@@ -92,7 +92,7 @@ class NotificationBell extends Component
                 'footer'   => ['url' => route('salesperson.appointments'), 'label' => __('appointments.view_all')],
             ],
             Role::ACCOUNTANT => [
-                'subtitle' => __('invoices.notice.header', ['count' => InvoiceNotices::cashQueueCount()]),
+                'subtitle' => __('invoices.notice.header', ['count' => InvoiceNotices::cashQueueCount(auth()->user()->employee)]),
                 'footer'   => ['url' => route('accountant.invoices', ['cash_pending' => 1]), 'label' => __('invoices.notice.view_queue')],
             ],
             default => ['subtitle' => null, 'footer' => null],

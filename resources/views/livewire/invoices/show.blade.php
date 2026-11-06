@@ -22,7 +22,7 @@
     $paymentType = in_array($order?->payment_type, SalesOrder::PAYMENT_TYPES, true) ? $order->payment_type : null;
 @endphp
 
-<div class="qt qt-detail iv" @if ($isUnpaid && $isTransfer) wire:poll.5s="checkPayment" @endif>
+<div class="qt qt-detail iv" @if ($isUnpaid) wire:poll.5s="checkPayment" @endif>
     {{-- Dùng lại khung trang chi tiết của báo giá (quotation.css) + nhãn trạng thái hóa đơn (invoice.css) --}}
     @assets
         @vite(['resources/css/quotation.css', 'resources/css/invoice.css'])
@@ -156,7 +156,19 @@
                 {{-- HĐ27: QR chuyển khoản (đúng số tiền, nội dung = mã hóa đơn) --}}
                 @if ($isUnpaid && $isTransfer)
                     <div class="iv-qr">
-                        <img src="{{ $invoice->qrUrl() }}" alt="{{ __('invoices.detail.qr_alt', ['code' => $invoice->invoice_id]) }}" class="iv-qr__img" loading="lazy">
+                        <div class="iv-qr__frame">
+                            <img src="{{ $invoice->qrUrl() }}" alt="{{ __('invoices.detail.qr_alt', ['code' => $invoice->invoice_id]) }}" class="iv-qr__img" loading="lazy">
+                            @if ($this->canDownloadQr)
+                                {{-- Tải QR (PNG) để gửi khách qua Zalo / email khi khách không đến trung tâm --}}
+                                <button type="button" class="iv-qr__download"
+                                        title="{{ __('invoices.detail.qr_download_hint') }}" aria-label="{{ __('invoices.detail.qr_download') }}"
+                                        data-qr-download="{{ route('salesperson.invoices.qr', $invoice) }}"
+                                        data-qr-filename="QR-{{ $invoice->invoice_id }}.png"
+                                        data-qr-error="{{ __('invoices.detail.qr_download_failed') }}">
+                                    <x-icon name="download" />
+                                </button>
+                            @endif
+                        </div>
                         <p class="iv-qr__meta">
                             {{ config('services.vietqr.bank_id') }} · {{ config('services.vietqr.account_no') }}<br>
                             {{ config('services.vietqr.account_name') }}<br>

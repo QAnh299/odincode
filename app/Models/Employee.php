@@ -121,6 +121,31 @@ class Employee extends Model
         return $this->role?->role_name;
     }
 
+    /**
+     * Cơ sở Kế toán phụ trách (chốt 06/11/2026): cơ sở của mình; kế toán trụ sở chính nhận thêm các cơ sở chưa có
+     * kế toán đang làm việc. Hóa đơn thuộc cơ sở của khách (Leads.branch_id). Vai trò khác: mảng rỗng.
+     *
+     * @return list<string>
+     */
+    public function coveredBranchIds(): array
+    {
+        if ($this->role_name !== Role::ACCOUNTANT) {
+            return [];
+        }
+
+        static $cache = [];
+
+        return $cache[$this->employee_id] ??= $this->branch_id !== Branch::HEAD_OFFICE
+            ? [$this->branch_id]
+            : Branch::query()
+                ->where('branch_id', $this->branch_id)
+                ->orWhereNotIn('branch_id', self::query()
+                    ->where('status', self::STATUS_WORKING)
+                    ->whereHas('role', fn ($q) => $q->where('role_name', Role::ACCOUNTANT))
+                    ->select('branch_id'))
+                ->pluck('branch_id')->all();
+    }
+
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role_name, $roles, true);

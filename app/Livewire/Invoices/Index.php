@@ -26,7 +26,7 @@ use Livewire\WithPagination;
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán.
  *
  * Phạm vi dữ liệu luôn theo Invoice::visibleTo() (theo báo giá của đơn hàng): Giám đốc / Sale Admin /
- * Kế toán xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
+ * Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của đội mình, Salesperson xem của chính mình.
  *
  * Tìm kiếm (cập nhật ngay): nhiều từ khóa (AND), mỗi từ khóa khớp ít nhất một trường (OR);
  * "cụm từ" giữ nguyên; -từ khóa để loại trừ; không phân biệt hoa/thường và dấu tiếng Việt.

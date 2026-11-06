@@ -26,7 +26,7 @@ use Livewire\WithPagination;
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán.
  *
  * Phạm vi dữ liệu luôn theo SalesOrder::visibleTo() (theo báo giá của đơn): Giám đốc / Sale Admin /
- * Kế toán xem tất cả, Sale Leader xem của đội mình, Salesperson xem của chính mình.
+ * Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của đội mình, Salesperson xem của chính mình.
  *
  * Tổng tiền, đã thanh toán, còn lại là giá trị ĐÃ LƯU trong SalesOrders (không tính lại từ báo giá).
  *

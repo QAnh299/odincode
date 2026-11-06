@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Services\TransferAlerts;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -72,6 +73,12 @@ class Show extends Component
      * HĐ36: Salesperson lập hóa đơn sửa khi còn Chờ thanh toán.
      */
     #[Computed]
+    public function canDownloadQr(): bool
+    {
+        return app(InvoiceService::class)->canDownloadQr($this->invoice, Auth::user()->employee);
+    }
+
+    #[Computed]
     public function canEdit(): bool
     {
         return app(InvoiceService::class)->canEdit($this->invoice, Auth::user()->employee);
@@ -92,9 +99,14 @@ class Show extends Component
      */
     public function approveCash(InvoiceService $service): void
     {
+        if ($this->handledElsewhere()) {
+            return;
+        }
         abort_unless($this->canApproveCash, 403);
 
-        $service->approveCash($this->invoice, Auth::user()->employee);
+        if (! $this->attempt(fn () => $service->approveCash($this->invoice, Auth::user()->employee))) {
+            return;
+        }
 
         $this->reloadInvoice();
         $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.cash_approved', ['code' => $this->invoice->invoice_id])];
@@ -112,17 +124,23 @@ class Show extends Component
 
     public function confirmTransfer(InvoiceService $service): void
     {
+        if ($this->handledElsewhere()) {
+            return;
+        }
         abort_unless($this->canConfirmTransfer, 403);
 
-        $service->confirmTransfer($this->invoice, Auth::user()->employee);
+        if (! $this->attempt(fn () => $service->confirmTransfer($this->invoice, Auth::user()->employee))) {
+            return;
+        }
 
         $this->reloadInvoice();
         $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_confirmed', ['code' => $this->invoice->invoice_id])];
     }
 
     /**
-     * HĐ29: trang hóa đơn chuyển khoản Chờ thanh toán tự kiểm tra lại (wire:poll) để thấy ngay khi webhook ghi nhận
-     * thanh toán, không cần tải lại trang.
+     * HĐ29: trang hóa đơn Chờ thanh toán tự kiểm tra lại (wire:poll) để thấy ngay khi webhook ghi nhận chuyển khoản
+     * hoặc kế toán khác cùng cơ sở xác nhận tiền mặt,
+     * không cần tải lại trang.
      */
     public function checkPayment(): void
     {
@@ -138,7 +156,9 @@ class Show extends Component
         $this->reloadInvoice();
 
         if ($status === Invoice::STATUS_PAID) {
-            $this->notice = ['tone' => 'success', 'text' => __('invoices.detail.transfer_received', ['code' => $this->invoice->invoice_id])];
+            $this->notice = $this->invoice->payment_method === Invoice::METHOD_CASH
+                ? ['tone' => 'info', 'text' => $this->paidElsewhereText()]
+                : ['tone' => 'success', 'text' => __('invoices.detail.transfer_received', ['code' => $this->invoice->invoice_id])];
         }
     }
 
@@ -148,11 +168,57 @@ class Show extends Component
             ->title(__('invoices.detail.title', ['code' => $this->invoice->invoice_id]));
     }
 
+    /**
+     * Nhiều kế toán cùng cơ sở dùng chung hàng đợi: hóa đơn đã được người khác xác nhận (hoặc hệ thống ghi nhận chuyển khoản)
+     * trong lúc trang đang mở → tải lại và báo ai đã xác nhận, thay vì lỗi 403.
+     */
+    private function handledElsewhere(): bool
+    {
+        $fresh = $this->invoice->fresh();
+        if (! $fresh || $fresh->status === Invoice::STATUS_UNPAID) {
+            return false;
+        }
+
+        $this->reloadInvoice();
+        $this->notice = ['tone' => 'info', 'text' => $fresh->status === Invoice::STATUS_PAID
+            ? $this->paidElsewhereText()
+            : __('invoices.detail.status_changed', ['code' => $fresh->invoice_id])];
+
+        return true;
+    }
+
+    /**
+     * Chạy thao tác xác nhận; hai kế toán bấm cùng lúc thì InvoiceService chặn người sau (409) → báo như handledElsewhere.
+     */
+    private function attempt(callable $action): bool
+    {
+        try {
+            $action();
+
+            return true;
+        } catch (HttpExceptionInterface $e) {
+            if ($e->getStatusCode() === 409 && $this->handledElsewhere()) {
+                return false;
+            }
+            throw $e;
+        }
+    }
+
+    private function paidElsewhereText(): string
+    {
+        $invoice = $this->invoice;
+        $time = $invoice->payment_date?->format('H:i d/m/Y') ?? '—';
+
+        return $invoice->accountant
+            ? __('invoices.detail.already_confirmed', ['code' => $invoice->invoice_id, 'name' => $invoice->accountant->full_name, 'time' => $time])
+            : __('invoices.detail.already_paid', ['code' => $invoice->invoice_id, 'time' => $time]);
+    }
+
     private function reloadInvoice(): void
     {
         $this->loadInvoice($this->invoice->fresh());
         // Tính lại mọi nút / cảnh báo theo trạng thái mới (đã thanh toán thì ẩn nút xác nhận, cảnh báo giao dịch lệch)
-        unset($this->canApproveCash, $this->canConfirmTransfer, $this->canEdit, $this->canCreateNext, $this->transferAlert);
+        unset($this->canApproveCash, $this->canConfirmTransfer, $this->canEdit, $this->canDownloadQr, $this->canCreateNext, $this->transferAlert);
     }
 
     private function loadInvoice(Invoice $invoice): void

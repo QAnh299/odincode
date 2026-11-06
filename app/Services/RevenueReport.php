@@ -647,6 +647,8 @@ class RevenueReport
         }
 
         return $q->when($f['branch'] ?? null, fn ($q, $v) => $q->where('l.branch_id', $v))
+            // Hàng đợi việc của Kế toán: các cơ sở kế toán phụ trách (Revenue::workScope)
+            ->when($f['branches'] ?? null, fn ($q, $v) => $q->whereIn('l.branch_id', $v))
             ->when($f['team'] ?? null, fn ($q, $v) => $q->where('e.team_id', $v))
             ->when($f['employee'] ?? null, fn ($q, $v) => $q->where('op.employee_id', $v));
     }

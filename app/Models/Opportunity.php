@@ -67,7 +67,9 @@ class Opportunity extends Model
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return match ($employee?->role_name) {
-            Role::DIRECTOR, Role::SALE_ADMIN, Role::ACCOUNTANT => $query,
+            Role::DIRECTOR, Role::SALE_ADMIN => $query,
+            // Kế toán: khách thuộc cơ sở mình phụ trách (Employee::coveredBranchIds)
+            Role::ACCOUNTANT  => $query->whereHas('lead', fn ($q) => $q->whereIn('branch_id', $employee->coveredBranchIds())),
             Role::SALE_LEADER => $employee->team_id
                 ? $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id))
                 : $query->whereRaw('1 = 0'),

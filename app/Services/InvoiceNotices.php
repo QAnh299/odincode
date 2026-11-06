@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Thông báo hóa đơn ở chuông trên topbar, suy ra từ dữ liệu (odin.sql không có bảng thông báo):
- *   - Kế toán: hóa đơn TIỀN MẶT đang Chờ thanh toán = hàng đợi cần đối chiếu và duyệt (HĐ30 – HĐ32);
+ *   - Kế toán (chỉ hóa đơn thuộc cơ sở mình phụ trách - Employee::coveredBranchIds): hóa đơn TIỀN MẶT đang Chờ thanh toán = hàng đợi cần đối chiếu và duyệt (HĐ30 – HĐ32);
  *     và hóa đơn vừa thanh toán thành công (HĐ33: "thông báo SP và kế toán").
  *   - Salesperson: hóa đơn mình lập vừa thanh toán thành công (chuyển khoản do hệ thống xác nhận / tiền mặt do kế toán duyệt);
  *     hóa đơn mình lập đã Quá hạn (liên hệ khách, gia hạn để mở lại).
@@ -28,7 +28,8 @@ class InvoiceNotices
     public static function for(?Employee $employee): Collection
     {
         return match ($employee?->role_name) {
-            Role::ACCOUNTANT  => self::transferAlerts(null, Role::ACCOUNTANT)->concat(self::cashQueue())->concat(self::recentlyPaid(null, Role::ACCOUNTANT)),
+            Role::ACCOUNTANT  => self::transferAlerts(null, Role::ACCOUNTANT, $employee)->concat(self::cashQueue($employee))
+                ->concat(self::recentlyPaid(null, Role::ACCOUNTANT, $employee)),
             Role::SALESPERSON => self::transferAlerts($employee->employee_id, Role::SALESPERSON)->concat(self::overdue($employee->employee_id))
                 ->concat(self::recentlyPaid($employee->employee_id, Role::SALESPERSON)),
             default           => collect(),
@@ -38,9 +39,10 @@ class InvoiceNotices
     /**
      * Số hóa đơn tiền mặt đang chờ kế toán duyệt (dùng cho dòng mô tả của chuông).
      */
-    public static function cashQueueCount(): int
+    public static function cashQueueCount(?Employee $accountant = null): int
     {
         return Invoice::query()
+            ->when($accountant, fn ($q) => $q->visibleTo($accountant))
             ->where('status', Invoice::STATUS_UNPAID)
             ->where('payment_method', Invoice::METHOD_CASH)
             ->count();
@@ -49,9 +51,10 @@ class InvoiceNotices
     /**
      * HĐ30: hóa đơn tiền mặt Chờ thanh toán, cũ nhất trước (kế toán xử lý theo thứ tự gửi).
      */
-    private static function cashQueue(): Collection
+    private static function cashQueue(Employee $accountant): Collection
     {
         return Invoice::query()
+            ->visibleTo($accountant)
             ->where('status', Invoice::STATUS_UNPAID)
             ->where('payment_method', Invoice::METHOD_CASH)
             ->with(['order.quotation.opportunity.lead:lead_id,full_name', 'createdBy:employee_id,full_name'])
@@ -78,7 +81,7 @@ class InvoiceNotices
     /**
      * Chuyển khoản lệch số tiền chưa được xác nhận (TransferAlerts). $creatorId = null → tất cả (kế toán); có giá trị → hóa đơn SP đó lập.
      */
-    private static function transferAlerts(?string $creatorId, string $role): Collection
+    private static function transferAlerts(?string $creatorId, string $role, ?Employee $accountant = null): Collection
     {
         $alerts = TransferAlerts::all();
         if (! $alerts) {
@@ -91,6 +94,7 @@ class InvoiceNotices
             ->whereIn('status', [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE])
             ->where('payment_method', Invoice::METHOD_BANK_TRANSFER)
             ->when($creatorId, fn ($q) => $q->where('created_by_employee_id', $creatorId))
+            ->when($accountant, fn ($q) => $q->visibleTo($accountant))
             ->with('order.quotation.opportunity.lead:lead_id,full_name')
             ->get()
             ->map(function (Invoice $invoice) use ($prefix) {
@@ -140,7 +144,7 @@ class InvoiceNotices
     /**
      * HĐ33: hóa đơn vừa thanh toán thành công. $creatorId = null → tất cả (kế toán); có giá trị → hóa đơn SP đó lập.
      */
-    private static function recentlyPaid(?string $creatorId, string $role): Collection
+    private static function recentlyPaid(?string $creatorId, string $role, ?Employee $accountant = null): Collection
     {
         $prefix = $role === Role::ACCOUNTANT ? 'accountant' : 'salesperson';
 
@@ -148,6 +152,7 @@ class InvoiceNotices
             ->where('status', Invoice::STATUS_PAID)
             ->where('payment_date', '>=', today()->subDays(self::RECENT_DAYS))
             ->when($creatorId, fn ($q) => $q->where('created_by_employee_id', $creatorId))
+            ->when($accountant, fn ($q) => $q->visibleTo($accountant))
             ->with(['order.quotation.opportunity.lead:lead_id,full_name', 'accountant:employee_id,full_name'])
             ->orderByDesc('payment_date')
             ->limit(self::LIMIT)

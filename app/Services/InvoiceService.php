@@ -95,13 +95,26 @@ class InvoiceService
     }
 
     /**
-     * Kế toán duyệt tiền mặt (HĐ32): hóa đơn Tiền mặt còn Chờ thanh toán.
+     * HĐ27: Salesperson lập hóa đơn tải ảnh QR chuyển khoản để tự gửi khách (Zalo, email) khi khách không đến trung tâm.
+     * Chỉ hóa đơn Chuyển khoản còn Chờ thanh toán (Quá hạn không nhận thanh toán nên không có QR).
+     */
+    public function canDownloadQr(Invoice $invoice, ?Employee $employee): bool
+    {
+        return $employee?->role_name === Role::SALESPERSON
+            && $invoice->created_by_employee_id === $employee->employee_id
+            && $invoice->status === Invoice::STATUS_UNPAID
+            && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER;
+    }
+
+    /**
+     * Kế toán duyệt tiền mặt (HĐ32): hóa đơn Tiền mặt còn Chờ thanh toán, thuộc cơ sở kế toán phụ trách.
      */
     public function canApproveCash(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::ACCOUNTANT
             && $invoice->status === Invoice::STATUS_UNPAID
-            && $invoice->payment_method === Invoice::METHOD_CASH;
+            && $invoice->payment_method === Invoice::METHOD_CASH
+            && $this->inAccountantScope($invoice, $employee);
     }
 
     /**
@@ -113,7 +126,16 @@ class InvoiceService
     {
         return $employee?->role_name === Role::ACCOUNTANT
             && $invoice->status === Invoice::STATUS_UNPAID
-            && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER;
+            && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER
+            && $this->inAccountantScope($invoice, $employee);
+    }
+
+    /**
+     * Hóa đơn thuộc cơ sở Kế toán phụ trách (Invoice::visibleTo → Employee::coveredBranchIds).
+     */
+    private function inAccountantScope(Invoice $invoice, Employee $accountant): bool
+    {
+        return Invoice::query()->visibleTo($accountant)->whereKey($invoice->getKey())->exists();
     }
 
     /**

@@ -62,12 +62,14 @@ class Quotation extends Model
 
     /**
      * Báo giá mà nhân viên được phép xem:
-     * Giám đốc / Sale Admin / Kế toán xem tất cả, Sale Leader xem của nhóm mình, Salesperson xem của chính mình.
+     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của nhóm mình, Salesperson xem của chính mình.
      */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return match ($employee?->role_name) {
-            Role::DIRECTOR, Role::SALE_ADMIN, Role::ACCOUNTANT => $query,
+            Role::DIRECTOR, Role::SALE_ADMIN => $query,
+            // Kế toán: báo giá / đơn / hóa đơn của khách thuộc cơ sở mình phụ trách
+            Role::ACCOUNTANT  => $query->whereHas('opportunity', fn ($q) => $q->visibleTo($employee)),
             Role::SALE_LEADER => $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id)),
             Role::SALESPERSON => $query->where('employee_id', $employee->employee_id),
             default           => $query->whereRaw('1 = 0'),

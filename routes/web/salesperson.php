@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Appointments\Index as AppointmentIndex;
+use App\Http\Controllers\InvoiceQrController;
 use App\Http\Controllers\QuotationPdfController;
 use App\Livewire\Courses\Index as CourseIndex;
 use App\Livewire\Courses\Show as CourseShow;
@@ -48,6 +49,8 @@ Route::get('/invoices', InvoiceIndex::class)->name('invoices');
 // Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26), sửa hóa đơn Chờ thanh toán (HĐ36) - chỉ Salesperson
 Route::get('/invoices/create/{order}', InvoiceForm::class)->name('invoices.create');
 Route::get('/invoices/{invoice}/edit', InvoiceForm::class)->name('invoices.edit');
+// Tải ảnh QR chuyển khoản (PNG) để gửi khách - chỉ Salesperson lập hóa đơn, hóa đơn Chuyển khoản Chờ thanh toán
+Route::get('/invoices/{invoice}/qr', InvoiceQrController::class)->name('invoices.qr');
 Route::get('/invoices/{invoice}', InvoiceShow::class)->name('invoices.show');
 
 // Voucher (dùng chung với các vai trò khác, trừ Kế toán)

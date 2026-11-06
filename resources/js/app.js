@@ -9,4 +9,7 @@ import "./sidebar";
 // Đổi màu giao diện
 import "./theme";
 
+// Nút tải ảnh QR chuyển khoản của hóa đơn (PNG)
+import "./qr-download";
+
 // Livewire được khởi tạo thông qua @livewireScripts trong layout.

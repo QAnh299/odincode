@@ -10,6 +10,9 @@ class Branch extends Model
 {
     use HasFactory, HasStringId;
 
+    // Trụ sở chính: kế toán trụ sở nhận thay các cơ sở chưa có kế toán đang làm việc (Employee::coveredBranchIds)
+    const HEAD_OFFICE = 'BR001';
+
     protected $table = 'Branches';
 
     protected $primaryKey = 'branch_id';
