@@ -50,7 +50,7 @@
             <div class="ld-modal__backdrop" wire:click="close"></div>
             <form class="ld-modal__dialog ld-modal__dialog--wide ld-dist" role="dialog" aria-modal="true" aria-labelledby="ld-dist-title"
                 wire:submit="{{ $isOverflow ? 'confirmOverflow' : 'submit' }}">
-                <header class="ld-modal__head ld-dist__head">
+                <header class="ld-modal__head ld-modal__head--center ld-dist__head">
                     <span class="ld-modal__icon"><x-icon name="share" /></span>
                     <div>
                         <h2 class="ld-modal__title" id="ld-dist-title">{{ __('leads.distribute.title_'.$kind) }}</h2>

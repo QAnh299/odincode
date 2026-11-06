@@ -28,7 +28,6 @@ return [
     // Popup Thêm Lead
     'form' => [
         'title'              => 'Thêm Lead mới',
-        'sub'                => 'Lead mới được tạo ở trạng thái "Mới", chờ phân chia cho đội kinh doanh.',
         'required_hint'      => 'Các trường có dấu * là bắt buộc.',
         'placeholder_name'   => 'VD: Nguyễn Văn A',
         'placeholder_phone'  => 'VD: 0912345678',

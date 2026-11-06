@@ -19,13 +19,7 @@
         </span>
     </nav>
 
-    @if ($notice)
-        <div class="ld-notice" role="status">
-            <x-icon name="check-circle" />
-            <span class="ld-notice__text">{{ $notice }}</span>
-            <button type="button" class="ld-notice__close" wire:click="dismissNotice" aria-label="{{ __('leads.close') }}"><x-icon name="x" /></button>
-        </div>
-    @endif
+    @include('livewire.leads.partials.toast')
 
     {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
     <section class="vc-card st-head">

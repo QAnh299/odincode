@@ -130,6 +130,97 @@
     height: 16px;
 }
 
+/* Toast góc trên bên phải: nằm dưới topbar, trên cả popup */
+.ld-toast {
+    position: fixed;
+    top: 80px;
+    right: 1.5rem;
+    z-index: 1090;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: min(380px, calc(100vw - 3rem));
+    padding: 0.85rem 0.75rem 0.95rem 1rem;
+    overflow: hidden;
+    border: 1px solid var(--vc-border);
+    border-left: 3px solid var(--vc-primary);
+    background: var(--vc-surface);
+    box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.28);
+    color: var(--vc-ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.45;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ld-toast--hidden {
+    opacity: 0;
+    transform: translateX(24px);
+}
+
+.ld-toast__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.vc .ld-toast__icon .odin-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.ld-toast__text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.ld-toast__close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: transparent;
+    color: var(--vc-muted);
+    cursor: pointer;
+}
+
+.ld-toast__close:hover {
+    background: var(--vc-tint);
+    color: var(--vc-ink);
+}
+
+.vc .ld-toast__close .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ld-toast__bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--vc-primary);
+    opacity: 0.55;
+    transform-origin: left;
+    animation: ld-toast-countdown linear forwards;
+}
+
+@keyframes ld-toast-countdown {
+    to { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ld-toast { transition: none; }
+}
+
 /* ── Popup (Thêm Lead, Import Excel) ─────────────────────────────── */
 
 .ld-modal {
@@ -175,6 +266,10 @@
     gap: 0.85rem;
     padding: 1.25rem 1.25rem 1rem;
     border-bottom: 1px solid var(--vc-border);
+}
+
+.ld-modal__head--center {
+    align-items: center;
 }
 
 .ld-modal__icon {

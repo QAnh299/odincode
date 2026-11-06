@@ -28,8 +28,6 @@ class Show extends Component
 
     public Lead $lead;
 
-    public ?string $notice = null;
-
     public function mount(Lead $lead): void
     {
         abort_unless(
@@ -80,12 +78,7 @@ class Show extends Component
     protected function leadUpdated(Lead $lead): void
     {
         $this->lead = $lead->refresh()->load('branch:branch_id,branch_name,address');
-        $this->notice = __('leads.edit_saved');
-    }
-
-    public function dismissNotice(): void
-    {
-        $this->notice = null;
+        $this->dispatch('lead-toast', text: __('leads.edit_saved'));
     }
 
     #[Computed]

@@ -171,7 +171,7 @@ class Index extends Component
         $lead = $service->create($validated);
 
         $this->modal = '';
-        $this->notice = ['type' => 'success', 'text' => __('leads.form.created', ['id' => $lead->lead_id, 'name' => $lead->full_name])];
+        $this->announce(['type' => 'success', 'text' => __('leads.form.created', ['id' => $lead->lead_id, 'name' => $lead->full_name])]);
         $this->resetPage();
     }
 
@@ -231,13 +231,13 @@ class Index extends Component
         }
 
         $this->importResult = $result;
-        $this->notice = match (true) {
+        $this->announce(match (true) {
             $result['failed'] === 0  => ['type' => 'success', 'text' => __('leads.excel.done_all', ['count' => $result['success']])],
             $result['success'] === 0 => ['type' => 'danger', 'text' => __('leads.excel.done_none', ['count' => $result['failed']])],
             default                  => ['type' => 'warning', 'text' => __('leads.excel.done_partial', [
                 'total' => $result['total'], 'success' => $result['success'], 'failed' => $result['failed'],
             ])],
-        };
+        });
 
         $this->resetPage();
     }
@@ -263,8 +263,20 @@ class Index extends Component
     #[On('leads-distributed')]
     public function distributed(array $notice): void
     {
-        $this->notice = $notice;
+        $this->announce($notice);
         $this->resetPage();
+    }
+
+    /**
+     * Ghi nhận thông báo; thành công thì hiện toast thay vì banner trên trang.
+     */
+    private function announce(array $notice): void
+    {
+        $this->notice = $notice;
+
+        if ($notice['type'] === 'success') {
+            $this->dispatch('lead-toast', text: $notice['text']);
+        }
     }
 
     public function dismissNotice(): void

@@ -28,7 +28,6 @@ return [
     // Add lead popup
     'form' => [
         'title'              => 'Add a new lead',
-        'sub'                => 'New leads start as "New" and wait to be distributed to the sales teams.',
         'required_hint'      => 'Fields marked with * are required.',
         'placeholder_name'   => 'e.g. Nguyen Van A',
         'placeholder_phone'  => 'e.g. 0912345678',

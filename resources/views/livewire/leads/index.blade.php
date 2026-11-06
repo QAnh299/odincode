@@ -46,8 +46,10 @@
         @endif
     </header>
 
-    {{-- ── Thông báo sau khi thêm / import ──────────────────────────── --}}
-    @if ($notice)
+    {{-- ── Thông báo lỗi / cảnh báo; thành công hiện bằng toast ──────── --}}
+    @include('livewire.leads.partials.toast')
+
+    @if ($notice && $notice['type'] !== 'success')
         <div class="ld-notice ld-notice--{{ $notice['type'] }}" role="status" wire:key="notice-{{ md5(json_encode($notice)) }}">
             <x-icon :name="$notice['type'] === 'success' ? 'check-circle' : 'alert'" />
             <span class="ld-notice__text">{{ $notice['text'] }}</span>
@@ -276,12 +278,9 @@
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <form class="ld-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ld-create-title"
                 wire:submit="saveLead">
-                <header class="ld-modal__head">
+                <header class="ld-modal__head ld-modal__head--center">
                     <span class="ld-modal__icon"><x-icon name="user" /></span>
-                    <div>
-                        <h2 class="ld-modal__title" id="ld-create-title">{{ __('leads.form.title') }}</h2>
-                        <p class="ld-modal__sub">{{ __('leads.form.sub') }}</p>
-                    </div>
+                    <h2 class="ld-modal__title" id="ld-create-title">{{ __('leads.form.title') }}</h2>
                     <button type="button" class="ld-modal__close" wire:click="closeModal" aria-label="{{ __('leads.close') }}">
                         <x-icon name="x" />
                     </button>
