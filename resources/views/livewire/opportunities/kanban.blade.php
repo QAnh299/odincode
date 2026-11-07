@@ -234,40 +234,16 @@
             @foreach ($this->stages as $stage)
                 @php
                     $cards = $columns->get($stage->stage_id, collect());
-                    $isArchive = $stage->stage_id === \App\Models\Stage::ARCHIVED;
-                    $collapsed = $isArchive && ! $showArchived;
                     $limit = $this->limitFor($stage->stage_id);
                 @endphp
 
-                {{-- Cột Lưu trữ thu gọn: dải hẹp ở mép phải (mũi tên, tên cột dựng đứng, số lượng), bấm để mở rộng --}}
-                @if ($collapsed)
-                    <section class="ok-col ok-col--{{ $stage->sort_order }} is-collapsed" wire:key="stage-{{ $stage->stage_id }}">
-                        {{-- Mở rộng xong thì cuộn bảng tới cột Lưu trữ (cột mới nằm ở mép phải, có thể ngoài khung nhìn) --}}
-                        <button type="button" class="ok-col__rail" aria-expanded="false" title="{{ __('opportunities.show_archived') }}"
-                            x-data
-                            x-on:click="$wire.toggleArchived().then(() => $nextTick(() =>
-                                document.getElementById('stage-{{ $stage->stage_id }}')
-                                    ?.closest('.ok-col')
-                                    ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' })))">
-                            <x-icon name="chevron" />
-                            <span class="ok-col__rail-name">{{ $stage->stage_name }}</span>
-                            <span class="ok-col__count">{{ $cards->count() }}</span>
-                        </button>
-                    </section>
-                @else
+                @continue($stage->stage_id === \App\Models\Stage::ARCHIVED)
 
                 {{-- Màu đầu cột theo thứ tự stage: .ok-col--1 … .ok-col--5 (opportunity.css) --}}
                 <section class="ok-col ok-col--{{ $stage->sort_order }}" wire:key="stage-{{ $stage->stage_id }}" aria-labelledby="stage-{{ $stage->stage_id }}">
                     <header class="ok-col__head" title="{{ $stage->description }}">
                         <div class="ok-col__title">
                             <h2 id="stage-{{ $stage->stage_id }}">{{ $stage->stage_name }}</h2>
-                            {{-- Cột Lưu trữ đang mở: mũi tên thu gọn lại sang phải --}}
-                            @if ($isArchive)
-                                <button type="button" class="ok-col__toggle" wire:click="toggleArchived"
-                                    title="{{ __('opportunities.hide_archived') }}" aria-expanded="true">
-                                    <x-icon name="chevron" />
-                                </button>
-                            @endif
                         </div>
 
                         <span class="ok-col__sum">
@@ -336,7 +312,6 @@
                         @endif
                     </div>
                 </section>
-                @endif
             @endforeach
         </div>
     @endif

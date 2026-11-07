@@ -79,9 +79,6 @@ class Kanban extends Component
     #[Url(except: false)]
     public bool $urgent = false;
 
-    // Cột Lưu trữ mặc định thu gọn
-    public bool $showArchived = false;
-
     // Số thẻ đang hiện của từng cột: [stage_id => số thẻ]
     public array $shown = [];
 
@@ -163,11 +160,6 @@ class Kanban extends Component
     {
         $this->urgent = ! $this->urgent;
         $this->shown = [];
-    }
-
-    public function toggleArchived(): void
-    {
-        $this->showArchived = ! $this->showArchived;
     }
 
     public function showMore(string $stageId): void
@@ -307,6 +299,7 @@ class Kanban extends Component
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
             ->when(trim($this->search) !== '', fn ($q) => $this->applySearch($q))
+            ->when($this->activeView() === 'kanban', fn ($q) => $q->where('stage_id', '!=', Stage::ARCHIVED))
             ->when($this->activeView() === 'list' && $this->stages->contains('stage_id', $this->stageFilter),
                 fn ($q) => $q->where('stage_id', $this->stageFilter))
             ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
