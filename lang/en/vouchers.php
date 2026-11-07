@@ -63,7 +63,7 @@ return [
     'days_left'          => ':days days remaining',
     'ends_today'         => 'Ends today',
     'starts_in'          => 'Starts in :days days',
-    'ended_ago'          => 'Ended :days days ago',
+    'ended_ago'          => 'Expired',
     'subtotal_sum'       => 'Total before discount',
     'discount_sum'       => 'Total discounted',
 

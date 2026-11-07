@@ -133,13 +133,11 @@
         <header class="vc-section-head">
             <div>
                 <h2 class="vc-section-head__title">{{ __('vouchers.quotations') }}</h2>
-                <p class="vc-section-head__sub">
-                    @if ($this->limitedScope)
+                @if ($this->limitedScope)
+                    <p class="vc-section-head__sub">
                         <x-icon name="shield" />{{ __('vouchers.scope_note') }}
-                    @else
-                        {{ __('vouchers.quotations_sub') }}
-                    @endif
-                </p>
+                    </p>
+                @endif
             </div>
         </header>
 
@@ -163,7 +161,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($quotations as $quotation)
+                        @foreach ($this->pagedQuotations as $quotation)
                             <tr wire:key="quotation-{{ $quotation->quotation_id }}">
                                 <td data-label="{{ __('vouchers.quotation_id') }}">
                                     <span class="vc-mono">{{ $quotation->quotation_id }}</span>
@@ -194,6 +192,9 @@
                     </tbody>
                 </table>
             </div>
+            @if ($this->pagedQuotations->hasPages())
+                <div class="vc-pagination">{{ $this->pagedQuotations->links() }}</div>
+            @endif
         @endif
     </section>
 </div>

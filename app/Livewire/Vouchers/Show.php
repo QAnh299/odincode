@@ -4,10 +4,12 @@ namespace App\Livewire\Vouchers;
 
 use App\Models\Role;
 use App\Models\Voucher;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Chi tiết một voucher + các báo giá đã áp dụng voucher (trong phạm vi được xem của vai trò).
@@ -15,6 +17,10 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    use WithPagination;
+
+    public const PER_PAGE = 10;
+
     public Voucher $voucher;
 
     public function mount(Voucher $voucher): void
@@ -53,6 +59,23 @@ class Show extends Component
                 $quotation->subtotal = (float) $quotation->subtotal;
                 $quotation->discount = $this->voucher->discountFor($quotation->subtotal);
             });
+    }
+
+    /**
+     * Một trang (10 báo giá) của danh sách trên; số liệu tổng vẫn tính trên toàn bộ danh sách.
+     */
+    #[Computed]
+    public function pagedQuotations(): LengthAwarePaginator
+    {
+        $all = $this->quotations;
+        $page = max(1, min($this->getPage(), (int) ceil(max(1, $all->count()) / self::PER_PAGE)));
+
+        return new LengthAwarePaginator(
+            $all->forPage($page, self::PER_PAGE)->values(),
+            $all->count(),
+            self::PER_PAGE,
+            $page,
+        );
     }
 
     public function render()

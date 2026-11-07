@@ -63,7 +63,7 @@ return [
     'days_left'          => 'Còn :days ngày hiệu lực',
     'ends_today'         => 'Hết hạn vào hôm nay',
     'starts_in'          => 'Bắt đầu sau :days ngày',
-    'ended_ago'          => 'Đã hết hạn :days ngày',
+    'ended_ago'          => 'Đã hết hạn',
     'subtotal_sum'       => 'Tổng giá trị trước giảm',
     'discount_sum'       => 'Tổng tiền đã giảm',
 
