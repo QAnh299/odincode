@@ -180,10 +180,10 @@ return [
 
     // Statistics
     'stat' => [
-        'all'       => 'Total leads',
-        'New'       => 'Not distributed',
-        'Converted' => 'Converted',
-        'rate'      => 'Conversion rate',
+        'all'          => 'Total leads',
+        'Unassigned'   => 'Not sent to a team',
+        'PendingSales' => 'Not sent to a salesperson',
+        'Converted'    => 'Converted',
     ],
 
     // Filters

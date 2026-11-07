@@ -180,10 +180,10 @@ return [
 
     // Thống kê
     'stat' => [
-        'all'       => 'Tổng Lead',
-        'New'       => 'Chưa phân chia',
-        'Converted' => 'Đã chuyển đổi',
-        'rate'      => 'Tỷ lệ chuyển đổi',
+        'all'          => 'Tổng Lead',
+        'Unassigned'   => 'Chưa phân cho đội',
+        'PendingSales' => 'Chưa phân cho Salesperson',
+        'Converted'    => 'Đã chuyển đổi',
     ],
 
     // Bộ lọc

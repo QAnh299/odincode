@@ -4,12 +4,14 @@
 
     $stats = $this->stats;
 
-    // Thẻ thống kê bấm được: [key trạng thái, icon]
-    $cards = [
+    // Thẻ thống kê bấm được: [key trạng thái, icon]. Sale Leader không có Lead chưa phân cho đội.
+    $cards = array_values(array_filter([
         ['', 'layers'],
-        [Lead::STATUS_NEW, 'inbox'],
+        [\App\Livewire\Leads\Index::UNASSIGNED, 'inbox'],
+        [\App\Livewire\Leads\Index::PENDING_SALESPERSON, 'users'],
         [Lead::STATUS_CONVERTED, 'check-circle'],
-    ];
+    ], fn ($card) => $this->routePrefix !== Role::SALE_LEADER || $card[0] !== \App\Livewire\Leads\Index::UNASSIGNED));
+    $activeCard = $this->activeCard();
 @endphp
 
 <div class="vc ld">
@@ -60,11 +62,11 @@
     @endif
 
     {{-- ── Thống kê theo bộ lọc (bấm thẻ trạng thái để lọc) ─────────── --}}
-    <div class="vc-summary ld-summary">
+    <div class="vc-summary ld-summary ld-summary--{{ count($cards) }}">
         @foreach ($cards as [$key, $icon])
-            <button type="button" wire:click="filterStatus('{{ $key }}')"
-                class="vc-summary__item ld-st--{{ $key ?: 'all' }} {{ $status === $key ? 'is-current' : '' }}"
-                aria-pressed="{{ $status === $key ? 'true' : 'false' }}">
+            <button type="button" wire:click="filterCard('{{ $key }}')"
+                class="vc-summary__item ld-st--{{ $key ?: 'all' }} {{ $activeCard === $key ? 'is-current' : '' }}"
+                aria-pressed="{{ $activeCard === $key ? 'true' : 'false' }}">
                 <span class="vc-summary__icon"><x-icon :name="$icon" /></span>
                 <span class="vc-summary__text">
                     <span class="vc-summary__label">{{ __('leads.stat.'.($key ?: 'all')) }}</span>
@@ -72,14 +74,6 @@
                 </span>
             </button>
         @endforeach
-
-        <div class="vc-summary__item ld-summary__static ld-st--rate">
-            <span class="vc-summary__icon"><x-icon name="trending" /></span>
-            <span class="vc-summary__text">
-                <span class="vc-summary__label">{{ __('leads.stat.rate') }}</span>
-                <span class="vc-summary__value">{{ number_format($stats['rate'], 1, ',', '.') }}%</span>
-            </span>
-        </div>
     </div>
 
     {{-- ── Bộ lọc ───────────────────────────────────────────────────── --}}
@@ -209,9 +203,6 @@
                                 </td>
                                 <td data-label="{{ __('leads.customer') }}">
                                     <span class="ld-name">{{ $lead->full_name }}</span>
-                                    @if ($lead->email)
-                                        <span class="ld-sub">{{ $lead->email }}</span>
-                                    @endif
                                 </td>
                                 <td data-label="{{ __('leads.phone') }}" class="ld-nowrap">{{ $lead->phone }}</td>
                                 <td data-label="{{ __('leads.source') }}">

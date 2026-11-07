@@ -3,9 +3,10 @@
 
 /* Màu theo trạng thái Lead: thẻ thống kê + nhãn trong bảng */
 .ld-st--all { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
-.ld-st--New { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+.ld-st--New,
+.ld-st--Unassigned { --tone: #1d4ed8; --tone-bg: #dbeafe; }
+.ld-st--PendingSales { --tone: #6d28d9; --tone-bg: #ede9fe; }
 .ld-st--Converted { --tone: #15803d; --tone-bg: #dcfce7; }
-.ld-st--rate { --tone: #b45309; --tone-bg: #fef3c7; }
 
 /* Nút Thêm / Import / Phân chia ở góc phải tiêu đề */
 .ld-actions {
@@ -14,18 +15,13 @@
     gap: 0.6rem;
 }
 
-/* 4 thẻ thống kê; thẻ Tỷ lệ chuyển đổi không bấm được */
+/* Thẻ thống kê: 4 thẻ, Sale Leader 3 thẻ (không có Chưa phân cho đội) */
 .ld-summary {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.ld-summary__static {
-    cursor: default;
-}
-
-.ld-summary__static:hover {
-    transform: none;
-    border-color: var(--vc-border);
+.ld-summary--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 /* Bộ lọc: hàng 1 = tìm kiếm + trạng thái + nguồn + kênh; hàng 2 = chi nhánh + ngày + xoá lọc */

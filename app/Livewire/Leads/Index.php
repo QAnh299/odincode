@@ -38,6 +38,14 @@ class Index extends Component
 
     const PER_PAGE = 10;
 
+    // Tiến độ phân chia (lọc từ thẻ thống kê, không phải trạng thái Lead):
+    // chưa phân cho đội / đội đã nhận, chờ phân cho Salesperson
+    const UNASSIGNED = 'Unassigned';
+
+    const PENDING_SALESPERSON = 'PendingSales';
+
+    const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON];
+
     // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
 
     #[Url(as: 'q', except: '')]
@@ -45,6 +53,10 @@ class Index extends Component
 
     #[Url(except: '')]
     public string $status = '';
+
+    // Tiến độ phân chia: '' | ASSIGN_FILTERS
+    #[Url(except: '')]
+    public string $assign = '';
 
     #[Url(except: '')]
     public string $source = '';
@@ -63,7 +75,7 @@ class Index extends Component
     #[Url(except: '')]
     public string $to = '';
 
-    const FILTERS = ['search', 'status', 'source', 'method', 'branch', 'from', 'to'];
+    const FILTERS = ['search', 'status', 'assign', 'source', 'method', 'branch', 'from', 'to'];
 
     // Popup đang mở: '' | 'create' | 'import'
     public string $modal = '';
@@ -92,12 +104,22 @@ class Index extends Component
     }
 
     /**
-     * Bấm vào thẻ thống kê: lọc theo trạng thái, bấm lại thì bỏ lọc.
+     * Bấm vào thẻ thống kê: lọc theo trạng thái hoặc tiến độ phân chia (chỉ một thẻ), bấm lại thì bỏ lọc.
      */
-    public function filterStatus(string $status): void
+    public function filterCard(string $key): void
     {
-        $this->status = $this->status === $status ? '' : $status;
+        $active = $this->activeCard() === $key;
+        $this->status = ! $active && in_array($key, Lead::STATUSES, true) ? $key : '';
+        $this->assign = ! $active && in_array($key, self::ASSIGN_FILTERS, true) ? $key : '';
         $this->resetPage();
+    }
+
+    /**
+     * Thẻ thống kê đang chọn ('' = Tổng Lead).
+     */
+    public function activeCard(): string
+    {
+        return $this->assign !== '' ? $this->assign : $this->status;
     }
 
     public function resetFilters(): void
@@ -328,18 +350,14 @@ class Index extends Component
     {
         $row = $this->filtered(Lead::query(), withStatus: false)
             ->selectRaw('COUNT(*) AS total')
-            ->selectRaw('SUM(status = ?) AS new_count', [Lead::STATUS_NEW])
             ->selectRaw('SUM(status = ?) AS converted_count', [Lead::STATUS_CONVERTED])
             ->first();
 
-        $total = (int) $row->total;
-        $converted = (int) $row->converted_count;
-
         return [
-            'all'                   => $total,
-            Lead::STATUS_NEW        => (int) $row->new_count,
-            Lead::STATUS_CONVERTED  => $converted,
-            'rate'                  => $total ? round($converted * 100 / $total, 1) : 0,
+            'all'                     => (int) $row->total,
+            self::UNASSIGNED          => $this->filtered(Lead::query(), withStatus: false)->unassigned()->count(),
+            self::PENDING_SALESPERSON => $this->filtered(Lead::query(), withStatus: false)->pendingSalesperson()->count(),
+            Lead::STATUS_CONVERTED    => (int) $row->converted_count,
         ];
     }
 
@@ -379,6 +397,10 @@ class Index extends Component
             })
             ->when($withStatus && in_array($this->status, Lead::STATUSES, true),
                 fn ($q) => $q->where('status', $this->status))
+            ->when($withStatus && $this->assign === self::UNASSIGNED,
+                fn ($q) => $q->unassigned())
+            ->when($withStatus && $this->assign === self::PENDING_SALESPERSON,
+                fn ($q) => $q->pendingSalesperson())
             ->when(in_array($this->source, $this->sources, true),
                 fn ($q) => $q->where('source_name', $this->source))
             ->when(in_array($this->method, Lead::CONTACT_METHODS, true),

@@ -77,6 +77,28 @@ class Lead extends Model
     }
 
     /**
+     * Lead chưa phân cho đội: chưa có cơ hội nào (cùng điều kiện với LeadDistributionService::availableLeads()).
+     * Lead đã giao cho trưởng nhóm vẫn ở trạng thái "Mới" nên phải loại theo cơ hội.
+     */
+    public function scopeUnassigned(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_NEW)->whereDoesntHave('opportunities');
+    }
+
+    /**
+     * Lead đội đã nhận nhưng chưa phân cho Salesperson: còn cơ hội trưởng nhóm đang giữ ở stage đầu,
+     * chưa chăm sóc (cùng điều kiện với LeadDistributionService::pendingOpportunities()).
+     */
+    public function scopePendingSalesperson(Builder $query): Builder
+    {
+        return $query->whereHas('opportunities', fn ($q) => $q
+            ->where('stage_id', Stage::UNTOUCHED)
+            ->where('status', Opportunity::STATUS_IN_PROGRESS)
+            ->whereDoesntHave('careResults')
+            ->whereHas('employee.ledTeam'));
+    }
+
+    /**
      * Thông tin Lead còn được sửa: Lead chưa phân chia, hoặc mọi cơ hội của Lead đều đang chăm sóc.
      * Cơ hội đã chốt hay đã lưu trữ giữ nguyên thông tin khách lúc kết thúc.
      */
