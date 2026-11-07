@@ -156,3 +156,44 @@ body {
 .qt-badge__dot {
     box-shadow: none !important;
 }
+
+/* Phân trang: dãy số + ô nhập số trang (resources/views/vendor/livewire/bootstrap.blade.php) */
+.pg-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+}
+
+.pg-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
+.pg-jump input {
+    width: 4.25rem;
+    height: 2.375rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 0.95rem;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.pg-jump input::-webkit-outer-spin-button,
+.pg-jump input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.pg-jump input:focus {
+    outline: none;
+    border-color: var(--odin-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--odin-primary) 20%, transparent);
+}
