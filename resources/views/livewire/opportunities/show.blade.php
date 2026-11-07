@@ -30,7 +30,7 @@
         <div class="od-head__top">
             <div class="od-head__title">
                 <span class="vc-mono">{{ $opp->opportunity_id }}</span>
-                <h1>{{ $lead?->full_name ?? '—' }}</h1>
+                <h1>{{ $lead?->full_name ?? '-' }}</h1>
                 {{-- Stage Lưu trữ: Từ chối (Lost) / Lưu trữ (Archived), kèm lý do --}}
                 @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
                     <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
@@ -158,7 +158,7 @@
                                 <h3 class="od-create__title">{{ __('opportunities.reschedule') }}</h3>
 
                                 <div class="vc-field od-create__wide">
-                                    <p class="od-place od-place--top"><x-icon name="tag" />{{ $this->appointmentPlace ?? '—' }}</p>
+                                    <p class="od-place od-place--top"><x-icon name="tag" />{{ $this->appointmentPlace ?? '-' }}</p>
                                     <span class="vc-field__label">{{ __('opportunities.apt_pick') }} <span class="ld-req">*</span></span>
                                     <div class="od-picks">
                                         @foreach ($reschedulable as $key => $optionLabel)
@@ -311,7 +311,7 @@
                                                     @endif
                                                 </span>
                                             </td>
-                                            <td data-label="{{ __('opportunities.voucher') }}">{{ $quo->voucher_id ?? '—' }}</td>
+                                            <td data-label="{{ __('opportunities.voucher') }}">{{ $quo->voucher_id ?? '-' }}</td>
                                             <td data-label="{{ __('opportunities.quotation_total') }}" class="text-lg-end">
                                                 {{-- computed_total = tạm tính − voucher (cùng công thức trang chi tiết báo giá, Quotation::totalSql) --}}
                                                 <span class="vc-value">{{ $money($quo->computed_total) }}</span>
@@ -345,15 +345,15 @@
                 </div>
                 <dl class="od-info">
                     <dt>{{ __('leads.phone') }}</dt>
-                    <dd>{{ $lead?->phone ?? '—' }}</dd>
+                    <dd>{{ $lead?->phone ?? '-' }}</dd>
                     <dt>{{ __('opportunities.email') }}</dt>
-                    <dd>{{ $lead?->email ?: '—' }}</dd>
+                    <dd>{{ $lead?->email ?: '-' }}</dd>
                     <dt>{{ __('leads.contact_method') }}</dt>
                     <dd>
                         @if ($lead)
                             <span class="ld-method ld-method--{{ $lead->contact_method }}">{{ __('leads.method.'.$lead->contact_method) }}</span>
                         @else
-                            —
+                            -
                         @endif
                     </dd>
                     <dt>{{ __('leads.source') }}</dt>
@@ -361,14 +361,14 @@
                         @if ($lead?->sourceUrlIsLink())
                             <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer">{{ $lead->source_name }}</a>
                         @else
-                            {{ $lead?->source_name ?? '—' }}
+                            {{ $lead?->source_name ?? '-' }}
                             @if ($lead?->source_url)
                                 · {{ $lead->source_url }}
                             @endif
                         @endif
                     </dd>
                     <dt>{{ __('leads.branch') }}</dt>
-                    <dd>{{ $lead?->branch?->branch_name ?? '—' }}</dd>
+                    <dd>{{ $lead?->branch?->branch_name ?? '-' }}</dd>
                     <dt>{{ __('opportunities.lead') }}</dt>
                     <dd>
                         <span class="vc-mono">{{ $opp->lead_id }}</span>
@@ -382,7 +382,7 @@
                 <dl class="od-info">
                     <dt>{{ __('opportunities.owner') }}</dt>
                     <dd>
-                        {{ $opp->employee?->full_name ?? '—' }}
+                        {{ $opp->employee?->full_name ?? '-' }}
                         @if ($opp->employee?->team)
                             <span class="od-muted">· {{ $opp->employee->team->team_name }}</span>
                         @endif
@@ -396,7 +396,7 @@
                         @endif
                     </dd>
                     <dt>{{ __('opportunities.stage') }}</dt>
-                    <dd>{{ $opp->stage?->stage_name ?? '—' }}</dd>
+                    <dd>{{ $opp->stage?->stage_name ?? '-' }}</dd>
                     <dt>{{ __('opportunities.conversion_date') }}</dt>
                     <dd>{{ $opp->conversion_date?->format('d/m/Y H:i') }}</dd>
                     @if ($opp->student)
@@ -489,7 +489,7 @@
                         <div class="od-reassign__card is-current">
                             <span class="ld-dist__avatar" style="--h: {{ $hue((string) $opp->employee_id) }}">{{ $initial($opp->employee?->full_name) ?: '?' }}</span>
                             <span class="od-reassign__who">
-                                <strong>{{ $opp->employee?->full_name ?? '—' }}</strong>
+                                <strong>{{ $opp->employee?->full_name ?? '-' }}</strong>
                                 <small>{{ $opp->employee_id }}</small>
                             </span>
                             @if ($opp->employee_id)
@@ -574,7 +574,7 @@
                     <p class="od-success__text">
                         {!! __('opportunities.reassigned_text', [
                             'code' => '<strong>'.e($opp->opportunity_id).'</strong>',
-                            'from' => '<strong>'.e($reassigned['from'] ?? '—').'</strong>',
+                            'from' => '<strong>'.e($reassigned['from'] ?? '-').'</strong>',
                             'to'   => '<strong>'.e($reassigned['to']).'</strong>',
                         ]) !!}
                     </p>

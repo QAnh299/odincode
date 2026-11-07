@@ -195,8 +195,8 @@
                 <section class="qt-card qt-panel-card">
                     <h2 class="qt-section-title">{{ __('quotations.detail.customer') }}</h2>
                     <dl class="qt-info qt-info--stack">
-                        <div class="qt-info__row"><dt>{{ __('quotations.detail.full_name') }}</dt><dd>{{ $lead?->full_name ?? '—' }}</dd></div>
-                        <div class="qt-info__row"><dt>{{ __('quotations.detail.phone') }}</dt><dd>{{ $lead?->phone ?: '—' }}</dd></div>
+                        <div class="qt-info__row"><dt>{{ __('quotations.detail.full_name') }}</dt><dd>{{ $lead?->full_name ?? '-' }}</dd></div>
+                        <div class="qt-info__row"><dt>{{ __('quotations.detail.phone') }}</dt><dd>{{ $lead?->phone ?: '-' }}</dd></div>
                         @unless ($this->needsEmail())
                             <div class="qt-info__row"><dt>{{ __('quotations.detail.email') }}</dt><dd>{{ $lead->email }}</dd></div>
                         @endunless
@@ -217,7 +217,7 @@
                     <h2 class="qt-section-title">{{ __('quotations.detail.opportunity') }}</h2>
                     <dl class="qt-info qt-info--stack">
                         <div class="qt-info__row"><dt>{{ __('quotations.detail.opportunity_id') }}</dt><dd><span class="qt-mono">{{ $opportunity->opportunity_id }}</span></dd></div>
-                        <div class="qt-info__row"><dt>{{ __('quotations.detail.stage') }}</dt><dd>{{ $opportunity->stage?->stage_name ?? '—' }}</dd></div>
+                        <div class="qt-info__row"><dt>{{ __('quotations.detail.stage') }}</dt><dd>{{ $opportunity->stage?->stage_name ?? '-' }}</dd></div>
                         <div class="qt-info__row"><dt>{{ __('quotations.form.created_date') }}</dt><dd>{{ \Carbon\Carbon::parse($this->createdDate)->format('d/m/Y') }}</dd></div>
                     </dl>
                 </section>

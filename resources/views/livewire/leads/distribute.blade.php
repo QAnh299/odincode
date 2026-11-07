@@ -20,9 +20,9 @@
     $metric = function (?array $perf, string $criterion) {
         $revenue = (float) ($perf['revenue'] ?? 0);
         $value = match ($criterion) {
-            'close_rate' => isset($perf['close_rate']) ? number_format($perf['close_rate'], 1, ',', '.').'%' : '—',
+            'close_rate' => isset($perf['close_rate']) ? number_format($perf['close_rate'], 1, ',', '.').'%' : '-',
             'avg_close_days' => isset($perf['avg_close_days'])
-                ? __('leads.distribute.days', ['count' => number_format($perf['avg_close_days'], 1, ',', '.')]) : '—',
+                ? __('leads.distribute.days', ['count' => number_format($perf['avg_close_days'], 1, ',', '.')]) : '-',
             default => match (true) {
                 $revenue >= 1e9 => __('leads.distribute.money_billion', ['value' => number_format($revenue / 1e9, 1, ',', '.')]),
                 $revenue >= 1e6 => __('leads.distribute.money_million', ['value' => number_format($revenue / 1e6, 1, ',', '.')]),
@@ -258,7 +258,7 @@
                                                                 $best = $board && $board[$criterion] === 1 && ! $note && count($this->scoreboard) > 1;
                                                             @endphp
                                                             <span class="ld-dist__kpi {{ $best ? 'is-best' : '' }} {{ $note ? 'is-short' : '' }}"
-                                                                title="{{ $label }}{{ $note ? ' — '.$note : '' }}">
+                                                                title="{{ $label }}{{ $note ? ' - '.$note : '' }}">
                                                                 <x-icon name="{{ $kpiIcons[$criterion] }}" />
                                                                 <span class="visually-hidden">{{ $label }}:</span>
                                                                 {{ $value }}@if ($note)<sup>*</sup>@endif

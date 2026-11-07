@@ -42,7 +42,7 @@ class AppointmentReminders
                 return [
                     'title' => __('appointments.overdue_title', [
                         'types' => self::typeNames($rows),
-                        'name'  => $first->opportunity?->lead?->full_name ?? '—',
+                        'name'  => $first->opportunity?->lead?->full_name ?? '-',
                     ]),
                     'time'  => __('appointments.overdue_time', ['time' => $first->scheduled_time->format('d/m/Y H:i')]),
                     'url'   => route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),
@@ -69,7 +69,7 @@ class AppointmentReminders
                 $day = $first->scheduled_time->isToday() ? __('appointments.today') : __('appointments.tomorrow');
 
                 return [
-                    'title' => __('appointments.reminder_title', ['types' => $types, 'name' => $lead?->full_name ?? '—']),
+                    'title' => __('appointments.reminder_title', ['types' => $types, 'name' => $lead?->full_name ?? '-']),
                     'time'  => $day.' '.$first->scheduled_time->format('H:i')
                         .($lead?->branch ? ' · '.$lead->branch->branch_name : ''),
                     'url'   => route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),

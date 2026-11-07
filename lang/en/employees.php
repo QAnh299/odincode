@@ -130,7 +130,7 @@ return [
             'edit_sub'         => 'Update the team name, established date, leader and the Salespeople in the team.',
             'team_name'        => 'Team name',
             'placeholder_name' => 'e.g. ODIN Sales 3',
-            'no_leader_yet'    => '— No leader yet —',
+            'no_leader_yet'    => '- No leader yet -',
             'current'          => 'current leader',
             'in_team'          => 'in :team',
             'leader_hint'      => 'Changing the leader moves the new leader into the team and removes the previous one. Once members are selected, only leaders in their branch can be chosen.',

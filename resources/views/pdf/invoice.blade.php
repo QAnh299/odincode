@@ -75,13 +75,13 @@
         <tr>
             <td>
                 <div class="label">{{ __('quotations.pdf.customer') }}</div>
-                <strong>{{ $lead?->full_name ?? '—' }}</strong><br>
+                <strong>{{ $lead?->full_name ?? '-' }}</strong><br>
                 @if ($lead?->phone){{ __('quotations.detail.phone') }}: {{ $lead->phone }}<br>@endif
                 @if ($lead?->email){{ __('quotations.detail.email') }}: {{ $lead->email }}@endif
             </td>
             <td>
                 <div class="label">{{ __('quotations.pdf.consultant') }}</div>
-                <strong>{{ $quotation?->employee?->full_name ?? '—' }}</strong><br>
+                <strong>{{ $quotation?->employee?->full_name ?? '-' }}</strong><br>
                 @if ($quotation?->employee?->phone){{ __('quotations.detail.phone') }}: {{ $quotation->employee->phone }}<br>@endif
                 @if ($quotation?->employee?->email){{ __('quotations.detail.email') }}: {{ $quotation->employee->email }}@endif
             </td>
@@ -132,10 +132,10 @@
     @if ($isPaid)
         <div class="pay">
             <div class="label">{{ $P('payment') }}</div>
-            {{ $P('method') }}: <strong>{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '—' }}</strong>
+            {{ $P('method') }}: <strong>{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '-' }}</strong>
             · {{ $P('paid_at') }}: <strong>{{ $invoice->payment_date?->format('d/m/Y H:i') }}</strong><br>
             {{ $invoice->payment_method === \App\Models\Invoice::METHOD_CASH
-                ? $P('confirmed_cash', ['name' => $invoice->accountant?->full_name ?? '—'])
+                ? $P('confirmed_cash', ['name' => $invoice->accountant?->full_name ?? '-'])
                 : $P('confirmed_transfer') }}
         </div>
     @endif

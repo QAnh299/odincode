@@ -44,8 +44,8 @@
     <section class="vc-card">
         <h2 class="st-title">{{ __('leads.info') }}</h2>
         <dl class="st-info ld-info">
-            <dt>{{ __('leads.phone') }}</dt><dd>{{ $lead->phone ?: '—' }}</dd>
-            <dt>{{ __('leads.field.email') }}</dt><dd>{{ $lead->email ?: '—' }}</dd>
+            <dt>{{ __('leads.phone') }}</dt><dd>{{ $lead->phone ?: '-' }}</dd>
+            <dt>{{ __('leads.field.email') }}</dt><dd>{{ $lead->email ?: '-' }}</dd>
             <dt>{{ __('leads.contact_method') }}</dt>
             <dd><span class="ld-method ld-method--{{ $lead->contact_method }}">{{ __('leads.method.'.$lead->contact_method) }}</span></dd>
             <dt>{{ __('leads.source') }}</dt><dd>{{ $lead->source_name }}</dd>
@@ -54,10 +54,10 @@
                 @if ($lead->sourceUrlIsLink())
                     <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer">{{ $lead->source_url }}</a>
                 @else
-                    {{ $lead->source_url ?: '—' }}
+                    {{ $lead->source_url ?: '-' }}
                 @endif
             </dd>
-            <dt>{{ __('leads.branch') }}</dt><dd>{{ $lead->branch?->branch_name ?? '—' }}</dd>
+            <dt>{{ __('leads.branch') }}</dt><dd>{{ $lead->branch?->branch_name ?? '-' }}</dd>
             <dt>{{ __('leads.created_at') }}</dt><dd>{{ $lead->created_at?->format('d/m/Y H:i') }}</dd>
         </dl>
     </section>
@@ -93,8 +93,8 @@
                                     @endif
                                 </td>
                                 <td data-label="{{ __('leads.conversion_date') }}" class="st-nowrap">{{ $opportunity->conversion_date?->format('d/m/Y H:i') }}</td>
-                                <td data-label="{{ __('leads.owner') }}">{{ $opportunity->employee?->full_name ?? '—' }}</td>
-                                <td data-label="{{ __('leads.stage') }}">{{ $opportunity->stage?->stage_name ?? '—' }}</td>
+                                <td data-label="{{ __('leads.owner') }}">{{ $opportunity->employee?->full_name ?? '-' }}</td>
+                                <td data-label="{{ __('leads.stage') }}">{{ $opportunity->stage?->stage_name ?? '-' }}</td>
                                 <td data-label="{{ __('leads.status') }}">{{ __('opportunities.status_name.'.$opportunity->status) }}</td>
                             </tr>
                         @endforeach

@@ -26,11 +26,11 @@
     // Thẻ KPI: [khoá, icon, số chính, chú thích]
     $kpis = [
         ['leads', 'layers', $num($t['leads']), $ls('kpi.leads_hint', ['count' => count($rows)])],
-        ['top_leads', 'users', $top['leads']['dim'] ?? '—',
+        ['top_leads', 'users', $top['leads']['dim'] ?? '-',
             $top['leads'] ? $ls('kpi.top_leads_hint', ['count' => $num($top['leads']['leads'])]) : ''],
-        ['top_win', 'check-circle', $top['win']['dim'] ?? '—',
+        ['top_win', 'check-circle', $top['win']['dim'] ?? '-',
             $top['win'] ? $ls('kpi.top_win_hint', ['rate' => $pct($top['win']['win_rate']), 'avg' => $pct($t['win_rate'])]) : ''],
-        ['top_revenue', 'cash', $top['revenue']['dim'] ?? '—',
+        ['top_revenue', 'cash', $top['revenue']['dim'] ?? '-',
             $top['revenue'] ? $short($top['revenue']['revenue']) : $ls('kpi.no_revenue')],
     ];
 

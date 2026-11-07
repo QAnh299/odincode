@@ -188,28 +188,28 @@
                                     </a>
                                 </td>
                                 <td data-label="{{ __('employees.role') }}">
-                                    <span class="em-role">{{ $employee->role_name ? __('roles.'.$employee->role_name) : '—' }}</span>
+                                    <span class="em-role">{{ $employee->role_name ? __('roles.'.$employee->role_name) : '-' }}</span>
                                     @if (filled($employee->job_title))
                                         <span class="em-muted">{{ $employee->job_title }}</span>
                                     @endif
                                 </td>
                                 @if ($this->canFilterScope)
                                     <td data-label="{{ __('employees.team') }}">
-                                        {{ $employee->team?->team_name ?? '—' }}
+                                        {{ $employee->team?->team_name ?? '-' }}
                                         @if ($employee->team && $employee->team->team_leader_id === $employee->employee_id)
                                             <span class="em-leader-tag">{{ __('employees.leader_tag') }}</span>
                                         @endif
                                     </td>
                                     <td data-label="{{ __('employees.branch') }}">
-                                        {{ $employee->branch?->branch_name ?? '—' }}
+                                        {{ $employee->branch?->branch_name ?? '-' }}
                                     </td>
                                 @endif
                                 <td data-label="{{ __('employees.contact') }}">
-                                    <span class="em-contact">{{ $employee->email ?: '—' }}</span>
+                                    <span class="em-contact">{{ $employee->email ?: '-' }}</span>
                                     <span class="em-muted">{{ $employee->phone ?: '' }}</span>
                                 </td>
                                 <td data-label="{{ __('employees.hire_date') }}">
-                                    {{ $employee->hire_date?->format('d/m/Y') ?? '—' }}
+                                    {{ $employee->hire_date?->format('d/m/Y') ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('employees.status') }}">
                                     <span class="vc-badge vc-tone--{{ $tone($employeeState) }}">

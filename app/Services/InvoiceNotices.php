@@ -65,12 +65,12 @@ class InvoiceNotices
             ->map(fn (Invoice $invoice) => [
                 'title' => __('invoices.notice.cash_pending', [
                     'code'   => $invoice->invoice_id,
-                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '-',
                     'amount' => self::money($invoice->payment_amount),
                 ]),
                 'time'  => __('invoices.notice.cash_pending_time', [
                     'date' => $invoice->issued_date?->format('d/m/Y'),
-                    'by'   => $invoice->createdBy?->full_name ?? '—',
+                    'by'   => $invoice->createdBy?->full_name ?? '-',
                 ]),
                 'url'   => route('accountant.invoices.show', $invoice),
                 // Hàng đợi xếp lên đầu chuông
@@ -103,7 +103,7 @@ class InvoiceNotices
                 return [
                     'title' => __($invoice->status === Invoice::STATUS_OVERDUE ? 'invoices.notice.transfer_overdue' : 'invoices.notice.transfer_mismatch', [
                         'code'     => $invoice->invoice_id,
-                        'name'     => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                        'name'     => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '-',
                         'received' => self::money($alert['amount']),
                         'amount'   => self::money($invoice->payment_amount),
                     ]),
@@ -132,7 +132,7 @@ class InvoiceNotices
             ->map(fn (Invoice $invoice) => [
                 'title' => __('invoices.notice.overdue', [
                     'code'   => $invoice->invoice_id,
-                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '-',
                     'amount' => self::money($invoice->payment_amount),
                 ]),
                 'time'  => __('invoices.notice.overdue_time', ['date' => $invoice->due_date?->format('d/m/Y')]),
@@ -160,11 +160,11 @@ class InvoiceNotices
             ->map(fn (Invoice $invoice) => [
                 'title' => __('invoices.notice.paid', [
                     'code'   => $invoice->invoice_id,
-                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '—',
+                    'name'   => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '-',
                     'amount' => self::money($invoice->payment_amount),
                 ]),
                 'time'  => ($invoice->payment_method === Invoice::METHOD_CASH
-                        ? __('invoices.notice.by_accountant', ['name' => $invoice->accountant?->full_name ?? '—'])
+                        ? __('invoices.notice.by_accountant', ['name' => $invoice->accountant?->full_name ?? '-'])
                         : __('invoices.notice.by_system'))
                     .' · '.$invoice->payment_date->format('d/m H:i'),
                 'url'   => route($prefix.'.invoices.show', $invoice),

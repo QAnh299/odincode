@@ -13,12 +13,12 @@
     $prevText = $this->monthLabel($this->previousMonth);
     $sp = fn ($key, $replace = []) => __('reports.sales_performance.'.$key, $replace);
 
-    $money = fn ($v) => $v === null ? '—' : number_format((float) $v, 0, ',', '.').' ₫';
+    $money = fn ($v) => $v === null ? '-' : number_format((float) $v, 0, ',', '.').' ₫';
     $num = fn ($v) => number_format((float) $v, 0, ',', '.');
     $dec = fn ($v) => number_format((float) $v, 1, ',', '.');
-    $pct = fn ($v) => $v === null ? '—' : $dec($v).'%';
-    $hours = fn ($v) => $v === null ? '—' : $sp('hours', ['value' => $dec($v)]);
-    $days = fn ($v) => $v === null ? '—' : $sp('days', ['value' => $dec($v)]);
+    $pct = fn ($v) => $v === null ? '-' : $dec($v).'%';
+    $hours = fn ($v) => $v === null ? '-' : $sp('hours', ['value' => $dec($v)]);
+    $days = fn ($v) => $v === null ? '-' : $sp('days', ['value' => $dec($v)]);
     $formats = [
         'revenue' => $money, 'avg_order' => $money, 'won' => $num, 'open' => $num, 'activity' => $num,
         'close_rate' => $pct, 'reach_rate' => $pct, 'show_rate' => $pct, 'avg_response_hours' => $hours,
@@ -280,7 +280,7 @@
                                     @if ($row['rank'])
                                         <span class="rp-rank rp-rank--{{ $row['rank'] }}">{{ $row['rank'] }}</span>
                                     @else
-                                        —
+                                        -
                                     @endif
                                 </td>
                                 <th scope="row" class="rp-pin rp-pin--2">

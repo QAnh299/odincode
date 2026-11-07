@@ -207,7 +207,7 @@ class Show extends Component
     private function paidElsewhereText(): string
     {
         $invoice = $this->invoice;
-        $time = $invoice->payment_date?->format('H:i d/m/Y') ?? '—';
+        $time = $invoice->payment_date?->format('H:i d/m/Y') ?? '-';
 
         return $invoice->accountant
             ? __('invoices.detail.already_confirmed', ['code' => $invoice->invoice_id, 'name' => $invoice->accountant->full_name, 'time' => $time])

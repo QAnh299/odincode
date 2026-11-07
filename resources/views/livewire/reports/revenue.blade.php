@@ -12,8 +12,8 @@
     $num = fn ($v) => number_format((float) $v, 0, ',', '.');
     $dec = fn ($v) => number_format((float) $v, 1, ',', '.');
     $money = fn ($v) => number_format((float) $v, 0, ',', '.').' ₫';
-    $pct = fn ($v) => $v === null ? '—' : $dec($v).'%';
-    $date = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '—';
+    $pct = fn ($v) => $v === null ? '-' : $dec($v).'%';
+    $date = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '-';
 
     // So với kỳ trước: [chữ, class]; $dir = 1 cao là tốt
     $delta = function ($cur, $old, int $dir = 1) use ($prev, $dec, $L) {
@@ -243,8 +243,8 @@
                     $p = $this->payments;
                     $kpis = [
                         ['on_time', 'check-circle', $pct($p['on_time_rate']), $L('kpi.on_time_hint', ['count' => $num($c['on_time']), 'total' => $num($c['invoices'])]), null],
-                        ['days', 'clock', $p['days']['median'] === null ? '—' : $L('days', ['value' => $dec($p['days']['median'])]),
-                            $L('kpi.days_hint', ['count' => $num($p['days']['count']), 'avg' => $p['days']['avg'] === null ? '—' : $dec($p['days']['avg'])]), null],
+                        ['days', 'clock', $p['days']['median'] === null ? '-' : $L('days', ['value' => $dec($p['days']['median'])]),
+                            $L('kpi.days_hint', ['count' => $num($p['days']['count']), 'avg' => $p['days']['avg'] === null ? '-' : $dec($p['days']['avg'])]), null],
                         ['transfer', 'wallet', $pct(RevenueReport::pct($c['transfer'], $c['collected'])), $L('kpi.transfer_hint', ['amount' => $money($c['transfer']), 'count' => $num($c['transfer_count'])]), null],
                         ['cash_queue', 'cash', $num($p['cash_queue']['count']), $L('kpi.cash_queue_hint', ['amount' => $money($p['cash_queue']['amount'])]), null],
                         ['transfer_queue', 'alert', $num(count($p['transfers'])), $L('kpi.transfer_queue_hint', ['amount' => $money(array_sum(array_column($p['transfers'], 'payment_amount')))]), null],
@@ -285,7 +285,7 @@
                                             @php $rate = RevenueReport::pct($row['on_time'], $row['total']); @endphp
                                             <span class="rp-bar" style="--w: {{ min(100, $rate ?? 0) }}%">{{ $pct($rate) }}</span>
                                         </td>
-                                        <td class="rp-num">{{ $row['late_days'] === null ? '—' : $L('days', ['value' => $dec($row['late_days'])]) }}</td>
+                                        <td class="rp-num">{{ $row['late_days'] === null ? '-' : $L('days', ['value' => $dec($row['late_days'])]) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -369,7 +369,7 @@
                                 @endforeach
                                 <tr class="rp-row--total">
                                     <th scope="row">{{ $L('debt.uninvoiced') }}</th>
-                                    <td class="rp-num">—</td>
+                                    <td class="rp-num">-</td>
                                     <td class="rp-num">{{ $money($d['uninvoiced']) }}</td>
                                 </tr>
                             </tbody>
@@ -409,12 +409,12 @@
                                             <td class="rp-num">{{ $money($row['total_amount']) }}</td>
                                             <td class="rp-num"><strong>{{ $money($row['remaining_amount']) }}</strong></td>
                                             <td class="rp-num">{{ $money($row['unpaid']) }}<span class="rp-sub">{{ $L('debt.invoice_count', ['count' => $row['invoices']]) }}</span></td>
-                                            <td class="rp-num">{{ (float) $row['uninvoiced'] > 0 ? $money($row['uninvoiced']) : '—' }}</td>
+                                            <td class="rp-num">{{ (float) $row['uninvoiced'] > 0 ? $money($row['uninvoiced']) : '-' }}</td>
                                             <td class="rp-num">
                                                 @if ($row['late'] > 0)
                                                     <span class="rv-late">{{ $L('late_days', ['days' => $row['late']]) }}</span>
                                                 @else
-                                                    —
+                                                    -
                                                 @endif
                                             </td>
                                         </tr>
@@ -453,7 +453,7 @@
                                             </th>
                                             <td>{{ $row['customer'] }}<span class="rp-sub">{{ $row['phone'] }}</span></td>
                                             @if ($this->canFilterEmployee)<td>{{ $row['employee'] }}</td>@endif
-                                            <td>{{ $row['payment_method'] ? __('invoices.method.'.$row['payment_method']) : '—' }}</td>
+                                            <td>{{ $row['payment_method'] ? __('invoices.method.'.$row['payment_method']) : '-' }}</td>
                                             <td class="rp-num">{{ $money($row['payment_amount']) }}</td>
                                             <td class="rp-num">{{ $date($row['due_date']) }}</td>
                                             <td class="rp-num"><span class="rv-late">{{ $L('late_days', ['days' => $row['late']]) }}</span></td>
@@ -543,7 +543,7 @@
                                             <td class="rp-num">{{ $num($row['orders']) }}</td>
                                             <td class="rp-num">{{ $money($row['collected']) }}</td>
                                             <td class="rp-num">{{ $money($row['revenue']) }}</td>
-                                            <td class="rp-num">{{ $row['debt'] > 0 ? $money($row['debt']) : '—' }}</td>
+                                            <td class="rp-num">{{ $row['debt'] > 0 ? $money($row['debt']) : '-' }}</td>
                                             <td class="rp-num">
                                                 {{ $pct($row['on_time']) }}<span class="rp-sub">{{ $L('staff.paid_count', ['count' => $row['paid_invoices']]) }}</span>
                                             </td>
@@ -552,7 +552,7 @@
                                                     <a href="{{ $this->listUrl('invoices', ['deadline' => 'overdue', 'employee' => $row['id']]) }}" class="rv-late">{{ $money($row['overdue_amount']) }}</a>
                                                     <span class="rp-sub">{{ $L('debt.invoice_count', ['count' => $row['overdue_count']]) }}</span>
                                                 @else
-                                                    —
+                                                    -
                                                 @endif
                                             </td>
                                         </tr>

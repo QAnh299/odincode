@@ -23,7 +23,7 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $vat = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
-    $dash = fn ($value) => filled($value) ? $value : '—';
+    $dash = fn ($value) => filled($value) ? $value : '-';
 
     $quotationUrl = $quotation && Route::has($prefix.'.quotations.show') ? route($prefix.'.quotations.show', $quotation) : null;
     $opportunityUrl = $quotation && Route::has($prefix.'.opportunities.show') ? route($prefix.'.opportunities.show', $quotation->opportunity_id) : null;
@@ -53,7 +53,7 @@
         <span class="od-badge od-tone--{{ $tone }}">
             <span class="od-badge__dot"></span>{{ in_array($status, SalesOrder::STATUSES, true) ? __('orders.status.'.$status) : $status }}
         </span>
-        <span class="qt-detail-head__meta"><x-icon name="calendar" />{{ __('orders.detail.created_on', ['date' => $order->created_at?->format('d/m/Y') ?? '—']) }}</span>
+        <span class="qt-detail-head__meta"><x-icon name="calendar" />{{ __('orders.detail.created_on', ['date' => $order->created_at?->format('d/m/Y') ?? '-']) }}</span>
         <span class="qt-detail-head__meta"><x-icon name="wallet" />{{ __('orders.payment_type.'.$paymentType) }}</span>
     </header>
 
@@ -194,12 +194,12 @@
                                                 <small>{{ __('invoices.installment', ['number' => $item->payment_installment]) }}</small>
                                             </span>
                                         </td>
-                                        <td data-label="{{ __('orders.detail.method') }}">{{ $item->payment_method ? __('invoices.method.'.$item->payment_method) : '—' }}</td>
+                                        <td data-label="{{ __('orders.detail.method') }}">{{ $item->payment_method ? __('invoices.method.'.$item->payment_method) : '-' }}</td>
                                         <td data-label="{{ __('orders.detail.amount') }}" class="text-lg-end"><strong>{{ $money($item->payment_amount) }}</strong></td>
-                                        <td data-label="{{ __('orders.detail.due') }}">{{ $item->due_date?->format('d/m/Y') ?? '—' }}</td>
+                                        <td data-label="{{ __('orders.detail.due') }}">{{ $item->due_date?->format('d/m/Y') ?? '-' }}</td>
                                         <td data-label="{{ __('orders.detail.paid_at') }}">
                                             <span class="od-course">
-                                                <span>{{ $item->payment_date?->format('d/m/Y H:i') ?? '—' }}</span>
+                                                <span>{{ $item->payment_date?->format('d/m/Y H:i') ?? '-' }}</span>
                                                 @if ($item->status === Invoice::STATUS_PAID)
                                                     <small>{{ $item->accountant?->full_name ?? __('invoices.detail.system') }}</small>
                                                 @endif
@@ -246,7 +246,7 @@
                             @if ($quotationUrl)
                                 <a href="{{ $quotationUrl }}" class="qt-link qt-mono">{{ $quotation->quotation_id }}</a>
                             @else
-                                <span class="qt-mono">{{ $quotation?->quotation_id ?? '—' }}</span>
+                                <span class="qt-mono">{{ $quotation?->quotation_id ?? '-' }}</span>
                             @endif
                         </dd>
                     </div>
@@ -256,7 +256,7 @@
                             @if ($opportunityUrl)
                                 <a href="{{ $opportunityUrl }}" class="qt-link qt-mono">{{ $quotation->opportunity_id }}</a>
                             @else
-                                <span class="qt-mono">{{ $quotation?->opportunity_id ?? '—' }}</span>
+                                <span class="qt-mono">{{ $quotation?->opportunity_id ?? '-' }}</span>
                             @endif
                         </dd>
                     </div>
@@ -266,7 +266,7 @@
                     </div>
                     <div class="qt-info__row">
                         <dt>{{ __('orders.detail.created_at') }}</dt>
-                        <dd>{{ $order->created_at?->format('d/m/Y H:i') ?? '—' }}</dd>
+                        <dd>{{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</dd>
                     </div>
                     <div class="qt-info__row">
                         <dt>{{ __('orders.payment_type_label') }}</dt>

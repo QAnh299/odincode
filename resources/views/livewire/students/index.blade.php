@@ -167,7 +167,7 @@
                                     {{ $student->conversion_date?->format('d/m/Y') }}
                                 </td>
                                 @unless ($isSalesperson)
-                                    <td data-label="{{ __('students.owner') }}">{{ $student->opportunity?->employee?->full_name ?? '—' }}</td>
+                                    <td data-label="{{ __('students.owner') }}">{{ $student->opportunity?->employee?->full_name ?? '-' }}</td>
                                 @endunless
                                 <td data-label="{{ __('students.status') }}">
                                     <span class="vc-badge st-tone--{{ $student->status }}">

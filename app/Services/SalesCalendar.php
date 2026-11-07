@@ -143,7 +143,7 @@ class SalesCalendar
             'time'    => $timed ? $at->format('H:i') : null,
             'kind'    => $kind,
             'label'   => $label,
-            'name'    => $opportunity?->lead?->full_name ?? '—',
+            'name'    => $opportunity?->lead?->full_name ?? '-',
             'detail'  => implode(' · ', array_filter([$opportunity?->stage?->stage_name, $note])),
             'url'     => $url,
             'done'    => $done,

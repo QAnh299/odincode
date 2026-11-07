@@ -123,7 +123,7 @@
                                     {{ $course->displayVat() }}
                                 </td>
                                 <td data-label="{{ __('courses.duration') }}">
-                                    {{ $course->duration ?: '—' }}
+                                    {{ $course->duration ?: '-' }}
                                 </td>
                                 <td data-label="{{ __('courses.status') }}">
                                     <span class="vc-badge vc-tone--{{ $courseState }}">

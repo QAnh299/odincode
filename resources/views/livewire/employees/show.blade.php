@@ -3,9 +3,9 @@
     $team = $employee->team;
     $branch = $employee->branch;
     $state = $employee->state();
-    $roleLabel = $employee->role_name ? __('roles.'.$employee->role_name) : '—';
+    $roleLabel = $employee->role_name ? __('roles.'.$employee->role_name) : '-';
 
-    $date = fn ($value) => $value?->format('d/m/Y') ?? '—';
+    $date = fn ($value) => $value?->format('d/m/Y') ?? '-';
 
     // Thâm niên tính từ ngày vào làm: "3 năm 4 tháng"
     $months = $employee->hire_date ? max(0, (int) $employee->hire_date->diffInMonths(today())) : null;
@@ -24,15 +24,15 @@
     $groups = [
         'personal_info' => [
             ['calendar', __('employees.date_of_birth'), $date($employee->date_of_birth), null, null, false],
-            ['message', __('employees.email'), $employee->email ?: '—', null, $employee->email ? 'mailto:'.$employee->email : null, false],
-            ['phone', __('employees.phone'), $employee->phone ?: '—', null, $employee->phone ? 'tel:'.$employee->phone : null, false],
+            ['message', __('employees.email'), $employee->email ?: '-', null, $employee->email ? 'mailto:'.$employee->email : null, false],
+            ['phone', __('employees.phone'), $employee->phone ?: '-', null, $employee->phone ? 'tel:'.$employee->phone : null, false],
         ],
         'work_info' => array_values(array_filter([
-            ['tag', __('employees.job_title'), $employee->job_title ?: '—', null, null, false],
+            ['tag', __('employees.job_title'), $employee->job_title ?: '-', null, null, false],
             ['shield', __('employees.role'), $roleLabel, null, null, false],
             ['calendar', __('employees.hire_date'), $date($employee->hire_date),
                 $employee->isActive() && $seniority ? __('employees.seniority_value', ['value' => $seniority]) : null, null, false],
-            ['layers', __('employees.branch'), $branch?->branch_name ?? '—', $branch?->address, null, true],
+            ['layers', __('employees.branch'), $branch?->branch_name ?? '-', $branch?->address, null, true],
             $this->isSales ? ['users', __('employees.team'), $team?->team_name ?? __('employees.no_team'), null, null, false] : null,
         ])),
     ];
@@ -176,7 +176,7 @@
                                         <span class="ed-person__text">
                                             <span class="ed-person__name">{{ $member->full_name }}</span>
                                             <span class="ed-person__meta">
-                                                {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '—' }}
+                                                {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '-' }}
                                             </span>
                                         </span>
                                         @if ($team->team_leader_id === $member->employee_id)

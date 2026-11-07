@@ -305,7 +305,7 @@
                                             @if ($quotation->opportunity?->lead)
                                                 {{ $this->highlight($quotation->opportunity->lead->full_name) }}
                                             @else
-                                                —
+                                                -
                                             @endif
                                         </span>
                                         <span class="qt-stack__sub">{{ $quotation->opportunity_id }}</span>
@@ -313,7 +313,7 @@
                                 </td>
                                 @if ($showEmployee)
                                     <td data-label="{{ __('quotations.employee') }}">
-                                        {{ $quotation->employee?->full_name ?? '—' }}
+                                        {{ $quotation->employee?->full_name ?? '-' }}
                                     </td>
                                 @endif
                                 <td data-label="{{ __('quotations.created_at') }}">
@@ -348,7 +348,7 @@
                                     @if ($quotation->order)
                                         <a href="{{ route($this->routePrefix.'.orders.show', $quotation->order) }}" class="qt-mono qt-link" onclick="event.stopPropagation()">{{ $this->highlight($quotation->order->order_id) }}</a>
                                     @else
-                                        <span class="qt-muted">—</span>
+                                        <span class="qt-muted">-</span>
                                     @endif
                                 </td>
                             </tr>

@@ -26,10 +26,10 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $percent = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
-    $dash = fn ($value) => filled($value) ? $value : '—';
+    $dash = fn ($value) => filled($value) ? $value : '-';
 
     // Nhãn từ lang; giá trị chưa có bản dịch (dữ liệu cũ) thì hiện nguyên văn
-    $label = fn (string $group, ?string $value) => $value === null ? '—'
+    $label = fn (string $group, ?string $value) => $value === null ? '-'
         : (Lang::has('quotations.'.$group.'.'.$value) ? __('quotations.'.$group.'.'.$value) : $value);
 
     // Link chỉ tạo khi vai trò hiện tại có route tương ứng
@@ -81,7 +81,7 @@
             <span class="qt-badge__dot"></span>{{ $label('status', $status) }}
         </span>
         <span class="qt-detail-head__meta">
-            <x-icon name="calendar" />{{ __('quotations.detail.expires_on', ['date' => $quotation->expiry_date?->format('d/m/Y') ?? '—']) }}
+            <x-icon name="calendar" />{{ __('quotations.detail.expires_on', ['date' => $quotation->expiry_date?->format('d/m/Y') ?? '-']) }}
         </span>
         @if ($isDraft)
             @if ($isExpired)
@@ -204,16 +204,16 @@
                     </div>
                     <div class="qt-info__row">
                         <dt>{{ __('quotations.detail.created_at') }}</dt>
-                        <dd>{{ $quotation->created_at?->format('d/m/Y H:i') ?? '—' }}</dd>
+                        <dd>{{ $quotation->created_at?->format('d/m/Y H:i') ?? '-' }}</dd>
                     </div>
                     <div class="qt-info__row">
                         <dt>{{ __('quotations.detail.updated_at') }}</dt>
-                        <dd>{{ $quotation->updated_at?->format('d/m/Y H:i') ?? '—' }}</dd>
+                        <dd>{{ $quotation->updated_at?->format('d/m/Y H:i') ?? '-' }}</dd>
                     </div>
                     <div class="qt-info__row">
                         <dt>{{ __('quotations.detail.expiry_date') }}</dt>
                         <dd>
-                            {{ $quotation->expiry_date?->format('d/m/Y') ?? '—' }}
+                            {{ $quotation->expiry_date?->format('d/m/Y') ?? '-' }}
                             @if ($isDraft)
                                 @if ($isExpired)
                                     <span class="qt-expiry qt-expiry--over"><x-icon name="alert" />{{ __('quotations.overdue') }}</span>
@@ -351,7 +351,7 @@
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.order_created') }}</dt>
-                            <dd>{{ $order->created_at?->format('d/m/Y H:i') ?? '—' }}</dd>
+                            <dd>{{ $order->created_at?->format('d/m/Y H:i') ?? '-' }}</dd>
                         </div>
                         <div class="qt-info__row">
                             <dt>{{ __('quotations.detail.order_status') }}</dt>

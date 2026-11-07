@@ -131,14 +131,14 @@
                                     <span class="ap-sub vc-mono">{{ $apt->appointment_id }}</span>
                                 </td>
                                 <td data-label="{{ __('appointments.customer') }}">
-                                    <span class="ap-name">{{ $lead?->full_name ?? '—' }}</span>
+                                    <span class="ap-name">{{ $lead?->full_name ?? '-' }}</span>
                                     <span class="ap-sub">{{ $lead?->phone }}</span>
                                 </td>
                                 <td data-label="{{ __('appointments.opportunity') }}">
                                     <a href="{{ $url }}" class="vc-mono" onclick="event.stopPropagation()">{{ $apt->opportunity_id }}</a>
                                     <span class="ap-sub">{{ $opp?->stage?->stage_name }}</span>
                                 </td>
-                                <td data-label="{{ __('opportunities.location') }}">{{ $lead?->branch?->branch_name ?? '—' }}</td>
+                                <td data-label="{{ __('opportunities.location') }}">{{ $lead?->branch?->branch_name ?? '-' }}</td>
                                 <td data-label="{{ __('opportunities.status') }}">
                                     <span class="vc-badge od-apt--{{ $status }}">
                                         <span class="vc-badge__dot"></span>{{ __('appointments.status.'.$status) }}

@@ -352,8 +352,8 @@
                                 </td>
                                 <td data-label="{{ __('orders.customer') }}">
                                     <span class="od-stack">
-                                        <span class="od-stack__main">{{ $lead ? $this->highlight($lead->full_name) : '—' }}</span>
-                                        <span class="od-stack__sub od-stack__sub--mono">{{ $quotation?->opportunity_id ?? '—' }}</span>
+                                        <span class="od-stack__main">{{ $lead ? $this->highlight($lead->full_name) : '-' }}</span>
+                                        <span class="od-stack__sub od-stack__sub--mono">{{ $quotation?->opportunity_id ?? '-' }}</span>
                                     </span>
                                 </td>
                                 <td data-label="{{ __('orders.quotation') }}">
@@ -417,7 +417,7 @@
                                 </td>
                                 @if ($showEmployee)
                                     <td data-label="{{ __('orders.employee') }}">
-                                        {{ $quotation?->employee?->full_name ?? '—' }}
+                                        {{ $quotation?->employee?->full_name ?? '-' }}
                                     </td>
                                 @endif
                             </tr>

@@ -182,25 +182,25 @@
                                         <span class="ok-list__customer">
                                             <span class="ok-card__avatar" aria-hidden="true">{{ $initial($opp->lead?->full_name) }}</span>
                                             <span>
-                                                <a href="{{ $url }}" class="ok-list__name" onclick="event.stopPropagation()">{{ $opp->lead?->full_name ?? '—' }}</a>
+                                                <a href="{{ $url }}" class="ok-list__name" onclick="event.stopPropagation()">{{ $opp->lead?->full_name ?? '-' }}</a>
                                                 <span class="vc-mono ok-list__code">{{ $opp->opportunity_id }}</span>
                                             </span>
                                         </span>
                                     </td>
-                                    <td data-label="{{ __('opportunities.list.phone') }}" class="text-nowrap">{{ $opp->lead?->phone ?: '—' }}</td>
+                                    <td data-label="{{ __('opportunities.list.phone') }}" class="text-nowrap">{{ $opp->lead?->phone ?: '-' }}</td>
                                     <td data-label="{{ __('opportunities.stage') }}">
-                                        <span class="ok-stage ok-col--{{ $stage?->sort_order }}">{{ $stage?->stage_name ?? '—' }}</span>
+                                        <span class="ok-stage ok-col--{{ $stage?->sort_order }}">{{ $stage?->stage_name ?? '-' }}</span>
                                         @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
                                             <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
                                                 <span class="vc-badge__dot"></span>{{ __('opportunities.status_name.'.$opp->status) }}
                                             </span>
                                         @endif
                                     </td>
-                                    <td data-label="{{ __('opportunities.expected_value') }}" class="text-nowrap fw-semibold">{{ $opp->displayValue() ?? '—' }}</td>
+                                    <td data-label="{{ __('opportunities.expected_value') }}" class="text-nowrap fw-semibold">{{ $opp->displayValue() ?? '-' }}</td>
                                     @unless ($this->isSalesperson())
-                                        <td data-label="{{ __('opportunities.owner') }}">{{ $opp->employee?->full_name ?? '—' }}</td>
+                                        <td data-label="{{ __('opportunities.owner') }}">{{ $opp->employee?->full_name ?? '-' }}</td>
                                     @endunless
-                                    <td data-label="{{ __('opportunities.list.source') }}">{{ $opp->lead?->source_name ?? '—' }}</td>
+                                    <td data-label="{{ __('opportunities.list.source') }}">{{ $opp->lead?->source_name ?? '-' }}</td>
                                     <td data-label="{{ __('opportunities.conversion_date') }}" class="text-nowrap">{{ $opp->conversion_date?->format('d/m/Y') }}</td>
                                     <td data-label="{{ __('opportunities.list.todo') }}">
                                         @if ($opp->urgency)
@@ -208,7 +208,7 @@
                                                 <x-icon :name="$urgencyIcons[$opp->urgency]" />{{ __('opportunities.urgency.'.$opp->urgency, ['days' => $opp->urgency_days]) }}
                                             </span>
                                         @else
-                                            —
+                                            -
                                         @endif
                                     </td>
                                 </tr>
@@ -281,7 +281,7 @@
                                 class="ok-card {{ $opp->urgency ? 'ok-card--attention' : '' }}" wire:key="opp-{{ $opp->opportunity_id }}">
                                 <span class="ok-card__head">
                                     <span class="ok-card__avatar" aria-hidden="true">{{ $initial($opp->lead?->full_name) }}</span>
-                                    <span class="ok-card__name">{{ $opp->lead?->full_name ?? '—' }}</span>
+                                    <span class="ok-card__name">{{ $opp->lead?->full_name ?? '-' }}</span>
                                 </span>
 
                                 {{-- Việc cần xử lý: biểu tượng góc phải trên, rê chuột hiện nội dung --}}
@@ -293,17 +293,17 @@
                                 @endif
 
                                 <span class="ok-card__row">
-                                    <span class="ok-card__info"><x-icon name="phone" />{{ $opp->lead?->phone ?: '—' }}</span>
+                                    <span class="ok-card__info"><x-icon name="phone" />{{ $opp->lead?->phone ?: '-' }}</span>
                                     <span class="ok-card__date" title="{{ __('opportunities.conversion_date') }}: {{ $opp->conversion_date?->format('d/m/Y') }}">
                                         {{ $opp->conversion_date?->diffForHumans() }}
                                     </span>
                                 </span>
 
                                 <span class="ok-card__row">
-                                    <span class="ok-card__info"><x-icon name="wallet" />{{ $opp->displayValue() ?? '—' }}</span>
+                                    <span class="ok-card__info"><x-icon name="wallet" />{{ $opp->displayValue() ?? '-' }}</span>
                                     {{-- Leader / Giám đốc: người phụ trách --}}
                                     @unless ($this->isSalesperson())
-                                        <span class="ok-card__owner" title="{{ __('opportunities.owner') }}">{{ $opp->employee?->full_name ?? '—' }}</span>
+                                        <span class="ok-card__owner" title="{{ __('opportunities.owner') }}">{{ $opp->employee?->full_name ?? '-' }}</span>
                                     @endunless
                                 </span>
 

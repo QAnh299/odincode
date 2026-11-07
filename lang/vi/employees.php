@@ -130,7 +130,7 @@ return [
             'edit_sub'         => 'Cập nhật tên đội, ngày thành lập, trưởng nhóm và các Salesperson thuộc đội.',
             'team_name'        => 'Tên đội',
             'placeholder_name' => 'VD: ODIN Sales 3',
-            'no_leader_yet'    => '— Chưa gắn trưởng nhóm —',
+            'no_leader_yet'    => '- Chưa gắn trưởng nhóm -',
             'current'          => 'trưởng nhóm hiện tại',
             'in_team'          => 'đang ở :team',
             'leader_hint'      => 'Đổi trưởng nhóm: người mới được chuyển vào đội, trưởng nhóm cũ được gỡ khỏi đội. Đã chọn thành viên thì chỉ chọn được trưởng nhóm cùng chi nhánh.',

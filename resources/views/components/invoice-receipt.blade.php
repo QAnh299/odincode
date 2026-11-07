@@ -41,7 +41,7 @@
         <h2>{{ $isOrder ? __('orders.doc.title') : __('invoices.receipt.title') }}</h2>
         <p class="iv-doc__date">{{ Str::ucfirst($date->locale(app()->getLocale())->isoFormat(__('invoices.receipt.date_format'))) }}</p>
         @if ($isOrder)
-            <p class="iv-doc__no">{{ __('orders.doc.number') }}: <strong>{{ $order->order_id }}</strong> · {{ __('invoices.receipt.quotation') }} <strong>{{ $quotation?->quotation_id ?? '—' }}</strong></p>
+            <p class="iv-doc__no">{{ __('orders.doc.number') }}: <strong>{{ $order->order_id }}</strong> · {{ __('invoices.receipt.quotation') }} <strong>{{ $quotation?->quotation_id ?? '-' }}</strong></p>
         @else
             <p class="iv-doc__no">
                 {{ __('invoices.receipt.number') }}: <strong>{{ $invoice?->invoice_id ?? __('invoices.receipt.number_pending') }}</strong>
@@ -53,11 +53,11 @@
 
     {{-- Thông tin khách + đơn --}}
     <dl class="iv-doc__info">
-        <div><dt>{{ __('invoices.receipt.customer') }}</dt><dd>{{ $lead?->full_name ?? '—' }}</dd></div>
-        <div><dt>{{ __('invoices.receipt.phone') }}</dt><dd>{{ $lead?->phone ?: '—' }}</dd></div>
-        <div><dt>{{ __('invoices.receipt.email') }}</dt><dd>{{ $lead?->email ?: '—' }}</dd></div>
-        <div><dt>{{ __('invoices.receipt.consultant') }}</dt><dd>{{ $consultant?->full_name ?? '—' }}</dd></div>
-        <div><dt>{{ __('invoices.receipt.quotation') }}</dt><dd>{{ $quotation?->quotation_id ?? '—' }}</dd></div>
+        <div><dt>{{ __('invoices.receipt.customer') }}</dt><dd>{{ $lead?->full_name ?? '-' }}</dd></div>
+        <div><dt>{{ __('invoices.receipt.phone') }}</dt><dd>{{ $lead?->phone ?: '-' }}</dd></div>
+        <div><dt>{{ __('invoices.receipt.email') }}</dt><dd>{{ $lead?->email ?: '-' }}</dd></div>
+        <div><dt>{{ __('invoices.receipt.consultant') }}</dt><dd>{{ $consultant?->full_name ?? '-' }}</dd></div>
+        <div><dt>{{ __('invoices.receipt.quotation') }}</dt><dd>{{ $quotation?->quotation_id ?? '-' }}</dd></div>
         {{-- Đơn chưa xác định hình thức: không hiện dòng này (SP chọn ở phần nhập bên dưới – HĐ21) --}}
         @if ($paymentType)
             <div><dt>{{ __('invoices.payment_type_label') }}</dt><dd>{{ __('invoices.payment_type.'.$paymentType) }}</dd></div>
@@ -92,7 +92,7 @@
                         <td class="num" data-label="{{ __('invoices.receipt.line_total') }}">{{ $money($detail->line_total) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5">—</td></tr>
+                    <tr><td colspan="5">-</td></tr>
                 @endforelse
             </tbody>
         </table>

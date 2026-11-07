@@ -11,8 +11,8 @@
     $parts = preg_split('/\s+/u', trim($name));
     $initial = mb_strtoupper(mb_substr(end($parts) ?: '?', 0, 1));
 
-    $date = fn ($value) => $value?->format('d/m/Y') ?? '—';
-    $text = fn ($value) => filled($value) ? $value : '—';
+    $date = fn ($value) => $value?->format('d/m/Y') ?? '-';
+    $text = fn ($value) => filled($value) ? $value : '-';
 
     // Thâm niên tính từ ngày vào làm, VD: "5 năm 4 tháng"
     $seniority = $employee?->hire_date?->diffForHumans([
@@ -120,7 +120,7 @@
                         <span class="pf-stat__icon">{!! $icon('shield') !!}</span>
                         <div>
                             <dt>{{ __('profile.role') }}</dt>
-                            <dd>{{ $employee->role_name ? __('roles.'.$employee->role_name) : '—' }}</dd>
+                            <dd>{{ $employee->role_name ? __('roles.'.$employee->role_name) : '-' }}</dd>
                         </div>
                     </div>
                     <div class="pf-stat">
@@ -256,7 +256,7 @@
                     <div class="pf-fields">
                         @foreach (array_filter([
                             ['id', 'employee_id', $employee->employee_id],
-                            ['shield', 'role', $employee->role_name ? __('roles.'.$employee->role_name) : '—'],
+                            ['shield', 'role', $employee->role_name ? __('roles.'.$employee->role_name) : '-'],
                             ['briefcase', 'job_title', $text($employee->job_title)],
                             $inSalesTeam ? ['building', 'branch', $text($employee->branch?->branch_name)] : null,
                             $inSalesTeam ? ['users', 'team', $text($employee->team?->team_name)] : null,
@@ -322,7 +322,7 @@
                     </li>
                     <li>
                         <span class="pf-rows__label">{{ __('profile.created_at') }}</span>
-                        <span class="pf-rows__value">{{ $account->created_at?->format('d/m/Y H:i') ?? '—' }}</span>
+                        <span class="pf-rows__value">{{ $account->created_at?->format('d/m/Y H:i') ?? '-' }}</span>
                     </li>
                 </ul>
             </section>

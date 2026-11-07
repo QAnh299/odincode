@@ -36,13 +36,13 @@ class CareReminders
             ->get()
             ->map(fn (Opportunity $opportunity) => match (true) {
                 $opportunity->firstContactDue() => [
-                    'title' => __('opportunities.first_contact_title', ['name' => $opportunity->lead?->full_name ?? '—']),
+                    'title' => __('opportunities.first_contact_title', ['name' => $opportunity->lead?->full_name ?? '-']),
                     'time'  => __('opportunities.first_contact_time', ['time' => $opportunity->conversion_date->format('d/m/Y H:i')]),
                     'url'   => route('salesperson.opportunities.show', $opportunity),
                     'at'    => $opportunity->conversion_date,
                 ],
                 $opportunity->recontactDue() => [
-                    'title' => __('opportunities.recontact_title', ['name' => $opportunity->lead?->full_name ?? '—']),
+                    'title' => __('opportunities.recontact_title', ['name' => $opportunity->lead?->full_name ?? '-']),
                     'time'  => __('opportunities.recontact_time', ['time' => $opportunity->recontactAt()->format('d/m/Y H:i')]),
                     'url'   => route('salesperson.opportunities.show', $opportunity),
                     'at'    => $opportunity->recontactAt(),

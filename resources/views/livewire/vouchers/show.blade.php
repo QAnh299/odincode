@@ -169,13 +169,13 @@
                                     <span class="vc-mono">{{ $quotation->quotation_id }}</span>
                                 </td>
                                 <td data-label="{{ __('vouchers.customer') }}">
-                                    {{ $quotation->opportunity?->lead?->full_name ?? '—' }}
+                                    {{ $quotation->opportunity?->lead?->full_name ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('vouchers.employee') }}">
-                                    {{ $quotation->employee?->full_name ?? '—' }}
+                                    {{ $quotation->employee?->full_name ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('vouchers.created_at') }}">
-                                    {{ $quotation->created_at?->format('d/m/Y') ?? '—' }}
+                                    {{ $quotation->created_at?->format('d/m/Y') ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('vouchers.status') }}">
                                     <span class="vc-badge vc-q--{{ \Illuminate\Support\Str::lower($quotation->status) }}">

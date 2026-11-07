@@ -67,7 +67,7 @@
             @if ($status === Invoice::STATUS_PAID)
                 <x-icon name="check-circle" />
                 {{ $isCash
-                    ? __('invoices.detail.paid_cash', ['name' => $invoice->accountant?->full_name ?? '—', 'date' => $invoice->payment_date?->format('d/m/Y H:i')])
+                    ? __('invoices.detail.paid_cash', ['name' => $invoice->accountant?->full_name ?? '-', 'date' => $invoice->payment_date?->format('d/m/Y H:i')])
                     : __('invoices.detail.paid_transfer', ['date' => $invoice->payment_date?->format('d/m/Y H:i')]) }}
             @elseif ($status === Invoice::STATUS_OVERDUE)
                 <x-icon name="alert" />{{ __('invoices.detail.overdue_note') }}
@@ -132,7 +132,7 @@
             <div @class(['iv-doc__pay', 'has-qr' => $isUnpaid && $isTransfer])>
                 <dl class="iv-doc__info iv-doc__info--pay">
                     <div class="is-amount"><dt>{{ __('invoices.amount') }}</dt><dd>{{ $money($invoice->payment_amount) }}</dd></div>
-                    <div><dt>{{ __('invoices.method_label') }}</dt><dd>{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '—' }}</dd></div>
+                    <div><dt>{{ __('invoices.method_label') }}</dt><dd>{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '-' }}</dd></div>
                     <div><dt>{{ __('invoices.issued_date') }}</dt><dd>{{ $invoice->issued_date?->format('d/m/Y') }}</dd></div>
                     <div><dt>{{ __('invoices.due_date') }}</dt><dd>{{ $invoice->due_date?->format('d/m/Y') }}</dd></div>
                     <div>
@@ -143,9 +143,9 @@
                         <dt>{{ __('invoices.detail.confirmed_by') }}</dt>
                         <dd>
                             @if ($status !== Invoice::STATUS_PAID)
-                                —
+                                -
                             @elseif ($isCash)
-                                {{ $invoice->accountant?->full_name ?? '—' }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
+                                {{ $invoice->accountant?->full_name ?? '-' }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @else
                                 {{ __('invoices.detail.system') }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @endif
@@ -198,7 +198,7 @@
                                         <a href="{{ route($prefix.'.invoices.show', $item) }}" class="qt-mono">{{ $item->invoice_id }}</a>
                                         <small>{{ __('invoices.installment', ['number' => $item->payment_installment]) }}</small>
                                     </td>
-                                    <td data-label="{{ __('invoices.method_label') }}">{{ $item->payment_method ? __('invoices.method.'.$item->payment_method) : '—' }}</td>
+                                    <td data-label="{{ __('invoices.method_label') }}">{{ $item->payment_method ? __('invoices.method.'.$item->payment_method) : '-' }}</td>
                                     <td class="num" data-label="{{ __('invoices.amount') }}">{{ $money($item->payment_amount) }}</td>
                                     <td data-label="{{ __('invoices.status_label') }}">
                                         <span class="iv-badge iv-tone--{{ strtolower($item->status) }}"><span class="iv-badge__dot"></span>{{ __('invoices.status.'.$item->status) }}</span>

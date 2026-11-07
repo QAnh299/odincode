@@ -27,7 +27,7 @@
                         <div class="od-timeline__by">
                             <span class="od-muted">{{ $care->performed_at?->format('d/m/Y H:i') }}</span>
                             {{-- Nhân viên thực hiện lần liên hệ --}}
-                            <span class="od-by"><x-icon name="user" />{{ $care->employee?->full_name ?? '—' }}</span>
+                            <span class="od-by"><x-icon name="user" />{{ $care->employee?->full_name ?? '-' }}</span>
                         </div>
                     </div>
                 </div>

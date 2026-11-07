@@ -8,7 +8,7 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $number = fn ($value) => number_format((int) $value, 0, ',', '.');
-    $percent = fn (?float $value) => $value === null ? '—' : rtrim(rtrim(number_format($value, 1, ',', '.'), '0'), ',').'%';
+    $percent = fn (?float $value) => $value === null ? '-' : rtrim(rtrim(number_format($value, 1, ',', '.'), '0'), ',').'%';
 @endphp
 
 <section class="ed-card ed-perf" aria-labelledby="ed-perf-title">

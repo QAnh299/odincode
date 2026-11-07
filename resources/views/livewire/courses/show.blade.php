@@ -25,7 +25,7 @@
 
     // Tỷ lệ chốt: "100%", "66,7%"; chưa có báo giá đã kết thúc thì "—"
     $rate = $stats['close_rate'];
-    $rateText = $rate === null ? '—'
+    $rateText = $rate === null ? '-'
         : rtrim(rtrim(number_format($rate, 1, ',', '.'), '0'), ',').'%';
 
     // Thanh trạng thái: tổng các báo giá có trạng thái hợp lệ (tổng 0 thì thanh rỗng)
@@ -139,7 +139,7 @@
                     <dl class="cd-facts">
                         <div class="cd-fact">
                             <dt><x-icon name="clock" />{{ __('courses.duration') }}</dt>
-                            <dd>{{ $course->duration ?: '—' }}</dd>
+                            <dd>{{ $course->duration ?: '-' }}</dd>
                         </div>
                         <div class="cd-fact">
                             <dt><x-icon name="wallet" />{{ __('courses.price') }}</dt>
@@ -154,7 +154,7 @@
 
                 <p class="cd-note mb-0">
                     <x-icon name="calendar" />
-                    {{ __('courses.created_on', ['date' => $course->created_at?->format('d/m/Y') ?? '—']) }}
+                    {{ __('courses.created_on', ['date' => $course->created_at?->format('d/m/Y') ?? '-']) }}
                 </p>
             </div>
         </section>
@@ -288,14 +288,14 @@
                                         {{-- Chưa có trang chi tiết báo giá → hiện mã dạng chữ, không tạo link --}}
                                         <td><span class="cd-code">{{ $line->quotation_id }}</span></td>
                                         @if ($this->canFilterEmployee)
-                                            <td>{{ $line->employee_name ?? '—' }}</td>
+                                            <td>{{ $line->employee_name ?? '-' }}</td>
                                         @endif
                                         <td>
                                             <span class="badge rounded-pill cd-badge bg-{{ $tone }}-subtle text-{{ $tone }}-emphasis border border-{{ $tone }}-subtle">
                                                 <span class="cd-dot bg-{{ $tone }}" aria-hidden="true"></span>{{ $statusLabel($line->quotation_status) }}
                                             </span>
                                         </td>
-                                        <td>{{ $line->quotation_created_at?->format('d/m/Y') ?? '—' }}</td>
+                                        <td>{{ $line->quotation_created_at?->format('d/m/Y') ?? '-' }}</td>
                                         <td class="text-end fw-semibold">{{ $number($line->quantity) }}</td>
                                     </tr>
                                 @endforeach

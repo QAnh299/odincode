@@ -21,7 +21,7 @@
 {{-- Địa điểm cố định: cơ sở của khách (test và tư vấn cùng một nơi) --}}
 <div class="vc-field od-create__wide">
     <span class="vc-field__label">{{ __('opportunities.location') }}</span>
-    <p class="od-place"><x-icon name="tag" />{{ $this->appointmentPlace ?? '—' }}</p>
+    <p class="od-place"><x-icon name="tag" />{{ $this->appointmentPlace ?? '-' }}</p>
 </div>
 
 {{-- Thời gian cho từng loại đã tick --}}

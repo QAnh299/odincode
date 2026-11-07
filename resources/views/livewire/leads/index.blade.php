@@ -219,7 +219,7 @@
                                     <span class="ld-method ld-method--{{ $lead->contact_method }}">{{ __('leads.method.'.$lead->contact_method) }}</span>
                                 </td>
                                 @if (! $this->fixedBranch)
-                                    <td data-label="{{ __('leads.branch') }}">{{ $lead->branch?->branch_name ?? '—' }}</td>
+                                    <td data-label="{{ __('leads.branch') }}">{{ $lead->branch?->branch_name ?? '-' }}</td>
                                 @endif
                                 <td data-label="{{ __('leads.created_at') }}" class="ld-nowrap">
                                     {{ $lead->created_at?->format('d/m/Y H:i') }}

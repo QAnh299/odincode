@@ -87,7 +87,7 @@
                                             @endif
                                             <span class="st-sub vc-mono">{{ $detail->course_id }}</span>
                                         </td>
-                                        <td data-label="{{ __('students.duration') }}">{{ $detail->course?->duration ?: '—' }}</td>
+                                        <td data-label="{{ __('students.duration') }}">{{ $detail->course?->duration ?: '-' }}</td>
                                         <td data-label="{{ __('students.unit_price') }}" class="text-lg-end">{{ $money($detail->unit_price) }}</td>
                                         <td data-label="{{ __('students.quantity') }}" class="text-lg-center">{{ $detail->quantity }}</td>
                                         <td data-label="{{ __('students.line_total') }}" class="text-lg-end"><span class="vc-value">{{ $money($detail->line_total) }}</span></td>
@@ -158,8 +158,8 @@
                                                 @endif
                                             </td>
                                             <td data-label="{{ __('students.amount') }}" class="text-lg-end">{{ $money($invoice->payment_amount) }}</td>
-                                            <td data-label="{{ __('students.method') }}">{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '—' }}</td>
-                                            <td data-label="{{ __('students.payment_date') }}" class="st-nowrap">{{ $invoice->payment_date ? \Illuminate\Support\Carbon::parse($invoice->payment_date)->format('d/m/Y H:i') : '—' }}</td>
+                                            <td data-label="{{ __('students.method') }}">{{ $invoice->payment_method ? __('invoices.method.'.$invoice->payment_method) : '-' }}</td>
+                                            <td data-label="{{ __('students.payment_date') }}" class="st-nowrap">{{ $invoice->payment_date ? \Illuminate\Support\Carbon::parse($invoice->payment_date)->format('d/m/Y H:i') : '-' }}</td>
                                             <td data-label="{{ __('students.status') }}">
                                                 <span class="vc-badge st-inv--{{ $invoice->status }}">
                                                     <span class="vc-badge__dot"></span>{{ __('invoices.status.'.$invoice->status) }}
@@ -195,7 +195,7 @@
                                 </span>
                             </span>
                             <span class="st-opp__courses">{{ $item->courses ? implode(', ', $item->courses) : __('students.no_courses') }}</span>
-                            <span class="st-sub">{{ $item->stage?->stage_name }} · {{ $item->employee?->full_name ?? '—' }}</span>
+                            <span class="st-sub">{{ $item->stage?->stage_name }} · {{ $item->employee?->full_name ?? '-' }}</span>
                             <span class="st-opp__chevron"><x-icon name="chevron" /></span>
                         </button>
 
@@ -239,10 +239,10 @@
                 <h2 class="st-title">{{ __('students.info') }}</h2>
                 <dl class="st-info">
                     <dt>{{ __('students.phone') }}</dt><dd>{{ $student->phone }}</dd>
-                    <dt>{{ __('students.email') }}</dt><dd>{{ $student->email ?: '—' }}</dd>
-                    <dt>{{ __('students.date_of_birth') }}</dt><dd>{{ $student->date_of_birth?->format('d/m/Y') ?? '—' }}</dd>
+                    <dt>{{ __('students.email') }}</dt><dd>{{ $student->email ?: '-' }}</dd>
+                    <dt>{{ __('students.date_of_birth') }}</dt><dd>{{ $student->date_of_birth?->format('d/m/Y') ?? '-' }}</dd>
                     <dt>{{ __('students.conversion_date') }}</dt><dd>{{ $student->conversion_date?->format('d/m/Y H:i') }}</dd>
-                    <dt>{{ __('students.branch') }}</dt><dd>{{ $lead?->branch?->branch_name ?? '—' }}</dd>
+                    <dt>{{ __('students.branch') }}</dt><dd>{{ $lead?->branch?->branch_name ?? '-' }}</dd>
                 </dl>
             </section>
 
@@ -261,7 +261,7 @@
                     <dd><span class="vc-mono">{{ $opp?->lead_id }}</span> <span class="st-sub st-sub--inline">· {{ $lead?->source_name }}</span></dd>
                     <dt>{{ __('students.owner') }}</dt>
                     <dd>
-                        {{ $opp?->employee?->full_name ?? '—' }}
+                        {{ $opp?->employee?->full_name ?? '-' }}
                         @if ($opp?->employee?->team)
                             <span class="st-sub st-sub--inline">· {{ $opp->employee->team->team_name }}</span>
                         @endif

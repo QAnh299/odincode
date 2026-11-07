@@ -371,15 +371,15 @@
                                 </td>
                                 <td data-label="{{ __('invoices.customer') }}">
                                     <span class="iv-stack">
-                                        <span class="iv-stack__main">{{ $lead ? $this->highlight($lead->full_name) : '—' }}</span>
-                                        <span class="iv-stack__sub iv-stack__sub--mono">{{ $order?->quotation?->opportunity_id ?? '—' }}</span>
+                                        <span class="iv-stack__main">{{ $lead ? $this->highlight($lead->full_name) : '-' }}</span>
+                                        <span class="iv-stack__sub iv-stack__sub--mono">{{ $order?->quotation?->opportunity_id ?? '-' }}</span>
                                     </span>
                                 </td>
                                 <td data-label="{{ __('invoices.order') }}">
                                     <span class="iv-stack">
                                         <span class="iv-mono">{{ $this->highlight($invoice->order_id) }}</span>
                                         <span class="iv-stack__sub">
-                                            {{ $order && in_array($order->payment_type, SalesOrder::PAYMENT_TYPES, true) ? __('invoices.payment_type.'.$order->payment_type) : '—' }}
+                                            {{ $order && in_array($order->payment_type, SalesOrder::PAYMENT_TYPES, true) ? __('invoices.payment_type.'.$order->payment_type) : '-' }}
                                         </span>
                                     </span>
                                 </td>
@@ -414,7 +414,7 @@
                                                 {{ __('invoices.method.'.$invoice->payment_method) }}
                                             </span>
                                         @else
-                                            <span class="iv-muted">—</span>
+                                            <span class="iv-muted">-</span>
                                         @endif
                                         @if ($invoice->accountant)
                                             <span class="iv-stack__sub">{{ __('invoices.accountant', ['name' => $invoice->accountant->full_name]) }}</span>
@@ -434,7 +434,7 @@
                                 </td>
                                 @if ($showEmployee)
                                     <td data-label="{{ __('invoices.employee') }}">
-                                        {{ $invoice->createdBy?->full_name ?? '—' }}
+                                        {{ $invoice->createdBy?->full_name ?? '-' }}
                                     </td>
                                 @endif
                             </tr>

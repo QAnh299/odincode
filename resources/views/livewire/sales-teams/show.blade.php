@@ -4,7 +4,7 @@
     $members = $this->members;
     $branch = $this->branch;
 
-    $date = fn ($value) => $value?->format('d/m/Y') ?? '—';
+    $date = fn ($value) => $value?->format('d/m/Y') ?? '-';
     $listUrl = route($this->routePrefix.'.sales-teams');
 @endphp
 
@@ -92,7 +92,7 @@
                                     @if ($member->employee_id === $team->team_leader_id)
                                         <span class="ed-tag">{{ __('employees.leader_tag') }}</span> {{ $member->employee_id }}
                                     @else
-                                        {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '—' }}
+                                        {{ $member->employee_id }} · {{ $member->role_name ? __('roles.'.$member->role_name) : '-' }}
                                     @endif
                                 </span>
                             </span>

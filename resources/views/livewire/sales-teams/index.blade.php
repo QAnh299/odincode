@@ -159,10 +159,10 @@
                                     @endif
                                 </td>
                                 <td data-label="{{ __('employees.branch') }}">
-                                    {{ $teamBranch?->branch_name ?? '—' }}
+                                    {{ $teamBranch?->branch_name ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('employees.established_date') }}">
-                                    {{ $team->established_date?->format('d/m/Y') ?? '—' }}
+                                    {{ $team->established_date?->format('d/m/Y') ?? '-' }}
                                 </td>
                                 <td data-label="{{ __('employees.members') }}">
                                     <div class="em-stack">
@@ -269,7 +269,7 @@
                             <option value="">{{ __('employees.teams.form.no_leader_yet') }}</option>
                             @foreach ($leaders as $option)
                                 <option value="{{ $option->employee_id }}" wire:key="leader-{{ $option->employee_id }}">
-                                    {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '—' }}
+                                    {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '-' }}
                                     @if ($option->employee_id === $currentLeader?->employee_id)
                                         - {{ __('employees.teams.form.current') }}
                                     @elseif ($option->team)
@@ -333,7 +333,7 @@
                                                 <span class="em-pick__text">
                                                     <span class="em-person__name">{{ $option->full_name }}</span>
                                                     <span class="em-person__id">
-                                                        {{ $option->employee_id }} · {{ $option->branch?->branch_name ?? '—' }}
+                                                        {{ $option->employee_id }} · {{ $option->branch?->branch_name ?? '-' }}
                                                         @if ($elsewhere)
                                                             · {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
                                                         @elseif ($option->team_id === null)

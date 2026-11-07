@@ -38,7 +38,7 @@ class QuotationReminders
             ->get()
             ->map(function (Quotation $quotation) {
                 $days = $quotation->daysUntilExpiry();
-                $name = $quotation->opportunity?->lead?->full_name ?? '—';
+                $name = $quotation->opportunity?->lead?->full_name ?? '-';
 
                 $key = match (true) {
                     $days < 0   => 'quotations.reminder.overdue',

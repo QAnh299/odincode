@@ -10,10 +10,10 @@
     $L = fn (string $key, array $params = []) => __('reports.lead_conversion.'.$key, $params);
     $num = fn ($v) => number_format((float) $v, 0, ',', '.');
     $dec = fn ($v) => number_format((float) $v, 1, ',', '.');
-    $pct = fn ($v) => $v === null ? '—' : $dec($v).'%';
+    $pct = fn ($v) => $v === null ? '-' : $dec($v).'%';
     // Thời lượng (giờ): dưới 48 giờ hiện giờ, từ 48 giờ hiện ngày
-    $dur = fn ($h) => $h === null ? '—' : ($h < 48 ? $L('hours', ['value' => $dec($h)]) : $L('days', ['value' => $dec($h / 24)]));
-    $days = fn ($d) => $d === null ? '—' : $dur($d * 24);
+    $dur = fn ($h) => $h === null ? '-' : ($h < 48 ? $L('hours', ['value' => $dec($h)]) : $L('days', ['value' => $dec($h / 24)]));
+    $days = fn ($d) => $d === null ? '-' : $dur($d * 24);
 
     // So với kỳ trước: [chữ, class]; $dir = 1 cao là tốt, -1 thấp là tốt; $points = chênh lệch điểm % (cho tỷ lệ)
     $delta = function ($cur, $old, int $dir = 1, bool $points = false) use ($prev, $dec, $L) {
@@ -346,13 +346,13 @@
                                                 <span class="rp-sub">{{ $row['source'] }}</span>
                                             </th>
                                             <td>{{ $row['stage_name'] }}</td>
-                                            <td>{{ $row['employee_name'] ?? '—' }}</td>
+                                            <td>{{ $row['employee_name'] ?? '-' }}</td>
                                             <td class="rp-num rp-cmp--down">
                                                 {{ $L('days', ['value' => $dec($row['days'])]) }}
                                                 <span class="rp-sub">{{ $L('velocity.limit', ['days' => $row['limit']]) }}</span>
                                             </td>
                                             <td class="rp-num">{{ $num($row['contacts']) }}</td>
-                                            <td class="rp-num">{{ $row['last_contact'] ? date('d/m/Y H:i', $row['last_contact']) : '—' }}</td>
+                                            <td class="rp-num">{{ $row['last_contact'] ? date('d/m/Y H:i', $row['last_contact']) : '-' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -369,8 +369,8 @@
                     $kpis = [
                         ['contacts', 'phone', $num($c['total']), $L('kpi.contacts_hint', ['rate' => $pct($c['success_rate'])]), null],
                         ['unreachable', 'alert', $pct($c['unreachable_rate']), $L('kpi.unreachable_hint'), null],
-                        ['per_won', 'check-circle', $c['per_won'] === null ? '—' : $dec($c['per_won']), $L('kpi.per_won_hint'), null],
-                        ['per_lost', 'x', $c['per_lost'] === null ? '—' : $dec($c['per_lost']), $L('kpi.per_lost_hint'), null],
+                        ['per_won', 'check-circle', $c['per_won'] === null ? '-' : $dec($c['per_won']), $L('kpi.per_won_hint'), null],
+                        ['per_lost', 'x', $c['per_lost'] === null ? '-' : $dec($c['per_lost']), $L('kpi.per_lost_hint'), null],
                         ['appointments', 'calendar', $pct($c['appointment_rate']), $L('kpi.appointments_hint'), null],
                     ];
                     $weekdays = range(1, 7);
