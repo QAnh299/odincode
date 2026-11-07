@@ -223,14 +223,15 @@
             $currentLeader = $editing?->leader;
             $anchorBranch = $this->anchorBranch;
             [$titleKey, $subKey, $modalIcon] = $modal === 'create'
-                ? ['create', 'create_sub', 'plus']
-                : ['edit', 'edit_sub', 'edit'];
+                ? ['create', null, 'plus']
+                : ['edit', null, 'edit'];
         @endphp
         <div class="ld-modal" wire:key="modal-team-{{ $modal }}" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <form class="ld-modal__dialog em-team-modal" role="dialog" aria-modal="true" aria-labelledby="em-team-title"
                 wire:submit="save">
-                <header class="ld-modal__head">
+                {{-- Không có dòng mô tả → căn icon, tiêu đề, nút đóng theo giữa --}}
+                <header class="ld-modal__head {{ $subKey ? '' : 'ld-modal__head--center' }}">
                     <span class="ld-modal__icon"><x-icon :name="$modalIcon" /></span>
                     <div>
                         <h2 class="ld-modal__title" id="em-team-title">
@@ -239,7 +240,9 @@
                                 <span class="em-muted d-inline">· {{ $editing->team_name }} ({{ $editing->team_id }})</span>
                             @endif
                         </h2>
-                        <p class="ld-modal__sub">{{ __('employees.teams.form.'.$subKey) }}</p>
+                        @if ($subKey)
+                            <p class="ld-modal__sub">{{ __('employees.teams.form.'.$subKey) }}</p>
+                        @endif
                     </div>
                     <button type="button" class="ld-modal__close" wire:click="closeModal" aria-label="{{ __('employees.teams.form.close') }}">
                         <x-icon name="x" />
@@ -255,6 +258,20 @@
                         @error('team_name')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
+                    @if ($modal === 'create')
+                        {{-- Chọn chi nhánh trước: trưởng nhóm + thành viên bên dưới chỉ lấy người của chi nhánh này --}}
+                        <label class="vc-field">
+                            <span class="vc-field__label">{{ __('employees.branch') }}<span class="ld-req">*</span></span>
+                            <select wire:model.live="form.branch_id" class="vc-control @error('branch_id') is-invalid @enderror">
+                                <option value="">{{ __('employees.teams.form.choose_branch') }}</option>
+                                @foreach ($this->branches as $option)
+                                    <option value="{{ $option->branch_id }}" wire:key="branch-{{ $option->branch_id }}">{{ $option->branch_name }}</option>
+                                @endforeach
+                            </select>
+                            @error('branch_id')<span class="ld-error">{{ $message }}</span>@enderror
+                        </label>
+                    @endif
+
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('employees.established_date') }}<span class="ld-req">*</span></span>
                         <input type="date" wire:model="form.established_date" max="{{ today()->toDateString() }}"
@@ -262,14 +279,19 @@
                         @error('established_date')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
-                    {{-- Trưởng nhóm: đổi ngay trong popup; .live để khoá / mở thành viên theo chi nhánh của trưởng nhóm --}}
-                    <label class="vc-field">
+                    {{-- Trưởng nhóm: đổi ngay trong popup; .live để khoá / mở thành viên theo chi nhánh của trưởng nhóm.
+                         Tạo đội: chưa chọn chi nhánh thì khoá --}}
+                    @php $needBranch = $modal === 'create' && ! $this->createBranchId; @endphp
+                    <label class="vc-field {{ $modal === 'create' ? 'ld-form__wide' : '' }}">
                         <span class="vc-field__label">{{ __('employees.team_leader') }}</span>
-                        <select wire:model.live="form.team_leader_id" class="vc-control @error('team_leader_id') is-invalid @enderror">
-                            <option value="">{{ __('employees.teams.form.no_leader_yet') }}</option>
+                        <select wire:model.live="form.team_leader_id" class="vc-control @error('team_leader_id') is-invalid @enderror"
+                            @disabled($needBranch)>
+                            <option value="">
+                                {{ $needBranch ? __('employees.teams.form.choose_branch_first') : __('employees.teams.form.no_leader_yet') }}
+                            </option>
                             @foreach ($leaders as $option)
                                 <option value="{{ $option->employee_id }}" wire:key="leader-{{ $option->employee_id }}">
-                                    {{ $option->full_name }} ({{ $option->employee_id }}) · {{ $option->branch?->branch_name ?? '-' }}
+                                    {{ $option->full_name }} ({{ $option->employee_id }})
                                     @if ($option->employee_id === $currentLeader?->employee_id)
                                         - {{ __('employees.teams.form.current') }}
                                     @elseif ($option->team)
@@ -279,27 +301,22 @@
                             @endforeach
                         </select>
                         @error('team_leader_id')<span class="ld-error">{{ $message }}</span>@enderror
+                        @if ($modal === 'create' && ! $needBranch && $leaders->isEmpty())
+                            <span class="ld-form__hint">{{ __('employees.teams.form.no_candidates') }}</span>
+                        @endif
                     </label>
 
-                    {{-- Chi nhánh của đội: theo trưởng nhóm đang chọn, chưa chọn thì theo thành viên đang chọn --}}
-                    <div class="vc-field ld-form__wide">
-                        <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
-                        <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_undecided') }}</span>
-                    </div>
-
-                    <p class="ld-form__hint ld-form__wide">
-                        @if ($leaders->isEmpty() || ($leaders->count() === 1 && $currentLeader))
-                            {{ $this->membersBranchId && $anchorBranch
-                                ? __('employees.teams.form.no_candidates_branch', ['branch' => $anchorBranch->branch_name])
-                                : __('employees.teams.form.no_candidates') }}
-                        @else
-                            {{ $modal === 'create' ? __('employees.teams.form.create_branch_hint') : __('employees.teams.form.leader_hint') }}
-                        @endif
-                    </p>
-
                     @if ($modal === 'edit')
-                        {{-- Thành viên: Salesperson đang làm việc; người đang ở đội khác hoặc khác chi nhánh bị khoá --}}
-                        @php $memberOptions = $this->memberOptions; @endphp
+                        {{-- Chi nhánh của đội: theo trưởng nhóm đang chọn, chưa chọn thì theo thành viên đang chọn --}}
+                        <div class="vc-field ld-form__wide">
+                            <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
+                            <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_undecided') }}</span>
+                        </div>
+                    @endif
+
+                    @if ($modal === 'edit' || ! $needBranch)
+                        {{-- Thành viên: chỉ Salesperson cùng chi nhánh với đội; người đang ở đội khác bị khoá --}}
+                        @php $memberOptions = $this->branchMemberOptions; @endphp
                         <div class="vc-field ld-form__wide" x-data="{ q: '' }">
                             <span class="vc-field__label em-members-label">
                                 {{ __('employees.teams.form.members') }}
@@ -335,7 +352,7 @@
                                                     <span class="em-person__id">
                                                         {{ $option->employee_id }} · {{ $option->branch?->branch_name ?? '-' }}
                                                         @if ($elsewhere)
-                                                            · {{ __('employees.teams.form.in_team', ['team' => $option->team->team_name]) }}
+                                                            · {{ __('employees.teams.form.in_team', ['team' => $option->team?->team_name]) }}
                                                         @elseif ($option->team_id === null)
                                                             · {{ __('employees.no_team') }}
                                                         @endif
@@ -347,7 +364,6 @@
                                 </ul>
                                 @error('members')<span class="ld-error">{{ $message }}</span>@enderror
                                 @error('members.*')<span class="ld-error">{{ $message }}</span>@enderror
-                                <p class="ld-form__hint mb-0">{{ __('employees.teams.form.members_hint') }}</p>
                             @endif
                         </div>
                     @endif
@@ -440,9 +456,6 @@
                     @endforeach
 
                     @error('values')<span class="ld-error ld-form__wide">{{ $message }}</span>@enderror
-                    @unless ($kpiSet)
-                        <p class="ld-form__hint ld-form__wide">{{ __('employees.teams.kpi.hint_new') }}</p>
-                    @endunless
                 </div>
 
                 <footer class="ld-modal__foot">

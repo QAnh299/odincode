@@ -188,10 +188,8 @@
                                     </a>
                                 </td>
                                 <td data-label="{{ __('employees.role') }}">
+                                    {{-- Chỉ hiện vai trò (chức danh thường trùng tên vai trò nên không hiện thêm) --}}
                                     <span class="em-role">{{ $employee->role_name ? __('roles.'.$employee->role_name) : '-' }}</span>
-                                    @if (filled($employee->job_title))
-                                        <span class="em-muted">{{ $employee->job_title }}</span>
-                                    @endif
                                 </td>
                                 @if ($this->canFilterScope)
                                     <td data-label="{{ __('employees.team') }}">
@@ -205,8 +203,8 @@
                                     </td>
                                 @endif
                                 <td data-label="{{ __('employees.contact') }}">
-                                    <span class="em-contact">{{ $employee->email ?: '-' }}</span>
-                                    <span class="em-muted">{{ $employee->phone ?: '' }}</span>
+                                    {{-- Ưu tiên số điện thoại; không có số thì mới hiện email --}}
+                                    <span class="em-contact">{{ $employee->phone ?: ($employee->email ?: '-') }}</span>
                                 </td>
                                 <td data-label="{{ __('employees.hire_date') }}">
                                     {{ $employee->hire_date?->format('d/m/Y') ?? '-' }}
