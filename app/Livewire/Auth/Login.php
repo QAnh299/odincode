@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -23,13 +24,20 @@ class Login extends Component
     // Thời gian chờ (giây) giữa hai lần cấp mật khẩu tạm cho cùng một tài khoản
     const FORGOT_ACCOUNT_COOLDOWN = 120;
 
+    // Cookie lưu tên đăng nhập khi chọn "Ghi nhớ tài khoản" (30 ngày, tính bằng phút)
+    const REMEMBER_COOKIE = 'odin_remember_username';
+    const REMEMBER_MINUTES = 60 * 24 * 30;
+
     // 'login' = form đăng nhập, 'forgot' = form quên mật khẩu
     public string $mode = 'login';
 
     public string $username = '';
     public string $password = '';
 
-    // Tên đăng nhập hoặc email nhập ở form quên mật khẩu
+    // "Ghi nhớ tài khoản": điền sẵn tên đăng nhập ở lần mở trang sau
+    public bool $remember = false;
+
+    // Email nhập ở form quên mật khẩu
     public string $identifier = '';
 
     // Đã xử lý yêu cầu quên mật khẩu → hiện thông báo kiểm tra email
@@ -50,8 +58,19 @@ class Login extends Component
             'password.required'   => __('auth.password_required'),
             'password.min'        => __('auth.password_min', ['min' => 6]),
             'identifier.required' => __('forgot_password.identifier_required'),
+            'identifier.email'    => __('forgot_password.identifier_email'),
             'identifier.max'      => __('forgot_password.identifier_max', ['max' => 254]),
         ];
+    }
+
+    public function mount(): void
+    {
+        $saved = request()->cookie(self::REMEMBER_COOKIE);
+
+        if (is_string($saved) && $saved !== '') {
+            $this->username = $saved;
+            $this->remember = true;
+        }
     }
 
     public function login(): void
@@ -76,9 +95,16 @@ class Login extends Component
             return;
         }
 
-        // Bảng Accounts không có cột remember_token → không hỗ trợ "ghi nhớ đăng nhập"
+        // Bảng Accounts không có cột remember_token → "Ghi nhớ" chỉ lưu tên đăng nhập vào cookie,
+        // không giữ phiên đăng nhập
         Auth::login($user);
         session()->regenerate();
+
+        if ($this->remember) {
+            Cookie::queue(self::REMEMBER_COOKIE, $user->username, self::REMEMBER_MINUTES);
+        } else {
+            Cookie::queue(Cookie::forget(self::REMEMBER_COOKIE));
+        }
 
         // Đăng nhập bằng mật khẩu tạm → bắt buộc đổi mật khẩu trước khi dùng hệ thống
         $this->redirectRoute($user->mustChangePassword() ? 'profile.password' : $route);
@@ -102,7 +128,7 @@ class Login extends Component
     public function sendTemporaryPassword(): void
     {
         $this->resetErrorBag('auth');
-        $this->validate(['identifier' => 'required|string|max:254']);
+        $this->validate(['identifier' => 'required|string|email|max:254']);
 
         $limiter = $this->limiter();
         $ipKey = 'forgot-password:ip:'.request()->ip();
@@ -113,10 +139,10 @@ class Login extends Component
         }
         $limiter->hit($ipKey, 600);
 
-        $identifier = trim($this->identifier);
+        // Chỉ tra theo email của nhân viên gắn với tài khoản
+        $email = trim($this->identifier);
         $user = User::with('employee')
-            ->where('username', $identifier)
-            ->orWhereHas('employee', fn ($q) => $q->where('email', $identifier))
+            ->whereHas('employee', fn ($q) => $q->where('email', $email))
             ->first();
 
         $email = $user?->employee?->email;

@@ -5,15 +5,16 @@ declare(strict_types=1);
 // Forgot password (form on the login page + temporary password email)
 return [
     'title'                  => 'Forgot password',
-    'subtitle'               => 'Enter your username or email and we will send a temporary password to your email',
-    'identifier'             => 'Username or email',
-    'identifier_placeholder' => 'Enter your username or email',
-    'identifier_required'    => 'Please enter your username or email.',
+    'subtitle'               => 'Enter the email linked to your account to receive a temporary password',
+    'identifier'             => 'Email',
+    'identifier_placeholder' => 'Enter your email',
+    'identifier_required'    => 'Please enter your email.',
+    'identifier_email'       => 'Please enter a valid email address.',
     'identifier_max'         => 'Must not exceed :max characters.',
     'submit'                 => 'Send temporary password',
     'sending'                => 'Sending...',
     'back_to_login'          => 'Back to login',
-    'sent'                   => 'If the details match an active account, a temporary password has been sent to its email. Please check your inbox (and spam folder).',
+    'sent'                   => 'If the email matches an active account, a temporary password has been sent to it. Please check your inbox (and spam folder).',
     'mail_failed'            => 'Unable to send the email right now. Please try again later or contact the administrator.',
 
     'mail' => [

@@ -5,15 +5,16 @@ declare(strict_types=1);
 // Quên mật khẩu (form trên trang đăng nhập + email mật khẩu tạm)
 return [
     'title'                  => 'Quên mật khẩu',
-    'subtitle'               => 'Nhập tên đăng nhập hoặc email, hệ thống sẽ gửi mật khẩu tạm vào email của bạn',
-    'identifier'             => 'Tên đăng nhập hoặc email',
-    'identifier_placeholder' => 'Nhập tên đăng nhập hoặc email',
-    'identifier_required'    => 'Vui lòng nhập tên đăng nhập hoặc email.',
+    'subtitle'               => 'Điền email gắn với tài khoản của bạn để nhận mật khẩu tạm',
+    'identifier'             => 'Email',
+    'identifier_placeholder' => 'Nhập email của bạn',
+    'identifier_required'    => 'Vui lòng nhập email.',
+    'identifier_email'       => 'Email không đúng định dạng.',
     'identifier_max'         => 'Không được quá :max ký tự.',
     'submit'                 => 'Gửi mật khẩu tạm',
     'sending'                => 'Đang gửi...',
     'back_to_login'          => 'Quay lại đăng nhập',
-    'sent'                   => 'Nếu thông tin khớp với một tài khoản đang hoạt động, mật khẩu tạm đã được gửi tới email của tài khoản đó. Vui lòng kiểm tra hộp thư (kể cả thư rác).',
+    'sent'                   => 'Nếu email khớp với một tài khoản đang hoạt động, mật khẩu tạm đã được gửi tới email đó. Vui lòng kiểm tra hộp thư (kể cả thư rác).',
     'mail_failed'            => 'Không gửi được email lúc này. Vui lòng thử lại sau hoặc liên hệ quản trị viên.',
 
     'mail' => [

@@ -11,13 +11,28 @@
         <div class="auth-shell">
             {{-- ── Cột trái: thương hiệu ────────────────────────────── --}}
             <aside class="auth-brand">
-                <img src="{{ asset('images/logoodin-sidebar.png') }}" alt="ODIN Language Center" class="brand-logo">
+                <div class="brand-center">
+                    <img src="{{ asset('images/logoodin-sidebar.png') }}" alt="ODIN Language Center" class="brand-logo">
+                    <span class="brand-divider" aria-hidden="true"></span>
 
-                <div>
                     <h2 class="brand-title">{{ __('auth.brand_title') }}</h2>
+                    @php
+                        // Icon nét (24×24) cho từng ý chính
+                        $brandPoints = [
+                            'brand_point_leads' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+                            'brand_point_classes' => '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/>',
+                            'brand_point_care' => '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/>',
+                        ];
+                    @endphp
                     <ul class="brand-points">
-                        @foreach (['brand_point_leads', 'brand_point_classes', 'brand_point_care'] as $point)
-                            <li><span class="dot" aria-hidden="true"></span>{{ __('auth.'.$point) }}</li>
+                        @foreach ($brandPoints as $point => $icon)
+                            <li>
+                                <span class="brand-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">{!! $icon !!}</svg>
+                                </span>
+                                <span>{{ __('auth.'.$point) }}</span>
+                            </li>
                         @endforeach
                     </ul>
                 </div>
@@ -35,7 +50,6 @@
                         <p class="auth-subtitle">{{ __('forgot_password.subtitle') }}</p>
                     @else
                         <h1 class="auth-title">{{ __('auth.login') }}</h1>
-                        <p class="auth-subtitle">{{ __('auth.login_sub') }}</p>
                     @endif
 
                     @error('auth')
@@ -68,10 +82,10 @@
                                 <div class="input-wrap">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                        <circle cx="12" cy="7" r="4" />
+                                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                                        <path d="m22 7-10 6L2 7" />
                                     </svg>
-                                    <input type="text" id="identifier" autocomplete="username" autofocus
+                                    <input type="email" id="identifier" autocomplete="email" inputmode="email" autofocus
                                         class="form-control @error('identifier') is-invalid @enderror"
                                         wire:model="identifier"
                                         placeholder="{{ __('forgot_password.identifier_placeholder') }}">
@@ -154,13 +168,25 @@
                         </div>
 
                         <div class="auth-links">
+                            <label class="remember-check" for="remember">
+                                <input type="checkbox" id="remember" wire:model="remember">
+                                <span class="remember-box" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                        stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                </span>
+                                <span>{{ __('auth.remember_me') }}</span>
+                            </label>
                             <a href="#" class="forgot-link" wire:click.prevent="switchMode('forgot')">{{ __('auth.forgot_password') }}</a>
                         </div>
 
                         <button type="submit" class="btn btn-odin w-100" wire:loading.attr="disabled"
                             wire:target="login">
-                            <span wire:loading.remove wire:target="login">
+                            <span wire:loading.remove wire:target="login" class="btn-odin__label">
                                 {{ __('auth.login_button') }}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M5 12h14M13 6l6 6-6 6" />
+                                </svg>
                             </span>
                             <span wire:loading wire:target="login">
                                 <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
