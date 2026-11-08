@@ -1616,3 +1616,328 @@ a.rv-stat-link:focus-visible {
 .rp-table--fixed.rp-table--span-last th:last-child {
     width: 36%;
 }
+
+/* ══ Phân tích chất lượng nguồn Lead (.ls) ═══════════════════════════ */
+
+/* Bộ lọc: ngày · kỳ nhanh · chi nhánh · kênh · nguồn · đặt lại */
+.ls-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(130px, 1fr)) repeat(4, minmax(140px, 1fr)) auto;
+    gap: 0.85rem;
+    align-items: end;
+}
+
+/* Ô chọn nhiều nguồn */
+.ls-pick {
+    position: relative;
+}
+
+.ls-pick__toggle {
+    padding-right: 2.2rem;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 16px;
+    cursor: pointer;
+}
+
+.ls-pick__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    left: 0;
+    z-index: 20;
+    min-width: 200px;
+    padding: 0.4rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+    box-shadow: var(--vc-shadow);
+}
+
+.ls-pick__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.55rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.ls-pick__item:hover {
+    background: #f6f8f6;
+}
+
+.ls-pick__all {
+    width: 100%;
+    margin-top: 0.3rem;
+    padding: 0.45rem;
+    border: 0;
+    border-top: 1px solid var(--vc-border);
+    background: none;
+    color: var(--vc-primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ls-pick__all:disabled {
+    color: var(--vc-muted);
+    cursor: default;
+}
+
+/* Chấm màu nguồn */
+.ls-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    background: var(--c, #9ca3af);
+    vertical-align: 0.05em;
+}
+
+.ls-pick__item .ls-dot {
+    margin-right: 0;
+}
+
+/* Thẻ KPI: tên → số lớn + đường xu hướng → mức thay đổi → chú thích */
+.ls-kpis {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.ls-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 1rem 1.1rem 0.9rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 16px;
+    background: var(--vc-surface);
+    box-shadow: var(--vc-shadow);
+}
+
+.ls-kpi__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--vc-ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.ls-kpi__icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.ls-kpi__icon .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ls-kpi__main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.6rem;
+    min-height: 44px;
+}
+
+.ls-kpi__value {
+    color: var(--vc-ink);
+    font-size: clamp(1.35rem, 2vw, 1.9rem);
+    font-weight: 800;
+    line-height: 1.15;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ls-kpi__value small {
+    margin-left: 0.3rem;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ls-spark {
+    flex: 0 1 120px;
+    min-width: 60px;
+    height: 36px;
+}
+
+.ls-kpi__delta {
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.ls-kpi__delta span {
+    font-weight: 600;
+}
+
+.ls-kpi__delta.is-up {
+    color: #15803d;
+}
+
+.ls-kpi__delta.is-down {
+    color: #dc2626;
+}
+
+.ls-kpi__delta.is-flat {
+    color: var(--vc-muted);
+}
+
+.ls-kpi__hint {
+    margin-top: auto;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+/* Hàng biểu đồ */
+.ls-row {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.ls-row > .vc-card {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.ls-row--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ls-row--2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+}
+
+/* Bảng tổng hợp */
+.ls-table thead th {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.ls-table tbody th {
+    font-weight: 700;
+}
+
+.ls-volume {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.ls-volume__track {
+    display: inline-block;
+    width: 120px;
+}
+
+.ls-volume__track span {
+    display: block;
+    height: 8px;
+    min-width: 4px;
+    margin-left: auto;
+    border-radius: 999px;
+    background: #b9d3f3;
+}
+
+.ls-heat {
+    display: block;
+    min-width: 84px;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+}
+
+.ls-badge {
+    display: inline-block;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ls-badge--expand {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ls-badge--keep {
+    background: #ecfdf3;
+    color: #16a34a;
+}
+
+.ls-badge--optimize {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.ls-badge--cut {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ls-badge--few {
+    background: #f3f4f6;
+    color: var(--vc-muted);
+}
+
+.ls-table tfoot th,
+.ls-table tfoot td {
+    border-top: 1.5px solid var(--vc-border);
+    background: #f8faf8;
+}
+
+.ls-note {
+    margin: 0.75rem 0 0;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+@media (max-width: 1399.98px) {
+    .ls-filters {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+
+    .ls-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .ls-row--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ls-row--2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ls-kpis,
+    .ls-row--3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

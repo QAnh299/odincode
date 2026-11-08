@@ -117,6 +117,8 @@ class LeadSourceReport
             ->select('lead_id')
             ->selectRaw("MAX(status = 'Won') AS won")
             ->selectRaw("MAX(status = 'Lost') AS lost")
+            ->selectRaw("MAX(status = 'InProgress') AS open")
+            ->selectRaw("MAX(status IN ('Lost', 'Archived')) AS failed")
             ->selectRaw('SUM(expected_value) AS expected')
             ->groupBy('lead_id');
 
@@ -144,6 +146,9 @@ class LeadSourceReport
             ->selectRaw("SUM(l.status = 'Converted') AS converted")
             ->selectRaw('SUM(COALESCE(op.won, 0)) AS won')
             ->selectRaw('SUM(COALESCE(op.lost, 0)) AS lost')
+            // Kết quả xử lý (mỗi Lead đúng 1 nhóm): Won → còn Cơ hội đang xử lý → thất bại / lưu trữ → chưa có Cơ hội
+            ->selectRaw('SUM(COALESCE(op.won, 0) = 0 AND COALESCE(op.open, 0) = 1) AS in_progress')
+            ->selectRaw('SUM(COALESCE(op.won, 0) = 0 AND COALESCE(op.open, 0) = 0 AND COALESCE(op.failed, 0) = 1) AS failed')
             ->selectRaw('SUM(COALESCE(rv.revenue, 0)) AS revenue')
             ->selectRaw('SUM(COALESCE(rv.paid, 0)) AS paid')
             ->selectRaw('SUM(COALESCE(op.expected, 0)) AS expected');
@@ -158,9 +163,10 @@ class LeadSourceReport
      */
     public function derive(array $row): array
     {
-        foreach (['leads', 'converted', 'won', 'lost'] as $key) {
+        foreach (['leads', 'converted', 'won', 'lost', 'in_progress', 'failed'] as $key) {
             $row[$key] = (int) ($row[$key] ?? 0);
         }
+        $row['no_opportunity'] = max(0, $row['leads'] - $row['won'] - $row['in_progress'] - $row['failed']);
         foreach (['revenue', 'paid', 'expected'] as $key) {
             $row[$key] = (float) ($row[$key] ?? 0);
         }

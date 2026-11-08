@@ -71,8 +71,12 @@ function buildConfig(spec) {
         return {
             label: s.label,
             data: s.data,
-            backgroundColor: s.color,
-            hoverBackgroundColor: s.color,
+            // s.colors: màu riêng từng cột (vd. theo nguồn); s.counts / s.valueLabels / s.labelColor: cho tooltip & nhãn giá trị
+            backgroundColor: s.colors || s.color,
+            hoverBackgroundColor: s.colors || s.color,
+            counts: s.counts,
+            valueLabels: s.valueLabels,
+            labelColor: s.labelColor,
             borderColor: "#fff",
             borderWidth: stacked ? { [horizontal ? "left" : "bottom"]: 2 } : 0,
             borderRadius: 0,
@@ -93,6 +97,9 @@ function buildConfig(spec) {
             label(ctx) {
                 const raw = round ? ctx.raw : (horizontal ? ctx.parsed.x : ctx.parsed.y);
                 let text = `${round ? ctx.label : ctx.dataset.label}: ${format(unit, raw)}`;
+                if (ctx.dataset.counts) {
+                    text += ` (${format("count", ctx.dataset.counts[ctx.dataIndex])})`;
+                }
                 if (round) {
                     const total = ctx.dataset.data.reduce((a, b) => a + Number(b || 0), 0);
                     if (total) {
@@ -105,32 +112,48 @@ function buildConfig(spec) {
     };
 
     // Chú thích chỉ hiện khi có từ 2 dãy trở lên (hoặc biểu đồ tròn)
+    // spec.legend = "top": chú thích phía trên, canh trái
     const legend = {
         display: round || spec.series.length > 1,
-        position: round ? "right" : "bottom",
+        position: spec.legend || (round ? "right" : "bottom"),
+        align: spec.legend === "top" ? "start" : "center",
         labels: { usePointStyle: true, pointStyle: "rectRounded", boxWidth: 10, boxHeight: 10, color: ink, padding: 14 },
     };
+
+    const plugins = [];
+    if (spec.dataLabels) {
+        plugins.push(valueLabelPlugin(spec, horizontal));
+    }
+    if (spec.refLine) {
+        plugins.push(refLinePlugin(spec.refLine, horizontal));
+    }
 
     if (round) {
         return {
             type: spec.type,
             data: { labels: spec.labels, datasets },
+            plugins,
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: spec.type === "doughnut" ? "62%" : 0,
+                cutout: spec.type === "doughnut" ? spec.cutout || "62%" : 0,
                 plugins: { legend, tooltip },
             },
         };
     }
 
+    // spec.divisor + spec.suffix: trục tiền rút gọn (vd. 0,5 tỷ); spec.max: trục cố định (vd. 100%)
+    const tick = spec.divisor
+        ? (v) => (v / spec.divisor).toLocaleString(locale, { maximumFractionDigits: 1 }) + (spec.suffix || "")
+        : (v) => format(unit, v, true);
     const valueAxis = {
         beginAtZero: true,
         stacked,
         grid: { color: grid },
         border: { display: false },
-        ticks: { callback: (v) => format(unit, v, true), maxTicksLimit: 6 },
-        ...(unit === "percent" && !stacked ? { suggestedMax: 100 } : {}),
+        ticks: { callback: tick, maxTicksLimit: 6 },
+        ...(unit === "percent" && !stacked && !spec.refLine ? { suggestedMax: 100 } : {}),
+        ...(spec.max ? { max: spec.max } : {}),
     };
     const categoryAxis = {
         stacked,
@@ -139,16 +162,129 @@ function buildConfig(spec) {
         ticks: { color: ink, autoSkip: true, maxRotation: 40 },
     };
 
+    // Chừa chỗ cho nhãn ở đầu cột / nhãn vạch tham chiếu
+    const endLabels = spec.dataLabels === "end";
+    const padding = {
+        top: spec.refLine ? 22 : endLabels && !horizontal ? 18 : 0,
+        right: endLabels && horizontal ? 64 : 8,
+    };
+
     return {
         type: line ? "line" : "bar",
         data: { labels: spec.labels, datasets },
+        plugins,
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding },
             indexAxis: horizontal ? "y" : "x",
             interaction: { mode: "index", intersect: false, axis: horizontal ? "y" : "x" },
             scales: horizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis },
             plugins: { legend, tooltip },
+        },
+    };
+}
+
+/**
+ * Nhãn giá trị vẽ trực tiếp lên biểu đồ (spec.dataLabels):
+ *   "percent" - tỷ trọng % giữa mỗi miếng biểu đồ tròn (bỏ miếng < 3%)
+ *   "end"     - giá trị ở đầu mỗi cột
+ *   "inside"  - giá trị giữa mỗi đoạn cột chồng (bỏ đoạn quá hẹp)
+ * Chữ lấy từ dataset.valueLabels nếu có, không thì định dạng theo spec.unit.
+ */
+function valueLabelPlugin(spec, horizontal) {
+    return {
+        id: "odinValueLabels",
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            ctx.font = `600 12px ${Chart.defaults.font.family}`;
+
+            chart.data.datasets.forEach((ds, di) => {
+                const meta = chart.getDatasetMeta(di);
+                if (meta.hidden) {
+                    return;
+                }
+                const total = ds.data.reduce((a, b) => a + Number(b || 0), 0);
+
+                meta.data.forEach((el, i) => {
+                    const raw = Number(ds.data[i]) || 0;
+                    if (!raw || el.hidden) {
+                        return;
+                    }
+                    const text = ds.valueLabels?.[i] ?? format(spec.unit, raw);
+
+                    if (spec.dataLabels === "percent") {
+                        const share = (raw * 100) / total;
+                        if (share < 3) {
+                            return;
+                        }
+                        const { x, y } = el.tooltipPosition();
+                        ctx.fillStyle = "#fff";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(`${Math.round(share)}%`, x, y);
+                        return;
+                    }
+
+                    if (spec.dataLabels === "inside") {
+                        const size = horizontal ? Math.abs(el.x - el.base) : Math.abs(el.y - el.base);
+                        if (ctx.measureText(text).width + 8 > size) {
+                            return;
+                        }
+                        ctx.fillStyle = ds.labelColor || "#fff";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(text, horizontal ? (el.x + el.base) / 2 : el.x, horizontal ? el.y : (el.y + el.base) / 2);
+                        return;
+                    }
+
+                    ctx.fillStyle = ink;
+                    ctx.textAlign = horizontal ? "left" : "center";
+                    ctx.textBaseline = horizontal ? "middle" : "bottom";
+                    ctx.fillText(text, horizontal ? el.x + 6 : el.x, horizontal ? el.y : el.y - 4);
+                });
+            });
+
+            ctx.restore();
+        },
+    };
+}
+
+/**
+ * Vạch tham chiếu nét đứt (vd. trung bình) trên trục giá trị: spec.refLine = { value, label }.
+ */
+function refLinePlugin(ref, horizontal) {
+    return {
+        id: "odinRefLine",
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart;
+            const scale = chart.scales[horizontal ? "x" : "y"];
+            const p = scale.getPixelForValue(Number(ref.value) || 0);
+
+            ctx.save();
+            ctx.strokeStyle = "#4b5563";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            if (horizontal) {
+                ctx.moveTo(p, chartArea.top - 4);
+                ctx.lineTo(p, chartArea.bottom);
+            } else {
+                ctx.moveTo(chartArea.left, p);
+                ctx.lineTo(chartArea.right, p);
+            }
+            ctx.stroke();
+
+            if (ref.label) {
+                ctx.setLineDash([]);
+                ctx.font = `600 12px ${Chart.defaults.font.family}`;
+                ctx.fillStyle = ink;
+                ctx.textAlign = horizontal ? "center" : "right";
+                ctx.textBaseline = "bottom";
+                ctx.fillText(ref.label, horizontal ? p : chartArea.right, horizontal ? chartArea.top - 8 : p - 4);
+            }
+            ctx.restore();
         },
     };
 }

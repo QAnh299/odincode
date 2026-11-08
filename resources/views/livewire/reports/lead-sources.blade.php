@@ -1,44 +1,43 @@
 @php
+    use App\Livewire\Reports\LeadSources;
     use App\Models\Lead;
 
     $t = $this->totals;
-    $rows = $this->bySource;
-    $top = $this->highlights;
-    $charts = $this->charts;
+    $rows = $this->tableRows;
+    $kpis = $this->kpis;
+    $period = $this->period;
+    $active = $this->activePreset();
     $ls = fn ($key, $replace = []) => __('reports.lead_sources.'.$key, $replace);
 
-    $money = fn ($v) => number_format((float) $v, 0, ',', '.').' ₫';
-    $num = fn ($v) => number_format((float) $v, 0, ',', '.');
-    $pct = fn ($v) => number_format((float) $v, 1, ',', '.').'%';
+    $num = fn ($v) => $this->fmtNum($v);
+    $pct = fn ($v) => $this->fmtPct($v);
+    $money = fn ($v) => trim(implode(' ', $this->shortMoney($v)));
 
-    // Tiền rút gọn cho thẻ KPI: 1,39 tỷ ₫ / 390,6 triệu ₫
-    $short = function ($v) use ($money) {
-        $v = (float) $v;
-        foreach ([[1e9, 'billion'], [1e6, 'million']] as [$base, $unit]) {
-            if (abs($v) >= $base) {
-                return number_format($v / $base, 2, ',', '.').' '.__('reports.money_'.$unit).' ₫';
-            }
-        }
-
-        return $money($v);
+    // Nhãn ô chọn nguồn: Tất cả (6) / tên nguồn / 3 nguồn
+    $picked = array_values(array_intersect(Lead::SOURCES, $sources));
+    $sourceLabel = match (count($picked)) {
+        0, count(Lead::SOURCES) => $ls('all_sources', ['count' => count(Lead::SOURCES)]),
+        1       => $picked[0],
+        default => $ls('n_sources', ['count' => count($picked)]),
     };
 
-    // Thẻ KPI: [khoá, icon, số chính, chú thích]
-    $kpis = [
-        ['leads', 'layers', $num($t['leads']), $ls('kpi.leads_hint', ['count' => count($rows)])],
-        ['top_leads', 'users', $top['leads']['dim'] ?? '-',
-            $top['leads'] ? $ls('kpi.top_leads_hint', ['count' => $num($top['leads']['leads'])]) : ''],
-        ['top_win', 'check-circle', $top['win']['dim'] ?? '-',
-            $top['win'] ? $ls('kpi.top_win_hint', ['rate' => $pct($top['win']['win_rate']), 'avg' => $pct($t['win_rate'])]) : ''],
-        ['top_revenue', 'cash', $top['revenue']['dim'] ?? '-',
-            $top['revenue'] ? $short($top['revenue']['revenue']) : $ls('kpi.no_revenue')],
-    ];
+    // Mức tăng / giảm của thẻ KPI: ▲ 12,4% · ▼ 0,6 điểm
+    $delta = function (?array $d) {
+        if (! $d) {
+            return null;
+        }
+        $value = number_format(abs($d['value']), 1, ',', '.').($d['unit'] === 'pt' ? ' '.__('reports.lead_sources.delta_points') : '%');
 
-    // Chiều cao biểu đồ thanh ngang theo số nguồn
-    $height = fn (array $spec) => max(200, count($spec['labels']) * 22 * count($spec['series']) + 80);
+        return [$d['value'] > 0 ? 'up' : ($d['value'] < 0 ? 'down' : 'flat'), ($d['value'] > 0 ? '▲ ' : ($d['value'] < 0 ? '▼ ' : '')).$value];
+    };
+
+    // Chiều cao biểu đồ: hàng trên cao bằng nhau theo số nguồn
+    $n = count($rows);
+    $topHeight = max(300, $n * 52 + 90);
+    $outcomeHeight = max(300, $n * 54 + 80);
 @endphp
 
-<div class="vc rp">
+<div class="vc rp ls">
     {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
@@ -64,7 +63,7 @@
     </header>
 
     {{-- ── Bộ lọc ──────────────────────────────────────────────────────── --}}
-    <section class="vc-card rp-filters" aria-label="{{ $ls('filters') }}">
+    <section class="vc-card ls-filters" aria-label="{{ $ls('filters') }}">
         <label class="vc-field">
             <span class="vc-field__label">{{ __('reports.from') }}</span>
             <input type="date" wire:model.live="from" class="vc-control" max="{{ $to ?: '' }}">
@@ -72,6 +71,16 @@
         <label class="vc-field">
             <span class="vc-field__label">{{ __('reports.to') }}</span>
             <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
+        </label>
+        {{-- Kỳ nhanh: chọn → đặt Từ ngày / Đến ngày; tự nhập ngày khác → hiện "Tự chọn" --}}
+        <label class="vc-field">
+            <span class="vc-field__label">{{ $ls('quick') }}</span>
+            <select class="vc-control" wire:key="quick-{{ $active ?? 'custom' }}" wire:change="preset($event.target.value)">
+                <option value="" @selected(! $active) disabled>{{ $from || $to ? $ls('preset.custom') : $ls('preset.all') }}</option>
+                @foreach (LeadSources::PRESETS as $key)
+                    <option value="{{ $key }}" @selected($active === $key)>{{ $ls('preset.'.$key) }}</option>
+                @endforeach
+            </select>
         </label>
         <label class="vc-field">
             <span class="vc-field__label">{{ __('reports.branch') }}</span>
@@ -91,6 +100,25 @@
                 @endforeach
             </select>
         </label>
+        {{-- Nguồn: chọn nhiều (không chọn = tất cả) --}}
+        <div class="vc-field ls-pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+            <span class="vc-field__label">{{ $ls('source') }}</span>
+            <button type="button" class="vc-control ls-pick__toggle" @click="open = ! open" :aria-expanded="open">
+                {{ $sourceLabel }}
+            </button>
+            <div class="ls-pick__menu" x-show="open" x-cloak x-transition.opacity>
+                @foreach (Lead::SOURCES as $option)
+                    <label class="ls-pick__item" wire:key="src-opt-{{ md5($option) }}">
+                        <input type="checkbox" value="{{ $option }}" wire:model.live="sources">
+                        <span class="ls-dot" style="--c: {{ $this->sourceColor($option) }}"></span>
+                        {{ $option }}
+                    </label>
+                @endforeach
+                <button type="button" class="ls-pick__all" wire:click="$set('sources', [])" @disabled(! $picked)>
+                    {{ $ls('select_all') }}
+                </button>
+            </div>
+        </div>
         <div class="vc-field vc-field--action">
             <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetFilters" @disabled(! $this->hasFilters())>
                 <x-icon name="refresh" />{{ __('reports.reset') }}
@@ -98,16 +126,36 @@
         </div>
     </section>
 
-    {{-- ── Thẻ KPI ─────────────────────────────────────────────────────── --}}
-    <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
-        @foreach ($kpis as [$key, $icon, $value, $hint])
-            <div class="rp-stat">
-                <div class="rp-stat__head">
-                    <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
-                    <span>{{ $ls('kpi.'.$key) }}</span>
+    {{-- ── Thẻ KPI (so với kỳ liền trước + xu hướng theo tháng) ───────── --}}
+    <div class="ls-kpis">
+        @foreach ($kpis as $k)
+            @php($d = $delta($k['delta']))
+            <div class="ls-kpi" wire:key="kpi-{{ $k['key'] }}">
+                <div class="ls-kpi__head">
+                    <span class="ls-kpi__icon"><x-icon :name="$k['icon']" /></span>
+                    <span>{{ $ls('kpi.'.$k['key']) }}</span>
                 </div>
-                <div class="rp-stat__value rp-stat__value--fit">{{ $value }}</div>
-                <div class="rp-stat__hint">{{ $hint }}</div>
+                <div class="ls-kpi__main">
+                    <div class="ls-kpi__value">
+                        {{ $k['value'][0] }}@if ($k['value'][1])<small>{{ $k['value'][1] }}</small>@endif
+                    </div>
+                    @if ($k['spark'])
+                        <svg class="ls-spark" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">
+                            <polygon points="{{ $k['spark']['area'] }}" fill="{{ $k['color'] }}" fill-opacity="0.14" />
+                            <polyline points="{{ $k['spark']['line'] }}" fill="none" stroke="{{ $k['color'] }}" stroke-width="2"
+                                stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                        </svg>
+                    @endif
+                </div>
+                @if ($d)
+                    <div class="ls-kpi__delta is-{{ $d[0] }}" title="{{ $period['compare'] }}">
+                        {{ $d[1] }}
+                        @if ($loop->first && $period['compare'])
+                            <span>{{ $period['compare'] }}</span>
+                        @endif
+                    </div>
+                @endif
+                <div class="ls-kpi__hint">{{ $k['hint'] }}</div>
             </div>
         @endforeach
     </div>
@@ -115,39 +163,64 @@
     @if (! $rows)
         <section class="vc-card rp-empty">{{ __('reports.no_data') }}</section>
     @else
-        {{-- ── 4 biểu đồ theo nguồn ────────────────────────────────────── --}}
-        <div class="rp-grid">
-            @foreach ($charts as $key => $spec)
-                @include('livewire.reports.partials.chart-card', ['id' => 'ls-'.$key, 'spec' => $spec,
-                    'title' => $ls('chart.'.$key), 'sub' => $ls('chart.'.$key.'_sub'), 'height' => $height($spec)])
+        @php($charts = $this->charts)
+
+        {{-- ── Cơ cấu · tỷ lệ chốt · doanh thu theo nguồn ──────────────── --}}
+        <div class="ls-row ls-row--3">
+            @foreach (['share', 'win_rate', 'revenue'] as $key)
+                @include('livewire.reports.partials.chart-card', ['id' => 'ls-'.$key, 'spec' => $charts[$key],
+                    'title' => $ls('chart.'.$key), 'sub' => $ls('chart.'.$key.'_sub'), 'height' => $topHeight])
             @endforeach
         </div>
 
-        {{-- ── Bảng tóm tắt theo nguồn ─────────────────────────────────── --}}
+        {{-- ── Lead mới theo tháng · kết quả xử lý ─────────────────────── --}}
+        <div class="ls-row ls-row--2">
+            @include('livewire.reports.partials.chart-card', ['id' => 'ls-monthly', 'spec' => $charts['monthly'],
+                'title' => $ls('chart.monthly'), 'sub' => $ls('chart.monthly_sub'), 'height' => $outcomeHeight])
+            @include('livewire.reports.partials.chart-card', ['id' => 'ls-outcome', 'spec' => $charts['outcome'],
+                'title' => $ls('chart.outcome'), 'sub' => $ls('chart.outcome_sub'), 'height' => $outcomeHeight])
+        </div>
+
+        {{-- ── Bảng tổng hợp theo nguồn ────────────────────────────────── --}}
         <section class="vc-card rp-card">
             <h3 class="rp-card__title">{{ $ls('table.title') }}</h3>
             <p class="rp-card__sub">{{ $ls('table.sub') }}</p>
             <div class="table-responsive">
-                <table class="rp-table">
+                <table class="rp-table ls-table">
                     <thead>
                         <tr>
                             <th>{{ $ls('table.source') }}</th>
-                            @foreach (['leads', 'won', 'win_rate', 'revenue', 'revenue_per_lead'] as $m)
-                                <th class="rp-num">{{ __('reports.metric.'.$m) }}</th>
-                            @endforeach
+                            <th class="rp-num">{{ $ls('table.leads') }}</th>
+                            <th class="rp-num">{{ $ls('table.share') }}</th>
+                            <th class="rp-num">{{ $ls('table.conversion') }}</th>
+                            <th class="rp-num">{{ $ls('table.won') }}</th>
+                            <th class="rp-num">{{ $ls('table.win_rate') }}</th>
+                            <th class="rp-num">{{ $ls('table.revenue') }}</th>
+                            <th class="rp-num">{{ $ls('table.per_lead') }}</th>
+                            <th>{{ $ls('table.rating') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($rows as $row)
                             <tr wire:key="src-{{ md5($row['dim']) }}">
-                                <th scope="row">{{ $row['dim'] }}</th>
-                                <td class="rp-num">{{ $num($row['leads']) }}</td>
-                                <td class="rp-num">{{ $num($row['won']) }}</td>
+                                <th scope="row"><span class="ls-dot" style="--c: {{ $row['color'] }}"></span>{{ $row['dim'] }}</th>
                                 <td class="rp-num">
-                                    <span class="rp-bar" style="--w: {{ min(100, $row['win_rate']) }}%">{{ $pct($row['win_rate']) }}</span>
+                                    <span class="ls-volume">
+                                        {{ $num($row['leads']) }}
+                                        <span class="ls-volume__track"><span style="width: {{ $row['bar'] }}%"></span></span>
+                                    </span>
                                 </td>
+                                <td class="rp-num">{{ $pct($row['share']) }}</td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['conversion_rate'] }}">{{ $pct($row['conversion_rate']) }}</span></td>
+                                <td class="rp-num">{{ $num($row['won']) }}</td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['win_rate'] }}">{{ $pct($row['win_rate']) }}</span></td>
                                 <td class="rp-num">{{ $money($row['revenue']) }}</td>
-                                <td class="rp-num">{{ $money($row['revenue_per_lead']) }}</td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['revenue_per_lead'] }}">{{ $money($row['revenue_per_lead']) }}</span></td>
+                                <td>
+                                    <span class="ls-badge ls-badge--{{ $row['rating'] }}">
+                                        @if ($row['rating'] === 'expand')▲ @endif{{ $ls('rating.'.$row['rating']) }}
+                                    </span>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -155,14 +228,18 @@
                         <tr>
                             <th scope="row">{{ $ls('table.total') }}</th>
                             <td class="rp-num">{{ $num($t['leads']) }}</td>
+                            <td class="rp-num">100%</td>
+                            <td class="rp-num"><span class="ls-heat">{{ $pct($t['conversion_rate']) }}</span></td>
                             <td class="rp-num">{{ $num($t['won']) }}</td>
-                            <td class="rp-num">{{ $pct($t['win_rate']) }}</td>
+                            <td class="rp-num"><span class="ls-heat">{{ $pct($t['win_rate']) }}</span></td>
                             <td class="rp-num">{{ $money($t['revenue']) }}</td>
-                            <td class="rp-num">{{ $money($t['revenue_per_lead']) }}</td>
+                            <td class="rp-num"><span class="ls-heat">{{ $money($t['revenue_per_lead']) }}</span></td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
+            <p class="ls-note">{{ $ls('table.rating_note', ['min' => LeadSources::MIN_LEADS]) }}</p>
         </section>
     @endif
 
