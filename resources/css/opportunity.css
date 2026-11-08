@@ -1615,3 +1615,268 @@
 .od-quo-days.is-over {
     color: #b91c1c;
 }
+
+/* ══ Tạo cơ hội mới (livewire/opportunities/create), tiền tố .ok-create- ══
+   Nạp cùng opportunity.css; dùng lại class .vc-* của voucher.css.         */
+
+/* ── Nút "Tạo cơ hội" trên toolbar Kanban ─────────────────────────── */
+
+/* Nút dạng pill cạnh ô tìm kiếm: icon + nhãn đầy đủ trên màn lớn, chỉ icon trên màn nhỏ */
+.ok-tool-btn--create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 42px;
+    padding: 0 1rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.ok-tool-btn--create__label {
+    display: inline;
+}
+
+@media (max-width: 575.98px) {
+    /* Màn nhỏ: chỉ hiện icon để toolbar không bị tràn */
+    .ok-tool-btn--create {
+        width: 42px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .ok-tool-btn--create__label {
+        display: none;
+    }
+}
+
+/* ── Trang tạo cơ hội ──────────────────────────────────────────────── */
+
+.ok-create {
+    max-width: 1100px;
+}
+
+/* Tiêu đề trang */
+.vc .vc-page-title {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.vc .vc-page-sub {
+    margin: 0 0 1.25rem;
+    color: var(--vc-muted);
+    font-size: 0.9rem;
+}
+
+/* Bố cục 2 cột: tìm kiếm (trái) + xác nhận (phải) */
+.ok-create__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (max-width: 991.98px) {
+    .ok-create__layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Panel tìm kiếm ─────────────────────────────────────────────────── */
+
+.ok-create__search-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ok-create__count {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.ok-create__empty {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.9rem;
+}
+
+.ok-create__empty-hint {
+    margin: 0.25rem 0 0;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ok-create__name {
+    font-weight: 600;
+}
+
+/* Dòng đang được chọn: nền xanh nhạt */
+.vc-table tbody tr.is-selected {
+    background: color-mix(in srgb, var(--vc-primary) 6%, #fff);
+}
+
+/* ── Badge tình trạng trong bảng kết quả ─────────────────────────────── */
+
+.ok-create__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ok-create__badge--ok {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ok-create__badge--warning {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.ok-create__badge--blocked {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* ── Panel xác nhận (cột phải) ──────────────────────────────────────── */
+
+.ok-create__confirm-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    position: sticky;
+    top: 1rem;         /* bám theo khi cuộn, không rời bảng */
+}
+
+.ok-create__confirm-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.ok-create__confirm-phone {
+    margin: -0.5rem 0 0;
+    color: var(--vc-muted);
+    font-size: 0.88rem;
+}
+
+/* ── Thông báo chặn / cảnh báo ──────────────────────────────────────── */
+
+.ok-create__alert {
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.ok-create__alert--danger {
+    background: #fee2e2;
+    color: #7f1d1d;
+}
+
+.ok-create__alert--warning {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.vc .ok-create__alert .odin-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+}
+
+/* Link "Xem cơ hội đang chăm sóc →" trong thông báo chặn */
+.ok-create__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+    color: #1d4ed8;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ok-create__link:hover {
+    text-decoration: underline;
+}
+
+/* Danh sách nợ theo khóa học */
+.ok-create__debt-list {
+    margin: 0.35rem 0 0 1.1rem;
+    padding: 0;
+}
+
+.ok-create__debt-list li {
+    margin-top: 0.2rem;
+}
+
+/* Ghi chú "Bạn vẫn có thể tạo" dưới các cảnh báo */
+.ok-create__warning-note {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+    font-style: italic;
+}
+
+/* ── Nút hành động ──────────────────────────────────────────────────── */
+
+.ok-create__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+/* Lỗi chung (từ RuntimeException khi confirm) */
+.ok-create > .ok-create__alert {
+    margin-bottom: 0.5rem;
+}
+
+/* ── Form cập nhật thông tin liên hệ ───────────────────────────────── */
+
+.ok-create__contact {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.ok-create__contact-title {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.ok-create__contact-hint {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.ok-create__contact .vc-field {
+    margin: 0;
+}
+
+.ok-create__contact .vc-field__label {
+    font-size: 0.8rem;
+}

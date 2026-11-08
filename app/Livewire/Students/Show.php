@@ -78,6 +78,19 @@ class Show extends Component
     }
 
     /**
+     * Salesperson đang xem trang này được tạo cơ hội mới cho khách:
+     *   - Vai trò phải là Salesperson.
+     *   - Đã từng có ít nhất một cơ hội với khách (đảm bảo bởi visibleTo khi load trang).
+     * Điều kiện thứ hai được đảm bảo vì Student::visibleTo lọc theo Opportunity::visibleTo,
+     * và Opportunity::visibleTo với Salesperson chỉ trả về cơ hội của chính mình.
+     */
+    #[Computed]
+    public function canCreateOpportunity(): bool
+    {
+        return $this->routePrefix === Role::SALESPERSON;
+    }
+
+    /**
      * Đơn hàng đã đóng tiền + báo giá, khoá học, voucher, các đợt hoá đơn.
      */
     #[Computed]

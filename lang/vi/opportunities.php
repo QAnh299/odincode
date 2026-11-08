@@ -222,4 +222,70 @@ return [
         'Dropped'   => 'Đã nghỉ',
         'Completed' => 'Đã hoàn thành',
     ],
+
+    // Tạo cơ hội mới cho khách cũ (Opportunities\Create)
+    'create' => [
+        'title'              => 'Tạo cơ hội mới',
+        'subtitle'           => 'Tạo cơ hội cho khách đã từng đăng ký hoặc từng liên hệ',
+        'back'               => 'Quay lại',
+        'btn_new'            => 'Tạo cơ hội',
+        'btn_new_short'      => 'Tạo',           // hiện trên màn nhỏ (chỉ icon + chữ ngắn)
+        'btn_enroll'         => 'Đăng ký khóa mới', // nút trên trang học viên
+
+        // Tìm khách
+        'search_label'       => 'Tìm khách',
+        'search_placeholder' => 'Tìm theo tên, SĐT, email, mã học viên hoặc mã cơ hội…',
+        'searching'          => 'Đang tìm…',
+        'no_results'         => 'Không tìm thấy khách nào.',
+        'no_results_hint'    => 'Khách hoàn toàn mới liên hệ với Sale Admin để nhập Lead.',
+        'result_count'       => 'Tìm thấy :count khách',
+
+        // Cột bảng kết quả tìm kiếm
+        'col_customer'       => 'Khách hàng',
+        'col_phone'          => 'Số điện thoại',
+        'col_status'         => 'Tình trạng',
+        'col_action'         => '',
+
+        // Tình trạng hiện ngay trên dòng kết quả
+        'status_ok'              => 'Có thể tạo cơ hội',
+        'status_warning'         => 'Có thể tạo, cần lưu ý',
+        'status_blocked'         => 'Không thể tạo',
+        'status_own_in_progress' => 'Đang tư vấn bởi bạn',
+        'status_other_in_progress' => 'Đang tư vấn bởi :name',
+        'status_in_queue'        => 'Đang chờ phân công',
+
+        // Chọn khách - hiện cảnh báo / chặn
+        'selected_title'     => 'Tạo cơ hội cho :name',
+        'btn_select'         => 'Chọn',
+        'btn_change'         => 'Chọn khách khác',
+        'btn_confirm'        => 'Xác nhận tạo cơ hội',
+        'btn_confirming'     => 'Đang tạo…',
+
+        // Thông báo chặn
+        'blocked_own_in_progress'   => 'Khách đang có cơ hội đang tư vấn do bạn phụ trách (:opp).',
+        'blocked_other_in_progress' => 'Khách đang được :name tư vấn (SĐT: :phone).',
+        'blocked_in_queue'          => 'Khách này đã được nhập lại và đang chờ phân công. Vui lòng liên hệ trưởng nhóm hoặc Sale Admin.',
+        'no_phone'                   => 'chưa cập nhật SĐT',
+
+        // Link xem cơ hội đang tư vấn
+        'view_active_opp'    => 'Xem cơ hội đang chăm sóc →',
+
+        // Cảnh báo không chặn
+        'warning_studying'   => 'Khách đang học: :courses.',
+        'warning_debt'       => 'Còn nợ học phí:',
+        'warning_debt_item'  => ':course — còn :amount',
+        'warning_note'       => 'Bạn vẫn có thể tạo cơ hội mới.',
+
+        // Kết quả
+        'created'            => 'Đã tạo cơ hội :opp cho :name.',
+        'error_no_permission' => 'Bạn không có quyền tạo cơ hội cho khách này.',
+
+        // Cập nhật thông tin liên hệ
+        'contact_title'      => 'Thông tin liên hệ',
+        'contact_hint'       => 'Cập nhật nếu SĐT, email hoặc link nguồn của khách đã đổi. Không bắt buộc.',
+        'contact_phone'      => 'Số điện thoại',
+        'contact_email'      => 'Email',
+        'contact_source_url' => 'Link nguồn',
+        'contact_unchanged'  => 'Giữ nguyên',
+    ],
 ];

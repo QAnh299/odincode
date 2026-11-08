@@ -8,6 +8,7 @@ use App\Livewire\Courses\Show as CourseShow;
 use App\Livewire\Invoices\Form as InvoiceForm;
 use App\Livewire\Invoices\Index as InvoiceIndex;
 use App\Livewire\Invoices\Show as InvoiceShow;
+use App\Livewire\Opportunities\Create as OpportunityCreate;
 use App\Livewire\Opportunities\Kanban as OpportunityKanban;
 use App\Livewire\Opportunities\Show as OpportunityShow;
 use App\Livewire\Orders\Index as OrderIndex;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 // Quản lý Opportunity - Kanban theo Stage (thay cho Quản lý Lead)
 Route::get('/opportunities', OpportunityKanban::class)->name('opportunities');
+Route::get('/opportunities/create', OpportunityCreate::class)->name('opportunities.create');
 Route::get('/opportunities/{opportunity}', OpportunityShow::class)->name('opportunities.show');
 
 // Lịch hẹn - các lịch hẹn mình phụ trách (menu Quản lý Opportunity → Lịch hẹn)

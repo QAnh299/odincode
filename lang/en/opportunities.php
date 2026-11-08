@@ -222,4 +222,70 @@ return [
         'Dropped'   => 'Dropped',
         'Completed' => 'Completed',
     ],
+
+    // Create new opportunity for returning customers (Opportunities\Create)
+    'create' => [
+        'title'              => 'New opportunity',
+        'subtitle'           => 'Create an opportunity for a customer who has enrolled before or previously enquired',
+        'back'               => 'Back',
+        'btn_new'            => 'New opportunity',
+        'btn_new_short'      => 'New',
+        'btn_enroll'         => 'New enrolment',
+
+        // Customer search
+        'search_label'       => 'Find customer',
+        'search_placeholder' => 'Search by name, phone, email, student code or opportunity code…',
+        'searching'          => 'Searching…',
+        'no_results'         => 'No customers found.',
+        'no_results_hint'    => 'For a brand-new customer, ask Sale Admin to create a lead.',
+        'result_count'       => ':count customer(s) found',
+
+        // Result table columns
+        'col_customer'       => 'Customer',
+        'col_phone'          => 'Phone',
+        'col_status'         => 'Status',
+        'col_action'         => '',
+
+        // Status shown inline on each result row
+        'status_ok'              => 'Can create opportunity',
+        'status_warning'         => 'Can create — see notes',
+        'status_blocked'         => 'Cannot create',
+        'status_own_in_progress' => 'Currently handled by you',
+        'status_other_in_progress' => 'Currently handled by :name',
+        'status_in_queue'        => 'Awaiting assignment',
+
+        // Selected customer panel
+        'selected_title'     => 'New opportunity for :name',
+        'btn_select'         => 'Select',
+        'btn_change'         => 'Choose another customer',
+        'btn_confirm'        => 'Confirm new opportunity',
+        'btn_confirming'     => 'Creating…',
+
+        // Block messages
+        'blocked_own_in_progress'   => 'This customer already has an active opportunity you are handling (:opp).',
+        'blocked_other_in_progress' => 'This customer is currently being handled by :name (phone: :phone).',
+        'blocked_in_queue'          => 'This customer has been re-entered and is awaiting assignment. Please contact your team leader or Sale Admin.',
+        'no_phone'                   => 'no phone on record',
+
+        // Link to active opportunity
+        'view_active_opp'    => 'View active opportunity →',
+
+        // Non-blocking warnings
+        'warning_studying'   => 'Customer is currently studying: :courses.',
+        'warning_debt'       => 'Outstanding tuition balance:',
+        'warning_debt_item'  => ':course — :amount remaining',
+        'warning_note'       => 'You can still create a new opportunity.',
+
+        // Result
+        'created'            => 'Opportunity :opp created for :name.',
+        'error_no_permission' => 'You do not have permission to create an opportunity for this customer.',
+
+        // Update contact information
+        'contact_title'      => 'Contact information',
+        'contact_hint'       => 'Update if the customer\'s phone, email or source link has changed. Optional.',
+        'contact_phone'      => 'Phone number',
+        'contact_email'      => 'Email',
+        'contact_source_url' => 'Source link',
+        'contact_unchanged'  => 'Keep unchanged',
+    ],
 ];

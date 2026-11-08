@@ -51,7 +51,7 @@ CREATE TABLE `Employees` (
   `full_name` VARCHAR(150) NOT NULL,
   `date_of_birth` DATE NULL,
   `email` VARCHAR(254) NULL,
-  `phone` VARCHAR(10) NULL,
+  `phone` VARCHAR(10) NOT NULL,
   `job_title` VARCHAR(100) NOT NULL,
   `hire_date` DATE NOT NULL,
   `status` VARCHAR(30) NOT NULL,

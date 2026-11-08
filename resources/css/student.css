@@ -101,10 +101,10 @@
     overflow-wrap: anywhere;
 }
 
-/* Lưới 2 cột: trái linh hoạt, phải 360px */
+/* Lưới 2 cột: trái linh hoạt, phải 400px */
 .st-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) 400px;
     gap: 1.25rem;
     align-items: start;
 }
@@ -279,4 +279,42 @@
     .st-side {
         order: -1;
     }
+}
+
+/* Tiêu đề card + nút thao tác cùng hàng (VD: Thông tin học viên – Chỉnh sửa) */
+.st-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.st-title-row .st-title {
+    margin: 0;
+}
+
+/* Nút Chỉnh sửa: không nền, chữ xanh primary */
+.st-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: auto;
+    padding: 0.2rem 0.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--vc-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.st-edit-btn:hover {
+    opacity: 0.75;
+}
+
+.vc .st-edit-btn .odin-icon {
+    width: 14px;
+    height: 14px;
 }

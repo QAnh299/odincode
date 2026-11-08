@@ -50,10 +50,12 @@
                 </span>
             </div>
         </div>
-        @if ($this->canEdit)
-            <button type="button" class="vc-btn vc-btn--primary" wire:click="startEdit">
-                <x-icon name="user" />{{ __('students.edit') }}
-            </button>
+        @if ($this->canCreateOpportunity)
+            <a href="{{ route('salesperson.opportunities.create', ['student' => $student->student_id]) }}"
+                class="vc-btn vc-btn--outline"
+                wire:navigate>
+                <x-icon name="plus" />{{ __('opportunities.create.btn_enroll') }}
+            </a>
         @endif
     </section>
 
@@ -236,7 +238,14 @@
         {{-- ── Cột phải: thông tin học viên, cơ hội, lần đăng ký khác ─ --}}
         <aside class="st-side">
             <section class="vc-card">
-                <h2 class="st-title">{{ __('students.info') }}</h2>
+                <div class="st-title-row">
+                    <h2 class="st-title">{{ __('students.info') }}</h2>
+                    @if ($this->canEdit)
+                        <button type="button" class="vc-btn st-edit-btn" wire:click="startEdit">
+                            <x-icon name="user" />{{ __('students.edit') }}
+                        </button>
+                    @endif
+                </div>
                 <dl class="st-info">
                     <dt>{{ __('students.phone') }}</dt><dd>{{ $student->phone }}</dd>
                     <dt>{{ __('students.email') }}</dt><dd>{{ $student->email ?: '-' }}</dd>

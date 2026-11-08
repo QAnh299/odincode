@@ -53,6 +53,18 @@
             </div>
 
             <div class="ok-toolbar__tools">
+                    {{-- Nút Tạo cơ hội: chỉ Salesperson, đặt trước ô tìm kiếm --}}
+                    @if ($this->canCreateOpportunity())
+                        <a href="{{ route('salesperson.opportunities.create') }}"
+                            class="vc-btn vc-btn--primary ok-tool-btn--create"
+                            wire:navigate
+                            title="{{ __('opportunities.create.btn_new') }}"
+                            aria-label="{{ __('opportunities.create.btn_new') }}">
+                            <x-icon name="plus" />
+                            <span class="ok-tool-btn--create__label">{{ __('opportunities.create.btn_new') }}</span>
+                        </a>
+                    @endif
+
                 <label class="vc-search ok-search">
                     <x-icon name="search" />
                     <input type="search" wire:model.live.debounce.350ms="search" placeholder="{{ __('opportunities.search_placeholder') }}"

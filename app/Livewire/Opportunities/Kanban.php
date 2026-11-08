@@ -194,6 +194,14 @@ class Kanban extends Component
         return $this->routePrefix === Role::SALESPERSON;
     }
 
+    /**
+     * Salesperson được tạo cơ hội mới cho khách cũ.
+     */
+    public function canCreateOpportunity(): bool
+    {
+        return $this->isSalesperson();
+    }
+
     #[Computed]
     public function canFilterTeam(): bool
     {
