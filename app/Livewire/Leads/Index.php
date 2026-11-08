@@ -4,7 +4,9 @@ namespace App\Livewire\Leads;
 
 use App\Models\Branch;
 use App\Models\Lead;
+use App\Models\Opportunity;
 use App\Models\Role;
+use App\Services\LeadDuplicateService;
 use App\Services\LeadImportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -19,6 +21,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use RuntimeException;
 
 /**
  * Danh sách Lead + bộ lọc + thống kê theo bộ lọc.
@@ -83,6 +86,14 @@ class Index extends Component
     // Dữ liệu popup Thêm Lead
     public array $form = [];
 
+    // Khách cũ khớp với dữ liệu đang nhập (LeadDuplicateService): ['case', 'message', 'lead' => mã Lead cùng người | null,
+    // 'leads' => [['lead_id', 'name', 'learner', 'state', 'owner', 'url'], ...]]; null = chưa kiểm tra / không trùng
+    #[Locked]
+    public ?array $duplicate = null;
+
+    // Các trường được chọn để cập nhật vào Lead cũ (cùng người, Lead đang chờ phân / đang tư vấn)
+    public array $updateFields = [];
+
     // File Excel tải lên (popup Import)
     public $file = null;
 
@@ -100,6 +111,11 @@ class Index extends Component
     {
         if (in_array($property, self::FILTERS, true)) {
             $this->resetPage();
+        }
+
+        // Sửa dữ liệu popup Thêm Lead → kết quả kiểm tra trùng cũ không còn đúng
+        if (str_starts_with($property, 'form')) {
+            $this->duplicate = null;
         }
     }
 
@@ -152,6 +168,27 @@ class Index extends Component
         return $this->routePrefix === Role::SALE_ADMIN;
     }
 
+    /**
+     * Có nút "Phân Lead" ở dòng (xét nhanh trên cơ hội gần nhất đã nạp sẵn; popup Leads\AssignOne kiểm tra lại đầy đủ):
+     * Sale Admin - Lead chưa phân cho đội; Sale Leader - Lead đội mình đang giữ, chờ phân cho Salesperson.
+     */
+    public function canAssign(Lead $lead): bool
+    {
+        if ($lead->status !== Lead::STATUS_NEW) {
+            return false;
+        }
+
+        $latest = $lead->latestOpportunity;
+        $active = $latest?->status === Opportunity::STATUS_IN_PROGRESS;
+
+        return match ($this->routePrefix) {
+            Role::SALE_ADMIN  => ! $active,
+            Role::SALE_LEADER => $active && $latest->stage_id === \App\Models\Stage::UNTOUCHED
+                && $latest->employee_id === Auth::user()->employee?->employee_id,
+            default           => false,
+        };
+    }
+
     protected function authorizeCreate(): void
     {
         abort_unless($this->canCreate, 403);
@@ -160,6 +197,7 @@ class Index extends Component
     public function closeModal(): void
     {
         $this->modal = '';
+        $this->duplicate = null;
         $this->resetValidation();
     }
 
@@ -178,23 +216,226 @@ class Index extends Component
             'contact_method' => '',
             'branch_id'      => '',
         ];
+        $this->duplicate = null;
         $this->resetValidation();
         $this->modal = 'create';
     }
 
-    public function saveLead(LeadImportService $service): void
+    /**
+     * Lưu Lead: kiểm tra trùng khách cũ trước; không trùng thì tạo luôn, trùng thì hiện lựa chọn trong popup.
+     */
+    public function saveLead(LeadImportService $service, LeadDuplicateService $duplicates): void
     {
         $this->authorizeCreate();
 
-        $data = $service->normalize($this->form);
-        $validated = Validator::make($data, $service->rules(), $service->messages(), $service->attributes())
-            ->validate();
+        $validated = $this->validatedForm($service);
+        $match = $duplicates->check($validated);
 
+        if ($match['case'] === LeadDuplicateService::NEW) {
+            $this->createLead($service, $validated);
+
+            return;
+        }
+
+        $this->duplicate = $this->describeMatch($duplicates, $match, $validated);
+    }
+
+    /**
+     * "Người học khác": vẫn tạo Lead mới dù trùng liên hệ (VD con thứ hai của phụ huynh).
+     */
+    public function createAsOther(LeadImportService $service, LeadDuplicateService $duplicates): void
+    {
+        $this->authorizeCreate();
+
+        // Dữ liệu vừa bị sửa (updated() đã xoá kết quả cũ) → kiểm tra lại thay vì tạo luôn
+        if (! $this->duplicate) {
+            $this->saveLead($service, $duplicates);
+
+            return;
+        }
+
+        $this->createLead($service, $this->validatedForm($service));
+    }
+
+    /**
+     * "Cùng người" với Lead $leadId: không còn cơ hội đang tư vấn → đưa Lead cũ về hàng chờ phân công;
+     * còn thì báo tình trạng của Lead đó (không tạo Lead mới).
+     */
+    public function sameAs(string $leadId, LeadImportService $service, LeadDuplicateService $duplicates): void
+    {
+        $this->authorizeCreate();
+
+        if (! $this->duplicate) {
+            $this->saveLead($service, $duplicates);
+
+            return;
+        }
+
+        abort_unless(in_array($leadId, array_column($this->duplicate['leads'], 'lead_id'), true), 403);
+
+        $validated = $this->validatedForm($service);
+        $lead = $duplicates->find($leadId);
+        abort_unless($lead, 404);
+
+        $state = $duplicates->stateOf($lead);
+
+        if ($state !== LeadDuplicateService::REOPEN) {
+            // Đã xác nhận cùng người → không còn hỏi "người học khác"; hiện thông tin khác để cập nhật vào Lead cũ
+            $this->duplicate = $this->describeMatch($duplicates, ['case' => $state, 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
+
+            return;
+        }
+
+        try {
+            $result = $duplicates->reopen($lead, $validated);
+        } catch (RuntimeException) {
+            // Lead vừa đổi tình trạng (VD vừa được phân) → hiện lại tình trạng mới
+            $lead = $duplicates->find($leadId);
+            $this->duplicate = $this->describeMatch($duplicates, ['case' => $duplicates->stateOf($lead), 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
+
+            return;
+        }
+
+        $notes = $duplicates->reopenNotes($result);
+        $text = __('leads.duplicate.reopened', ['id' => $result['lead']->lead_id, 'name' => $result['lead']->full_name]);
+
+        $this->modal = '';
+        $this->duplicate = null;
+        // Có thông tin khác Lead cũ → hiện thành cảnh báo trên trang để Sale Admin đọc kỹ
+        $this->announce(['type' => $notes ? 'warning' : 'success', 'text' => trim($text.' '.implode(' ', $notes))]);
+        $this->resetPage();
+    }
+
+    /**
+     * Cùng người, Lead đang chờ phân: cập nhật các trường đã chọn vào Lead cũ (không tạo Lead mới).
+     */
+    public function updateExisting(LeadImportService $service, LeadDuplicateService $duplicates): void
+    {
+        $this->authorizeCreate();
+
+        if (! $this->duplicate || ! $this->duplicate['lead']) {
+            $this->saveLead($service, $duplicates);
+
+            return;
+        }
+
+        $validated = $this->validatedForm($service);
+
+        try {
+            $result = $duplicates->updateExisting($this->duplicate['lead'], $validated, $this->updateFields, $service);
+        } catch (RuntimeException $e) {
+            $this->addError('duplicate', $e->getMessage());
+
+            return;
+        }
+
+        if (! $result['fields']) {
+            $this->addError('duplicate', __('leads.duplicate.update_none'));
+
+            return;
+        }
+
+        $fields = implode(', ', array_map(fn ($field) => $this->fieldLabel($field), $result['fields']));
+
+        $this->modal = '';
+        $this->duplicate = null;
+        $this->announce(['type' => 'success', 'text' => __('leads.duplicate.updated', ['id' => $result['lead']->lead_id, 'fields' => $fields])]);
+        $this->resetPage();
+    }
+
+    /**
+     * Nhãn trường trong bảng so sánh: chi nhánh hiện tên cơ sở nên ghi "Chi nhánh" thay vì "Mã chi nhánh".
+     */
+    protected function fieldLabel(string $field): string
+    {
+        return $field === 'branch_id' ? __('leads.branch') : __('leads.field.'.$field);
+    }
+
+    /**
+     * Giá trị hiển thị trong bảng so sánh: chi nhánh hiện tên, kênh liên hệ hiện nhãn.
+     */
+    protected function displayValue(string $field, ?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        return match ($field) {
+            'branch_id'      => $this->branches->firstWhere('branch_id', $value)?->branch_name ?? $value,
+            'contact_method' => __('leads.method.'.$value),
+            default          => $value,
+        };
+    }
+
+    protected function validatedForm(LeadImportService $service): array
+    {
+        $data = $service->normalize($this->form);
+
+        return Validator::make($data, $service->rules(), $service->messages(), $service->attributes())
+            ->validate();
+    }
+
+    protected function createLead(LeadImportService $service, array $validated): void
+    {
         $lead = $service->create($validated);
 
         $this->modal = '';
+        $this->duplicate = null;
         $this->announce(['type' => 'success', 'text' => __('leads.form.created', ['id' => $lead->lead_id, 'name' => $lead->full_name])]);
         $this->resetPage();
+    }
+
+    /**
+     * Kết quả kiểm tra trùng → dữ liệu hiển thị trong popup (giữ trong state Livewire nên chỉ gồm giá trị đơn giản).
+     */
+    protected function describeMatch(LeadDuplicateService $duplicates, array $match, array $data, bool $confirmed = false): array
+    {
+        $leads = $match['lead'] ? collect([$match['lead']]) : $match['leads'];
+
+        // Đã xác định cùng người (khớp liên hệ + họ tên, hoặc bấm "Cùng người") và Lead đang chờ phân / đang tư vấn
+        // → bảng so sánh cho chọn cập nhật (LeadDuplicateService::updatableFields); còn lại bảng chỉ để đối chiếu
+        $updatable = $match['lead'] !== null
+            && in_array($match['case'], [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS], true);
+
+        $items = $leads->map(function (Lead $lead) use ($duplicates, $data, $updatable) {
+            $active = $lead->opportunities->firstWhere('status', Opportunity::STATUS_IN_PROGRESS);
+            $state = $duplicates->stateOf($lead);
+            // Lead "Mới" mà đã có cơ hội đang mở = đội đang giữ, chờ phân Salesperson (người giữ là trưởng nhóm, không hiện tên)
+            $waitingTeam = $state === LeadDuplicateService::IN_QUEUE && $active;
+
+            return [
+                'lead_id'   => $lead->lead_id,
+                'name'      => $lead->full_name,
+                'learner'   => $duplicates->learnerName($lead),
+                'contact'   => collect([$lead->phone, $lead->email])->filter()->implode(' · '),
+                'state'     => $waitingTeam ? 'in_queue_team' : $state,
+                'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
+                'url'       => route($this->routePrefix.'.leads.show', $lead),
+                // Salesperson đã tương tác → không cập nhật từ đây (bảng chỉ để xem)
+                'contacted' => $updatable && $duplicates->contacted($lead),
+                'changes'   => collect($duplicates->changes($lead, $data, $updatable))
+                    ->map(fn ($change, $field) => $change + [
+                        'label'    => $this->fieldLabel($field),
+                        'old_text' => $this->displayValue($field, $change['old']),
+                        'new_text' => $this->displayValue($field, $change['new']),
+                    ])->all(),
+            ];
+        })->values()->all();
+
+        $this->updateFields = $updatable
+            ? array_keys(array_filter($items[0]['changes'], fn ($change) => $change['editable']))
+            : [];
+
+        return [
+            'case'      => $match['case'],
+            // Chỉ ẩn "Tạo Lead mới" khi Sale Admin tự bấm "Cùng người". Hệ thống tự khớp liên hệ + họ tên vẫn giữ nút:
+            // Lead có thể mang tên phụ huynh, phụ huynh đăng ký thêm cho con khác thì trùng cả tên lẫn SĐT
+            'confirmed' => $confirmed,
+            'updatable' => $updatable,
+            'message'   => $duplicates->message($match['case'], $match['lead'], $match['leads']),
+            'lead'      => $match['lead']?->lead_id,
+            'leads'     => $items,
+        ];
     }
 
     /* ── Import Excel ─────────────────────────────────────────────────── */

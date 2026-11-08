@@ -77,12 +77,22 @@ class Lead extends Model
     }
 
     /**
-     * Lead chưa phân cho đội: chưa có cơ hội nào (cùng điều kiện với LeadDistributionService::availableLeads()).
-     * Lead đã giao cho trưởng nhóm vẫn ở trạng thái "Mới" nên phải loại theo cơ hội.
+     * Lead chưa phân cho đội: "Mới" và không có cơ hội đang xử lý (cùng điều kiện với
+     * LeadDistributionService::availableLeads()). Lead đã giao cho trưởng nhóm vẫn ở trạng thái "Mới" nên phải
+     * loại theo cơ hội; khách cũ được đưa về hàng chờ (LeadDuplicateService::reopen) còn các cơ hội đã kết thúc.
      */
     public function scopeUnassigned(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_NEW)->whereDoesntHave('opportunities');
+        return $query->where('status', self::STATUS_NEW)
+            ->whereDoesntHave('opportunities', fn ($q) => $q->where('status', Opportunity::STATUS_IN_PROGRESS));
+    }
+
+    /**
+     * Khách cũ: đã có cơ hội đã kết thúc (Won / Lost / Archived).
+     */
+    public function isReturning(): bool
+    {
+        return $this->opportunities()->where('status', '!=', Opportunity::STATUS_IN_PROGRESS)->exists();
     }
 
     /**

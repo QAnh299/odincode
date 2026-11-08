@@ -24,11 +24,16 @@ use ZipArchive;
  * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 - HĐ6, PhanLead.docx).
  *
  * - Dùng chung bộ kiểm tra dữ liệu cho popup Thêm Lead và từng dòng Excel.
+ * - Kiểm tra trùng khách cũ theo LeadDuplicateService (khớp liên hệ + họ tên). Import không hỏi lại được
+ *   từng dòng nên: khác họ tên → tạo Lead mới kèm ghi chú; khách cũ không còn cơ hội đang tư vấn → đưa Lead
+ *   cũ về hàng chờ; Lead đang chờ phân / đang tư vấn / khớp nhiều Lead → báo lỗi.
  * - Import ghi nhận các dòng hợp lệ, bỏ qua dòng lỗi và trả về file kết quả
- *   (mỗi dòng có cột Kết quả, Mã Lead, Lý do lỗi).
+ *   (mỗi dòng có cột Kết quả, Mã Lead, Ghi chú, Lý do lỗi).
  */
 class LeadImportService
 {
+    public function __construct(protected LeadDuplicateService $duplicates) {}
+
     // Số dòng dữ liệu tối đa trong một file
     const MAX_ROWS = 1000;
 
@@ -128,8 +133,8 @@ class LeadImportService
     {
         return [
             'full_name'      => ['required', 'string', 'max:150'],
-            // Không kiểm tra trùng: học viên đăng ký thêm khoá học → tạo Lead mới cùng thông tin
-            'phone'          => ['nullable', 'required_if:contact_method,'.implode(',', Lead::METHODS_PHONE_REQUIRED), 'regex:/^0\d{9}$/'],
+            // Trùng khách cũ không kiểm tra ở đây mà ở LeadDuplicateService (cần khớp cả liên hệ và họ tên)
+            'phone'        => ['nullable', 'required_if:contact_method,'.implode(',', Lead::METHODS_PHONE_REQUIRED), 'regex:/^0\d{9}$/'],
             'email'          => ['nullable', 'email', 'max:254'],
             'source_name'    => ['required', Rule::in(Lead::SOURCES)],
             // Bắt buộc khi liên hệ qua Facebook; nguồn nào (TikTok, Instagram…) cũng không bắt buộc nếu liên hệ qua kênh khác
@@ -317,19 +322,18 @@ class LeadImportService
 
                 $data = $this->normalize($raw);
                 $errors = Validator::make($data, $this->rules(), $this->messages(), $this->attributes())
-                    ->errors();
+                    ->errors()
+                    ->all();
 
-                $leadId = null;
-
-                if ($errors->isEmpty()) {
-                    $leadId = $this->create($data)->lead_id;
-                }
+                $outcome = $errors ? ['lead_id' => null, 'reopened' => false, 'notes' => [], 'errors' => []] : $this->importRow($data);
 
                 $results[] = [
-                    'line'    => $line,
-                    'values'  => array_values($raw),
-                    'lead_id' => $leadId,
-                    'errors'  => $errors->all(),
+                    'line'     => $line,
+                    'values'   => array_values($raw),
+                    'lead_id'  => $outcome['lead_id'],
+                    'reopened' => $outcome['reopened'],
+                    'notes'    => $outcome['notes'],
+                    'errors'   => array_merge($errors, $outcome['errors']),
                 ];
             }
         });
@@ -343,6 +347,55 @@ class LeadImportService
             'failed'  => count($results) - $success,
             'result'  => $this->writeResult($results),
         ];
+    }
+
+    /**
+     * Ghi nhận một dòng hợp lệ theo kết quả kiểm tra trùng (LeadDuplicateService).
+     * Lead tạo / đưa về hàng chờ ở các dòng trước nằm cùng transaction nên dòng sau trùng với dòng trước
+     * sẽ rơi vào "đã ở hàng chờ".
+     *
+     * @return array{lead_id: ?string, reopened: bool, notes: string[], errors: string[]}
+     */
+    protected function importRow(array $data): array
+    {
+        $match = $this->duplicates->check($data);
+        $result = ['lead_id' => null, 'reopened' => false, 'notes' => [], 'errors' => []];
+
+        switch ($match['case']) {
+            case LeadDuplicateService::NEW:
+                $result['lead_id'] = $this->create($data)->lead_id;
+                break;
+
+            case LeadDuplicateService::OTHER_PERSON:
+                // Cùng liên hệ nhưng khác họ tên (VD con thứ hai của phụ huynh) → tạo mới, ghi chú để kiểm tra lại
+                $result['lead_id'] = $this->create($data)->lead_id;
+                $result['notes'][] = __('leads.duplicate.import_other', ['leads' => $match['leads']
+                    ->map(fn (Lead $lead) => $lead->lead_id.' - '.$lead->full_name)->implode('; ')]);
+                break;
+
+            case LeadDuplicateService::REOPEN:
+                try {
+                    $reopen = $this->duplicates->reopen($match['lead'], $data);
+                    $result['lead_id'] = $reopen['lead']->lead_id;
+                    $result['reopened'] = true;
+                    $result['notes'] = array_merge(
+                        [__('leads.duplicate.reopened', ['id' => $reopen['lead']->lead_id, 'name' => $reopen['lead']->full_name])],
+                        $this->duplicates->reopenNotes($reopen),
+                    );
+                } catch (\RuntimeException $e) {
+                    $result['errors'][] = $e->getMessage();
+                }
+                break;
+
+            case LeadDuplicateService::AMBIGUOUS:
+                $result['errors'][] = $this->duplicates->message($match['case'], leads: $match['leads']).' '.__('leads.duplicate.import_manual');
+                break;
+
+            default: // IN_QUEUE, IN_PROGRESS
+                $result['errors'][] = $this->duplicates->message($match['case'], $match['lead']);
+        }
+
+        return $result;
     }
 
     /**
@@ -434,8 +487,9 @@ class LeadImportService
         $options->setColumnWidth(30, 3, 5);
 
         if ($result) {
-            $options->setColumnWidth(14, 8, 9, 10);
-            $options->setColumnWidth(70, 11);
+            $options->setColumnWidth(14, 8, 10);
+            $options->setColumnWidth(24, 9);
+            $options->setColumnWidth(70, 11, 12);
         }
 
         $writer = new Writer($options);
@@ -445,7 +499,7 @@ class LeadImportService
     }
 
     /**
-     * File kết quả: dữ liệu gốc + Dòng trong file + Kết quả + Mã Lead + Lý do lỗi.
+     * File kết quả: dữ liệu gốc + Dòng trong file + Kết quả + Mã Lead + Ghi chú + Lý do lỗi.
      */
     protected function writeResult(array $results): string
     {
@@ -456,7 +510,8 @@ class LeadImportService
         $writer = $this->writer($path, true);
         $writer->getCurrentSheet()->setName(__('leads.excel.sheet_result'));
         $writer->addRow($this->headerRow([
-            __('leads.excel.col_line'), __('leads.excel.col_result'), __('leads.excel.col_lead_id'), __('leads.excel.col_reason'),
+            __('leads.excel.col_line'), __('leads.excel.col_result'), __('leads.excel.col_lead_id'),
+            __('leads.excel.col_note'), __('leads.excel.col_reason'),
         ]));
 
         $okStyle = (new Style())->setFontColor('15803D')->setFontBold();
@@ -469,11 +524,17 @@ class LeadImportService
 
             $cells = array_map(fn ($value) => Cell::fromValue($value), $result['values']);
             $cells[] = Cell::fromValue($result['line']);
-            $cells[] = Cell::fromValue($ok ? __('leads.excel.status_ok') : __('leads.excel.status_fail'), $ok ? $okStyle : $failStyle);
+            $status = match (true) {
+                ! $ok                 => __('leads.excel.status_fail'),
+                $result['reopened']   => __('leads.excel.status_reopened'),
+                default               => __('leads.excel.status_ok'),
+            };
+            $bullets = fn (array $lines) => implode("\n", array_map(fn ($line) => '- '.$line, $lines));
+
+            $cells[] = Cell::fromValue($status, $ok ? $okStyle : $failStyle);
             $cells[] = Cell::fromValue($result['lead_id'] ?? '');
-            $cells[] = Cell::fromValue(implode("\n", array_map(
-                fn ($e) => '- '.$e, $result['errors']
-            )), $wrap);
+            $cells[] = Cell::fromValue($bullets($result['notes']), $wrap);
+            $cells[] = Cell::fromValue($bullets($result['errors']), $wrap);
 
             $writer->addRow(new Row($cells, $ok ? null : $failRow));
         }

@@ -89,6 +89,7 @@
 
 .ld-notice--warning { --tone: #b45309; --tone-bg: #fffbeb; --tone-border: #fde68a; }
 .ld-notice--danger { --tone: #b91c1c; --tone-bg: #fef2f2; --tone-border: #fecaca; }
+.ld-notice--info { --tone: #1d4ed8; --tone-bg: #eff6ff; --tone-border: #bfdbfe; }
 
 .ld-notice--inline {
     margin: 0.75rem 0 0;
@@ -1194,4 +1195,867 @@
     .st-info.ld-info {
         grid-template-columns: max-content minmax(0, 1fr);
     }
+}
+
+/* ── Popup Thêm Lead: khách cũ trùng liên hệ (LeadDuplicateService) ──
+   Thẻ gọn, viền nhấn trái theo tình huống. Không dùng overflow: hidden - trong lưới form của popup
+   (bị co theo chiều cao màn hình), phần tử overflow khác visible bị ép chiều cao về 0 và mất nội dung. */
+
+.ld-dup {
+    --dup-tone: #2563eb;
+    --dup-soft: #eff6ff;
+    border: 1px solid var(--vc-border);
+    border-left: 4px solid var(--dup-tone);
+    border-radius: 14px;
+    background: var(--vc-surface);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    animation: ld-dup-in 0.18s ease-out;
+}
+
+.ld-dup--ok { --dup-tone: var(--vc-primary); --dup-soft: var(--vc-tint); }
+.ld-dup--warn { --dup-tone: #c2410c; --dup-soft: #fff7ed; }
+
+@keyframes ld-dup-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+
+.ld-dup__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.6rem;
+    align-items: center;
+    padding: 0.85rem 1rem 0.35rem;
+}
+
+.ld-dup__icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    color: var(--dup-tone);
+}
+
+.ld-dup__title {
+    flex: 1;
+    margin: 0;
+    color: var(--vc-ink);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.ld-dup__message {
+    margin: 0;
+    padding: 0 1rem 0 2.75rem;
+    color: var(--vc-muted);
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+.ld-dup__list {
+    display: grid;
+    margin: 0;
+    padding: 0.35rem 0 0.5rem;
+    list-style: none;
+}
+
+.ld-dup__item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+}
+
+.ld-dup__item + .ld-dup__item {
+    border-top: 1px dashed var(--vc-border);
+}
+
+.ld-dup__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--dup-soft);
+    color: var(--dup-tone);
+    font-weight: 700;
+}
+
+.ld-dup__info {
+    display: grid;
+    flex: 1;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.ld-dup__name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    color: var(--vc-ink);
+}
+
+.ld-dup__code {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.05rem 0.45rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    text-decoration: none;
+}
+
+.ld-dup__code:hover {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.ld-dup__code > .odin-icon {
+    width: 12px;
+    height: 12px;
+}
+
+.ld-dup__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.9rem;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ld-dup__meta > span {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+}
+
+.ld-dup__meta .odin-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.ld-dup__state {
+    --st: #2563eb;
+    display: inline-flex;
+    flex: none;
+    gap: 0.35rem;
+    align-items: center;
+    justify-self: start;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--st) 10%, #fff);
+    color: var(--st);
+    font-size: 0.74rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ld-dup__state--ok { --st: var(--vc-primary); }
+.ld-dup__state--warn { --st: #c2410c; }
+
+.ld-dup__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ld-dup__btn {
+    flex: none;
+    white-space: nowrap;
+}
+
+.ld-dup__other {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+.ld-dup__other-text {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
+    font-size: 0.8rem;
+}
+
+.ld-dup__other-text > strong {
+    color: var(--vc-ink);
+    font-weight: 600;
+}
+
+.ld-dup__other-text > span {
+    color: var(--vc-muted);
+}
+
+@media (max-width: 575.98px) {
+    .ld-dup__item,
+    .ld-dup__other {
+        flex-wrap: wrap;
+    }
+
+    .ld-dup__btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Popup phân chia: số khách cũ đội / người này từng phụ trách */
+.ld-dist__returning {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.ld-dist__returning > .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Popup Phân Lead cho một Lead cụ thể (Leads\AssignOne) ────────── */
+
+.ld-pick {
+    display: grid;
+    gap: 1rem;
+}
+
+.ld-pick__lead {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 14px;
+    background: #fafbfa;
+}
+
+.ld-pick__avatar,
+.ld-pick__option-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+    font-weight: 700;
+}
+
+.ld-pick__avatar {
+    width: 42px;
+    height: 42px;
+}
+
+.ld-pick__lead-info {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.ld-pick__lead-info > span {
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ld-pick__hint {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 0.83rem;
+}
+
+.ld-pick__hint > .odin-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.ld-pick__group {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.ld-pick__group > legend {
+    margin-bottom: 0.4rem;
+}
+
+.ld-pick__option {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.ld-pick__option:hover {
+    border-color: color-mix(in srgb, var(--vc-primary) 35%, #fff);
+}
+
+.ld-pick__option.is-checked {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+}
+
+.ld-pick__option > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ld-pick__option:has(input:focus-visible) {
+    outline: 2px solid var(--vc-primary);
+    outline-offset: 2px;
+}
+
+.ld-pick__option-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
+}
+
+.ld-pick__option-avatar > .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ld-pick__option-text {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+}
+
+.ld-pick__option-name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    color: var(--vc-ink);
+    font-weight: 600;
+}
+
+.ld-pick__option-sub {
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.ld-pick__tag {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.ld-pick__load {
+    flex: none;
+    color: var(--vc-ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ld-pick__load > em {
+    color: var(--vc-muted);
+    font-style: normal;
+    font-weight: 400;
+}
+
+.ld-pick__load.is-full {
+    color: #c2410c;
+}
+
+.ld-pick__radio {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--vc-border);
+    border-radius: 50%;
+    transition: border 0.15s;
+}
+
+.ld-pick__option.is-checked .ld-pick__radio {
+    border: 5px solid var(--vc-primary);
+}
+
+/* Nút Phân Lead ở cột Thao tác */
+.ld-assign-btn {
+    margin-right: 0.25rem;
+    color: var(--vc-primary);
+}
+
+/* Popup phân chia: khối gợi ý khách cũ / người thân */
+.ld-suggest {
+    align-items: flex-start;
+}
+
+.ld-suggest ul {
+    margin: 0.25rem 0;
+    padding-left: 1.1rem;
+}
+
+.ld-suggest .ld-notice__text > span {
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+/* ── Popup Phân Lead: người thân dùng chung SĐT / email (chọn để phân chung) ── */
+
+.ld-fam {
+    border: 1px solid #fcd34d;
+    border-radius: 14px;
+    background: #fffbeb;
+}
+
+.ld-fam__head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #fde68a;
+    border-radius: 13px 13px 0 0;
+    background: #fef3c7;
+}
+
+.ld-fam__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #fde68a;
+    color: #92400e;
+}
+
+.ld-fam__icon > .odin-icon {
+    width: 17px;
+    height: 17px;
+}
+
+.ld-fam__heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.ld-fam__title {
+    margin: 0;
+    color: #78350f;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.ld-fam__sub {
+    margin: 0.1rem 0 0;
+    color: #92400e;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.ld-fam__count {
+    flex: none;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ld-fam__list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.75rem;
+    list-style: none;
+}
+
+.ld-fam__row {
+    position: relative;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 56px;
+    padding: 0.6rem 0.85rem;
+    border: 1.5px solid #fde68a;
+    border-radius: 12px;
+    background: #fff;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.ld-fam__row.is-selectable {
+    cursor: pointer;
+}
+
+.ld-fam__row.is-selectable:hover {
+    border-color: #f59e0b;
+}
+
+.ld-fam__row.is-on {
+    border-color: var(--vc-primary);
+    background: var(--vc-tint);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vc-primary) 12%, transparent);
+}
+
+.ld-fam__row > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ld-fam__row:has(input:focus-visible) {
+    outline: 2px solid var(--vc-primary);
+    outline-offset: 2px;
+}
+
+/* Ô tick */
+.ld-fam__check {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #f59e0b;
+    border-radius: 7px;
+    background: var(--vc-surface);
+    color: var(--vc-on-primary);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.ld-fam__check > .odin-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.ld-fam__row.is-on .ld-fam__check {
+    border-color: var(--vc-primary);
+    background: var(--vc-primary);
+}
+
+.ld-fam__row.is-on .ld-fam__check > .odin-icon {
+    opacity: 1;
+}
+
+.ld-fam__check.is-disabled {
+    border-style: dashed;
+    background: #f1f5f9;
+}
+
+.ld-fam__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fef3c7;
+    color: #b45309;
+    font-weight: 700;
+}
+
+.ld-fam__text {
+    display: grid;
+    flex: 1;
+    gap: 0.05rem;
+    min-width: 0;
+}
+
+.ld-fam__name {
+    overflow: hidden;
+    color: var(--vc-ink);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ld-fam__code {
+    color: var(--vc-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+}
+
+.ld-fam__state {
+    --st: #64748b;
+    display: inline-flex;
+    flex: none;
+    gap: 0.35rem;
+    align-items: center;
+    max-width: 50%;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--st) 11%, #fff);
+    color: var(--st);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.ld-fam__state--wait { --st: #c2410c; }
+.ld-fam__state--active { --st: var(--vc-primary); }
+
+.ld-fam__dot {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+@media (max-width: 575.98px) {
+    .ld-fam__row {
+        flex-wrap: wrap;
+    }
+
+    .ld-fam__state {
+        max-width: none;
+        margin-left: calc(22px + 36px + 1.5rem);
+    }
+}
+
+/* ── Popup Thêm Lead: cập nhật thông tin vào Lead cũ (cùng người) ── */
+
+.ld-upd {
+    margin: 0 1rem 0.85rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
+    background: #fafbfa;
+}
+
+.ld-upd__head {
+    padding: 0.7rem 0.85rem 0.5rem;
+}
+
+.ld-upd__title {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    color: var(--vc-ink);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.ld-upd__title > .odin-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--vc-primary);
+}
+
+.ld-upd__sub {
+    margin: 0.1rem 0 0;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.ld-upd__table {
+    display: grid;
+    padding: 0 0.5rem;
+}
+
+.ld-upd__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 26px minmax(90px, 0.8fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.5rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+}
+
+.ld-upd__row + .ld-upd__row {
+    border-top: 1px dashed var(--vc-border);
+}
+
+.ld-upd__row--head {
+    color: var(--vc-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.ld-upd__row.is-editable {
+    cursor: pointer;
+}
+
+.ld-upd__row.is-editable:hover {
+    background: #fff;
+}
+
+.ld-upd__row.is-on {
+    background: var(--vc-tint);
+}
+
+.ld-upd__row input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ld-upd__row:has(input:focus-visible) {
+    outline: 2px solid var(--vc-primary);
+}
+
+.ld-upd__check {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--vc-on-primary);
+}
+
+.ld-upd__check > .odin-icon {
+    width: 13px;
+    height: 13px;
+    stroke-width: 3;
+    opacity: 0;
+}
+
+.ld-upd__row.is-on .ld-upd__check {
+    border-color: var(--vc-primary);
+    background: var(--vc-primary);
+}
+
+.ld-upd__row.is-on .ld-upd__check > .odin-icon {
+    opacity: 1;
+}
+
+.ld-upd__lock {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+}
+
+.ld-upd__lock > .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ld-upd__field {
+    color: var(--vc-ink);
+    font-weight: 600;
+}
+
+.ld-upd__old {
+    overflow-wrap: anywhere;
+    color: var(--vc-muted);
+    text-decoration: line-through;
+    text-decoration-color: #cbd5e1;
+}
+
+.ld-upd__row.is-locked .ld-upd__old {
+    text-decoration: none;
+}
+
+.ld-upd__new {
+    display: grid;
+    overflow-wrap: anywhere;
+    color: var(--vc-ink);
+    font-weight: 600;
+}
+
+.ld-upd__row.is-locked .ld-upd__new {
+    color: var(--vc-muted);
+    font-weight: 400;
+}
+
+.ld-upd__new > small {
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.ld-upd__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+.ld-upd__note {
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.ld-upd .ld-error {
+    margin: 0.4rem 0.85rem 0;
+}
+
+@media (max-width: 575.98px) {
+    .ld-upd__row {
+        grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .ld-upd__row--head span:nth-child(2),
+    .ld-upd__field {
+        grid-column: 2 / -1;
+    }
+
+    .ld-upd__old {
+        grid-column: 2;
+    }
+}
+
+
+/* Popup Thêm Lead: mỗi Lead trùng kèm bảng so sánh ngay bên dưới */
+.ld-dup__entry + .ld-dup__entry {
+    border-top: 1px dashed var(--vc-border);
+    padding-top: 0.35rem;
+}
+
+.ld-upd__same {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    padding: 0 0.85rem 0.7rem;
+    color: var(--vc-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.ld-upd__same > .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ld-upd__note--block {
+    display: block;
+    margin: 0;
+    padding: 0.55rem 0.85rem 0.7rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+/* Bảng chỉ để đối chiếu (chưa xác định cùng người / không cập nhật được): bỏ gạch giá trị cũ */
+.ld-upd:not(.is-updatable) .ld-upd__old {
+    text-decoration: none;
 }

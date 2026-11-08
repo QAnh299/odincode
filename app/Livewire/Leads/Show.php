@@ -7,19 +7,20 @@ use App\Models\Branch;
 use App\Models\Lead;
 use App\Models\Opportunity;
 use App\Models\Role;
-use App\Services\LeadImportService;
+use App\Services\LeadDuplicateService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
  * Chi tiết Lead: thông tin liên hệ (nguồn, chi nhánh, ngày tạo) và các cơ hội đã tạo từ Lead.
  * Giám đốc, Sale Admin, Sale Leader xem theo Lead::visibleTo() (cùng phạm vi với danh sách Lead).
- * Sale Admin chỉnh sửa khi Lead còn "Mới" (mọi trường) hoặc cơ hội của Lead đang chăm sóc (họ tên, SĐT,
- * email, link nguồn); cơ hội đã chốt / lưu trữ thì giữ nguyên thông tin.
+ * Sale Admin chỉnh sửa khi Lead còn "Mới" (chưa phân: mọi trường; đội đang giữ: trừ chi nhánh; khách cũ: liên hệ) hoặc cơ hội
+ * của Lead đang chăm sóc (họ tên, SĐT, email, link nguồn); cơ hội đã chốt / lưu trữ thì giữ nguyên thông tin.
  */
 #[Layout('layouts.app')]
 class Show extends Component
@@ -65,14 +66,37 @@ class Show extends Component
                 : null);
     }
 
+    /**
+     * Có nút "Phân Lead" (Sale Admin: Lead chưa phân cho đội; Sale Leader: Lead đội mình đang giữ).
+     */
+    public function canAssign(): bool
+    {
+        return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true) && AssignOne::assignable($this->lead);
+    }
+
+    /**
+     * Popup Phân Lead báo đã phân xong → tải lại Lead, danh sách cơ hội và hiện toast.
+     */
+    #[On('leads-distributed')]
+    public function distributed(array $notice): void
+    {
+        $this->lead = $this->lead->refresh()->load('branch:branch_id,branch_name,address');
+        unset($this->opportunities);
+        $this->dispatch('lead-toast', text: $notice['text']);
+    }
+
     protected function leadToEdit(): ?Lead
     {
         return $this->routePrefix === Role::SALE_ADMIN && $this->lead->isEditable() ? $this->lead : null;
     }
 
+    /**
+     * Cùng quy tắc với bảng so sánh khi thêm Lead trùng (LeadDuplicateService::editableFields): chưa phân cho đội
+     * sửa mọi trường; đội đang giữ sửa mọi trường trừ chi nhánh; còn lại chỉ thông tin liên hệ.
+     */
     public function leadEditableFields(): array
     {
-        return $this->lead->status === Lead::STATUS_NEW ? LeadImportService::COLUMNS : self::LEAD_CONTACT_FIELDS;
+        return app(LeadDuplicateService::class)->editableFields($this->lead);
     }
 
     protected function leadUpdated(Lead $lead): void

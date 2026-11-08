@@ -174,6 +174,28 @@
                             </div>
                         @endif
 
+                        {{-- ── Khách cũ / người thân: gợi ý đội / người đang hoặc từng phụ trách ── --}}
+                        @php
+                            $suggest = $this->returning;
+                            $suggestItems = collect(['returning', 'family', 'batch'])
+                                ->filter(fn ($k) => $suggest[$k] > 0)
+                                ->map(fn ($k) => __('leads.distribute.suggest_'.$k, ['count' => $suggest[$k]]));
+                        @endphp
+                        @if ($showList && $suggestItems->isNotEmpty())
+                            <div class="ld-notice ld-notice--info ld-notice--inline ld-suggest">
+                                <x-icon name="user-check" />
+                                <div class="ld-notice__text">
+                                    <strong>{{ __('leads.distribute.suggest_title') }}</strong>
+                                    <ul>
+                                        @foreach ($suggestItems as $text)
+                                            <li>{{ $text }}</li>
+                                        @endforeach
+                                    </ul>
+                                    <span>{{ __('leads.distribute.suggest_rule_'.$kind) }}</span>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- ── Lead dư → xếp hạng hiệu suất (cộng hạng) ─────────── --}}
                         @if ($showList && $ranking && ! $isOverflow)
                             <div class="ld-dist__ranking">
@@ -247,6 +269,11 @@
                                             <span class="ld-dist__who-text">
                                                 <span class="ld-dist__name">{{ $row['name'] }}</span>
                                                 <span class="ld-dist__meta">{{ $row['sub'] }}</span>
+                                                @if ($past = $this->returning['by'][$row['owner']] ?? 0)
+                                                    <span class="ld-dist__meta ld-dist__returning">
+                                                        <x-icon name="user-check" />{{ __('leads.distribute.suggest_row', ['count' => $past]) }}
+                                                    </span>
+                                                @endif
                                                 @if ($ranking)
                                                     {{-- Chỉ số hiệu suất tháng trước (chỉ để tham khảo); dẫn đầu nhóm ở tiêu chí nào thì tô nổi tiêu chí đó --}}
                                                     @php $board = $this->scoreboard[$id] ?? null; @endphp

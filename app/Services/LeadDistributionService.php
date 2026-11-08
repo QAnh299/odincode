@@ -2,11 +2,17 @@
 
 namespace App\Services;
 
+use App\Models\Employee;
 use App\Models\Lead;
 use App\Models\Opportunity;
+use App\Models\Role;
+use App\Models\SalesTeam;
 use App\Models\Stage;
+use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -25,6 +31,11 @@ use RuntimeException;
  * rồi cộng 3 thứ hạng; tổng hạng càng nhỏ càng tốt (không cần chuẩn hoá hay đặt trọng số).
  * Ngưỡng MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress)/salesperson chỉ là cảnh báo: chia tự động không
  * tự đẩy ai vượt ngưỡng, phần còn lại do trưởng nhóm tự phân (được phép vượt).
+ *
+ * Khách cũ quay lại (LeadDuplicateService::reopen đưa Lead về 'New') và người thân dùng chung SĐT / email
+ * (anh chị em, phụ huynh đăng ký cho các con…): popup phân chia gợi ý đội / người đang hoặc từng phụ trách;
+ * khi ghi kết quả, các Lead này được ưu tiên giao cho đội / người đó, người thân cùng lần phân được giao chung
+ * (số lượng mỗi người nhận vẫn đúng kế hoạch) - xem suggestedOwners(), familiesIn(), matchPreferred().
  */
 class LeadDistributionService
 {
@@ -245,10 +256,12 @@ class LeadDistributionService
      */
     public function availableLeads(string $branchId, ?string $source = null, ?string $method = null): Builder
     {
+        // Không có cơ hội đang xử lý (cùng điều kiện với Lead::scopeUnassigned): khách cũ được đưa về hàng chờ
+        // còn các cơ hội đã kết thúc vẫn được phân
         return Lead::query()
             ->where('status', Lead::STATUS_NEW)
             ->where('branch_id', $branchId)
-            ->whereDoesntHave('opportunities')
+            ->whereDoesntHave('opportunities', fn ($q) => $q->where('status', Opportunity::STATUS_IN_PROGRESS))
             ->when($source, fn ($q) => $q->where('source_name', $source))
             ->when($method, fn ($q) => $q->where('contact_method', $method))
             ->orderBy('created_at')
@@ -272,6 +285,294 @@ class LeadDistributionService
             ->orderBy('opportunity_id');
     }
 
+    /* ── Khách cũ quay lại ────────────────────────────────────────────── */
+
+    /**
+     * Người / đội từng phụ trách khách cũ, theo cơ hội đã kết thúc gần nhất của Lead:
+     * [lead_id => ['employee_id' => người phụ trách, 'leader_id' => trưởng nhóm của đội người đó đang ở]].
+     * Lead chưa có cơ hội nào đã kết thúc (khách mới) không có trong kết quả.
+     *
+     * @param  string[]  $leadIds
+     */
+    public function previousOwners(array $leadIds): array
+    {
+        if (! $leadIds) {
+            return [];
+        }
+
+        return Opportunity::query()
+            ->whereIn('lead_id', $leadIds)
+            ->where('status', '!=', Opportunity::STATUS_IN_PROGRESS)
+            ->with(['employee:employee_id,team_id', 'employee.team:team_id,team_leader_id', 'employee.ledTeam:team_id,team_leader_id'])
+            ->orderByDesc('conversion_date')
+            ->orderByDesc('opportunity_id')
+            ->get(['opportunity_id', 'lead_id', 'employee_id', 'conversion_date'])
+            ->unique('lead_id')
+            ->mapWithKeys(fn (Opportunity $o) => [$o->lead_id => [
+                'employee_id' => $o->employee_id,
+                'leader_id'   => $o->employee?->ledTeam?->team_leader_id ?? $o->employee?->team?->team_leader_id,
+            ]])
+            ->all();
+    }
+
+    /**
+     * Ghép Lead với người nhận theo kế hoạch; số lượng của từng người giữ đúng kế hoạch:
+     *   1. Lead có người nhận ưu tiên (khách cũ, người thân đã có người phụ trách) → người đó, nếu còn suất;
+     *   2. Lead có người thân trong cùng lần phân → cùng người nhận với người thân, nếu còn suất;
+     *   3. còn lại lần lượt theo kế hoạch.
+     *
+     * @param  array<string, ?string>  $preferred  [mã (Lead / cơ hội) => người nhận ưu tiên | null], theo thứ tự phân (cũ trước)
+     * @param  array<string, int>  $plan  [người nhận => số lượng]
+     * @param  array<string, string>  $families  [mã => mã nhóm người thân] (familiesIn)
+     * @return array<string, string[]>  [người nhận => [mã...]]
+     */
+    public function matchPreferred(array $preferred, array $plan, array $families = []): array
+    {
+        $remaining = $plan;
+        $groups = array_fill_keys(array_keys($plan), []);
+        $familyOwner = [];
+        $rest = [];
+
+        $take = function (string $key, string $owner) use (&$groups, &$remaining, &$familyOwner, $families) {
+            $groups[$owner][] = $key;
+            $remaining[$owner]--;
+            if (isset($families[$key])) {
+                $familyOwner[$families[$key]] ??= $owner;
+            }
+        };
+
+        // 1. Có người nhận ưu tiên (khách cũ / người thân đã có người phụ trách) và người đó còn suất
+        foreach ($preferred as $key => $owner) {
+            if ($owner !== null && ($remaining[$owner] ?? 0) > 0) {
+                $take((string) $key, $owner);
+            } else {
+                $rest[] = (string) $key;
+            }
+        }
+
+        // 2. Còn lại: theo người thân cùng lần phân nếu người đó còn suất, không thì lần lượt theo kế hoạch
+        foreach ($rest as $key) {
+            $owner = $familyOwner[$families[$key] ?? ''] ?? null;
+
+            if ($owner === null || $remaining[$owner] <= 0) {
+                $owner = array_key_first(array_filter($remaining, fn ($n) => $n > 0));
+            }
+
+            $take($key, $owner);
+        }
+
+        return $groups;
+    }
+
+    /* ── Người thân dùng chung liên hệ ────────────────────────────────── */
+
+    /**
+     * Lead khác dùng chung SĐT / email với từng Lead (người thân: anh chị em, phụ huynh đăng ký cho các con…),
+     * tìm cả trong Leads và Students: [lead_id => [lead_id người thân...]]; Lead không có người thân không có trong kết quả.
+     *
+     * @param  string[]  $leadIds
+     * @return array<string, string[]>
+     */
+    public function relatedLeads(array $leadIds): array
+    {
+        $leads = Lead::query()->whereIn('lead_id', $leadIds)->get(['lead_id', 'phone', 'email']);
+        $phones = $leads->pluck('phone')->filter()->unique()->values()->all();
+        $emails = $leads->pluck('email')->filter()->map(fn ($e) => Str::lower($e))->unique()->values()->all();
+
+        if (! $phones && ! $emails) {
+            return [];
+        }
+
+        // Liên hệ → các Lead mang liên hệ đó (email so không phân biệt hoa thường)
+        $byContact = [];
+        $add = function (?string $type, ?string $value, string $leadId) use (&$byContact) {
+            if ($value) {
+                $byContact[$type.':'.Str::lower($value)][$leadId] = true;
+            }
+        };
+
+        $contactFilter = fn ($q) => $q->whereIn('phone', $phones)->orWhereIn('email', $emails);
+
+        Lead::query()->where($contactFilter)->get(['lead_id', 'phone', 'email'])
+            ->each(function (Lead $lead) use ($add) {
+                $add('p', $lead->phone, $lead->lead_id);
+                $add('e', $lead->email, $lead->lead_id);
+            });
+
+        Student::query()->where($contactFilter)->with('opportunity:opportunity_id,lead_id')->get(['student_id', 'phone', 'email', 'opportunity_id'])
+            ->each(function (Student $student) use ($add) {
+                if ($leadId = $student->opportunity?->lead_id) {
+                    $add('p', $student->phone, $leadId);
+                    $add('e', $student->email, $leadId);
+                }
+            });
+
+        $result = [];
+        foreach ($leads as $lead) {
+            $related = array_keys(($byContact['p:'.$lead->phone] ?? []) + ($byContact['e:'.Str::lower((string) $lead->email)] ?? []));
+            $related = array_values(array_diff($related, [$lead->lead_id]));
+            if ($related) {
+                $result[$lead->lead_id] = $related;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Nhóm người thân trong cùng lần phân: [lead_id => mã nhóm] cho các Lead có người thân cũng nằm trong $leadIds.
+     *
+     * @param  string[]  $leadIds
+     * @return array<string, string>
+     */
+    public function familiesIn(array $leadIds, ?array $related = null): array
+    {
+        $related ??= $this->relatedLeads($leadIds);
+        $families = [];
+
+        foreach ($related as $leadId => $others) {
+            $inBatch = array_intersect($others, $leadIds);
+            if ($inBatch) {
+                $families[$leadId] = min([$leadId, ...$inBatch]);
+            }
+        }
+
+        return $families;
+    }
+
+    /**
+     * Đội / người nên nhận từng Lead:
+     *   - 'returning': khách cũ → người phụ trách cơ hội đã kết thúc gần nhất của chính Lead (previousOwners);
+     *   - 'family': người thân dùng chung liên hệ đã có cơ hội → người phụ trách cơ hội gần nhất của người thân.
+     * [lead_id => ['employee_id', 'leader_id', 'reason' => 'returning'|'family', 'related' => lead_id người thân | null]].
+     *
+     * @param  string[]  $leadIds
+     */
+    public function suggestedOwners(array $leadIds, ?array $related = null): array
+    {
+        $suggested = array_map(fn ($owner) => $owner + ['reason' => 'returning', 'related' => null], $this->previousOwners($leadIds));
+
+        $related ??= $this->relatedLeads($leadIds);
+        $relatedIds = array_unique(array_merge([], ...array_values($related)));
+
+        if (! $relatedIds) {
+            return $suggested;
+        }
+
+        // Cơ hội gần nhất của từng người thân (mọi trạng thái)
+        $latest = Opportunity::query()
+            ->whereIn('lead_id', $relatedIds)
+            ->with(['employee:employee_id,team_id', 'employee.team:team_id,team_leader_id', 'employee.ledTeam:team_id,team_leader_id'])
+            ->orderByDesc('conversion_date')
+            ->orderByDesc('opportunity_id')
+            ->get(['opportunity_id', 'lead_id', 'employee_id', 'conversion_date'])
+            ->unique('lead_id')
+            ->keyBy('lead_id');
+
+        foreach ($related as $leadId => $others) {
+            if (isset($suggested[$leadId])) {
+                continue;
+            }
+
+            $opportunity = collect($others)->map(fn ($id) => $latest[$id] ?? null)->filter()
+                ->sortByDesc(fn (Opportunity $o) => $o->conversion_date.'|'.$o->opportunity_id)
+                ->first();
+
+            if ($opportunity) {
+                $suggested[$leadId] = [
+                    'employee_id' => $opportunity->employee_id,
+                    'leader_id'   => $opportunity->employee?->ledTeam?->team_leader_id ?? $opportunity->employee?->team?->team_leader_id,
+                    'reason'      => 'family',
+                    'related'     => $opportunity->lead_id,
+                ];
+            }
+        }
+
+        return $suggested;
+    }
+
+    /* ── Đối tượng nhận Lead ──────────────────────────────────────────── */
+
+    /**
+     * Đội nhận Lead của chi nhánh: đội có trưởng nhóm đang làm việc thuộc chi nhánh (Lead của đội do trưởng nhóm giữ).
+     */
+    public function branchTeams(string $branchId): Collection
+    {
+        return SalesTeam::query()
+            ->whereHas('leader', fn ($q) => $q->where('branch_id', $branchId)->where('status', Employee::STATUS_WORKING))
+            ->with('leader:employee_id,full_name')
+            ->orderBy('team_id')
+            ->get();
+    }
+
+    /**
+     * Salesperson đang làm việc của đội.
+     */
+    public function teamSalespersons(string $teamId): Collection
+    {
+        return Employee::query()
+            ->where('team_id', $teamId)
+            ->where('status', Employee::STATUS_WORKING)
+            ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
+            ->orderBy('full_name')
+            ->get(['employee_id', 'full_name', 'job_title']);
+    }
+
+    /* ── Phân một Lead cụ thể ─────────────────────────────────────────── */
+
+    /**
+     * Sale Admin phân một Lead cụ thể cho đội (trưởng nhóm $leaderId): như assignToTeams() nhưng chỉ định Lead.
+     *
+     * @throws RuntimeException  Lead không còn chờ phân / đội không hợp lệ
+     */
+    public function assignLeadToTeam(string $leadId, string $leaderId): void
+    {
+        DB::transaction(function () use ($leadId, $leaderId) {
+            $lead = Lead::query()->whereKey($leadId)->unassigned()->lockForUpdate()->first();
+
+            if (! $lead) {
+                throw new RuntimeException(__('leads.assign_one.unavailable'));
+            }
+            if (! $this->branchTeams($lead->branch_id)->contains('team_leader_id', $leaderId)) {
+                throw new RuntimeException(__('leads.assign_one.invalid_team'));
+            }
+
+            Opportunity::insert([
+                'opportunity_id'  => Opportunity::nextIds(1)[0],
+                'conversion_date' => Carbon::now(),
+                'status'          => Opportunity::STATUS_IN_PROGRESS,
+                'lead_id'         => $lead->lead_id,
+                'stage_id'        => Stage::UNTOUCHED,
+                'employee_id'     => $leaderId,
+            ]);
+        });
+    }
+
+    /**
+     * Sale Leader phân một Lead cụ thể đội đang giữ cho Salesperson $employeeId: như assignToSalespersons()
+     * nhưng chỉ định Lead. Ngưỡng MAX_PER_SALESPERSON chỉ là cảnh báo (được phép vượt).
+     *
+     * @throws RuntimeException  Lead không còn chờ phân / Salesperson không thuộc đội
+     */
+    public function assignLeadToSalesperson(string $leaderId, string $leadId, string $employeeId): void
+    {
+        DB::transaction(function () use ($leaderId, $leadId, $employeeId) {
+            $opportunity = $this->pendingOpportunities($leaderId)->where('lead_id', $leadId)->lockForUpdate()->first();
+
+            if (! $opportunity) {
+                throw new RuntimeException(__('leads.assign_one.unavailable'));
+            }
+
+            $team = SalesTeam::query()->where('team_leader_id', $leaderId)->first();
+            if (! $team || ! $this->teamSalespersons($team->team_id)->contains('employee_id', $employeeId)) {
+                throw new RuntimeException(__('leads.assign_one.invalid_person'));
+            }
+
+            $opportunity->update(['employee_id' => $employeeId, 'conversion_date' => Carbon::now()]);
+            Lead::whereKey($leadId)->update(['status' => Lead::STATUS_CONVERTED]);
+        });
+    }
+
     /* ── Ghi kết quả ──────────────────────────────────────────────────── */
 
     /**
@@ -293,17 +594,26 @@ class LeadDistributionService
                 throw new RuntimeException(__('leads.distribute.exceed'));
             }
 
+            // Khách cũ / người thân ưu tiên về đội đang / từng phụ trách; người thân cùng lần phân về chung một đội
+            $related = $this->relatedLeads($leadIds);
+            $owners = $this->suggestedOwners($leadIds, $related);
+            $groups = $this->matchPreferred(
+                array_combine($leadIds, array_map(fn ($id) => $owners[$id]['leader_id'] ?? null, $leadIds)),
+                $plan,
+                $this->familiesIn($leadIds, $related),
+            );
+
             $ids = Opportunity::nextIds($total);
             $now = Carbon::now();
             $rows = [];
             $i = 0;
-            foreach ($plan as $leaderId => $count) {
-                for ($n = 0; $n < $count; $n++, $i++) {
+            foreach ($groups as $leaderId => $groupLeadIds) {
+                foreach ($groupLeadIds as $leadId) {
                     $rows[] = [
-                        'opportunity_id'  => $ids[$i],
+                        'opportunity_id'  => $ids[$i++],
                         'conversion_date' => $now,
                         'status'          => 'InProgress',
-                        'lead_id'         => $leadIds[$i],
+                        'lead_id'         => $leadId,
                         'stage_id'        => Stage::UNTOUCHED,
                         'employee_id'     => $leaderId,
                     ];
@@ -325,25 +635,37 @@ class LeadDistributionService
         $total = array_sum($plan);
 
         return DB::transaction(function () use ($leaderId, $plan, $total, $source, $method) {
-            $oppIds = $this->pendingOpportunities($leaderId, $source, $method)
+            // [opportunity_id => lead_id], theo thứ tự phân (cũ trước)
+            $oppLeads = $this->pendingOpportunities($leaderId, $source, $method)
                 ->lockForUpdate()
                 ->limit($total)
-                ->pluck('opportunity_id')
+                ->pluck('lead_id', 'opportunity_id')
                 ->all();
 
-            if (count($oppIds) < $total) {
+            if (count($oppLeads) < $total) {
                 throw new RuntimeException(__('leads.distribute.exceed'));
             }
 
+            // Khách cũ / người thân ưu tiên về Salesperson đang / từng phụ trách; người thân cùng lần phân về chung một người
+            $leadIds = array_values($oppLeads);
+            $related = $this->relatedLeads($leadIds);
+            $owners = $this->suggestedOwners($leadIds, $related);
+            $families = $this->familiesIn($leadIds, $related);
+            $groups = $this->matchPreferred(
+                array_map(fn ($leadId) => $owners[$leadId]['employee_id'] ?? null, $oppLeads),
+                $plan,
+                array_filter(array_map(fn ($leadId) => $families[$leadId] ?? null, $oppLeads)),
+            );
+
             $now = Carbon::now();
-            $offset = 0;
-            foreach ($plan as $employeeId => $count) {
-                Opportunity::whereIn('opportunity_id', array_slice($oppIds, $offset, $count))
-                    ->update(['employee_id' => $employeeId, 'conversion_date' => $now]);
-                $offset += $count;
+            foreach ($groups as $employeeId => $oppIds) {
+                if ($oppIds) {
+                    Opportunity::whereIn('opportunity_id', $oppIds)
+                        ->update(['employee_id' => $employeeId, 'conversion_date' => $now]);
+                }
             }
 
-            Lead::whereIn('lead_id', Opportunity::whereIn('opportunity_id', $oppIds)->select('lead_id'))
+            Lead::whereIn('lead_id', array_values($oppLeads))
                 ->update(['status' => Lead::STATUS_CONVERTED]);
 
             return $total;

@@ -3,7 +3,6 @@
 namespace App\Livewire\Leads;
 
 use App\Models\Branch;
-use App\Models\Employee;
 use App\Models\Lead;
 use App\Models\Role;
 use App\Models\SalesTeam;
@@ -26,6 +25,8 @@ use RuntimeException;
  * Ngưỡng 50 chỉ là cảnh báo: chia tự động không tự đẩy ai quá 50, phần không ai còn chỗ nhận
  * (hoặc chia thủ công có người vượt 50) → bước 'overflow' để trưởng nhóm tự phân phần vượt theo hiệu suất,
  * được phép vượt ngưỡng.
+ * Khách cũ quay lại / người thân dùng chung SĐT, email: gợi ý đội / người đang hoặc từng phụ trách; khi phân được
+ * ưu tiên giao cho họ nếu họ nhận Lead, người thân cùng lần phân được giao chung (LeadDistributionService::matchPreferred).
  */
 class Distribute extends Component
 {
@@ -224,11 +225,7 @@ class Distribute extends Component
             }
 
             // Đội có trưởng nhóm đang làm việc thuộc chi nhánh đã chọn (Lead của đội do trưởng nhóm giữ)
-            $teams = SalesTeam::query()
-                ->whereHas('leader', fn ($q) => $q->where('branch_id', $this->branch)->where('status', Employee::STATUS_WORKING))
-                ->with('leader:employee_id,full_name')
-                ->orderBy('team_id')
-                ->get();
+            $teams = $service->branchTeams($this->branch);
             $perf = $service->performance('team');
 
             return $teams->map(fn ($team) => [
@@ -246,12 +243,7 @@ class Distribute extends Component
             return collect();
         }
 
-        $people = Employee::query()
-            ->where('team_id', $this->team->team_id)
-            ->where('status', Employee::STATUS_WORKING)
-            ->whereHas('role', fn ($q) => $q->where('role_name', Role::SALESPERSON))
-            ->orderBy('full_name')
-            ->get(['employee_id', 'full_name', 'job_title']);
+        $people = $service->teamSalespersons($this->team->team_id);
         $load = $service->currentLoad($people->pluck('employee_id')->all());
         $perf = $service->performance('employee', $this->team->team_id);
 
@@ -338,6 +330,42 @@ class Distribute extends Component
         return $this->leaderId
             ? $service->pendingOpportunities($this->leaderId, $this->source(), $this->method())->count()
             : 0;
+    }
+
+    /**
+     * Gợi ý trong số Lead khả dụng: khách cũ, Lead có người thân (dùng chung SĐT / email) đã có người phụ trách,
+     * Lead có người thân cùng chờ phân: ['returning', 'family', 'batch' => số Lead,
+     * 'by' => [owner (trưởng nhóm | salesperson) => số Lead được ưu tiên giao cho người đó]].
+     */
+    #[Computed]
+    public function returning(): array
+    {
+        $service = app(LeadDistributionService::class);
+
+        if ($this->forTeams) {
+            $leadIds = $this->branches->contains('branch_id', $this->branch)
+                ? $service->availableLeads($this->branch, $this->source(), $this->method())->pluck('lead_id')->all()
+                : [];
+        } else {
+            $leadIds = $this->leaderId
+                ? $service->pendingOpportunities($this->leaderId, $this->source(), $this->method())->pluck('lead_id')->all()
+                : [];
+        }
+
+        $related = $service->relatedLeads($leadIds);
+        $owners = $service->suggestedOwners($leadIds, $related);
+        $key = $this->forTeams ? 'leader_id' : 'employee_id';
+        // Chỉ tính gợi ý trỏ tới đối tượng đang có trong danh sách nhận (VD người thân đang chờ ở trưởng nhóm thì bỏ qua)
+        $targetIds = $this->targets->pluck('owner')->all();
+        $owners = array_filter($owners, fn ($owner) => in_array($owner[$key], $targetIds, true));
+
+        return [
+            'returning' => count(array_filter($owners, fn ($o) => $o['reason'] === 'returning')),
+            'family'    => count(array_filter($owners, fn ($o) => $o['reason'] === 'family')),
+            // Lead có người thân cũng nằm trong danh sách chờ phân → sẽ được giao chung
+            'batch'     => count($service->familiesIn($leadIds, $related)),
+            'by'        => array_count_values(array_column($owners, $key)),
+        ];
     }
 
     /**

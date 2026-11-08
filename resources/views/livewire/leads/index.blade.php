@@ -194,7 +194,10 @@
                     <tbody>
                         @foreach ($leads as $lead)
                             @php
-                                $owner = $lead->latestOpportunity?->employee;
+                                $latest = $lead->latestOpportunity;
+                                // Khách cũ được đưa về hàng chờ: Lead 'Mới' mà cơ hội gần nhất đã kết thúc → chưa ai phụ trách
+                                $returning = $lead->status === Lead::STATUS_NEW && $latest && $latest->status !== \App\Models\Opportunity::STATUS_IN_PROGRESS;
+                                $owner = $returning ? null : $latest?->employee;
                                 $url = route($this->routePrefix.'.leads.show', $lead);
                             @endphp
                             <tr wire:key="lead-{{ $lead->lead_id }}" onclick="window.location='{{ $url }}'">
@@ -233,6 +236,9 @@
                                         @endif
                                     @else
                                         <span class="ld-sub">{{ __('leads.unassigned') }}</span>
+                                        @if ($returning)
+                                            <span class="ld-sub">{{ __('leads.returning', ['name' => $latest->employee?->full_name ?? '-']) }}</span>
+                                        @endif
                                     @endif
                                 </td>
                                 <td data-label="{{ __('leads.status') }}">
@@ -240,7 +246,14 @@
                                         <span class="vc-badge__dot"></span>{{ __('leads.status_name.'.$lead->status) }}
                                     </span>
                                 </td>
-                                <td data-label="{{ __('leads.actions') }}" class="text-lg-end">
+                                <td data-label="{{ __('leads.actions') }}" class="text-lg-end ld-nowrap">
+                                    @if ($this->canAssign($lead))
+                                        <button type="button" class="vc-icon-btn ld-assign-btn" onclick="event.stopPropagation()"
+                                            wire:click="$dispatchTo('leads.assign-one', 'open-assign-one', { leadId: '{{ $lead->lead_id }}' })"
+                                            title="{{ __('leads.assign_one.button') }}" aria-label="{{ __('leads.assign_one.button') }} {{ $lead->lead_id }}">
+                                            <x-icon name="share" />
+                                        </button>
+                                    @endif
                                     <a href="{{ $url }}" class="vc-icon-btn" onclick="event.stopPropagation()"
                                         title="{{ __('leads.view') }}" aria-label="{{ __('leads.view') }} {{ $lead->lead_id }}">
                                         <x-icon name="eye" />
@@ -261,6 +274,8 @@
     {{-- ── Popup Phân bổ Lead (Sale Admin → đội, Sale Leader → Salesperson) ── --}}
     @if ($this->canManage)
         <livewire:leads.distribute :auto-open="request()->boolean('distribute')" />
+        {{-- Phân một Lead cụ thể (nút ở cột Thao tác) --}}
+        <livewire:leads.assign-one />
     @endif
 
     {{-- ── Popup Thêm Lead ──────────────────────────────────────────── --}}
@@ -282,6 +297,167 @@
                         // SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ (không phụ thuộc Nguồn Lead)
                         $method = $form['contact_method'] ?? '';
                     @endphp
+
+                    {{-- Khách cũ khớp liên hệ (LeadDuplicateService): chọn cùng người / người học khác --}}
+                    @if ($duplicate)
+                        @php
+                            $dupCase = $duplicate['case'];
+                            // Hỏi "cùng người hay người khác" khi chưa xác định được Lead cùng người
+                            $askSame = in_array($dupCase, [\App\Services\LeadDuplicateService::OTHER_PERSON, \App\Services\LeadDuplicateService::AMBIGUOUS], true);
+                            // Tông màu: chặn (đang chờ / đang tư vấn) = cam, đưa về hàng chờ = xanh lá, cần chọn = xanh dương
+                            $dupTone = match ($dupCase) {
+                                \App\Services\LeadDuplicateService::REOPEN => 'ok',
+                                \App\Services\LeadDuplicateService::IN_QUEUE, \App\Services\LeadDuplicateService::IN_PROGRESS => 'warn',
+                                default => 'info',
+                            };
+                            $dupIcon = ['ok' => 'refresh', 'warn' => 'alert', 'info' => 'users'][$dupTone];
+                            $stateTone = ['in_queue' => 'warn', 'in_queue_team' => 'warn', 'in_progress' => 'info', 'reopen' => 'ok'];
+                            // Một Lead: nhãn trạng thái lên hàng tiêu đề; nhiều Lead: nhãn nằm trong từng dòng
+                            $single = count($duplicate['leads']) === 1 ? $duplicate['leads'][0] : null;
+                            $statePill = fn (array $item) => '<span class="ld-dup__state ld-dup__state--'.($stateTone[$item['state']] ?? 'info').'">'
+                                .'<span class="ld-dup__dot"></span>'
+                                // Có người phụ trách (đang tư vấn) → "Đang tư vấn bởi …"
+                                .e($item['owner'] ? __('leads.duplicate.state_by.'.$item['state'], ['name' => $item['owner']]) : __('leads.duplicate.state.'.$item['state']))
+                                .'</span>';
+                        @endphp
+                        <section class="ld-dup ld-dup--{{ $dupTone }} ld-form__wide" wire:key="dup-{{ $dupCase }}-{{ $duplicate['lead'] }}"
+                            aria-live="polite">
+                            <header class="ld-dup__head">
+                                <x-icon :name="$dupIcon" class="ld-dup__icon" />
+                                <p class="ld-dup__title">{{ __('leads.duplicate.title.'.$dupTone) }}</p>
+                                @if ($single)
+                                    {!! $statePill($single) !!}
+                                @endif
+                            </header>
+
+                            {{-- Đang chờ phân / đang tư vấn: nhãn trạng thái đã đủ ý nên không lặp lại câu thông báo --}}
+                            @unless (in_array($dupCase, [\App\Services\LeadDuplicateService::IN_QUEUE, \App\Services\LeadDuplicateService::IN_PROGRESS], true))
+                                <p class="ld-dup__message">{{ $duplicate['message'] }}</p>
+                            @endunless
+
+                            <ul class="ld-dup__list" role="list">
+                                @foreach ($duplicate['leads'] as $item)
+                                    @php
+                                        // Bảng cho chọn cập nhật: đã xác định cùng người + còn trường được cập nhật; còn lại chỉ để đối chiếu
+                                        $editableCount = collect($item['changes'])->where('editable', true)->count();
+                                        $canUpdate = $duplicate['updatable'] && $editableCount > 0;
+                                        $chosen = $canUpdate ? count(array_intersect($updateFields, array_keys(array_filter($item['changes'], fn ($c) => $c['editable'])))) : 0;
+                                    @endphp
+                                    <li class="ld-dup__entry" wire:key="dup-lead-{{ $item['lead_id'] }}">
+                                        <div class="ld-dup__item">
+                                            <span class="ld-dup__avatar" aria-hidden="true">
+                                                {{ mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim($item['learner']), ' '), 0, 1)) }}
+                                            </span>
+                                            <div class="ld-dup__info">
+                                                <div class="ld-dup__name">
+                                                    <strong>{{ $item['name'] }}</strong>
+                                                    <a href="{{ $item['url'] }}" target="_blank" rel="noopener" class="ld-dup__code"
+                                                        title="{{ __('leads.view') }}">{{ $item['lead_id'] }}<x-icon name="eye" /></a>
+                                                </div>
+                                                <div class="ld-dup__meta">
+                                                    @if ($item['learner'] !== $item['name'])
+                                                        <span><x-icon name="user" />{{ __('leads.duplicate.learner', ['name' => $item['learner']]) }}</span>
+                                                    @endif
+                                                    @if ($item['contact'])
+                                                        <span><x-icon name="phone" />{{ $item['contact'] }}</span>
+                                                    @endif
+                                                </div>
+                                                @unless ($single)
+                                                    {!! $statePill($item) !!}
+                                                @endunless
+                                            </div>
+                                            @if ($askSame)
+                                                <button type="button" class="vc-btn vc-btn--ghost ld-dup__btn" wire:click="sameAs('{{ $item['lead_id'] }}')"
+                                                    wire:loading.attr="disabled" wire:target="sameAs,createAsOther">
+                                                    <x-icon name="user-check" />{{ __('leads.duplicate.same_person') }}
+                                                </button>
+                                            @elseif ($dupCase === \App\Services\LeadDuplicateService::REOPEN)
+                                                <button type="button" class="vc-btn vc-btn--primary ld-dup__btn" wire:click="sameAs('{{ $item['lead_id'] }}')"
+                                                    wire:loading.attr="disabled" wire:target="sameAs,createAsOther">
+                                                    <x-icon name="refresh" />{{ __('leads.duplicate.reopen_button', ['name' => $item['learner']]) }}
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                        {{-- So sánh thông tin vừa nhập với Lead này --}}
+                                        <div class="ld-upd {{ $canUpdate ? 'is-updatable' : '' }}">
+                                            <div class="ld-upd__head">
+                                                <p class="ld-upd__title">
+                                                    <x-icon :name="$canUpdate ? 'edit' : 'layers'" />{{ __('leads.duplicate.'.($canUpdate ? 'changes_title' : 'compare_title')) }}
+                                                </p>
+                                            </div>
+
+                                            @if ($item['changes'])
+                                                <div class="ld-upd__table" role="table">
+                                                    <div class="ld-upd__row ld-upd__row--head" role="row">
+                                                        <span role="columnheader"></span>
+                                                        <span role="columnheader">{{ __('leads.duplicate.col_field') }}</span>
+                                                        <span role="columnheader">{{ __('leads.duplicate.col_old') }}</span>
+                                                        <span role="columnheader">{{ __('leads.duplicate.col_new') }}</span>
+                                                    </div>
+                                                    @foreach ($item['changes'] as $field => $change)
+                                                        @php
+                                                            $editable = $canUpdate && $change['editable'];
+                                                            $on = $editable && in_array($field, $updateFields, true);
+                                                            $rowTag = $editable ? 'label' : 'div';
+                                                        @endphp
+                                                        <{{ $rowTag }} class="ld-upd__row {{ $editable ? 'is-editable' : '' }} {{ $canUpdate && ! $editable ? 'is-locked' : '' }} {{ $on ? 'is-on' : '' }}"
+                                                            role="row" wire:key="upd-{{ $item['lead_id'] }}-{{ $field }}">
+                                                            <span role="cell">
+                                                                @if ($editable)
+                                                                    <input type="checkbox" wire:model.live="updateFields" value="{{ $field }}">
+                                                                    <span class="ld-upd__check" aria-hidden="true"><x-icon name="check" /></span>
+                                                                @elseif ($canUpdate)
+                                                                    <span class="ld-upd__lock" title="{{ __('leads.duplicate.locked') }}"><x-icon name="shield" /></span>
+                                                                @endif
+                                                            </span>
+                                                            <span role="cell" class="ld-upd__field">{{ $change['label'] }}</span>
+                                                            <span role="cell" class="ld-upd__old">{{ $change['old_text'] }}</span>
+                                                            <span role="cell" class="ld-upd__new">{{ $change['new_text'] }}</span>
+                                                        </{{ $rowTag }}>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p class="ld-upd__same"><x-icon name="check-circle" />{{ __('leads.duplicate.compare_same') }}</p>
+                                            @endif
+
+                                            @if ($item['contacted'] && $item['changes'])
+                                                <p class="ld-upd__note ld-upd__note--block">{{ __('leads.duplicate.compare_contacted') }}</p>
+                                            @endif
+
+                                            @error('duplicate')
+                                                <p class="ld-error">{{ $message }}</p>
+                                            @enderror
+
+                                            @if ($canUpdate)
+                                                <div class="ld-upd__foot">
+                                                    <span class="ld-upd__note">{{ __('leads.duplicate.changes_count', ['count' => $chosen, 'total' => $editableCount]) }}</span>
+                                                    <button type="button" class="vc-btn vc-btn--primary ld-dup__btn" wire:click="updateExisting"
+                                                        wire:loading.attr="disabled" wire:target="updateExisting" @disabled(! $chosen)>
+                                                        <x-icon name="check" />{{ __('leads.duplicate.update_button', ['count' => $chosen]) }}
+                                                    </button>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            {{-- Đã bấm "Cùng người" thì không hỏi "người học khác" nữa --}}
+                            @unless ($duplicate['confirmed'])
+                                <footer class="ld-dup__other">
+                                    <div class="ld-dup__other-text">
+                                        <strong>{{ __('leads.duplicate.other_question') }}</strong>
+                                        <span>{{ __('leads.duplicate.other_example') }}</span>
+                                    </div>
+                                    <button type="button" class="vc-btn vc-btn--ghost ld-dup__btn" wire:click="createAsOther"
+                                        wire:loading.attr="disabled" wire:target="sameAs,createAsOther">
+                                        <x-icon name="plus" />{{ __('leads.duplicate.other_button') }}
+                                    </button>
+                                </footer>
+                            @endunless
+                        </section>
+                    @endif
 
                     <label class="vc-field">
                         <span class="vc-field__label">
@@ -358,10 +534,11 @@
 
                 <footer class="ld-modal__foot">
                     <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeModal">{{ __('leads.cancel') }}</button>
-                    <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="saveLead">
+                    {{-- Đang hiện khách cũ trùng: chọn ở khung phía trên; sửa dữ liệu rồi bấm Lưu để kiểm tra lại --}}
+                    <button type="submit" class="vc-btn {{ $duplicate ? 'vc-btn--ghost' : 'vc-btn--primary' }}" wire:loading.attr="disabled" wire:target="saveLead">
                         <span wire:loading.remove wire:target="saveLead"><x-icon name="check" /></span>
                         <span class="spinner-border spinner-border-sm" wire:loading wire:target="saveLead" aria-hidden="true"></span>
-                        {{ __('leads.form.save') }}
+                        {{ $duplicate ? __('leads.duplicate.recheck') : __('leads.form.save') }}
                     </button>
                 </footer>
             </form>

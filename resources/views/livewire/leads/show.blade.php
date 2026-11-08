@@ -33,12 +33,26 @@
                 </span>
             </div>
         </div>
-        @if ($this->canEditLead())
-            <button type="button" class="vc-btn vc-btn--primary" wire:click="startEditLead">
-                <x-icon name="edit" />{{ __('leads.edit') }}
-            </button>
+        @if ($this->canEditLead() || $this->canAssign())
+            <div class="ld-actions">
+                @if ($this->canAssign())
+                    <button type="button" class="vc-btn vc-btn--primary"
+                        wire:click="$dispatchTo('leads.assign-one', 'open-assign-one', { leadId: '{{ $lead->lead_id }}' })">
+                        <x-icon name="share" />{{ __('leads.assign_one.button') }}
+                    </button>
+                @endif
+                @if ($this->canEditLead())
+                    <button type="button" class="vc-btn {{ $this->canAssign() ? 'vc-btn--ghost' : 'vc-btn--primary' }}" wire:click="startEditLead">
+                        <x-icon name="edit" />{{ __('leads.edit') }}
+                    </button>
+                @endif
+            </div>
         @endif
     </section>
+
+    @if (in_array($this->routePrefix, [\App\Models\Role::SALE_ADMIN, \App\Models\Role::SALE_LEADER], true))
+        <livewire:leads.assign-one />
+    @endif
 
     {{-- ── Thông tin liên hệ ────────────────────────────────────────── --}}
     <section class="vc-card">

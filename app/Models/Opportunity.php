@@ -81,10 +81,13 @@ class Opportunity extends Model
     /**
      * Cơ hội đã phân cho salesperson (Lead đã 'Converted'). Cơ hội trưởng nhóm đang giữ chờ phân
      * (Lead còn 'New') chưa xuất hiện ở Quản lý cơ hội.
+     * Khách cũ được đưa về hàng chờ (Lead 'New' lại): các cơ hội đã kết thúc trước đó vẫn hiển thị.
      */
     public function scopeAssigned(Builder $query): Builder
     {
-        return $query->whereHas('lead', fn ($q) => $q->where('status', Lead::STATUS_CONVERTED));
+        return $query->where(fn ($q) => $q
+            ->where($q->qualifyColumn('status'), '!=', self::STATUS_IN_PROGRESS)
+            ->orWhereHas('lead', fn ($l) => $l->where('status', Lead::STATUS_CONVERTED)));
     }
 
     public function lead()
