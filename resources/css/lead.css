@@ -2059,3 +2059,320 @@
 .ld-upd:not(.is-updatable) .ld-upd__old {
     text-decoration: none;
 }
+
+/* ── Popup Import: kết quả 4 ô + bảng xem trước (chọn cách xử lý từng dòng) ── */
+
+.ld-result__stats--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ld-imp .ld-modal__body {
+    display: grid;
+    gap: 0.85rem;
+    align-content: start;
+}
+
+.ld-imp__filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.ld-imp__filter {
+    --tone: var(--vc-primary);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.ld-imp__filter--review { --tone: #c2410c; }
+.ld-imp__filter--invalid { --tone: #b91c1c; }
+.ld-imp__filter--all { --tone: #475569; }
+
+.ld-imp__filter > .odin-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--tone);
+}
+
+.ld-imp__filter > span {
+    flex: 1;
+}
+
+.ld-imp__filter > strong {
+    color: var(--tone);
+    font-size: 1.05rem;
+}
+
+.ld-imp__filter:hover {
+    border-color: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.ld-imp__filter.is-current {
+    border-color: var(--tone);
+    background: color-mix(in srgb, var(--tone) 8%, #fff);
+}
+
+.ld-imp__empty {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 1.5rem;
+    border: 1px dashed var(--vc-border);
+    border-radius: 12px;
+    color: var(--vc-muted);
+}
+
+.ld-imp__list {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ld-imp__row {
+    --tone: #2563eb;
+    border: 1px solid var(--vc-border);
+    border-left: 4px solid var(--tone);
+    border-radius: 12px;
+    background: var(--vc-surface);
+}
+
+.ld-imp__row--ok { --tone: var(--vc-primary); }
+.ld-imp__row--warn { --tone: #c2410c; }
+.ld-imp__row--danger { --tone: #b91c1c; }
+
+.ld-imp__row.is-skip .ld-imp__who {
+    opacity: 0.6;
+}
+
+.ld-imp__main {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(220px, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+}
+
+.ld-imp__line {
+    color: var(--vc-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+}
+
+.ld-imp__who {
+    display: grid;
+    min-width: 0;
+}
+
+.ld-imp__who > strong {
+    overflow: hidden;
+    color: var(--vc-ink);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ld-imp__who > span {
+    overflow: hidden;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ld-imp__kind {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.ld-imp__badge {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    justify-self: start;
+    max-width: 100%;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tone) 10%, #fff);
+    color: var(--tone);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.ld-imp__badge > .ld-dup__dot {
+    flex: none;
+}
+
+.ld-imp__errors {
+    margin: 0;
+    padding-left: 1rem;
+    color: #b91c1c;
+    font-size: 0.76rem;
+}
+
+.ld-imp__action {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.ld-imp__select {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    font-size: 0.82rem;
+}
+
+.ld-imp__fixed {
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ld-imp__toggle {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--vc-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ld-imp__toggle:hover {
+    background: var(--vc-tint);
+}
+
+.ld-imp__toggle > .odin-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.ld-imp__toggle > .odin-icon:last-child {
+    transform: rotate(90deg);
+    transition: transform 0.15s;
+}
+
+.ld-imp__toggle.is-open > .odin-icon:last-child {
+    transform: rotate(-90deg);
+}
+
+.ld-imp__detail {
+    display: grid;
+    gap: 0.6rem;
+    padding: 0 0.85rem 0.8rem;
+}
+
+.ld-imp__lead {
+    border: 1px solid var(--vc-border);
+    border-radius: 10px;
+    background: #fafbfa;
+    padding-bottom: 0.4rem;
+}
+
+.ld-imp__lead-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.6rem 0.85rem 0.3rem;
+}
+
+.ld-imp__hint {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+}
+
+.ld-imp__pager {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.ld-imp__next > .odin-icon {
+    transform: rotate(180deg);
+}
+
+.ld-imp__foot {
+    align-items: center;
+}
+
+.ld-imp__summary {
+    flex: 1;
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ld-imp__summary strong {
+    color: var(--vc-ink);
+}
+
+@media (max-width: 767.98px) {
+    .ld-imp__filters,
+    .ld-result__stats--4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ld-imp__main {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.4rem;
+    }
+
+    .ld-imp__action {
+        justify-content: stretch;
+    }
+
+    .ld-imp__foot {
+        flex-wrap: wrap;
+    }
+
+    .ld-imp__summary {
+        flex-basis: 100%;
+    }
+}
+
+
+/* Import - bảng so sánh: lý do trường bị khoá */
+.ld-imp__locked {
+    display: flex;
+    gap: 0.4rem;
+    align-items: flex-start;
+    margin: 0.35rem 0.85rem 0.2rem;
+    color: #64748b;
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.ld-imp__locked > .odin-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 0.1rem;
+}

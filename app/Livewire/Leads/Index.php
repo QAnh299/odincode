@@ -104,6 +104,21 @@ class Index extends Component
     #[Locked]
     public string $importError = '';
 
+    // Import 2 bước - bảng xem trước (LeadImportService::preview): mã file tạm, cách xử lý đã chọn [dòng => cách xử lý],
+    // bộ lọc (all | review | invalid | new), trang, dòng đang mở so sánh
+    #[Locked]
+    public string $previewToken = '';
+
+    public array $decisions = [];
+
+    public string $previewFilter = 'review';
+
+    public int $previewPage = 1;
+
+    public ?int $previewOpen = null;
+
+    const PREVIEW_PER_PAGE = 20;
+
     // Thông báo sau khi thêm / import: ['type' => success|warning|danger, 'text' => ...]
     public ?array $notice = null;
 
@@ -413,6 +428,7 @@ class Index extends Component
                 'url'       => route($this->routePrefix.'.leads.show', $lead),
                 // Salesperson đã tương tác → không cập nhật từ đây (bảng chỉ để xem)
                 'contacted' => $updatable && $duplicates->contacted($lead),
+                'returning' => $lead->isReturning(),
                 'changes'   => collect($duplicates->changes($lead, $data, $updatable))
                     ->map(fn ($change, $field) => $change + [
                         'label'    => $this->fieldLabel($field),
@@ -444,7 +460,13 @@ class Index extends Component
     {
         $this->authorizeCreate();
 
-        $this->reset('file', 'importResult', 'importError');
+        // Mở lại popup: bỏ bảng xem trước cũ (nếu có)
+        if ($this->previewToken !== '') {
+            app(LeadImportService::class)->discardPreview($this->previewToken);
+        }
+
+        $this->reset('file', 'importResult', 'importError', 'previewToken', 'decisions', 'previewFilter', 'previewPage', 'previewOpen');
+        unset($this->preview);
         $this->resetValidation();
         $this->modal = 'import';
     }
@@ -476,29 +498,165 @@ class Index extends Component
         );
     }
 
-    public function importFile(LeadImportService $service): void
+    /**
+     * Bước 1: kiểm tra file → bảng xem trước (chưa ghi DB).
+     */
+    public function checkFile(LeadImportService $service): void
     {
         $this->authorizeCreate();
         $this->validateFile();
 
-        $result = $service->import($this->file->getRealPath());
+        $result = $service->preview($this->file->getRealPath());
 
         $this->file->delete();
         $this->reset('file');
 
         if (! $result['ok']) {
             $this->importError = $result['error'];
-            $this->notice = ['type' => 'danger', 'text' => $result['error']];
+
+            return;
+        }
+
+        $this->previewToken = $result['token'];
+        unset($this->preview);
+        // Chọn sẵn cách xử lý mặc định cho từng dòng (ô chọn hiển thị đúng giá trị)
+        $this->decisions = collect($this->preview['rows'] ?? [])->mapWithKeys(fn ($row) => [$row['line'] => $row['default']])->all();
+        $this->previewFilter = 'review';
+        $this->previewPage = 1;
+        $this->previewOpen = null;
+        unset($this->preview);
+
+        // Không có dòng nào cần kiểm tra → mở sẵn tất cả
+        if (! $this->previewCount('review')) {
+            $this->previewFilter = 'all';
+        }
+    }
+
+    /**
+     * Bảng xem trước đang mở (đọc từ file tạm), null nếu không có / hết hạn.
+     */
+    #[Computed]
+    public function preview(): ?array
+    {
+        return $this->previewToken !== '' ? app(LeadImportService::class)->loadPreview($this->previewToken) : null;
+    }
+
+    /**
+     * Số dòng theo bộ lọc: all | review (cần kiểm tra: trùng trong file / trùng khách cũ) | invalid (lỗi dữ liệu) | new.
+     */
+    public function previewCount(string $filter): int
+    {
+        return count($this->previewRows($filter));
+    }
+
+    protected function previewRows(string $filter): array
+    {
+        $rows = $this->preview['rows'] ?? [];
+
+        return array_values(match ($filter) {
+            'review'  => array_filter($rows, fn ($r) => ! in_array($r['kind'], [LeadDuplicateService::NEW, LeadImportService::ROW_INVALID], true)),
+            'invalid' => array_filter($rows, fn ($r) => $r['kind'] === LeadImportService::ROW_INVALID),
+            'new'     => array_filter($rows, fn ($r) => $r['kind'] === LeadDuplicateService::NEW),
+            default   => $rows,
+        });
+    }
+
+    /**
+     * Các dòng của trang hiện tại theo bộ lọc.
+     */
+    public function previewPageRows(): array
+    {
+        return array_slice($this->previewRows($this->previewFilter), ($this->previewPage - 1) * self::PREVIEW_PER_PAGE, self::PREVIEW_PER_PAGE);
+    }
+
+    public function previewPages(): int
+    {
+        return max(1, (int) ceil($this->previewCount($this->previewFilter) / self::PREVIEW_PER_PAGE));
+    }
+
+    public function setPreviewFilter(string $filter): void
+    {
+        $this->previewFilter = in_array($filter, ['all', 'review', 'invalid', 'new'], true) ? $filter : 'all';
+        $this->previewPage = 1;
+        $this->previewOpen = null;
+    }
+
+    public function gotoPreviewPage(int $page): void
+    {
+        $this->previewPage = min(max(1, $page), $this->previewPages());
+        $this->previewOpen = null;
+    }
+
+    public function togglePreviewRow(int $line): void
+    {
+        $this->previewOpen = $this->previewOpen === $line ? null : $line;
+    }
+
+    /**
+     * Cách xử lý đang chọn của một dòng (chọn sai / chưa chọn → mặc định).
+     */
+    public function decisionFor(array $row): string
+    {
+        $chosen = $this->decisions[$row['line']] ?? null;
+
+        return in_array($chosen, $row['options'], true) ? $chosen : $row['default'];
+    }
+
+    /**
+     * Tóm tắt sẽ ghi nhận theo lựa chọn hiện tại: số dòng tạo mới / cập nhật / về hàng chờ / bỏ qua.
+     */
+    public function previewSummary(): array
+    {
+        $summary = ['create' => 0, 'update' => 0, 'reopen' => 0, 'skip' => 0];
+
+        foreach ($this->preview['rows'] ?? [] as $row) {
+            $action = $this->decisionFor($row);
+            $key = str_starts_with($action, LeadImportService::ACTION_SAME) ? 'update' : $action;
+            $summary[$key] = ($summary[$key] ?? 0) + 1;
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Huỷ bảng xem trước, quay lại chọn file.
+     */
+    public function cancelPreview(LeadImportService $service): void
+    {
+        $this->authorizeCreate();
+
+        if ($this->previewToken !== '') {
+            $service->discardPreview($this->previewToken);
+        }
+
+        $this->reset('previewToken', 'decisions', 'previewFilter', 'previewPage', 'previewOpen', 'importError');
+        unset($this->preview);
+    }
+
+    /**
+     * Bước 2: ghi nhận theo lựa chọn từng dòng, tạo file kết quả.
+     */
+    public function confirmImport(LeadImportService $service): void
+    {
+        $this->authorizeCreate();
+
+        $result = $service->commit($this->previewToken, $this->decisions);
+
+        $this->reset('previewToken', 'decisions', 'previewFilter', 'previewPage', 'previewOpen');
+        unset($this->preview);
+
+        if (! $result['ok']) {
+            $this->importError = $result['error'];
 
             return;
         }
 
         $this->importResult = $result;
         $this->announce(match (true) {
-            $result['failed'] === 0  => ['type' => 'success', 'text' => __('leads.excel.done_all', ['count' => $result['success']])],
-            $result['success'] === 0 => ['type' => 'danger', 'text' => __('leads.excel.done_none', ['count' => $result['failed']])],
-            default                  => ['type' => 'warning', 'text' => __('leads.excel.done_partial', [
-                'total' => $result['total'], 'success' => $result['success'], 'failed' => $result['failed'],
+            $result['failed'] === 0 && $result['skipped'] === 0 => ['type' => 'success', 'text' => __('leads.excel.done_all', ['count' => $result['success']])],
+            $result['success'] === 0 => ['type' => 'danger', 'text' => __('leads.import_review.done_none', ['skipped' => $result['skipped'], 'failed' => $result['failed']])],
+            default => ['type' => 'warning', 'text' => __('leads.import_review.done_partial', [
+                'total' => $result['total'], 'success' => $result['success'], 'skipped' => $result['skipped'], 'failed' => $result['failed'],
             ])],
         });
 

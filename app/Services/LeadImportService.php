@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Branch;
 use App\Models\Lead;
+use App\Models\Opportunity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -24,11 +25,10 @@ use ZipArchive;
  * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 - HĐ6, PhanLead.docx).
  *
  * - Dùng chung bộ kiểm tra dữ liệu cho popup Thêm Lead và từng dòng Excel.
- * - Kiểm tra trùng khách cũ theo LeadDuplicateService (khớp liên hệ + họ tên). Import không hỏi lại được
- *   từng dòng nên: khác họ tên → tạo Lead mới kèm ghi chú; khách cũ không còn cơ hội đang tư vấn → đưa Lead
- *   cũ về hàng chờ; Lead đang chờ phân / đang tư vấn / khớp nhiều Lead → báo lỗi.
- * - Import ghi nhận các dòng hợp lệ, bỏ qua dòng lỗi và trả về file kết quả
- *   (mỗi dòng có cột Kết quả, Mã Lead, Ghi chú, Lý do lỗi).
+ * - Import 2 bước: preview() đọc file, kiểm tra từng dòng (lỗi dữ liệu, trùng trong file, trùng khách cũ theo
+ *   LeadDuplicateService - khớp liên hệ + họ tên) và lưu bảng xem trước, chưa ghi DB; Sale Admin chọn cách xử lý
+ *   từng dòng (tạo mới / cùng người / cập nhật Lead cũ / đưa về hàng chờ / bỏ qua) rồi commit() mới ghi nhận
+ *   và trả về file kết quả (mỗi dòng có cột Kết quả, Mã Lead, Ghi chú, Lý do lỗi).
  */
 class LeadImportService
 {
@@ -278,15 +278,30 @@ class LeadImportService
         $zip->close();
     }
 
-    /* ── Import ───────────────────────────────────────────────────────── */
+    /* ── Import: xem trước → xác nhận ─────────────────────────────────── */
+
+    // Loại dòng trong bảng xem trước (ngoài các tình huống của LeadDuplicateService)
+    const ROW_INVALID = 'invalid';       // lỗi dữ liệu
+    const ROW_FILE_DUP = 'file_dup';     // trùng liên hệ + họ tên với dòng trước trong cùng file
+    const ROW_FILE_FAMILY = 'file_family'; // cùng liên hệ, khác họ tên với dòng trước trong file (người thân)
+
+    // Xử lý một dòng (ô chọn trong bảng xem trước); 'same:<lead_id>' = cùng người với Lead đó
+    const ACTION_CREATE = 'create';
+    const ACTION_SKIP = 'skip';
+    const ACTION_REOPEN = 'reopen';
+    const ACTION_UPDATE = 'update';
+    const ACTION_SAME = 'same:';
+
+    // Bảng xem trước được lưu tạm (JSON) trên disk local tới lúc xác nhận
+    const PREVIEW_TTL_HOURS = 6;
 
     /**
-     * Đọc file Excel, ghi nhận dòng hợp lệ, tạo file kết quả.
+     * Bước 1: đọc file, kiểm tra từng dòng (lỗi dữ liệu, trùng trong file, trùng khách đã có) - chưa ghi gì vào DB.
+     * Lưu bảng xem trước tạm trên disk local, trả về mã để xác nhận ở bước 2.
      *
-     * @return array{ok: bool, error?: string, total?: int, success?: int, failed?: int, result?: string}
-     *               result = đường dẫn file kết quả trên disk local.
+     * @return array{ok: bool, error?: string, token?: string}
      */
-    public function import(string $path): array
+    public function preview(string $path): array
     {
         try {
             $rows = $this->readRows($path);
@@ -313,89 +328,251 @@ class LeadImportService
             return ['ok' => false, 'error' => __('leads.excel.error_too_many', ['max' => self::MAX_ROWS])];
         }
 
+        $branches = Branch::query()->pluck('branch_name', 'branch_id')->all();
+        $seen = [];   // khoá liên hệ → [[dòng, họ tên chuẩn hoá], ...] của các dòng hợp lệ phía trên
+        $preview = [];
+
+        foreach ($rows as $index => $values) {
+            $raw = array_combine(self::COLUMNS, array_pad(array_slice($values, 0, count(self::COLUMNS)), count(self::COLUMNS), ''));
+            $preview[] = $this->previewRow($index + 2, $raw, $seen, $branches);
+        }
+
+        $token = (string) Str::uuid();
+        Storage::disk('local')->put($this->previewPath($token), json_encode([
+            'created_at' => now()->toIso8601String(),
+            'rows'       => $preview,
+        ], JSON_UNESCAPED_UNICODE));
+
+        return ['ok' => true, 'token' => $token];
+    }
+
+    /**
+     * Một dòng của bảng xem trước: dữ liệu, lỗi, tình huống phát hiện, các cách xử lý và cách xử lý mặc định.
+     */
+    protected function previewRow(int $line, array $raw, array &$seen, array $branches): array
+    {
+        $data = $this->normalize($raw);
+        $errors = Validator::make($data, $this->rules(), $this->messages(), $this->attributes())->errors()->all();
+
+        $row = ['line' => $line, 'values' => array_values($raw), 'data' => $data, 'errors' => $errors, 'leads' => [], 'ref_line' => null];
+
+        if ($errors) {
+            return $row + ['kind' => self::ROW_INVALID, 'options' => [self::ACTION_SKIP], 'default' => self::ACTION_SKIP];
+        }
+
+        // Trùng với dòng phía trên trong cùng file (chưa có trong DB nên LeadDuplicateService không thấy)
+        $keys = array_filter([
+            $data['phone'] ? 'p:'.$data['phone'] : null,
+            $data['email'] ? 'e:'.Str::lower($data['email']) : null,
+            ($fb = $this->duplicates->facebookKey($data['source_url'])) ? 'f:'.$fb : null,
+        ]);
+        $name = $this->duplicates->nameKey($data['full_name']);
+        $earlier = collect($keys)->flatMap(fn ($key) => $seen[$key] ?? []);
+        foreach ($keys as $key) {
+            $seen[$key][] = [$line, $name];
+        }
+
+        if ($same = $earlier->first(fn ($e) => $e[1] === $name)) {
+            return array_merge($row, ['kind' => self::ROW_FILE_DUP, 'ref_line' => $same[0],
+                'options' => [self::ACTION_SKIP, self::ACTION_CREATE], 'default' => self::ACTION_SKIP]);
+        }
+
+        $match = $this->duplicates->check($data);
+        $case = $match['case'];
+
+        if ($case === LeadDuplicateService::NEW) {
+            return array_merge($row, $earlier->isNotEmpty()
+                ? ['kind' => self::ROW_FILE_FAMILY, 'ref_line' => $earlier->first()[0],
+                    'options' => [self::ACTION_CREATE, self::ACTION_SKIP], 'default' => self::ACTION_CREATE]
+                : ['kind' => LeadDuplicateService::NEW, 'options' => [self::ACTION_CREATE, self::ACTION_SKIP], 'default' => self::ACTION_CREATE]);
+        }
+
+        // Có khách cũ khớp liên hệ: bảng so sánh với từng Lead; cập nhật được khi đã xác định cùng người
+        $sure = $match['lead'] !== null;
+        $leads = ($sure ? collect([$match['lead']]) : $match['leads'])
+            ->map(fn (Lead $lead) => $this->previewLead($lead, $data, $sure, $branches))
+            ->values()->all();
+        $canUpdate = $sure && in_array($case, [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS], true)
+            && collect($leads[0]['changes'])->contains('editable', true);
+        $same = collect($leads)->map(fn ($lead) => self::ACTION_SAME.$lead['lead_id'])->all();
+
+        [$options, $default] = match ($case) {
+            LeadDuplicateService::REOPEN       => [[self::ACTION_REOPEN, self::ACTION_CREATE, self::ACTION_SKIP], self::ACTION_REOPEN],
+            LeadDuplicateService::IN_QUEUE,
+            LeadDuplicateService::IN_PROGRESS  => [array_values(array_filter([self::ACTION_SKIP, $canUpdate ? self::ACTION_UPDATE : null, self::ACTION_CREATE])), self::ACTION_SKIP],
+            // Chưa chắc cùng người: mặc định tạo mới (người học khác), có thể chọn "cùng người với LEADxxx"
+            LeadDuplicateService::OTHER_PERSON => [[self::ACTION_CREATE, ...$same, self::ACTION_SKIP], self::ACTION_CREATE],
+            default                            => [[self::ACTION_SKIP, ...$same, self::ACTION_CREATE], self::ACTION_SKIP], // AMBIGUOUS
+        };
+
+        return array_merge($row, ['kind' => $case, 'leads' => $leads, 'options' => $options, 'default' => $default]);
+    }
+
+    /**
+     * Lead khớp liên hệ trong bảng xem trước: tình trạng + so sánh với dữ liệu dòng.
+     */
+    protected function previewLead(Lead $lead, array $data, bool $updatable, array $branches): array
+    {
+        $active = $lead->opportunities->firstWhere('status', Opportunity::STATUS_IN_PROGRESS);
+        $state = $this->duplicates->stateOf($lead);
+        $waitingTeam = $state === LeadDuplicateService::IN_QUEUE && $active;
+        $display = fn (string $field, ?string $value) => match (true) {
+            $value === null || $value === '' => '-',
+            $field === 'branch_id'           => $branches[$value] ?? $value,
+            $field === 'contact_method'      => __('leads.method.'.$value),
+            default                          => $value,
+        };
+
+        return [
+            'lead_id'   => $lead->lead_id,
+            'name'      => $lead->full_name,
+            'state'     => $waitingTeam ? 'in_queue_team' : $state,
+            'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
+            // Lý do trường bị khoá khi cập nhật (hiện dưới bảng so sánh)
+            'returning' => $lead->isReturning(),
+            'contacted' => $this->duplicates->contacted($lead),
+            'changes' => collect($this->duplicates->changes($lead, $data, $updatable))
+                ->map(fn ($change, $field) => [
+                    'label'    => $field === 'branch_id' ? __('leads.branch') : __('leads.field.'.$field),
+                    'old'      => $display($field, $change['old']),
+                    'new'      => $display($field, $change['new']),
+                    'editable' => $change['editable'],
+                ])->all(),
+        ];
+    }
+
+    /**
+     * Bảng xem trước đã lưu (null nếu không còn / hết hạn).
+     */
+    public function loadPreview(string $token): ?array
+    {
+        $path = $this->previewPath($token);
+
+        if (! Str::isUuid($token) || ! Storage::disk('local')->exists($path)) {
+            return null;
+        }
+
+        $preview = json_decode(Storage::disk('local')->get($path), true);
+
+        if (! $preview || now()->subHours(self::PREVIEW_TTL_HOURS)->gt($preview['created_at'] ?? now())) {
+            Storage::disk('local')->delete($path);
+
+            return null;
+        }
+
+        return $preview;
+    }
+
+    public function discardPreview(string $token): void
+    {
+        if (Str::isUuid($token)) {
+            Storage::disk('local')->delete($this->previewPath($token));
+        }
+    }
+
+    protected function previewPath(string $token): string
+    {
+        return self::RESULT_DIR.'/preview-'.$token.'.json';
+    }
+
+    /**
+     * Bước 2: ghi nhận theo cách xử lý đã chọn cho từng dòng ([dòng => cách xử lý], dòng không chọn / chọn sai
+     * dùng mặc định) và tạo file kết quả. Tình trạng Lead cũ được kiểm tra lại lúc ghi (có thể đã đổi).
+     *
+     * @return array{ok: bool, error?: string, total?: int, success?: int, skipped?: int, failed?: int, result?: string}
+     */
+    public function commit(string $token, array $decisions): array
+    {
+        $preview = $this->loadPreview($token);
+
+        if (! $preview) {
+            return ['ok' => false, 'error' => __('leads.import_review.expired')];
+        }
+
         $results = [];
 
-        DB::transaction(function () use ($rows, &$results) {
-            foreach ($rows as $index => $values) {
-                $line = $index + 2;
-                $raw = array_combine(self::COLUMNS, array_pad(array_slice($values, 0, count(self::COLUMNS)), count(self::COLUMNS), ''));
+        DB::transaction(function () use ($preview, $decisions, &$results) {
+            foreach ($preview['rows'] as $row) {
+                $action = $decisions[$row['line']] ?? $row['default'];
+                $action = in_array($action, $row['options'], true) ? $action : $row['default'];
 
-                $data = $this->normalize($raw);
-                $errors = Validator::make($data, $this->rules(), $this->messages(), $this->attributes())
-                    ->errors()
-                    ->all();
-
-                $outcome = $errors ? ['lead_id' => null, 'reopened' => false, 'notes' => [], 'errors' => []] : $this->importRow($data);
-
-                $results[] = [
-                    'line'     => $line,
-                    'values'   => array_values($raw),
-                    'lead_id'  => $outcome['lead_id'],
-                    'reopened' => $outcome['reopened'],
-                    'notes'    => $outcome['notes'],
-                    'errors'   => array_merge($errors, $outcome['errors']),
-                ];
+                $results[] = ['line' => $row['line'], 'values' => $row['values']]
+                    + ($row['errors'] ? $this->outcome('failed', errors: $row['errors']) : $this->commitRow($row, $action));
             }
         });
 
-        $success = count(array_filter($results, fn ($r) => $r['errors'] === []));
+        $this->discardPreview($token);
+        $count = fn (string $status) => count(array_filter($results, fn ($r) => $r['status'] === $status));
+        $failed = $count('failed');
+        $skipped = $count('skipped');
 
         return [
             'ok'      => true,
             'total'   => count($results),
-            'success' => $success,
-            'failed'  => count($results) - $success,
+            'success' => count($results) - $failed - $skipped,
+            'skipped' => $skipped,
+            'failed'  => $failed,
             'result'  => $this->writeResult($results),
         ];
     }
 
     /**
-     * Ghi nhận một dòng hợp lệ theo kết quả kiểm tra trùng (LeadDuplicateService).
-     * Lead tạo / đưa về hàng chờ ở các dòng trước nằm cùng transaction nên dòng sau trùng với dòng trước
-     * sẽ rơi vào "đã ở hàng chờ".
-     *
-     * @return array{lead_id: ?string, reopened: bool, notes: string[], errors: string[]}
+     * Ghi nhận một dòng hợp lệ theo cách xử lý đã chọn.
      */
-    protected function importRow(array $data): array
+    protected function commitRow(array $row, string $action): array
     {
-        $match = $this->duplicates->check($data);
-        $result = ['lead_id' => null, 'reopened' => false, 'notes' => [], 'errors' => []];
+        $data = $row['data'];
 
-        switch ($match['case']) {
-            case LeadDuplicateService::NEW:
-                $result['lead_id'] = $this->create($data)->lead_id;
-                break;
-
-            case LeadDuplicateService::OTHER_PERSON:
-                // Cùng liên hệ nhưng khác họ tên (VD con thứ hai của phụ huynh) → tạo mới, ghi chú để kiểm tra lại
-                $result['lead_id'] = $this->create($data)->lead_id;
-                $result['notes'][] = __('leads.duplicate.import_other', ['leads' => $match['leads']
-                    ->map(fn (Lead $lead) => $lead->lead_id.' - '.$lead->full_name)->implode('; ')]);
-                break;
-
-            case LeadDuplicateService::REOPEN:
-                try {
-                    $reopen = $this->duplicates->reopen($match['lead'], $data);
-                    $result['lead_id'] = $reopen['lead']->lead_id;
-                    $result['reopened'] = true;
-                    $result['notes'] = array_merge(
-                        [__('leads.duplicate.reopened', ['id' => $reopen['lead']->lead_id, 'name' => $reopen['lead']->full_name])],
-                        $this->duplicates->reopenNotes($reopen),
-                    );
-                } catch (\RuntimeException $e) {
-                    $result['errors'][] = $e->getMessage();
-                }
-                break;
-
-            case LeadDuplicateService::AMBIGUOUS:
-                $result['errors'][] = $this->duplicates->message($match['case'], leads: $match['leads']).' '.__('leads.duplicate.import_manual');
-                break;
-
-            default: // IN_QUEUE, IN_PROGRESS
-                $result['errors'][] = $this->duplicates->message($match['case'], $match['lead']);
+        if ($action === self::ACTION_SKIP) {
+            return $this->outcome('skipped', notes: [__('leads.import_review.skipped')]);
         }
 
-        return $result;
+        if ($action === self::ACTION_CREATE) {
+            $lead = $this->create($data);
+            $notes = $row['kind'] === LeadDuplicateService::NEW ? [] : [__('leads.import_review.created_other')];
+
+            return $this->outcome('created', $lead->lead_id, $notes);
+        }
+
+        // Cùng người với một Lead cụ thể: xử lý theo tình trạng hiện tại của Lead đó
+        $leadId = str_starts_with($action, self::ACTION_SAME) ? substr($action, strlen(self::ACTION_SAME)) : ($row['leads'][0]['lead_id'] ?? null);
+        $lead = $leadId ? $this->duplicates->find($leadId) : null;
+
+        if (! $lead) {
+            return $this->outcome('failed', errors: [__('leads.import_review.lead_missing')]);
+        }
+
+        $state = $this->duplicates->stateOf($lead);
+
+        try {
+            if ($state === LeadDuplicateService::REOPEN && $action !== self::ACTION_UPDATE) {
+                $result = $this->duplicates->reopen($lead, $data);
+
+                return $this->outcome('reopened', $lead->lead_id, array_merge(
+                    [__('leads.duplicate.reopened', ['id' => $lead->lead_id, 'name' => $lead->full_name])],
+                    $this->duplicates->reopenNotes($result),
+                ));
+            }
+
+            if (in_array($state, [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS], true) && $action !== self::ACTION_REOPEN) {
+                $result = $this->duplicates->updateExisting($lead->lead_id, $data, LeadImportService::COLUMNS, $this);
+                $fields = array_map(fn ($f) => $f === 'branch_id' ? __('leads.branch') : __('leads.field.'.$f), $result['fields']);
+
+                return $fields
+                    ? $this->outcome('updated', $lead->lead_id, [__('leads.duplicate.updated', ['id' => $lead->lead_id, 'fields' => implode(', ', $fields)])])
+                    : $this->outcome('skipped', $lead->lead_id, [__('leads.import_review.nothing_to_update', ['id' => $lead->lead_id])]);
+            }
+        } catch (\RuntimeException $e) {
+            return $this->outcome('failed', $lead->lead_id, errors: [$e->getMessage()]);
+        }
+
+        // Tình trạng Lead đã đổi so với lúc xem trước nên cách xử lý không còn phù hợp
+        return $this->outcome('failed', $lead->lead_id, errors: [__('leads.import_review.state_changed', ['id' => $lead->lead_id])]);
+    }
+
+    protected function outcome(string $status, ?string $leadId = null, array $notes = [], array $errors = []): array
+    {
+        return ['status' => $status, 'lead_id' => $leadId, 'notes' => $notes, 'errors' => $errors];
     }
 
     /**
@@ -520,15 +697,11 @@ class LeadImportService
         $wrap = (new Style())->setShouldWrapText();
 
         foreach ($results as $result) {
-            $ok = $result['errors'] === [];
+            $ok = $result['status'] !== 'failed';
 
             $cells = array_map(fn ($value) => Cell::fromValue($value), $result['values']);
             $cells[] = Cell::fromValue($result['line']);
-            $status = match (true) {
-                ! $ok                 => __('leads.excel.status_fail'),
-                $result['reopened']   => __('leads.excel.status_reopened'),
-                default               => __('leads.excel.status_ok'),
-            };
+            $status = __('leads.excel.status_'.$result['status']);
             $bullets = fn (array $lines) => implode("\n", array_map(fn ($line) => '- '.$line, $lines));
 
             $cells[] = Cell::fromValue($status, $ok ? $okStyle : $failStyle);

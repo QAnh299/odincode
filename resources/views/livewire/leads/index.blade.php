@@ -401,13 +401,13 @@
                                                             $on = $editable && in_array($field, $updateFields, true);
                                                             $rowTag = $editable ? 'label' : 'div';
                                                         @endphp
-                                                        <{{ $rowTag }} class="ld-upd__row {{ $editable ? 'is-editable' : '' }} {{ $canUpdate && ! $editable ? 'is-locked' : '' }} {{ $on ? 'is-on' : '' }}"
+                                                        <{{ $rowTag }} class="ld-upd__row {{ $editable ? 'is-editable' : '' }} {{ $duplicate['updatable'] && ! $editable ? 'is-locked' : '' }} {{ $on ? 'is-on' : '' }}"
                                                             role="row" wire:key="upd-{{ $item['lead_id'] }}-{{ $field }}">
                                                             <span role="cell">
                                                                 @if ($editable)
                                                                     <input type="checkbox" wire:model.live="updateFields" value="{{ $field }}">
                                                                     <span class="ld-upd__check" aria-hidden="true"><x-icon name="check" /></span>
-                                                                @elseif ($canUpdate)
+                                                                @elseif ($duplicate['updatable'])
                                                                     <span class="ld-upd__lock" title="{{ __('leads.duplicate.locked') }}"><x-icon name="shield" /></span>
                                                                 @endif
                                                             </span>
@@ -421,8 +421,13 @@
                                                 <p class="ld-upd__same"><x-icon name="check-circle" />{{ __('leads.duplicate.compare_same') }}</p>
                                             @endif
 
+                                            {{-- Vì sao có trường không cập nhật được (cùng lời giải thích với bảng xem trước khi import) --}}
                                             @if ($item['contacted'] && $item['changes'])
-                                                <p class="ld-upd__note ld-upd__note--block">{{ __('leads.duplicate.compare_contacted') }}</p>
+                                                <p class="ld-imp__locked"><x-icon name="shield" />{{ __('leads.import_review.locked.contacted') }}</p>
+                                            @elseif ($duplicate['updatable'] && collect($item['changes'])->contains('editable', false))
+                                                <p class="ld-imp__locked">
+                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.($item['returning'] ? 'returning' : 'branch')) }}
+                                                </p>
                                             @endif
 
                                             @error('duplicate')
@@ -545,16 +550,20 @@
         </div>
     @endif
 
-    {{-- ── Popup Import Excel ───────────────────────────────────────── --}}
+    {{-- ── Popup Import Excel: tải file → xem lại từng dòng → xác nhận ── --}}
     @if ($modal === 'import' && $this->canCreate)
+        @php $preview = ! $importResult ? $this->preview : null; @endphp
         <div class="ld-modal" wire:key="modal-import" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
-            <div class="ld-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ld-import-title">
-                <header class="ld-modal__head">
+            <div class="ld-modal__dialog {{ $preview ? 'ld-modal__dialog--wide ld-imp' : '' }}" role="dialog" aria-modal="true" aria-labelledby="ld-import-title">
+                {{-- Tiêu đề căn giữa theo icon (giống popup Thêm Lead) --}}
+                <header class="ld-modal__head ld-modal__head--center">
                     <span class="ld-modal__icon"><x-icon name="upload" /></span>
                     <div>
                         <h2 class="ld-modal__title" id="ld-import-title">{{ __('leads.excel.title') }}</h2>
-                        <p class="ld-modal__sub">{{ __('leads.excel.sub') }}</p>
+                        @if ($preview)
+                            <p class="ld-modal__sub">{{ __('leads.import_review.sub') }}</p>
+                        @endif
                     </div>
                     <button type="button" class="ld-modal__close" wire:click="closeModal" aria-label="{{ __('leads.close') }}">
                         <x-icon name="x" />
@@ -565,20 +574,193 @@
                     @if ($importResult)
                         {{-- Kết quả import --}}
                         @php
-                            $tone = $importResult['failed'] === 0 ? 'success' : ($importResult['success'] === 0 ? 'danger' : 'warning');
+                            $tone = $importResult['failed'] === 0 && $importResult['skipped'] === 0 ? 'success' : ($importResult['success'] === 0 ? 'danger' : 'warning');
                         @endphp
                         <div class="ld-result ld-result--{{ $tone }}">
                             <p class="ld-result__title">
                                 <x-icon :name="$tone === 'success' ? 'check-circle' : 'alert'" />{{ $notice['text'] ?? __('leads.excel.result_title') }}
                             </p>
-                            <div class="ld-result__stats">
+                            <div class="ld-result__stats ld-result__stats--4">
                                 <div><span>{{ __('leads.excel.result_total') }}</span><strong>{{ $importResult['total'] }}</strong></div>
                                 <div class="is-ok"><span>{{ __('leads.excel.result_success') }}</span><strong>{{ $importResult['success'] }}</strong></div>
+                                <div><span>{{ __('leads.import_review.result_skipped') }}</span><strong>{{ $importResult['skipped'] }}</strong></div>
                                 <div class="is-fail"><span>{{ __('leads.excel.result_failed') }}</span><strong>{{ $importResult['failed'] }}</strong></div>
                             </div>
                         </div>
                         @if ($importError)
                             <p class="ld-error">{{ $importError }}</p>
+                        @endif
+                    @elseif ($preview)
+                        {{-- Bảng xem trước: chọn cách xử lý từng dòng --}}
+                        @php
+                            $kindTone = [
+                                'new' => 'ok', 'invalid' => 'danger', 'file_dup' => 'warn', 'file_family' => 'info',
+                                'other_person' => 'info', 'in_queue' => 'warn', 'in_progress' => 'warn', 'reopen' => 'ok', 'ambiguous' => 'warn',
+                            ];
+                            $stateTone = ['in_queue' => 'warn', 'in_queue_team' => 'warn', 'in_progress' => 'info', 'reopen' => 'ok'];
+                            $leadList = fn (array $row) => collect($row['leads'])->map(fn ($l) => $l['lead_id'].' - '.$l['name'])->implode('; ');
+                            $kindText = function (array $row) use ($leadList) {
+                                $first = $row['leads'][0] ?? null;
+
+                                return match ($row['kind']) {
+                                    'file_dup', 'file_family' => __('leads.import_review.kind.'.$row['kind'], ['line' => $row['ref_line']]),
+                                    'other_person', 'ambiguous' => __('leads.import_review.kind.'.$row['kind'], ['leads' => $leadList($row)]),
+                                    'in_queue', 'in_progress', 'reopen' => __('leads.import_review.kind.'.($first['state'] ?? $row['kind']), [
+                                        'lead' => $first['lead_id'].' - '.$first['name'], 'owner' => $first['owner'] ?? '-',
+                                    ]),
+                                    default => __('leads.import_review.kind.'.$row['kind']),
+                                };
+                            };
+                            $actionText = fn (string $action, array $row) => str_starts_with($action, \App\Services\LeadImportService::ACTION_SAME)
+                                ? __('leads.import_review.action.same', ['id' => substr($action, strlen(\App\Services\LeadImportService::ACTION_SAME))])
+                                : __('leads.import_review.action.'.($action === 'create' && $row['kind'] !== 'new' ? 'create_other' : $action));
+                            $filters = ['review' => 'alert', 'new' => 'user', 'invalid' => 'x', 'all' => 'layers'];
+                            $summary = $this->previewSummary();
+                        @endphp
+
+                        <div class="ld-imp__filters" role="tablist">
+                            @foreach ($filters as $key => $icon)
+                                <button type="button" role="tab" wire:click="setPreviewFilter('{{ $key }}')"
+                                    class="ld-imp__filter ld-imp__filter--{{ $key }} {{ $previewFilter === $key ? 'is-current' : '' }}"
+                                    aria-selected="{{ $previewFilter === $key ? 'true' : 'false' }}">
+                                    <x-icon :name="$icon" />
+                                    <span>{{ __('leads.import_review.filter.'.$key) }}</span>
+                                    <strong>{{ $this->previewCount($key) }}</strong>
+                                </button>
+                            @endforeach
+                        </div>
+
+                        @php $pageRows = $this->previewPageRows(); @endphp
+                        @if (! $pageRows)
+                            <p class="ld-imp__empty"><x-icon name="check-circle" />{{ __('leads.import_review.empty_filter') }}</p>
+                        @else
+                            <ul class="ld-imp__list" role="list">
+                                @foreach ($pageRows as $row)
+                                    @php
+                                        $line = $row['line'];
+                                        $action = $this->decisionFor($row);
+                                        $willUpdate = $action === 'update' || str_starts_with($action, \App\Services\LeadImportService::ACTION_SAME);
+                                        $open = $previewOpen === $line;
+                                    @endphp
+                                    <li class="ld-imp__row ld-imp__row--{{ $kindTone[$row['kind']] ?? 'info' }} {{ $action === 'skip' ? 'is-skip' : '' }}" wire:key="imp-{{ $line }}">
+                                        <div class="ld-imp__main">
+                                            <span class="ld-imp__line">{{ __('leads.import_review.line', ['line' => $line]) }}</span>
+                                            <div class="ld-imp__who">
+                                                <strong>{{ $row['data']['full_name'] ?: '-' }}</strong>
+                                                <span>{{ collect([$row['data']['phone'], $row['data']['email']])->filter()->implode(' · ') ?: '-' }}</span>
+                                            </div>
+                                            <div class="ld-imp__kind">
+                                                <span class="ld-imp__badge"><span class="ld-dup__dot"></span>{{ $kindText($row) }}</span>
+                                                @if ($row['errors'])
+                                                    <ul class="ld-imp__errors">
+                                                        @foreach ($row['errors'] as $error)
+                                                            <li>{{ $error }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+                                            </div>
+                                            <div class="ld-imp__action">
+                                                @if (count($row['options']) > 1)
+                                                    <select class="vc-control ld-imp__select" wire:model.live="decisions.{{ $line }}"
+                                                        aria-label="{{ __('leads.import_review.col_action') }} - {{ __('leads.import_review.line', ['line' => $line]) }}">
+                                                        @foreach ($row['options'] as $option)
+                                                            <option value="{{ $option }}">{{ $actionText($option, $row) }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                @else
+                                                    <span class="ld-imp__fixed">{{ $actionText($row['options'][0], $row) }}</span>
+                                                @endif
+                                                @if ($row['leads'])
+                                                    <button type="button" class="ld-imp__toggle {{ $open ? 'is-open' : '' }}" wire:click="togglePreviewRow({{ $line }})"
+                                                        aria-expanded="{{ $open ? 'true' : 'false' }}">
+                                                        <x-icon name="layers" />{{ __('leads.import_review.compare') }}<x-icon name="chevron" />
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        {{-- So sánh với Lead cũ (chỉ để xem; cập nhật theo cách xử lý đã chọn) --}}
+                                        @if ($open)
+                                            <div class="ld-imp__detail">
+                                                @foreach ($row['leads'] as $lead)
+                                                    <div class="ld-imp__lead" wire:key="imp-{{ $line }}-{{ $lead['lead_id'] }}">
+                                                        <div class="ld-imp__lead-head">
+                                                            <strong>{{ $lead['name'] }}</strong>
+                                                            <span class="ld-dup__code">{{ $lead['lead_id'] }}</span>
+                                                            <span class="ld-dup__state ld-dup__state--{{ $stateTone[$lead['state']] ?? 'info' }}">
+                                                                <span class="ld-dup__dot"></span>{{ $lead['owner']
+                                                                    ? __('leads.duplicate.state_by.'.$lead['state'], ['name' => $lead['owner']])
+                                                                    : __('leads.duplicate.state.'.$lead['state']) }}
+                                                            </span>
+                                                        </div>
+                                                        @if ($lead['changes'])
+                                                            <div class="ld-upd__table" role="table">
+                                                                <div class="ld-upd__row ld-upd__row--head" role="row">
+                                                                    <span role="columnheader"></span>
+                                                                    <span role="columnheader">{{ __('leads.duplicate.col_field') }}</span>
+                                                                    <span role="columnheader">{{ __('leads.duplicate.col_old') }}</span>
+                                                                    <span role="columnheader">{{ __('leads.duplicate.col_new') }}</span>
+                                                                </div>
+                                                                @php
+                                                                    // Đã xác định cùng người (Lead đang chờ phân / đang tư vấn) → trường không cập nhật được hiện icon khoá
+                                                                    $sure = in_array($row['kind'], ['in_queue', 'in_progress'], true);
+                                                                    $locked = $sure && collect($lead['changes'])->contains('editable', false);
+                                                                @endphp
+                                                                @foreach ($lead['changes'] as $field => $change)
+                                                                    @php $applies = $willUpdate && $change['editable']; @endphp
+                                                                    <div class="ld-upd__row {{ $applies ? 'is-on' : '' }} {{ $sure && ! $change['editable'] ? 'is-locked' : '' }}" role="row">
+                                                                        <span role="cell">
+                                                                            @if ($applies)
+                                                                                <span class="ld-upd__check" title="{{ __('leads.import_review.will_update') }}"><x-icon name="check" /></span>
+                                                                            @elseif ($sure && ! $change['editable'])
+                                                                                <span class="ld-upd__lock" title="{{ __('leads.duplicate.locked') }}"><x-icon name="shield" /></span>
+                                                                            @endif
+                                                                        </span>
+                                                                        <span role="cell" class="ld-upd__field">{{ $change['label'] }}</span>
+                                                                        <span role="cell" class="ld-upd__old">{{ $change['old'] }}</span>
+                                                                        <span role="cell" class="ld-upd__new">{{ $change['new'] }}</span>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                            @if ($locked)
+                                                                {{-- Vì sao có trường không cập nhật được --}}
+                                                                <p class="ld-imp__locked">
+                                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.match (true) {
+                                                                        $lead['contacted'] => 'contacted',
+                                                                        $lead['returning'] => 'returning',
+                                                                        default            => 'branch',
+                                                                    }) }}
+                                                                </p>
+                                                            @endif
+                                                        @else
+                                                            <p class="ld-upd__same"><x-icon name="check-circle" />{{ __('leads.duplicate.compare_same') }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                                <p class="ld-imp__hint">{{ __('leads.import_review.compare_hint') }}</p>
+                                            </div>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+
+                            @if ($this->previewPages() > 1)
+                                <nav class="ld-imp__pager" aria-label="{{ __('leads.import_review.pages') }}">
+                                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="gotoPreviewPage({{ $previewPage - 1 }})" @disabled($previewPage <= 1)>
+                                        <x-icon name="arrow-left" />
+                                    </button>
+                                    <span>{{ __('leads.import_review.page', ['page' => $previewPage, 'pages' => $this->previewPages()]) }}</span>
+                                    <button type="button" class="vc-btn vc-btn--ghost ld-imp__next" wire:click="gotoPreviewPage({{ $previewPage + 1 }})" @disabled($previewPage >= $this->previewPages())>
+                                        <x-icon name="arrow-left" />
+                                    </button>
+                                </nav>
+                            @endif
+                        @endif
+
+                        @if ($importError)
+                            <div class="ld-notice ld-notice--danger ld-notice--inline">
+                                <x-icon name="alert" /><span class="ld-notice__text">{{ $importError }}</span>
+                            </div>
                         @endif
                     @else
                         <ol class="ld-steps">
@@ -622,11 +804,18 @@
                                     @endif
                                 </div>
                             </li>
+                            <li class="ld-step">
+                                <span class="ld-step__num">3</span>
+                                <div class="ld-step__body">
+                                    <p class="ld-step__title">{{ __('leads.import_review.step_review') }}</p>
+                                    <p class="ld-step__sub">{{ __('leads.import_review.step_review_sub') }}</p>
+                                </div>
+                            </li>
                         </ol>
                     @endif
                 </div>
 
-                <footer class="ld-modal__foot">
+                <footer class="ld-modal__foot {{ $preview ? 'ld-imp__foot' : '' }}">
                     @if ($importResult)
                         <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
                             <x-icon name="refresh" />{{ __('leads.excel.import_another') }}
@@ -634,15 +823,34 @@
                         <button type="button" class="vc-btn vc-btn--primary" wire:click="downloadResult">
                             <x-icon name="file" />{{ __('leads.excel.download_result') }}
                         </button>
+                    @elseif ($preview)
+                        <p class="ld-imp__summary">
+                            {!! __('leads.import_review.summary', [
+                                'create' => '<strong>'.$summary['create'].'</strong>',
+                                'update' => '<strong>'.$summary['update'].'</strong>',
+                                'reopen' => '<strong>'.$summary['reopen'].'</strong>',
+                                'skip'   => '<strong>'.$summary['skip'].'</strong>',
+                            ]) !!}
+                        </p>
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelPreview">
+                            <x-icon name="arrow-left" />{{ __('leads.import_review.choose_other') }}
+                        </button>
+                        <button type="button" class="vc-btn vc-btn--primary" wire:click="confirmImport"
+                            wire:loading.attr="disabled" wire:target="confirmImport"
+                            @disabled($summary['create'] + $summary['update'] + $summary['reopen'] === 0)>
+                            <span wire:loading.remove wire:target="confirmImport"><x-icon name="check" /></span>
+                            <span class="spinner-border spinner-border-sm" wire:loading wire:target="confirmImport" aria-hidden="true"></span>
+                            {{ __('leads.import_review.confirm') }}
+                        </button>
                     @else
                         <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeModal">{{ __('leads.cancel') }}</button>
-                        <button type="button" class="vc-btn vc-btn--primary" wire:click="importFile"
-                            wire:loading.attr="disabled" wire:target="file,importFile"
+                        <button type="button" class="vc-btn vc-btn--primary" wire:click="checkFile"
+                            wire:loading.attr="disabled" wire:target="file,checkFile"
                             @disabled(! $file || $errors->has('file'))>
-                            <span wire:loading.remove wire:target="importFile"><x-icon name="upload" /></span>
-                            <span class="spinner-border spinner-border-sm" wire:loading wire:target="importFile" aria-hidden="true"></span>
-                            <span wire:loading.remove wire:target="importFile">{{ __('leads.excel.submit') }}</span>
-                            <span wire:loading wire:target="importFile">{{ __('leads.excel.processing') }}</span>
+                            <span wire:loading.remove wire:target="checkFile"><x-icon name="search" /></span>
+                            <span class="spinner-border spinner-border-sm" wire:loading wire:target="checkFile" aria-hidden="true"></span>
+                            <span wire:loading.remove wire:target="checkFile">{{ __('leads.import_review.check') }}</span>
+                            <span wire:loading wire:target="checkFile">{{ __('leads.excel.processing') }}</span>
                         </button>
                     @endif
                 </footer>
