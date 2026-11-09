@@ -378,5 +378,3 @@ ALTER TABLE `SalesTeams`
   ADD CONSTRAINT `fk_salesteams_team_leader_id`
   FOREIGN KEY (`team_leader_id`) REFERENCES `Employees` (`employee_id`)
   ON DELETE RESTRICT ON UPDATE RESTRICT;
-
--- Du lieu demo: chay odin_data.sql sau file nay.

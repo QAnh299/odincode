@@ -120,6 +120,51 @@ Bấm **Apply**.
 - **Xem lỗi:** Web App → *Log stream*, hoặc mở SSH (Development Tools → SSH) và xem `/home/site/wwwroot/storage/logs/`.
 - Bảo vệ xong, muốn dừng hẳn: xoá resource group `odin-rg`.
 
+## Bước 7 – Sao lưu & khôi phục dữ liệu
+
+Mục tiêu theo yêu cầu phi chức năng:
+
+| Chỉ số | Yêu cầu | Cách đáp ứng |
+|---|---|---|
+| **RPO** (dữ liệu mất tối đa) | ≤ 24 giờ | Azure MySQL tự sao lưu hằng ngày + sao lưu log giao dịch liên tục → khôi phục được về gần thời điểm sự cố |
+| **RTO** (thời gian dùng lại được) | ≤ 4 giờ | Khôi phục point-in-time ra server mới, đổi `DB_HOST` của Web App (thường dưới 1 giờ với CSDL nhỏ) |
+| Thời gian giữ bản sao lưu | ≥ 7 ngày | Đặt Backup retention = 7 ngày (tăng được tới 35 ngày) |
+
+Mã nguồn đã nằm trên GitHub nên không cần sao lưu riêng. Phần cần sao lưu là CSDL `odin`.
+
+### 7.1 Cấu hình sao lưu tự động (làm một lần)
+1. Azure Portal → MySQL server `odin-mysql-qa` → **Settings → Backup and restore**.
+2. Kiểm tra **Backup retention period**: đặt **7 ngày** trở lên → **Save**.
+3. Azure tự sao lưu toàn bộ mỗi ngày và sao lưu log giao dịch liên tục; không cần cron hay script trong ứng dụng.
+
+> Sao lưu tự động bị xoá cùng server. Vì vậy **không xoá** MySQL server khi đang vận hành; khi hết credit Azure for Students thì server bị tắt, nên làm thêm 7.2.
+
+### 7.2 Sao lưu thủ công ra máy (định kỳ hằng tuần, hoặc trước khi chạy patch SQL)
+Trên máy đã cài MySQL client (cùng IP đã được thêm ở tab Networking):
+```
+mysqldump -h odin-mysql-qa.mysql.database.azure.com -u <admin> -p --ssl-mode=REQUIRED --single-transaction --routines --triggers odin > odin_backup_YYYY-MM-DD.sql
+```
+Hoặc MySQL Workbench → **Server → Data Export** → chọn schema `odin` → *Export to Self-Contained File*.
+Lưu file vào nơi riêng (Google Drive / OneDrive của nhóm), giữ ít nhất 4 bản gần nhất.
+
+### 7.3 Khôi phục khi có sự cố hoặc thao tác nhầm hàng loạt
+1. Portal → MySQL server → **Backup and restore → Restore**.
+2. Chọn **Point-in-time restore**: chọn thời điểm **ngay trước sự cố** (hoặc *Latest restore point* nếu server hỏng).
+3. Đặt tên server mới, ví dụ `odin-mysql-restore`, giữ cùng cấu hình → **Review + create**, chờ hoàn tất.
+4. Server mới: tab **Networking** bật lại *Allow public access from any Azure service*.
+5. Web App → **Environment variables**: đổi `DB_HOST` thành `odin-mysql-restore.mysql.database.azure.com` → **Apply** → **Restart**.
+6. Kiểm tra: đăng nhập, mở danh sách Lead, xem Lead / hóa đơn mới nhất trước thời điểm khôi phục.
+7. Thông báo cho đội phần dữ liệu nhập sau thời điểm khôi phục cần nhập lại.
+
+Nếu không dùng được sao lưu của Azure (VD hết credit): tạo server MySQL mới theo Bước 2, import file ở 7.2 bằng Workbench, rồi làm bước 5–7.
+
+### 7.4 Diễn tập khôi phục (minh chứng RTO)
+Mỗi học kỳ / trước buổi bảo vệ thực hiện 7.3 ra một server tạm, ghi lại kết quả rồi xoá server tạm:
+
+| Ngày | Thời điểm khôi phục về | Bắt đầu | Web dùng lại được | Tổng thời gian | Người thực hiện | Ghi chú |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
 ## Sự cố thường gặp
 | Hiện tượng | Cách xử lý |
 |---|---|
