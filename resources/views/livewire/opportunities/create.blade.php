@@ -8,7 +8,7 @@
 
 <div class="vc ok-create">
     @assets
-        @vite(['resources/css/opportunity.css'])
+        @vite(['resources/css/voucher.css', 'resources/css/opportunity.css'])
     @endassets
 
     {{-- ── Breadcrumb ────────────────────────────────────────────── --}}
@@ -34,7 +34,7 @@
         </div>
     @enderror
 
-    <div class="ok-create__layout">
+    <div class="ok-create__layout {{ $sel ? 'ok-create__layout--two-col' : '' }}">
 
         {{-- ── Cột trái: tìm kiếm ─────────────────────────────────── --}}
         <section class="vc-card ok-create__search-panel">
@@ -54,6 +54,13 @@
             </label>
 
             @php $results = $this->results; @endphp
+
+            @if (trim($search) === '' && ! $selectedLeadId)
+                <div class="ok-create__idle">
+                    <x-icon name="search" />
+                    <p class="ok-create__idle-hint">{{ __('opportunities.create.search_placeholder') }}</p>
+                </div>
+            @endif
 
             @if (trim($search) !== '')
                 @if ($results->isEmpty())

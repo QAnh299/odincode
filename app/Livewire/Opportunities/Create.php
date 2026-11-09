@@ -42,17 +42,15 @@ class Create extends Component
 
     public string $contactSourceUrl = '';
 
-    // Tham số từ trang học viên (chỉ dùng khi mount)
-    public ?string $studentParam = null;
-
-    public function mount(?string $student = null): void
+    public function mount(): void
     {
         // Chỉ Salesperson được dùng trang này (middleware đã chặn, đây là lớp bảo vệ thứ hai)
         abort_unless(Auth::user()?->role_name === Role::SALESPERSON, 403);
 
-        // Nếu vào từ trang học viên với student_id trên URL
-        if ($student) {
-            $this->preselectFromStudent($student);
+        // Nếu vào từ trang học viên với ?student=ID trên URL (query string, không phải route param)
+        $studentId = request()->query('student');
+        if ($studentId) {
+            $this->preselectFromStudent((string) $studentId);
         }
     }
 
