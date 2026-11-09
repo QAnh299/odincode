@@ -281,6 +281,108 @@ return [
     ],
 
     // Phân tích hiệu quả Sales Team / Salesperson
+    // Hiệu quả nhân viên Sale (giao diện 2 tab: Đội kinh doanh / Nhân viên kinh doanh)
+    'sales_team' => [
+        'title'       => 'Hiệu quả nhân viên Sale',
+        'month_option' => 'Tháng :month',
+        'tab'         => [
+            'teams'     => 'Đội kinh doanh',
+            'employees' => 'Nhân viên kinh doanh',
+        ],
+        'team'        => 'Đội',
+        'hours_unit'  => 'giờ',
+        'points'      => ':value điểm',
+        'same'        => 'Không đổi',
+        'better'      => 'tốt hơn',
+        'worse'       => 'chậm hơn',
+        'billion'     => 'tỷ',
+        'million'     => 'tr',
+        'ranking'     => 'Bảng xếp hạng đội',
+        'ranking_sub' => 'Xếp theo % đạt chỉ tiêu doanh số',
+        'ranking_sub_click' => 'Xếp theo % đạt chỉ tiêu doanh số · bấm vào đội để xem chi tiết',
+        'ranking_open' => 'Xem riêng đội này',
+        'members'     => ':count thành viên',
+        'attain'      => 'đạt :rate',
+        'col' => [
+            'rank'       => 'Hạng',
+            'team'       => 'Đội',
+            'revenue'    => 'Doanh số / chỉ tiêu',
+            'students'   => 'Học viên / chỉ tiêu',
+            'close_rate' => 'Tỷ lệ thắng',
+            'close_days' => 'TG chốt TB',
+            'flagged'    => 'Cần xử lý',
+        ],
+        'employee_ranking' => 'Xếp hạng nhân viên kinh doanh',
+        'alerts'      => 'Việc cần xử lý',
+        'share'       => [
+            'revenue'  => 'Doanh thu',
+            'students' => 'Số học viên',
+        ],
+        'share_total' => [
+            'revenue'  => 'Tổng doanh thu',
+            'students' => 'Tổng học viên',
+        ],
+
+        'kpi' => [
+            'assigned'          => 'Lead đã giao trong kỳ',
+            'assigned_none'     => 'Chưa giao Lead nào trong kỳ',
+            'assigned_top'      => 'Nhiều nhất: :team (:count)',
+            'uncontacted'       => 'Lead chưa liên hệ > 24h',
+            'uncontacted_hint'  => 'Cần nhắc / chuyển người phụ trách',
+            'response'          => 'Phản hồi đầu tiên TB',
+            'response_hint'     => 'Từ lúc giao Lead đến lần liên hệ đầu tiên · SLA ≤ :hours giờ',
+            'contact_rate'      => 'Tỷ lệ liên hệ được',
+            'contact_rate_hint' => ':ok / :total Lead đã gọi có ít nhất 1 lần liên hệ thành công',
+        ],
+
+        'status' => [
+            'won'       => 'Đã chốt',
+            'progress'  => 'Đang xử lý',
+            'unreached' => 'Không liên hệ được',
+            'new'       => 'Chưa liên hệ',
+            'closed'    => 'Thất bại / lưu trữ',
+        ],
+
+        'emp' => [
+            'share'        => 'Cơ cấu theo nhân viên',
+            'share_sub'    => [
+                'revenue'  => 'Tỷ trọng doanh thu (đơn hàng tạo trong kỳ) của từng nhân viên',
+                'students' => 'Tỷ trọng học viên mới trong kỳ của từng nhân viên',
+            ],
+            'other_people' => 'Nhân viên khác (:count)',
+            'top'          => 'Top :count nhân viên',
+            'top_sub'      => [
+                'revenue'    => 'Doanh số chốt trong kỳ · màu thanh = đội của nhân viên',
+                'won'        => 'Số Lead chốt (Won) trong kỳ · màu thanh = đội của nhân viên',
+                'close_rate' => 'Won / (Won + Lost), người có từ :min cơ hội đóng · màu thanh = đội',
+                'students'   => 'Học viên mới trong kỳ · màu thanh = đội của nhân viên',
+            ],
+            'metric'       => [
+                'revenue'    => 'Doanh số',
+                'won'        => 'Lead chốt',
+                'close_rate' => 'Tỷ lệ thắng',
+                'students'   => 'Học viên mới',
+            ],
+        ],
+
+        'chart' => [
+            'share'          => 'Cơ cấu theo đội',
+            'share_metric'   => 'Chỉ số',
+            'share_sub'      => [
+                'revenue'  => 'Tỷ trọng doanh thu (đơn hàng tạo trong kỳ) của từng đội',
+                'students' => 'Tỷ trọng học viên mới trong kỳ của từng đội',
+            ],
+            'status'         => 'Lead đã giao và tình trạng xử lý',
+            'status_sub'     => 'Lead giao trong kỳ, đang ở trạng thái nào',
+            'revenue'        => 'Doanh số theo tháng so với chỉ tiêu',
+            'revenue_sub'    => 'Cột chồng = đóng góp từng đội · đường đứt = tổng chỉ tiêu',
+            'revenue_sub_single' => 'Doanh số chốt theo tháng · đường đứt = tổng chỉ tiêu',
+            'win_rate'       => 'Tỷ lệ thắng theo đội',
+            'win_rate_all'   => 'Tỷ lệ thắng',
+            'win_rate_sub'   => 'Won / (Won + Lost) theo tháng chốt',
+        ],
+    ],
+
     'sales_performance' => [
         'title'      => 'Hiệu quả Sales Team / Salesperson',
         'subtitle'   => 'Ai đạt chỉ tiêu, pipeline tháng sau và ai cần được hỗ trợ',
@@ -341,7 +443,6 @@ return [
         'alert_section'        => '3. Việc cần xử lý',
         'alert_section_sub'    => 'Ảnh chụp hiện tại (không theo tháng), mỗi ô đếm số cơ hội. Cơ hội nguội: không liên hệ, chuyển stage hay lịch hẹn nào trong :days ngày.',
         'alert_none'           => 'Không có cơ hội nào tồn đọng trong phạm vi đang xem.',
-        'alert_open'           => 'Xem Kanban',
         'trend_section'        => '4. Xu hướng 6 tháng',
         'trend_section_sub'    => 'Đội đang đi lên hay đi xuống, tính đến tháng đang xem.',
 

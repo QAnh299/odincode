@@ -15,7 +15,7 @@ use App\Livewire\Quotations\Show as QuotationShow;
 use App\Livewire\Reports\LeadConversion as LeadConversionReport;
 use App\Livewire\Reports\LeadSources as LeadSourceReport;
 use App\Livewire\Reports\Revenue as RevenueReport;
-use App\Livewire\Reports\SalesPerformance as SalesPerformanceReport;
+use App\Livewire\Reports\SalesTeamPerformance as SalesPerformanceReport;
 use App\Livewire\SalesTeams\Index as SalesTeamIndex;
 use App\Livewire\SalesTeams\Show as SalesTeamShow;
 use App\Livewire\Students\Index as StudentIndex;

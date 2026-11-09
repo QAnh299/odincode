@@ -1254,7 +1254,6 @@
     text-decoration: underline;
 }
 
-
 /* ── Báo cáo doanh thu & thanh toán: thẻ bấm được, việc cần xử lý, nhận định, tỷ lệ thu theo tháng, sắp xếp ── */
 a.rv-stat-link {
     color: inherit;
@@ -1940,4 +1939,433 @@ a.rv-stat-link:focus-visible {
     .ls-row--3 {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+
+/* ── Hiệu quả nhân viên Sale (.tp - tab Đội kinh doanh / Nhân viên kinh doanh) ── */
+
+.tp {
+    --st-blue: #2a78d6;
+    --st-blue-bg: #e8f0fc;
+    --st-line: #e5e7eb;
+    --st-ink: #1f2937;
+    --st-muted: #6b7280;
+    --st-green: #15803d;
+    --st-red: #d92d20;
+}
+
+/* Thẻ trắng dùng chung (bộ lọc, biểu đồ, bảng) */
+.tp-card,
+.tp .rp-card {
+    margin-bottom: 0;
+    padding: 1.15rem 1.35rem 1.2rem;
+    border: 1px solid var(--st-line);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.tp .rp-card__title {
+    color: var(--st-ink);
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.tp .rp-card__sub {
+    margin: 0.2rem 0 0.75rem;
+    font-size: 0.9rem;
+}
+
+/* ── Bộ lọc ── */
+
+.tp-select {
+    width: 100%;
+    height: 44px;
+    padding: 0 2.2rem 0 0.9rem;
+    border: 1px solid #d6dbe1;
+    border-radius: 8px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0h10L5 6z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 0.9rem center;
+    color: var(--st-ink);
+    font-size: 1rem;
+    appearance: none;
+    cursor: pointer;
+}
+
+.tp-select:focus {
+    border-color: var(--st-blue);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(42, 120, 214, 0.15);
+}
+
+/* ── Hàng biểu đồ ── */
+.tp-row {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.tp-row > .rp-card {
+    min-width: 0;
+}
+
+.tp-row--even {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tp-row--wide-left {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+/* ── Bảng xếp hạng đội ── */
+.tp-rank {
+    margin-bottom: 1.25rem;
+}
+
+.tp-rank__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+.tp-rank__head .rp-toolbar {
+    flex: 0 1 auto;
+    gap: 1rem;
+    margin: 0;
+}
+
+.tp-table {
+    width: 100%;
+    min-width: 860px;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.tp-table thead th {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--tp-line);
+    background: #f8f9fb;
+    color: var(--tp-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.tp-table td {
+    padding: 0.95rem 0.9rem;
+    border-bottom: 1px solid #eef0f3;
+    color: var(--tp-ink);
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+.tp-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tp-table .is-num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tp-table tbody tr {
+    transition: background-color 0.12s;
+}
+
+.tp-table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.tp-table tbody tr.is-click {
+    cursor: pointer;
+}
+
+/* Số phụ dưới số chính (thành viên, % đạt học viên, chốt / thất bại) */
+.tp-sub {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--tp-muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.tp-muted {
+    color: var(--tp-muted);
+    font-weight: 400;
+}
+
+/* Hạng: top 3 vàng / bạc / đồng, còn lại số xám */
+.tp-col-rank {
+    width: 64px;
+}
+
+.tp-place {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    background: #f1f3f6;
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.tp-place--1 {
+    background: #fdf0c4;
+    color: #92600a;
+}
+
+.tp-place--2 {
+    background: #e6eaf0;
+    color: #3f4b5b;
+}
+
+.tp-place--3 {
+    background: #f9e0cc;
+    color: #9a4a17;
+}
+
+/* Đội: chấm màu + tên, số thành viên bên dưới */
+.tp-team {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.tp-team__dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--c, var(--tp-blue));
+}
+
+.tp-team__sub {
+    padding-left: calc(10px + 0.5rem);
+}
+
+/* Doanh số / chỉ tiêu: số liệu + chip % đạt cùng hàng, thanh tiến độ bên dưới */
+.tp-col-goal {
+    width: 34%;
+    min-width: 260px;
+}
+
+.tp-goal {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    white-space: nowrap;
+}
+
+.tp-rate {
+    padding: 0.1rem 0.45rem;
+    background: #e8f0fc;
+    color: #1d5fb4;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.tp-rate.is-done {
+    background: #e3f5e8;
+    color: #15803d;
+}
+
+.tp-rate.is-mid {
+    background: #fdf3d7;
+    color: #a16207;
+}
+
+.tp-rate.is-low {
+    background: #fde4e4;
+    color: #b91c1c;
+}
+
+.tp-bar {
+    height: 6px;
+    margin-top: 0.5rem;
+    background: #edf0f3;
+    overflow: hidden;
+}
+
+.tp-bar span {
+    display: block;
+    height: 100%;
+    background: var(--tp-blue);
+}
+
+.tp-bar.is-done span {
+    background: #16a34a;
+}
+
+.tp-bar.is-mid span {
+    background: #d99a0b;
+}
+
+.tp-bar.is-low span {
+    background: #dc2626;
+}
+
+/* Cần xử lý */
+.tp-pill {
+    display: inline-block;
+    min-width: 2rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.tp-pill--warn {
+    background: #fdedd0;
+    color: #b45309;
+}
+
+/* Tab Nhân viên kinh doanh: bảng cũ dùng .vc-card */
+.tp .vc-card.rp-card + .rp-section,
+.tp .rp-section:first-of-type {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .tp-row--even,
+    .tp-row--wide-left {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Chú thích biểu đồ bằng HTML (chart-card, spec.htmlLegend): canh trái ngay dưới tiêu đề */
+.rp-legend-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    color: var(--vc-ink);
+    font-size: 0.92rem;
+    list-style: none;
+}
+
+.rp-legend-list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.rp-legend-list__box {
+    width: 12px;
+    height: 12px;
+    background: var(--c);
+}
+
+.rp-legend-list__line {
+    width: 18px;
+    border-top: 2px solid var(--c);
+}
+
+/* Cơ cấu theo đội: biểu đồ tròn + chú thích có số liệu, dropdown chọn chỉ số */
+.tp-share__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.tp-select--sm {
+    width: auto;
+    min-width: 150px;
+    height: 38px;
+    font-size: 0.93rem;
+}
+
+.tp-share__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+
+.tp-share__chart {
+    width: 100%;
+}
+
+/* Chú thích nhỏ dưới hình tròn: màu → tên đội, xuống dòng khi nhiều đội */
+.tp-share__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 1rem;
+    margin: 0;
+    padding: 0;
+    color: var(--vc-ink);
+    font-size: 0.84rem;
+    list-style: none;
+}
+
+.tp-share__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+
+.tp-share__swatch {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    background: var(--c);
+}
+
+/* Thẻ KPI cảnh báo (Lead chưa liên hệ > 24h): số và icon màu đỏ */
+.tp-kpi--alert .ls-kpi__icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.tp-kpi--alert .ls-kpi__value,
+.tp-kpi__value--warn {
+    color: #dc2626;
+}
+
+/* 4 thẻ KPI một hàng */
+.ls-kpis.tp-kpis--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1199.98px) {
+    .ls-kpis.tp-kpis--4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ls-kpis.tp-kpis--4 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Bộ lọc (dùng .ls-filters của Chất lượng nguồn Lead): 2 ô ngày + --n ô chọn + nút Xoá lọc */
+.ls-filters.tp-filters {
+    grid-template-columns: repeat(2, minmax(130px, 1fr)) repeat(var(--n, 3), minmax(140px, 1fr)) auto;
+}
+
+@media (max-width: 1399.98px) {
+    .ls-filters.tp-filters {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+}
+
+/* Tab Nhân viên: chú thích màu đội dưới biểu đồ top nhân viên */
+.tp-emp-legend {
+    margin-top: 0.75rem;
+}
+
+/* Khoảng cách từ 2 biểu đồ đến tiêu đề bảng xếp hạng nhân viên */
+.tp .tp-emp-charts + .rp-section {
+    margin-top: 1.75rem;
 }

@@ -44,7 +44,16 @@ class SalesPerformanceReport
         'team'       => 'e.team_id',
         'month'      => "DATE_FORMAT(o.event_at, '%Y-%m')",
         'team_month' => "CONCAT(e.team_id, '|', DATE_FORMAT(o.event_at, '%Y-%m'))",
+        // Tuần trong tháng: ngày 1-7 = tuần 1, 8-14 = tuần 2... (chỉ dùng khi lọc đúng 1 tháng)
+        'week'       => 'FLOOR((DAY(o.event_at) - 1) / 7) + 1',
+        'team_week'  => "CONCAT(e.team_id, '|', FLOOR((DAY(o.event_at) - 1) / 7) + 1)",
     ];
+
+    // Cam kết thời gian phản hồi đầu tiên (giờ, từ lúc giao Lead đến lần liên hệ đầu)
+    const RESPONSE_SLA_HOURS = 4;
+
+    // Lead được giao quá số giờ này mà chưa liên hệ lần nào = cần nhắc / chuyển người phụ trách
+    const UNCONTACTED_HOURS = 24;
 
     // Cơ hội đang xử lý không có tương tác nào (liên hệ, chuyển stage, lịch hẹn) quá số ngày này = "nguội"
     const STALE_DAYS = 7;
@@ -67,6 +76,7 @@ class SalesPerformanceReport
         'assigned', 'processed', 'moved', 'contacts', 'contacts_ok', 'unreachable', 'backward',
         'response_hours', 'response_n', 'won', 'lost', 'close_days', 'close_n', 'revenue', 'paid', 'students',
         'orders', 'care', 'care_ok', 'appts', 'appts_ok', 'transfers_out',
+        'contacted', 'contacted_ok', 'status_won', 'status_closed', 'status_new', 'status_unreached',
     ];
 
     const FLOATS = ['response_hours', 'close_days', 'revenue', 'paid'];
@@ -115,7 +125,15 @@ class SalesPerformanceReport
             ->selectRaw('SUM(o.contacts > 0 AND o.contacts_ok = 0) AS unreachable')
             ->selectRaw('SUM(o.backward) AS backward')
             ->selectRaw('SUM(o.response_hours) AS response_hours')
-            ->selectRaw('COUNT(o.response_hours) AS response_n');
+            ->selectRaw('COUNT(o.response_hours) AS response_n')
+            ->selectRaw('SUM(o.contacts > 0) AS contacted')
+            ->selectRaw('SUM(o.contacts_ok > 0) AS contacted_ok')
+            // Tình trạng xử lý của Lead được giao trong kỳ (4 nhóm loại trừ nhau, cộng lại = Lead được giao):
+            // đã chốt → chưa liên hệ → không liên hệ được → còn lại = đang xử lý (đã liên hệ được, kể cả đã đóng thất bại)
+            ->selectRaw("SUM(o.status = 'Won') AS status_won")
+            ->selectRaw("SUM(o.status IN ('Lost', 'Archived')) AS status_closed")
+            ->selectRaw("SUM(o.status <> 'Won' AND o.contacts = 0) AS status_new")
+            ->selectRaw("SUM(o.status <> 'Won' AND o.contacts > 0 AND o.contacts_ok = 0) AS status_unreached");
         foreach ($stages as $stage) {
             $cohort->selectRaw("SUM(o.reached >= {$stage['order']}) AS reached_{$stage['order']}");
         }
@@ -232,6 +250,17 @@ class SalesPerformanceReport
     }
 
     /**
+     * Số Lead đang xử lý (hiện tại) đã giao quá $hours giờ mà chưa có lần liên hệ nào.
+     */
+    public function uncontacted(array $filters, int $hours = self::UNCONTACTED_HOURS): int
+    {
+        return $this->current($filters)
+            ->where('o.conversion_date', '<=', now()->subHours($hours))
+            ->whereNotExists(fn ($q) => $q->from('CareResults as cr')->whereColumn('cr.opportunity_id', 'o.opportunity_id'))
+            ->count();
+    }
+
+    /**
      * Việc cần xử lý hiện tại theo người phụ trách (cùng tiêu chí với Kanban), mỗi loại đếm số Cơ hội:
      *   overdue_appointment  lịch hẹn đã qua giờ mà chưa cập nhật kết quả
      *   needs_quotation      ở stage Chốt nhưng chưa có báo giá
@@ -307,6 +336,7 @@ class SalesPerformanceReport
         return DB::table('Opportunities as o')
             ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
             ->where('o.status', Opportunity::STATUS_IN_PROGRESS)
+            ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
     }
@@ -321,6 +351,7 @@ class SalesPerformanceReport
             ->join('Employees as e', 'e.employee_id', '=', 'o.employee_id')
             ->when($filters['from'] ?? null, fn ($q, $from) => $q->whereDate('o.event_at', '>=', $from))
             ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('o.event_at', '<=', $to))
+            ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
     }
@@ -391,6 +422,8 @@ class SalesPerformanceReport
      *   processed_rate = Lead đã xử lý / Lead được giao      moved_rate = Lead chuyển Stage / Lead được giao
      *   close_rate     = Won / (Won + Lost) đóng trong kỳ     contact_success_rate = liên hệ thành công / tổng liên hệ
      *   avg_response_hours, avg_close_days
+     *   contact_rate   = Lead liên hệ được (≥ 1 lần thành công) / Lead đã liên hệ
+     *   status_progress = Lead được giao chưa chốt nhưng đã liên hệ được
      *   stages: [order => ['reached', 'rate' (so với stage trước), 'overall' (so với Lead được giao)]]
      */
     public function derive(array $row): array
@@ -411,6 +444,8 @@ class SalesPerformanceReport
         $row['activity'] = $row['care'] + $row['appts'];
         $row['reach_rate'] = $pct($row['care_ok'], $row['care']);
         $row['show_rate'] = $pct($row['appts_ok'], $row['appts']);
+        $row['contact_rate'] = $pct($row['contacted_ok'], $row['contacted']);
+        $row['status_progress'] = max(0, $row['assigned'] - $row['status_won'] - $row['status_new'] - $row['status_unreached']);
 
         $row['stages'] = [];
         $previous = null;

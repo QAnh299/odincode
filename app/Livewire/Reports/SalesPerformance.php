@@ -396,17 +396,35 @@ class SalesPerformance extends Component
     #[Computed]
     public function byTeam(): array
     {
-        $rows = $this->teamRows($this->filterValues($this->activeMonth), $this->byEmployee, $this->targets);
+        $filters = $this->filterValues($this->activeMonth);
+        $rows = $this->teamRows($filters, $this->byEmployee, $this->targets);
+
+        // Hạng luôn tính trên toàn bộ đội: phạm vi chỉ có 1 phần các đội (Sale Leader - đội của mình,
+        // hoặc đang lọc 1 đội) thì lấy hạng của đội trong bảng xếp hạng chung, không phải hạng trong phạm vi
+        $ranks = [];
+        if ($rows && ($filters['team'] ?? null)) {
+            $all = ['team' => null] + $filters;
+            $ranks = array_column($this->teamRows($all, [], $this->rankTargets($all)), 'rank', 'id');
+        }
 
         foreach ($rows as &$row) {
             $members = array_filter($this->byEmployee, fn ($r) => $r['team_id'] === $row['id']);
             $row['open'] = array_sum(array_column($members, 'open'));
             $row['open_value'] = array_sum(array_column($members, 'open_value'));
             $row['flagged'] = array_sum(array_map(fn ($r) => $r['alerts']['flagged'] ?? 0, $members));
+            $row['rank'] = $ranks[$row['id']] ?? $row['rank'];
         }
         unset($row);
 
         return $rows;
+    }
+
+    /**
+     * Chỉ tiêu của mọi đội trong phạm vi $filters (cùng kỳ với số liệu) - để xếp hạng trên toàn bộ đội.
+     */
+    protected function rankTargets(array $filters): array
+    {
+        return $this->targetsFor($this->activeMonth, $filters);
     }
 
     /**
@@ -457,22 +475,6 @@ class SalesPerformance extends Component
         usort($rows, fn ($a, $b) => $b['alerts']['flagged'] <=> $a['alerts']['flagged'] ?: strcmp($a['name'], $b['name']));
 
         return $rows;
-    }
-
-    /**
-     * Link Kanban lọc theo salesperson (chỉ vai trò có trang Kanban: Giám đốc, Sale Leader).
-     */
-    public function kanbanUrl(array $row): ?string
-    {
-        $route = Auth::user()->role_name.'.opportunities';
-        if (! Route::has($route)) {
-            return null;
-        }
-
-        return route($route, array_filter([
-            'team'     => Auth::user()->role_name === Role::DIRECTOR ? $row['team_id'] : null,
-            'employee' => $row['id'],
-        ]));
     }
 
     /**

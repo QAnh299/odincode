@@ -10,6 +10,8 @@
     $locked = $this::EXPORT_LOCKED[$tab];
     $columnsOn = count(array_filter(array_keys($catalog[$tab]), fn ($c) => $this->exportColumnOn($tab, $c)));
     $sheetsOn = count(array_filter($this::EXPORT_SHEETS, fn ($s) => $this->exportSheetOn($s)));
+    // Báo cáo chỉ có 1 sheet: không hiện tab sheet / ô bật tắt sheet
+    $multiSheet = count($this::EXPORT_SHEETS) > 1;
     $pv = $exportOpen ? $this->exportPreview : null;
 @endphp
 
@@ -81,6 +83,7 @@
                         </div>
                     </div>
 
+                    @if ($multiSheet)
                     <nav class="lx__tabs" role="tablist">
                         @foreach ($this::EXPORT_SHEETS as $sheet)
                             <button type="button" role="tab" wire:click="$set('exportTab', '{{ $sheet }}')"
@@ -93,6 +96,7 @@
                             </button>
                         @endforeach
                     </nav>
+                    @endif
 
                     <div class="lx__canvas" wire:loading.class="is-loading" wire:target.except="export">
                         @if (! $pv)
@@ -189,10 +193,12 @@
                         <h3 class="lx__pane-title">{{ $U('columns') }}</h3>
                         <span class="lx__count">{{ $U('columns_count', ['on' => $columnsOn, 'total' => count($catalog[$tab])]) }}</span>
                     </div>
-                    <label class="lx__check lx__check--sheet">
-                        <input type="checkbox" wire:model.live="exportSheets.{{ $tab }}">
-                        <span>{{ $U('sheet_include') }}</span>
-                    </label>
+                    @if ($multiSheet)
+                        <label class="lx__check lx__check--sheet">
+                            <input type="checkbox" wire:model.live="exportSheets.{{ $tab }}">
+                            <span>{{ $U('sheet_include') }}</span>
+                        </label>
+                    @endif
                     <div class="lx__quick {{ $this->exportSheetOn($tab) ? '' : 'is-off' }}">
                         <button type="button" wire:click="defaultExportColumns">{{ $U('columns_default') }}</button>
                         <span aria-hidden="true">·</span>
@@ -216,9 +222,11 @@
             <footer class="ld-modal__foot lx__foot">
                 <span class="lx__note">
                     @if ($pv)
-                        {{ $U('preview_rows', ['shown' => $pv['shown'], 'total' => number_format($pv['items'], 0, ',', '.')]) }} ·
+                        {{ $U('preview_rows', ['shown' => $pv['shown'], 'total' => number_format($pv['items'], 0, ',', '.')]) }}{{ $multiSheet ? ' ·' : '' }}
                     @endif
-                    {{ $U('sheets_count', ['count' => $sheetsOn]) }}
+                    @if ($multiSheet)
+                        {{ $U('sheets_count', ['count' => $sheetsOn]) }}
+                    @endif
                     @error('exportSheets') <span class="ld-error">{{ $message }}</span> @enderror
                 </span>
                 <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeExport">{{ $P('cancel') }}</button>

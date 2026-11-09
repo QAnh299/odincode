@@ -277,6 +277,108 @@ return [
         'stt'             => 'No.',
     ],
 
+    // Sales staff performance (2 tabs: Sales teams / Salespeople)
+    'sales_team' => [
+        'title'       => 'Sales staff performance',
+        'month_option' => 'Month :month',
+        'tab'         => [
+            'teams'     => 'Sales teams',
+            'employees' => 'Salespeople',
+        ],
+        'team'        => 'Team',
+        'hours_unit'  => 'hrs',
+        'points'      => ':value pts',
+        'same'        => 'No change',
+        'better'      => 'better',
+        'worse'       => 'slower',
+        'billion'     => 'B',
+        'million'     => 'M',
+        'ranking'     => 'Team ranking',
+        'ranking_sub' => 'Ranked by % of revenue target',
+        'ranking_sub_click' => 'Ranked by % of revenue target · click a team for details',
+        'ranking_open' => 'View this team only',
+        'members'     => ':count members',
+        'attain'      => ':rate achieved',
+        'col' => [
+            'rank'       => 'Rank',
+            'team'       => 'Team',
+            'revenue'    => 'Revenue / target',
+            'students'   => 'Students / target',
+            'close_rate' => 'Win rate',
+            'close_days' => 'Avg. close time',
+            'flagged'    => 'Needs attention',
+        ],
+        'employee_ranking' => 'Salesperson ranking',
+        'alerts'      => 'Needs attention',
+        'share'       => [
+            'revenue'  => 'Revenue',
+            'students' => 'Students',
+        ],
+        'share_total' => [
+            'revenue'  => 'Total revenue',
+            'students' => 'Total students',
+        ],
+
+        'kpi' => [
+            'assigned'          => 'Leads assigned in period',
+            'assigned_none'     => 'No leads assigned in this period',
+            'assigned_top'      => 'Most: :team (:count)',
+            'uncontacted'       => 'Leads not contacted > 24h',
+            'uncontacted_hint'  => 'Remind or reassign the owner',
+            'response'          => 'Avg. first response',
+            'response_hint'     => 'From lead assignment to first contact · SLA ≤ :hours hrs',
+            'contact_rate'      => 'Contact rate',
+            'contact_rate_hint' => ':ok / :total called leads reached at least once',
+        ],
+
+        'status' => [
+            'won'       => 'Won',
+            'progress'  => 'In progress',
+            'unreached' => 'Unreachable',
+            'new'       => 'Not contacted',
+            'closed'    => 'Lost / archived',
+        ],
+
+        'emp' => [
+            'share'        => 'Breakdown by salesperson',
+            'share_sub'    => [
+                'revenue'  => 'Each salesperson\'s share of revenue (orders created in the period)',
+                'students' => 'Each salesperson\'s share of new students in the period',
+            ],
+            'other_people' => 'Others (:count)',
+            'top'          => 'Top :count salespeople',
+            'top_sub'      => [
+                'revenue'    => 'Closed revenue in the period · bar colour = team',
+                'won'        => 'Won leads in the period · bar colour = team',
+                'close_rate' => 'Won / (Won + Lost), at least :min closed opportunities · bar colour = team',
+                'students'   => 'New students in the period · bar colour = team',
+            ],
+            'metric'       => [
+                'revenue'    => 'Revenue',
+                'won'        => 'Won leads',
+                'close_rate' => 'Win rate',
+                'students'   => 'New students',
+            ],
+        ],
+
+        'chart' => [
+            'share'          => 'Breakdown by team',
+            'share_metric'   => 'Metric',
+            'share_sub'      => [
+                'revenue'  => 'Each team\'s share of revenue (orders created in the period)',
+                'students' => 'Each team\'s share of new students in the period',
+            ],
+            'status'         => 'Assigned leads and their status',
+            'status_sub'     => 'Leads assigned in the period and their current status',
+            'revenue'        => 'Monthly revenue vs target',
+            'revenue_sub'    => 'Stacked bars = each team · dashed line = total target',
+            'revenue_sub_single' => 'Monthly closed revenue · dashed line = total target',
+            'win_rate'       => 'Win rate by team',
+            'win_rate_all'   => 'Win rate',
+            'win_rate_sub'   => 'Won / (Won + Lost) by closing month',
+        ],
+    ],
+
     'sales_performance' => [
         'title'      => 'Sales Team / Salesperson Performance',
         'subtitle'   => 'Who hits target, next month\'s pipeline and who needs support',
@@ -337,7 +439,6 @@ return [
         'alert_section'        => '3. Action needed',
         'alert_section_sub'    => 'Current snapshot (not by month); each cell counts opportunities. Stale: no contact, stage change or appointment in :days days.',
         'alert_none'           => 'No pending opportunities in the current scope.',
-        'alert_open'           => 'Open Kanban',
         'trend_section'        => '4. 6-month trend',
         'trend_section_sub'    => 'Is the team improving or declining, up to the selected month.',
 
