@@ -789,7 +789,7 @@ button.odin-cal__day:hover {
 }
 
 .odin-cal__open:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .odin-cal__empty {

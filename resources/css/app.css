@@ -12,6 +12,15 @@
     --font-inter: "Inter";
 }
 
+/* Link tham chiếu và nút chức năng: không gạch chân (Bootstrap mặc định gạch chân thẻ <a>) */
+a,
+a:hover,
+a:focus,
+.btn,
+.btn-link {
+    text-decoration: none;
+}
+
 body {
     font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     color: var(--odin-ink);

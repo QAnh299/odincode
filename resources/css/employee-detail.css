@@ -345,7 +345,7 @@
 
 .ed-link:hover {
     color: var(--ed-primary);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 /* ── Đội kinh doanh ───────────────────────────────────────────────── */

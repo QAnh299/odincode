@@ -35,7 +35,7 @@
 
 a.em-person:hover .em-person__name {
     color: var(--odin-primary, var(--bs-primary));
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .em-person__id {

@@ -975,7 +975,7 @@ select.od-control {
     color: var(--od-danger);
     font-size: 0.8rem;
     font-weight: 600;
-    text-decoration: underline;
+    text-decoration: none;
     cursor: pointer;
 }
 
@@ -1068,7 +1068,7 @@ select.od-control {
 
 .od-link:hover,
 .od-link:focus-visible {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 /* Danh sách đơn hàng: cả dòng mở trang chi tiết đơn */
@@ -1081,7 +1081,7 @@ select.od-control {
 }
 
 .od-row-link:hover .od-code__id {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 a.od-mono.od-link {

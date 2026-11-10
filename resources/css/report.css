@@ -1151,7 +1151,7 @@
 }
 
 .lx__quick button:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .lx__quick.is-off {
@@ -1251,7 +1251,7 @@
 }
 
 .rp-link:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 /* ── Báo cáo doanh thu & thanh toán: thẻ bấm được, việc cần xử lý, nhận định, tỷ lệ thu theo tháng, sắp xếp ── */

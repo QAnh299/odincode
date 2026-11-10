@@ -175,8 +175,7 @@
 .ok-sort__btn.is-active {
     color: var(--vc-primary);
     font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration: none;
 }
 
 /* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
@@ -1584,7 +1583,7 @@
 }
 
 .od-link:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 /* Bảng báo giá trong cơ hội: bấm cả dòng mở chi tiết báo giá; số ngày còn lại của báo giá Nháp */
@@ -1597,7 +1596,7 @@
 }
 
 .od-row-link:hover .od-link {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .od-quo-expiry {
