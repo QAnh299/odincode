@@ -4,7 +4,9 @@ namespace App\Livewire\Opportunities;
 
 use App\Models\Employee;
 use App\Models\Lead;
+use App\Models\Opportunity;
 use App\Models\Role;
+use App\Models\Stage;
 use App\Models\Student;
 use App\Services\LeadDuplicateService;
 use App\Services\OpportunityCreateService;
@@ -12,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use RuntimeException;
@@ -32,7 +35,8 @@ class Create extends Component
     #[Url(except: '')]
     public string $search = '';
 
-    // Lead ID của khách đang được chọn (null = chưa chọn)
+    // Lead ID của khách đang được chọn (null = chưa chọn); chỉ đổi qua action ở server
+    #[Locked]
     public ?string $selectedLeadId = null;
 
     // Form cập nhật thông tin liên hệ (phone / email / source_url)
@@ -41,6 +45,14 @@ class Create extends Component
     public string $contactEmail = '';
 
     public string $contactSourceUrl = '';
+
+    // Mã học viên khi vào từ nút "Đăng ký khóa mới" (null = vào từ Kanban); quyết định nút Quay lại
+    #[Locked]
+    public ?string $fromStudent = null;
+
+    // Khách được chọn sẵn từ trang học viên: không cho đổi sang khách khác
+    #[Locked]
+    public bool $lockedLead = false;
 
     public function mount(): void
     {
@@ -66,7 +78,14 @@ class Create extends Component
             ->with('opportunity:opportunity_id,lead_id')
             ->first();
 
-        if (! $student?->opportunity?->lead_id) {
+        if (! $student) {
+            return;
+        }
+
+        // Học viên hợp lệ: Quay lại về trang chi tiết học viên
+        $this->fromStudent = $student->student_id;
+
+        if (! $student->opportunity?->lead_id) {
             return;
         }
 
@@ -76,6 +95,8 @@ class Create extends Component
 
         if ($lead) {
             $this->selectedLeadId = $lead->lead_id;
+            $this->lockedLead     = true;
+            $this->fillContact($lead);
         }
     }
 
@@ -133,9 +154,29 @@ class Create extends Component
         }
 
         return [
-            'lead'  => $lead,
-            'check' => $service->check($lead, $this->me),
+            'lead'    => $lead,
+            'check'   => $service->check($lead, $this->me),
+            'profile' => $this->profileOf($lead),
         ];
+    }
+
+    /**
+     * Học viên gần nhất của khách (cơ hội đã load xếp mới nhất trước), null nếu chưa từng là học viên.
+     */
+    protected function profileOf(Lead $lead): array
+    {
+        return [
+            'student' => $lead->opportunities->first(fn (Opportunity $opp) => $opp->student !== null)?->student,
+        ];
+    }
+
+    /**
+     * Tên giai đoạn đầu của cơ hội mới (Data chưa tương tác).
+     */
+    #[Computed]
+    public function firstStageName(): string
+    {
+        return Stage::query()->whereKey(Stage::UNTOUCHED)->value('stage_name') ?? Stage::UNTOUCHED;
     }
 
     // ── Actions ───────────────────────────────────────────────────────
@@ -145,6 +186,10 @@ class Create extends Component
      */
     public function updatedSearch(): void
     {
+        if ($this->lockedLead) {
+            return;
+        }
+
         $this->selectedLeadId = null;
         $this->resetContact();
         unset($this->results, $this->selected);
@@ -155,6 +200,10 @@ class Create extends Component
      */
     public function selectLead(string $leadId): void
     {
+        if ($this->lockedLead) {
+            return;
+        }
+
         $this->selectedLeadId = $leadId;
         $this->resetContact();
         unset($this->selected);
@@ -164,10 +213,18 @@ class Create extends Component
         $lead    = $service->findForSalesperson($leadId, $this->me);
 
         if ($lead) {
-            $this->contactPhone     = $lead->phone ?? '';
-            $this->contactEmail     = $lead->email ?? '';
-            $this->contactSourceUrl = $lead->source_url ?? '';
+            $this->fillContact($lead);
         }
+    }
+
+    /**
+     * Điền thông tin liên hệ hiện tại của khách vào form.
+     */
+    protected function fillContact(Lead $lead): void
+    {
+        $this->contactPhone     = $lead->phone ?? '';
+        $this->contactEmail     = $lead->email ?? '';
+        $this->contactSourceUrl = $lead->source_url ?? '';
     }
 
     /**
@@ -175,6 +232,10 @@ class Create extends Component
      */
     public function clearSelection(): void
     {
+        if ($this->lockedLead) {
+            return;
+        }
+
         $this->selectedLeadId = null;
         $this->resetContact();
         unset($this->selected);
@@ -228,6 +289,16 @@ class Create extends Component
             route('salesperson.opportunities.show', $opportunity),
             navigate: true,
         );
+    }
+
+    /**
+     * Trang để quay lại: chi tiết học viên nếu vào từ đó, ngược lại là Kanban cơ hội.
+     */
+    public function backUrl(): string
+    {
+        return $this->fromStudent
+            ? route('salesperson.students.show', $this->fromStudent)
+            : route('salesperson.opportunities');
     }
 
     public function render()

@@ -1655,251 +1655,104 @@
 
 /* ── Trang tạo cơ hội ──────────────────────────────────────────────── */
 
-.ok-create {
-    max-width: 1100px;
-}
-
-/* Tiêu đề trang */
 .vc .vc-page-title {
     margin: 0.75rem 0 0.25rem;
     font-size: 1.4rem;
     font-weight: 800;
 }
 
-.vc-page-sub {
-    margin: 0 0 1.5rem;
+.vc .vc-page-sub {
+    margin: 0 0 1.25rem;
     font-size: 0.9rem;
     color: var(--vc-muted);
 }
 
-/* ── Layout: 1 cột khi chưa chọn, 2 cột khi đã chọn ───────────── */
-
-.ok-create__layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    align-items: start;
+/* Không có tiêu đề trang: chừa khoảng cách dưới breadcrumb */
+.ok-create > .vc-crumb {
+    margin-bottom: 1.25rem;
 }
 
-@media (min-width: 860px) {
-    .ok-create__layout--two-col {
-        grid-template-columns: 5fr 4fr;
-    }
+.ok-create > .ok-create__alert {
+    margin-bottom: 1rem;
 }
 
-/* ── Trạng thái idle: chưa tìm, chưa chọn ──────────────────────── */
+.ok-create__card-title {
+    margin: 0 0 1rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--vc-ink);
+}
+
+/* ── Tìm kiếm ──────────────────────────────────────────────────────── */
+
+.ok-create__search-panel .vc-search {
+    margin-bottom: 0.75rem;
+}
 
 .ok-create__idle {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 1rem;
     gap: 0.5rem;
+    padding: 2rem 1rem;
     color: var(--vc-muted);
     text-align: center;
 }
 
-.ok-create__idle svg {
+.vc .ok-create__idle .odin-icon {
     width: 28px;
     height: 28px;
     opacity: 0.35;
 }
 
 .ok-create__idle-hint {
-    font-size: 0.84rem;
-    max-width: 32ch;
-    line-height: 1.6;
+    max-width: 36ch;
     margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.6;
 }
 
-/* ── Kết quả tìm kiếm ────────────────────────────────────────────── */
-
 .ok-create__count {
-    margin: 0.75rem 0 0.5rem;
+    margin: 0 0 0.5rem;
     font-size: 0.82rem;
     color: var(--vc-muted);
 }
 
 .ok-create__empty {
-    margin: 1.25rem 0 0.25rem;
-    color: var(--vc-muted);
+    margin: 0;
     font-size: 0.9rem;
-    text-align: center;
 }
 
 .ok-create__empty-hint {
     margin: 0;
     font-size: 0.82rem;
-    color: var(--vc-muted);
-    text-align: center;
 }
 
 .ok-create__name {
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* ── Badge tình trạng trên dòng kết quả ─────────────────────────── */
-
+/* Badge tình trạng trên dòng kết quả */
 .ok-create__badge {
     display: inline-block;
     padding: 0.2rem 0.65rem;
-    border-radius: 20px;
+    border-radius: 999px;
     font-size: 0.76rem;
     font-weight: 600;
-    letter-spacing: 0.01em;
     white-space: nowrap;
 }
 
 .ok-create__badge--ok      { background: #dcfce7; color: #166534; }
-.ok-create__badge--warning { background: #fef9c3; color: #854d0e; }
+.ok-create__badge--warning { background: #fef3c7; color: #92400e; }
 .ok-create__badge--blocked { background: #fee2e2; color: #991b1b; }
 
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .ok-create__badge--ok      { background: #14532d; color: #86efac; }
-    :root:not([data-theme="light"]) .ok-create__badge--warning { background: #713f12; color: #fde047; }
-    :root:not([data-theme="light"]) .ok-create__badge--blocked { background: #7f1d1d; color: #fca5a5; }
-}
+/* ── Bố cục khi đã chọn khách: 2 cột cao bằng nhau, không bo góc ─── */
 
-:root[data-theme="dark"] .ok-create__badge--ok      { background: #14532d; color: #86efac; }
-:root[data-theme="dark"] .ok-create__badge--warning { background: #713f12; color: #fde047; }
-:root[data-theme="dark"] .ok-create__badge--blocked { background: #7f1d1d; color: #fca5a5; }
-
-/* ── Panel khách đang chọn ───────────────────────────────────────── */
-
-.ok-create__confirm-title {
-    margin: 0 0 0.2rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--vc-ink);
-}
-
-.ok-create__confirm-phone {
-    margin: 0 0 1.25rem;
-    font-size: 0.88rem;
-    color: var(--vc-muted);
-}
-
-/* ── Thông báo chặn / cảnh báo ───────────────────────────────────── */
-
-.ok-create__alert {
-    display: flex;
-    gap: 0.65rem;
-    align-items: flex-start;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    border-left: 3px solid transparent;
-    margin-bottom: 0.65rem;
-    font-size: 0.875rem;
-    line-height: 1.55;
-}
-
-.ok-create__alert svg {
-    flex-shrink: 0;
-    margin-top: 2px;
-    width: 15px;
-    height: 15px;
-}
-
-.ok-create__alert--danger {
-    background: #fef2f2;
-    color: #991b1b;
-    border-left-color: #ef4444;
-}
-
-.ok-create__alert--warning {
-    background: #fffbeb;
-    color: #78350f;
-    border-left-color: #f59e0b;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .ok-create__alert--danger  { background: #3b0101; color: #fca5a5; border-left-color: #b91c1c; }
-    :root:not([data-theme="light"]) .ok-create__alert--warning { background: #2c1600; color: #fde68a; border-left-color: #d97706; }
-}
-
-:root[data-theme="dark"] .ok-create__alert--danger  { background: #3b0101; color: #fca5a5; border-left-color: #b91c1c; }
-:root[data-theme="dark"] .ok-create__alert--warning { background: #2c1600; color: #fde68a; border-left-color: #d97706; }
-
-.ok-create__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-left: 0.4rem;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
-
-/* ── Ghi chú cảnh báo ────────────────────────────────────────────── */
-
-.ok-create__warning-note {
-    margin: 0 0 0.75rem;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.84rem;
-    color: var(--vc-muted);
-    background: var(--vc-surface);
-    border: 1px solid var(--vc-border);
-    border-radius: 6px;
-}
-
-/* ── Danh sách nợ học phí ────────────────────────────────────────── */
-
-.ok-create__debt-list {
-    margin: 0.4rem 0 0 1.1rem;
-    font-size: 0.84rem;
-    list-style-type: disc;
-}
-
-.ok-create__debt-list li + li {
-    margin-top: 0.2rem;
-}
-
-/* ── Form cập nhật liên hệ ───────────────────────────────────────── */
-
-.ok-create__contact {
-    padding-top: 1rem;
-    margin-top: 0.5rem;
-    border-top: 1px solid var(--vc-border);
-}
-
-.ok-create__contact-title {
-    margin: 0 0 0.75rem;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--vc-ink);
-}
-
-.ok-create__contact-hint {
-    margin-left: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: var(--vc-muted);
-}
-
-/* ── Nút hành động ───────────────────────────────────────────────── */
-
-.ok-create__actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 0.65rem;
-    padding-top: 1rem;
-    margin-top: 1rem;
-    border-top: 1px solid var(--vc-border);
-}
-
-.vc .vc-page-sub {
-    margin: 0 0 1.25rem;
-    color: var(--vc-muted);
-    font-size: 0.9rem;
-}
-
-/* Bố cục 2 cột: tìm kiếm (trái) + xác nhận (phải) */
 .ok-create__layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-columns: minmax(0, 1fr) 360px;
     gap: 1.25rem;
-    align-items: start;
+    align-items: stretch;
 }
 
 @media (max-width: 991.98px) {
@@ -1908,191 +1761,120 @@
     }
 }
 
-/* ── Panel tìm kiếm ─────────────────────────────────────────────────── */
-
-.ok-create__search-panel {
+/* Cột trái: thẻ khách + thẻ liên hệ; thẻ liên hệ giãn để đáy bằng cột phải */
+.ok-create__col {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
 }
 
-.ok-create__count {
-    margin: 0;
+.ok-create__contact-box {
+    flex: 1;
+}
+
+.ok-create__box {
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 0;
+    background: var(--vc-surface);
+    box-shadow: var(--vc-shadow);
+}
+
+.ok-create__section-title {
+    margin: 0 0 1.1rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--vc-muted);
-    font-size: 0.85rem;
 }
 
-.ok-create__empty {
-    margin: 0;
-    color: var(--vc-muted);
-    font-size: 0.9rem;
-}
+/* ── Thẻ khách đang chọn ──────────────────────────────────────────── */
 
-.ok-create__empty-hint {
-    margin: 0.25rem 0 0;
-    color: var(--vc-muted);
-    font-size: 0.82rem;
-}
-
-.ok-create__name {
-    font-weight: 600;
-}
-
-/* Dòng đang được chọn: nền xanh nhạt */
-.vc-table tbody tr.is-selected {
-    background: color-mix(in srgb, var(--vc-primary) 6%, #fff);
-}
-
-/* ── Badge tình trạng trong bảng kết quả ─────────────────────────────── */
-
-.ok-create__badge {
-    display: inline-flex;
+.ok-create__customer {
+    display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.6rem;
+    gap: 1.1rem;
+}
+
+.ok-create__avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--vc-primary) 12%, var(--vc-surface));
+    color: var(--vc-primary);
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.ok-create__customer-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.ok-create__customer-name {
+    margin: 0 0 0.4rem;
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--vc-ink);
+}
+
+.ok-create__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.ok-create__tag {
+    padding: 0.18rem 0.6rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    background: color-mix(in srgb, var(--vc-ink) 7%, var(--vc-surface));
+    color: var(--vc-ink);
+    font-size: 0.76rem;
     font-weight: 600;
-    white-space: nowrap;
 }
 
-.ok-create__badge--ok {
-    background: #dcfce7;
-    color: #15803d;
+.ok-create__tag--studying {
+    background: color-mix(in srgb, var(--vc-primary) 12%, var(--vc-surface));
+    color: var(--vc-primary);
 }
 
-.ok-create__badge--warning {
-    background: #fef3c7;
-    color: #b45309;
-}
-
-.ok-create__badge--blocked {
-    background: #fee2e2;
+.ok-create__tag--dropped {
+    background: color-mix(in srgb, #dc2626 10%, var(--vc-surface));
     color: #b91c1c;
 }
 
-/* ── Panel xác nhận (cột phải) ──────────────────────────────────────── */
-
-.ok-create__confirm-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    position: sticky;
-    top: 1rem;         /* bám theo khi cuộn, không rời bảng */
-}
-
-.ok-create__confirm-title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-
-.ok-create__confirm-phone {
-    margin: -0.5rem 0 0;
-    color: var(--vc-muted);
-    font-size: 0.88rem;
-}
-
-/* ── Thông báo chặn / cảnh báo ──────────────────────────────────────── */
-
-.ok-create__alert {
-    display: flex;
-    gap: 0.65rem;
-    padding: 0.75rem 0.9rem;
-    border-radius: 10px;
-    font-size: 0.88rem;
-    line-height: 1.5;
-}
-
-.ok-create__alert--danger {
-    background: #fee2e2;
-    color: #7f1d1d;
-}
-
-.ok-create__alert--warning {
-    background: #fef3c7;
-    color: #78350f;
-}
-
-.vc .ok-create__alert .odin-icon {
+.vc .ok-create__change {
     flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    margin-top: 1px;
+    border-radius: 0;
 }
 
-/* Link "Xem cơ hội đang chăm sóc →" trong thông báo chặn */
-.ok-create__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.35rem;
-    color: #1d4ed8;
-    font-weight: 600;
-    text-decoration: none;
+.vc .ok-create__change .odin-icon {
+    width: 16px;
+    height: 16px;
 }
 
-.ok-create__link:hover {
-    text-decoration: underline;
+@media (max-width: 575.98px) {
+    .ok-create__customer {
+        flex-wrap: wrap;
+    }
+
+    .vc .ok-create__change {
+        width: 100%;
+    }
 }
 
-/* Danh sách nợ theo khóa học */
-.ok-create__debt-list {
-    margin: 0.35rem 0 0 1.1rem;
-    padding: 0;
-}
-
-.ok-create__debt-list li {
-    margin-top: 0.2rem;
-}
-
-/* Ghi chú "Bạn vẫn có thể tạo" dưới các cảnh báo */
-.ok-create__warning-note {
-    margin: 0;
-    color: var(--vc-muted);
-    font-size: 0.82rem;
-    font-style: italic;
-}
-
-/* ── Nút hành động ──────────────────────────────────────────────────── */
-
-.ok-create__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.6rem;
-    padding-top: 0.25rem;
-    border-top: 1px solid var(--vc-border);
-}
-
-/* Lỗi chung (từ RuntimeException khi confirm) */
-.ok-create > .ok-create__alert {
-    margin-bottom: 0.5rem;
-}
-
-/* ── Form cập nhật thông tin liên hệ ───────────────────────────────── */
+/* ── Form thông tin liên hệ ────────────────────────────────────────── */
 
 .ok-create__contact {
     display: grid;
-    gap: 0.65rem;
-    padding: 0.85rem 0.9rem;
-    border: 1px solid var(--vc-border);
-    border-radius: 10px;
-    background: #f8fafc;
-}
-
-.ok-create__contact-title {
-    margin: 0;
-    font-size: 0.88rem;
-    font-weight: 700;
-}
-
-.ok-create__contact-hint {
-    display: block;
-    margin-top: 0.1rem;
-    color: var(--vc-muted);
-    font-size: 0.78rem;
-    font-weight: 400;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem 1.1rem;
 }
 
 .ok-create__contact .vc-field {
@@ -2100,5 +1882,225 @@
 }
 
 .ok-create__contact .vc-field__label {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--vc-ink);
+}
+
+.ok-create__label-hint {
+    font-weight: 400;
+    color: var(--vc-muted);
+}
+
+.ok-create__contact-wide {
+    grid-column: 1 / -1;
+}
+
+/* Ô nhập có icon bên trái */
+.ok-create__input {
+    position: relative;
+    display: block;
+}
+
+.vc .ok-create__input .odin-icon {
+    position: absolute;
+    top: 50%;
+    left: 0.85rem;
+    width: 17px;
+    height: 17px;
+    color: var(--vc-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.vc .ok-create__input .vc-control {
+    height: 44px;
+    padding-left: 2.6rem;
+    border-radius: 0;
+}
+
+@media (max-width: 575.98px) {
+    .ok-create__contact {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Lưu ý: hộp xám nhạt có icon ───────────────────────────────────── */
+
+.ok-create__notes {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.4rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--vc-border);
+    background: color-mix(in srgb, var(--vc-ink) 3%, var(--vc-surface));
+}
+
+.ok-create__section-title + .ok-create__notes {
+    margin-top: 0;
+}
+
+.vc .ok-create__notes > .odin-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.1rem;
+    color: var(--vc-primary);
+}
+
+.vc .ok-create__notes.is-blocked > .odin-icon {
+    color: #dc2626;
+}
+
+.ok-create__notes-title {
+    margin: 0 0 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--vc-muted);
+}
+
+.ok-create__notes p:not(.ok-create__notes-title) {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--vc-ink);
+}
+
+.ok-create__notes p.is-blocked {
+    font-weight: 600;
+}
+
+.ok-create__link {
+    margin-left: 0.35rem;
+    color: var(--vc-primary);
+    font-weight: 600;
+}
+
+/* ── Tóm tắt cơ hội sẽ được tạo ────────────────────────────────────── */
+
+.ok-create__summary {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.ok-create__summary-head {
+    margin: 0;
+    padding: 1.4rem 1.5rem 1.1rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.ok-create__summary-list {
+    margin: 0;
+    padding: 0.4rem 1.5rem 0;
+}
+
+.ok-create__summary-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px dashed var(--vc-border);
+}
+
+.ok-create__summary-list > div:last-child {
+    border-bottom: 0;
+}
+
+.ok-create__summary-list dt {
+    flex-shrink: 0;
+    font-size: 0.86rem;
+    font-weight: 400;
+    color: var(--vc-muted);
+}
+
+.ok-create__summary-list dd {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--vc-ink);
+    text-align: right;
+}
+
+.ok-create__pill {
+    padding: 0.18rem 0.65rem;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+/* Nút dính đáy để hai cột bằng nhau vẫn gọn */
+.ok-create__summary-foot {
+    margin-top: auto;
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.ok-create__summary-blocked {
+    margin: 0 0 0.85rem;
+    font-size: 0.82rem;
+    color: #b91c1c;
+}
+
+.vc .ok-create__submit {
+    width: 100%;
+    height: 50px;
+    border-radius: 0;
+    font-size: 0.95rem;
+}
+
+/* Lỗi chung khi tạo (đầu trang) */
+.ok-create__alert {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--vc-border);
+    font-size: 0.875rem;
+    color: #b91c1c;
+}
+
+.vc .ok-create__alert .odin-icon {
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+}
+
+/* ── Màu tối ───────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .ok-create__badge--ok      { background: #14532d; color: #86efac; }
+    :root:not([data-theme="light"]) .ok-create__badge--warning { background: #713f12; color: #fde047; }
+    :root:not([data-theme="light"]) .ok-create__badge--blocked { background: #7f1d1d; color: #fca5a5; }
+    :root:not([data-theme="light"]) .ok-create__pill { background: #713f12; color: #fde047; }
+    :root:not([data-theme="light"]) .ok-create__alert,
+    :root:not([data-theme="light"]) .ok-create__summary-blocked { color: #fca5a5; }
+}
+
+:root[data-theme="dark"] .ok-create__badge--ok      { background: #14532d; color: #86efac; }
+:root[data-theme="dark"] .ok-create__badge--warning { background: #713f12; color: #fde047; }
+:root[data-theme="dark"] .ok-create__badge--blocked { background: #7f1d1d; color: #fca5a5; }
+:root[data-theme="dark"] .ok-create__pill { background: #713f12; color: #fde047; }
+:root[data-theme="dark"] .ok-create__alert,
+:root[data-theme="dark"] .ok-create__summary-blocked { color: #fca5a5; }
+
+/* Nút nhỏ (Chọn, Chọn khách khác) */
+.vc .ok-create__btn-sm {
+    height: 34px;
+    padding: 0 0.85rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+}
+
+/* Trang tạo cơ hội không bo góc: thẻ tìm kiếm, ô tìm, nút */
+.vc.ok-create .vc-card,
+.vc.ok-create .vc-search,
+.vc.ok-create .vc-btn,
+.vc.ok-create .vc-control {
+    border-radius: 0;
 }

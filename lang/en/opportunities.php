@@ -226,7 +226,6 @@ return [
     // Create new opportunity for returning customers (Opportunities\Create)
     'create' => [
         'title'              => 'New opportunity',
-        'subtitle'           => 'Create an opportunity for a customer who has enrolled before or previously enquired',
         'back'               => 'Back',
         'btn_new'            => 'New opportunity',
         'btn_new_short'      => 'New',
@@ -282,10 +281,24 @@ return [
 
         // Update contact information
         'contact_title'      => 'Contact information',
-        'contact_hint'       => 'Update if the customer\'s phone, email or source link has changed. Optional.',
+        'source_url_hint'    => '(Facebook, Zalo...)',
         'contact_phone'      => 'Phone number',
         'contact_email'      => 'Email',
         'contact_source_url' => 'Source link',
         'contact_unchanged'  => 'Keep unchanged',
+
+        // Layout once a customer is selected
+        'warning_studying_line' => 'Currently studying :courses.',
+        'warning_debt_line'  => ':amount outstanding for :course. Remind the customer to pay.',
+        'notes_title'        => 'Notes',
+        'summary_title'      => 'Opportunity to be created',
+        'summary_status'     => 'Status',
+        'summary_stage'      => 'Stage',
+        'summary_owner'      => 'Owner',
+        'summary_owner_you'  => 'You (Salesperson)',
+        'summary_date'       => 'Created on',
+        'summary_link'       => 'Linked to',
+        'summary_blocked'    => 'An opportunity cannot be created for this customer, see Notes.',
+        'search_title'       => 'Find customer',
     ],
 ];

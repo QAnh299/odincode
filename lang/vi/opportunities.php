@@ -226,7 +226,6 @@ return [
     // Tạo cơ hội mới cho khách cũ (Opportunities\Create)
     'create' => [
         'title'              => 'Tạo cơ hội mới',
-        'subtitle'           => 'Tạo cơ hội cho khách đã từng đăng ký hoặc từng liên hệ',
         'back'               => 'Quay lại',
         'btn_new'            => 'Tạo cơ hội',
         'btn_new_short'      => 'Tạo',           // hiện trên màn nhỏ (chỉ icon + chữ ngắn)
@@ -282,10 +281,24 @@ return [
 
         // Cập nhật thông tin liên hệ
         'contact_title'      => 'Thông tin liên hệ',
-        'contact_hint'       => 'Cập nhật nếu SĐT, email hoặc link nguồn của khách đã đổi. Không bắt buộc.',
+        'source_url_hint'    => '(Facebook, Zalo...)',
         'contact_phone'      => 'Số điện thoại',
         'contact_email'      => 'Email',
         'contact_source_url' => 'Link nguồn',
         'contact_unchanged'  => 'Giữ nguyên',
+
+        // Bố cục trang khi đã chọn khách
+        'warning_studying_line' => 'Học viên đang học khóa :courses.',
+        'warning_debt_line'  => 'Còn nợ :amount ở khóa :course. Bạn nên nhắc khách thanh toán.',
+        'notes_title'        => 'Lưu ý',
+        'summary_title'      => 'Cơ hội sẽ được tạo',
+        'summary_status'     => 'Trạng thái',
+        'summary_stage'      => 'Giai đoạn',
+        'summary_owner'      => 'Người phụ trách',
+        'summary_owner_you'  => 'Bạn (Salesperson)',
+        'summary_date'       => 'Ngày tạo',
+        'summary_link'       => 'Gắn với',
+        'summary_blocked'    => 'Không thể tạo cơ hội cho khách này, xem mục Ghi chú.',
+        'search_title'       => 'Tìm khách',
     ],
 ];
