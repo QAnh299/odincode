@@ -1614,6 +1614,46 @@
     opacity: 0.85;
 }
 
+/* Popup phân chia: Salesperson vượt ngưỡng 50 (chỉ cảnh báo) */
+.ld-dist__over {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.3rem;
+    color: var(--d-danger);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.ld-dist__over svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.ld-dist__confirm {
+    align-items: flex-start;
+}
+
+.ld-dist__confirm ul {
+    margin: 0.35rem 0;
+    padding-left: 1.1rem;
+}
+
+.ld-dist__confirm li + li {
+    margin-top: 0.15rem;
+}
+
+.ld-dist__foot .vc-btn--warning {
+    border-color: #d97706;
+    background: #d97706;
+    color: #fff;
+}
+
+.ld-dist__foot .vc-btn--warning:not(:disabled):hover {
+    border-color: #b45309;
+    background: #b45309;
+}
+
 /* ── Popup Phân Lead: người thân dùng chung SĐT / email (chọn để phân chung) ── */
 
 .ld-fam {

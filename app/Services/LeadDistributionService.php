@@ -29,8 +29,9 @@ use RuntimeException;
  * Chia tự động: chia đều phần nguyên, Lead dư lần lượt cho Top 2 theo hiệu suất tháng trước.
  * Hiệu suất = cộng hạng: xếp hạng riêng theo từng tiêu chí (doanh thu, tỷ lệ chốt, TB thời gian xử lý)
  * rồi cộng 3 thứ hạng; tổng hạng càng nhỏ càng tốt (không cần chuẩn hoá hay đặt trọng số).
- * Ngưỡng MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress)/salesperson chỉ là cảnh báo: chia tự động không
- * tự đẩy ai vượt ngưỡng, phần còn lại do trưởng nhóm tự phân (được phép vượt).
+ * Ngưỡng MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress)/salesperson (chỉ áp cho Salesperson, không áp cho đội)
+ * chỉ là cảnh báo: chia tự động ưu tiên người còn chỗ, hết chỗ thì phần còn lại vẫn giao cho Top 2 hiệu suất;
+ * có người vượt ngưỡng thì trưởng nhóm xác nhận (thấy rõ ai vượt bao nhiêu) trước khi ghi.
  *
  * Khách cũ quay lại (LeadDuplicateService::reopen đưa Lead về 'New') và người thân dùng chung SĐT / email
  * (anh chị em, phụ huynh đăng ký cho các con…): popup phân chia gợi ý đội / người đang hoặc từng phụ trách;
@@ -225,7 +226,10 @@ class LeadDistributionService
 
     /**
      * Chia tự động có ngưỡng: phần vượt được phân lại lần lượt cho Top 2 salesperson còn chỗ
-     * (theo thứ hạng hiệu suất). Trả về [kế hoạch, số Lead không ai dưới ngưỡng nhận được → trưởng nhóm tự phân].
+     * (theo thứ hạng hiệu suất); không ai còn chỗ dưới ngưỡng thì phần còn lại vẫn chia lần lượt cho Top 2
+     * của nhóm được chọn (ngưỡng chỉ là cảnh báo, trưởng nhóm xác nhận trước khi ghi).
+     *
+     * @return array<string, int>
      */
     public function capAuto(array $plan, array $load, array $rankedIds): array
     {
@@ -237,16 +241,42 @@ class LeadDistributionService
                 $rankedIds,
                 fn ($id) => ($plan[$id] ?? 0) < $this->capacity($id, $load),
             ));
-            if (! $open) {
+
+            $top = array_slice($open ?: $rankedIds, 0, self::TOP);
+            if (! $top) {
                 break;
             }
 
-            $top = array_slice($open, 0, self::TOP);
             $plan[$top[$turn++ % count($top)]]++;
             $over--;
         }
 
-        return [$plan, $over];
+        return $plan;
+    }
+
+    /**
+     * Salesperson sẽ vượt ngưỡng sau lần phân này (chỉ người có nhận thêm Lead):
+     * [employee_id => ['load' => đang quản lý, 'add' => nhận thêm, 'after' => sau khi phân, 'over' => số Lead vượt ngưỡng]].
+     *
+     * @param  array<string, int>  $plan
+     * @param  array<string, int>  $load
+     */
+    public function overLimit(array $plan, array $load): array
+    {
+        $result = [];
+        foreach ($plan as $id => $add) {
+            $after = ($load[$id] ?? 0) + $add;
+            if ($add > 0 && $after > self::MAX_PER_SALESPERSON) {
+                $result[$id] = [
+                    'load'  => $load[$id] ?? 0,
+                    'add'   => $add,
+                    'after' => $after,
+                    'over'  => $after - self::MAX_PER_SALESPERSON,
+                ];
+            }
+        }
+
+        return $result;
     }
 
     /* ── Lead khả dụng ────────────────────────────────────────────────── */

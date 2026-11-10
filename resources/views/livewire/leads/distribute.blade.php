@@ -5,10 +5,12 @@
     $max = LeadDistributionService::MAX_PER_SALESPERSON;
     $top = LeadDistributionService::TOP;
     $kind = $this->forTeams ? 'team' : 'person';
-    $isAuto = $step === 'form' && $mode === 'auto';
-    $isManual = $step === 'form' && $mode === 'manual';
-    $isOverflow = $step === 'overflow';
+    $isAuto = $mode === 'auto';
+    $isManual = $mode === 'manual';
     $ranking = $this->needsRanking;
+    // Chỉ số hiệu suất tháng trước: luôn hiện khi phân cho Salesperson (để trưởng nhóm cân nhắc), đội thì khi có Lead dư
+    $showKpis = $ranking || ($mode && ! $this->forTeams);
+    $overLimit = $this->overLimit;
     $showList = $mode && ! ($this->forTeams && ! $branch) && $this->targets->isNotEmpty();
 
     $incoming = $this->incoming;
@@ -49,14 +51,12 @@
         <div class="ld-modal" wire:key="modal-distribute" x-data x-on:keydown.escape.window="$wire.close()">
             <div class="ld-modal__backdrop" wire:click="close"></div>
             <form class="ld-modal__dialog ld-modal__dialog--wide ld-dist" role="dialog" aria-modal="true" aria-labelledby="ld-dist-title"
-                wire:submit="{{ $isOverflow ? 'confirmOverflow' : 'submit' }}">
+                wire:submit="{{ $confirming ? 'confirmAssign' : 'submit' }}">
                 <header class="ld-modal__head ld-modal__head--center ld-dist__head">
                     <span class="ld-modal__icon"><x-icon name="share" /></span>
                     <div>
                         <h2 class="ld-modal__title" id="ld-dist-title">{{ __('leads.distribute.title_'.$kind) }}</h2>
-                        @if ($isOverflow)
-                            <p class="ld-modal__sub">{{ __('leads.distribute.overflow_sub', ['max' => $max]) }}</p>
-                        @elseif (! $this->forTeams && $this->team)
+                        @if (! $this->forTeams && $this->team)
                             <p class="ld-modal__sub">{{ $this->team->team_name }}</p>
                         @endif
                     </div>
@@ -67,7 +67,6 @@
 
                 <div class="ld-modal__body ld-dist__body">
                     {{-- ── Thiết lập: phương thức + tiêu chí Lead ─────────────── --}}
-                    @if (! $isOverflow)
                         <section class="ld-dist__panel">
                             <div class="ld-dist__grid {{ $mode ? '' : 'is-single' }}">
                                 <label class="vc-field">
@@ -116,7 +115,6 @@
                                 @endif
                             </div>
                         </section>
-                    @endif
 
                     @if (! $mode)
                         {{-- Chưa chọn phương thức --}}
@@ -135,26 +133,16 @@
                                 </span>
                             </div>
 
-                            @if ($isOverflow)
-                                <div class="ld-dist__stat is-warn">
-                                    <span class="ld-dist__stat-icon"><x-icon name="alert" /></span>
-                                    <span class="ld-dist__stat-text">
-                                        <small>{{ __('leads.distribute.stat_overflow') }}</small>
-                                        <strong>{{ $fmt(array_sum(array_map('intval', $overflowAmounts))) }}<em>/{{ $overflow }}</em></strong>
-                                    </span>
-                                </div>
-                            @else
-                                <div class="ld-dist__stat {{ $isManual && $incomingTotal > $available ? 'is-danger' : 'is-accent' }}">
-                                    <span class="ld-dist__stat-icon"><x-icon name="share" /></span>
-                                    <span class="ld-dist__stat-text">
-                                        <small>{{ __('leads.distribute.will_assign') }}</small>
-                                        <strong>{{ $fmt($incomingTotal) }}</strong>
-                                    </span>
-                                    @if ($available > 0)
-                                        <span class="ld-dist__stat-bar"><span style="width: {{ min(100, round($incomingTotal * 100 / $available)) }}%"></span></span>
-                                    @endif
-                                </div>
-                            @endif
+                            <div class="ld-dist__stat {{ $isManual && $incomingTotal > $available ? 'is-danger' : 'is-accent' }}">
+                                <span class="ld-dist__stat-icon"><x-icon name="share" /></span>
+                                <span class="ld-dist__stat-text">
+                                    <small>{{ __('leads.distribute.will_assign') }}</small>
+                                    <strong>{{ $fmt($incomingTotal) }}</strong>
+                                </span>
+                                @if ($available > 0)
+                                    <span class="ld-dist__stat-bar"><span style="width: {{ min(100, round($incomingTotal * 100 / $available)) }}%"></span></span>
+                                @endif
+                            </div>
 
                             <div class="ld-dist__stat">
                                 <span class="ld-dist__stat-icon"><x-icon name="{{ $this->forTeams ? 'layers' : 'users' }}" /></span>
@@ -164,15 +152,6 @@
                                 </span>
                             </div>
                         </div>
-
-                        @if ($isOverflow)
-                            <div class="ld-notice ld-notice--warning ld-notice--inline">
-                                <x-icon name="alert" />
-                                <span class="ld-notice__text">
-                                    {{ __('leads.distribute.overflow_notice', ['count' => $overflow, 'max' => $max]) }}
-                                </span>
-                            </div>
-                        @endif
 
                         {{-- ── Khách cũ / người thân: gợi ý đội / người đang hoặc từng phụ trách ── --}}
                         @php
@@ -197,7 +176,7 @@
                         @endif
 
                         {{-- ── Lead dư → xếp hạng hiệu suất (cộng hạng) ─────────── --}}
-                        @if ($showList && $ranking && ! $isOverflow)
+                        @if ($showList && $ranking)
                             <div class="ld-dist__ranking">
                                 <span class="ld-dist__ranking-icon"><x-icon name="trending" /></span>
                                 <p class="ld-dist__ranking-text">
@@ -229,10 +208,8 @@
                                     <button type="button" class="ld-dist__link" wire:click="toggleAll">
                                         <x-icon name="{{ $allOn ? 'x' : 'check' }}" />{{ __('leads.distribute.'.($allOn ? 'deselect_all' : 'select_all')) }}
                                     </button>
-                                @elseif ($isManual)
-                                    <span class="ld-dist__list-hint">{{ __('leads.distribute.col_amount') }}</span>
                                 @else
-                                    <span class="ld-dist__list-hint">{{ __('leads.distribute.col_extra') }}</span>
+                                    <span class="ld-dist__list-hint">{{ __('leads.distribute.col_amount') }}</span>
                                 @endif
                             </div>
 
@@ -274,7 +251,7 @@
                                                         <x-icon name="user-check" />{{ __('leads.distribute.suggest_row', ['count' => $past]) }}
                                                     </span>
                                                 @endif
-                                                @if ($ranking)
+                                                @if ($showKpis)
                                                     {{-- Chỉ số hiệu suất tháng trước (chỉ để tham khảo); dẫn đầu nhóm ở tiêu chí nào thì tô nổi tiêu chí đó --}}
                                                     @php $board = $this->scoreboard[$id] ?? null; @endphp
                                                     <span class="ld-dist__kpis">
@@ -304,6 +281,9 @@
                                                         {{ $row['load'] }}@if ($add)<ins>+{{ $add }}</ins>@endif<em>/{{ $max }}</em>
                                                     </strong>
                                                 </div>
+                                                @if ($over = $overLimit[$id]['over'] ?? 0)
+                                                    <span class="ld-dist__over"><x-icon name="alert" />{{ __('leads.distribute.over_row', ['count' => $over]) }}</span>
+                                                @endif
                                                 <div class="ld-dist__bar">
                                                     <span class="ld-dist__bar-now" style="width: {{ $loadPct }}%"></span>
                                                     <span class="ld-dist__bar-add" style="width: {{ $addPct }}%"></span>
@@ -321,45 +301,52 @@
                                                     <span class="ld-dist__pill is-empty">0</span>
                                                 @endif
                                             @else
-                                                @php
-                                                    $field = $isOverflow ? 'overflowAmounts' : 'amounts';
-                                                    $room = $isOverflow ? $this->overflowRoom[$id] : null;
-                                                @endphp
                                                 <div class="ld-dist__stepper">
-                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', -1)" aria-label="−1">−</button>
+                                                    <button type="button" wire:click="adjust('{{ $id }}', -1)" aria-label="−1">−</button>
                                                     {{-- Chỉ nhận chữ số: chặn gõ/dán dấu âm, dấu thập phân, số mũ --}}
                                                     <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
                                                         onkeydown="if (['-', '+', '.', ',', 'e', 'E'].includes(event.key)) event.preventDefault()"
                                                         onpaste="if (! /^\d*$/.test(event.clipboardData.getData('text').trim())) event.preventDefault()"
                                                         ondrop="event.preventDefault()"
-                                                        wire:model.live.debounce.300ms="{{ $field }}.{{ $id }}"
+                                                        wire:model.live.debounce.300ms="amounts.{{ $id }}"
                                                         aria-label="{{ $row['name'] }}">
-                                                    <button type="button" wire:click="adjust('{{ $field }}', '{{ $id }}', 1)" aria-label="+1">+</button>
+                                                    <button type="button" wire:click="adjust('{{ $id }}', 1)" aria-label="+1">+</button>
                                                 </div>
-                                                @if ($isOverflow)
-                                                    {{-- Ngưỡng 50 chỉ cảnh báo: hết chỗ vẫn nhập được --}}
-                                                    <span class="ld-dist__room {{ $room === 0 ? 'is-warn' : '' }}">
-                                                        {{ $room > 0 ? __('leads.distribute.room_left', ['count' => $room]) : __('leads.distribute.room_full', ['max' => $max]) }}
-                                                    </span>
-                                                @endif
                                             @endif
                                         </div>
                                     </li>
                                 @endforeach
                             </ul>
 
-                            @if ($isAuto && $this->preview['unplaced'] > 0)
-                                <p class="ld-form__hint">{{ __('leads.distribute.preview_unplaced', ['count' => $this->preview['unplaced']]) }}</p>
-                            @endif
                         @endif
                     @endif
 
                     @error('targets')
                         <div class="ld-notice ld-notice--danger ld-notice--inline"><x-icon name="alert" /><span class="ld-notice__text">{{ $message }}</span></div>
                     @enderror
-                    @error('overflow')
-                        <div class="ld-notice ld-notice--danger ld-notice--inline"><x-icon name="alert" /><span class="ld-notice__text">{{ $message }}</span></div>
-                    @enderror
+
+                    {{-- ── Xác nhận phân dù có Salesperson vượt ngưỡng 50 ────── --}}
+                    @if ($confirming && $overLimit)
+                        <div class="ld-notice ld-notice--warning ld-notice--inline ld-dist__confirm" role="alertdialog"
+                            aria-labelledby="ld-dist-confirm-title" x-data x-init="$el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })">
+                            <x-icon name="alert" />
+                            <div class="ld-notice__text">
+                                <strong id="ld-dist-confirm-title">{{ __('leads.distribute.confirm_title', ['count' => count($overLimit), 'max' => $max]) }}</strong>
+                                <ul>
+                                    @foreach ($overLimit as $row)
+                                        <li>{!! __('leads.distribute.confirm_row', [
+                                            'name'  => '<b>'.e($row['name']).'</b>',
+                                            'load'  => $row['load'],
+                                            'add'   => $row['add'],
+                                            'after' => $row['after'],
+                                            'over'  => '<b>'.$row['over'].'</b>',
+                                        ]) !!}</li>
+                                    @endforeach
+                                </ul>
+                                <span>{{ __('leads.distribute.confirm_question') }}</span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <footer class="ld-modal__foot ld-dist__foot">
@@ -368,18 +355,18 @@
                             {!! __('leads.distribute.summary_'.$kind, ['count' => '<strong>'.$fmt($incomingTotal).'</strong>', 'receivers' => '<strong>'.$receivers.'</strong>']) !!}
                         @endif
                     </p>
-                    @if ($isOverflow)
-                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="backToForm">
+                    @if ($confirming)
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelConfirm">
                             <x-icon name="arrow-left" />{{ __('leads.distribute.back') }}
                         </button>
                     @else
                         <button type="button" class="vc-btn vc-btn--ghost" wire:click="close">{{ __('leads.cancel') }}</button>
                     @endif
-                    <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="submit,confirmOverflow"
+                    <button type="submit" class="vc-btn {{ $confirming ? 'vc-btn--warning' : 'vc-btn--primary' }}" wire:loading.attr="disabled" wire:target="submit,confirmAssign"
                         @disabled(! $mode)>
-                        <span wire:loading.remove wire:target="submit,confirmOverflow"><x-icon name="check" /></span>
-                        <span class="spinner-border spinner-border-sm" wire:loading wire:target="submit,confirmOverflow" aria-hidden="true"></span>
-                        {{ __('leads.distribute.submit') }}
+                        <span wire:loading.remove wire:target="submit,confirmAssign"><x-icon name="check" /></span>
+                        <span class="spinner-border spinner-border-sm" wire:loading wire:target="submit,confirmAssign" aria-hidden="true"></span>
+                        {{ __($confirming ? 'leads.distribute.confirm_submit' : 'leads.distribute.submit') }}
                     </button>
                 </footer>
             </form>
