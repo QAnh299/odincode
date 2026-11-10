@@ -14,7 +14,6 @@ use Livewire\Attributes\Computed;
  *
  * Component dùng trait khai báo:
  *   const EXPORT_SHEETS (thứ tự sheet), EXPORT_LOCKED [sheet => cột luôn có],
- *         EXPORT_DEFAULT_SHEETS, EXPORT_DEFAULT_COLUMNS [sheet => [cột...]]
  *   exportColumnCatalog()  [sheet => [cột => kiểu]] - tiêu đề cột = exportLabel("{sheet}.{cột}")
  *   exportLabel()          nhãn: dialog_title, sheet.{sheet}, title.{sheet}, {sheet}.{cột}, scope_all
  *   exportFilterFields()   ô tiêu chí của popup
@@ -71,7 +70,7 @@ trait ReportExport
     abstract protected function exportFileName(): string;
 
     /**
-     * Mở popup: kỳ = tháng hiện tại, tiêu chí "Tất cả", sheet và cột theo mặc định.
+     * Mở popup: kỳ = tháng hiện tại, tiêu chí "Tất cả", xuất tất cả sheet và cột.
      */
     public function openExport(): void
     {
@@ -79,18 +78,11 @@ trait ReportExport
         $this->exportPick = 'm'.$this->exportMonth;
         $this->resetExportFilters();
         $this->exportTab = static::EXPORT_SHEETS[0];
-        $this->exportSheets = array_combine(static::EXPORT_SHEETS,
-            array_map(fn ($sheet) => in_array($sheet, static::EXPORT_DEFAULT_SHEETS, true), static::EXPORT_SHEETS));
+        $this->exportSheets = array_fill_keys(static::EXPORT_SHEETS, true);
         $this->exportColumns = [];
         foreach (static::EXPORT_SHEETS as $sheet) {
-            $this->setExportColumns($sheet, static::EXPORT_DEFAULT_COLUMNS[$sheet]);
+            $this->setExportColumns($sheet, array_keys($this->exportColumnCatalog()[$sheet]));
         }
-    }
-
-    public function defaultExportColumns(): void
-    {
-        $tab = $this->activeExportTab();
-        $this->setExportColumns($tab, static::EXPORT_DEFAULT_COLUMNS[$tab]);
     }
 
     public function allExportColumns(): void

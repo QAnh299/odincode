@@ -103,17 +103,6 @@ class LeadConversion extends Component
 
     const EXPORT_PREVIEW_ROWS = 50;
 
-    // Mặc định khi mở popup: cột tổng quát cho cấp quản lý (các cột chi tiết vẫn chọn thêm được);
-    // sheet tác nghiệp (chăm sóc, lịch hẹn) không xuất
-    const EXPORT_DEFAULT_COLUMNS = [
-        'summary'      => ['source', 'leads', 'conversion_rate', 'won', 'win_rate', 'close_rate', 'students', 'close_median'],
-        'leads'        => ['name', 'created', 'source', 'branch', 'owner', 'outcome', 'stage', 'won_at'],
-        'care'         => ['at', 'lead_name', 'employee', 'activity', 'result'],
-        'appointments' => ['at', 'lead_name', 'employee', 'type', 'status'],
-    ];
-
-    const EXPORT_DEFAULT_SHEETS = ['summary', 'leads'];
-
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
     #[Url(except: 'overview')]
@@ -828,28 +817,18 @@ class LeadConversion extends Component
 
     /**
      * Mở popup xuất: kỳ = tháng hiện tại, tiêu chí "Tất cả" (không theo bộ lọc trên màn hình),
-     * sheet và cột theo mặc định.
+     * xuất tất cả sheet và cột.
      */
     public function openExport(): void
     {
         $this->openExportPeriod();
         $this->reset('exportBranch', 'exportSource', 'exportTeam', 'exportEmployee');
         $this->exportTab = self::EXPORT_SHEETS[0];
-        $this->exportSheets = array_combine(self::EXPORT_SHEETS,
-            array_map(fn ($sheet) => in_array($sheet, self::EXPORT_DEFAULT_SHEETS, true), self::EXPORT_SHEETS));
+        $this->exportSheets = array_fill_keys(self::EXPORT_SHEETS, true);
         $this->exportColumns = [];
         foreach (self::EXPORT_SHEETS as $sheet) {
-            $this->setExportColumns($sheet, self::EXPORT_DEFAULT_COLUMNS[$sheet]);
+            $this->setExportColumns($sheet, array_keys($this->exportColumnCatalog()[$sheet]));
         }
-    }
-
-    /**
-     * Cột của sheet đang xem: theo mặc định / chọn tất cả.
-     */
-    public function defaultExportColumns(): void
-    {
-        $tab = $this->activeExportTab();
-        $this->setExportColumns($tab, self::EXPORT_DEFAULT_COLUMNS[$tab]);
     }
 
     public function allExportColumns(): void

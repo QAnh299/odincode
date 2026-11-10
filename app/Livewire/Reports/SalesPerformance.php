@@ -573,13 +573,6 @@ class SalesPerformance extends Component
 
     const EXPORT_LOCKED = ['teams' => 'team', 'employees' => 'employee'];
 
-    const EXPORT_DEFAULT_SHEETS = ['teams', 'employees'];
-
-    const EXPORT_DEFAULT_COLUMNS = [
-        'teams'     => ['team', 'members', 'revenue', 'target_revenue', 'attain_revenue', 'students', 'attain_students', 'won', 'close_rate'],
-        'employees' => ['employee', 'revenue', 'share', 'won', 'close_rate', 'avg_order', 'students', 'activity'],
-    ];
-
     // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportTeam = '';
 

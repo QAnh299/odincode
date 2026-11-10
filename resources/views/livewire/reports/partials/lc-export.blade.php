@@ -209,8 +209,6 @@
                         <span>{{ $X('sheet_include') }}</span>
                     </label>
                     <div class="lx__quick {{ $this->exportSheetOn($tab) ? '' : 'is-off' }}">
-                        <button type="button" wire:click="defaultExportColumns">{{ $X('columns_default') }}</button>
-                        <span aria-hidden="true">·</span>
                         <button type="button" wire:click="allExportColumns">{{ $X('columns_all') }}</button>
                     </div>
                     <div class="lx__column-list {{ $this->exportSheetOn($tab) ? '' : 'is-off' }}">

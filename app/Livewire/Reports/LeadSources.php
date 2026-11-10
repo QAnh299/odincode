@@ -488,13 +488,6 @@ class LeadSources extends Component
 
     const EXPORT_LOCKED = ['summary' => 'source'];
 
-    // Mặc định: các cột trả lời "nguồn nào đáng đầu tư"
-    const EXPORT_DEFAULT_SHEETS = ['summary'];
-
-    const EXPORT_DEFAULT_COLUMNS = [
-        'summary' => ['source', 'leads', 'converted', 'conversion_rate', 'won', 'win_rate', 'close_rate', 'revenue', 'revenue_per_lead', 'revenue_share', 'note'],
-    ];
-
     // Chỉ số của sheet theo nguồn → kiểu cột
     const EXPORT_METRICS = [
         'leads' => 'int', 'converted' => 'int', 'conversion_rate' => 'percent', 'won' => 'int', 'lost' => 'int',

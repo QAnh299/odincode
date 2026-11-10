@@ -743,17 +743,6 @@ class Revenue extends Component
 
     const EXPORT_LOCKED = ['summary' => 'month', 'orders' => 'order', 'payments' => 'invoice', 'debt' => 'order', 'overdue' => 'invoice', 'employees' => 'name'];
 
-    const EXPORT_DEFAULT_SHEETS = ['summary', 'debt', 'overdue', 'employees'];
-
-    const EXPORT_DEFAULT_COLUMNS = [
-        'summary'   => ['month', 'orders', 'revenue', 'collected', 'transfer', 'cash', 'collect_rate'],
-        'orders'    => ['order', 'created', 'customer', 'employee', 'payment_type', 'status', 'total', 'paid', 'remaining'],
-        'payments'  => ['invoice', 'order', 'installment', 'customer', 'employee', 'method', 'amount', 'due', 'paid_at'],
-        'debt'      => ['order', 'customer', 'phone', 'employee', 'total', 'paid', 'remaining', 'unpaid', 'uninvoiced', 'late'],
-        'overdue'   => ['invoice', 'order', 'customer', 'phone', 'employee', 'status', 'amount', 'due', 'late'],
-        'employees' => ['name', 'orders', 'revenue', 'collected', 'on_time', 'debt', 'overdue_count', 'overdue_amount'],
-    ];
-
     // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportBranch = '';
 
