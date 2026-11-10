@@ -55,6 +55,7 @@ return [
     'view'               => 'View details',
 
     // Detail
+    'back_to'            => 'Back to :code',
     'back'               => 'Back to list',
     'edit'               => 'Edit',
     'info'               => 'Student information',
@@ -73,6 +74,20 @@ return [
         'Lost'       => 'Lost',
         'Archived'   => 'Archived',
     ],
+    // Chi tiết: đầu trang, thẻ khóa học, tham chiếu
+    'stat_courses'       => 'Courses',
+    'stat_total'         => 'Total tuition',
+    'remaining'          => 'Remaining',
+    'collected'          => 'Collected :amount',
+    'chip_opportunity'   => 'Opportunity :code',
+    'chip_order'         => 'Order :code',
+    'chip_quotation'     => 'Quotation :code',
+    'chip_student'       => 'Student :code',
+    'no_quotation'       => 'This opportunity has no quotation yet.',
+    'no_order_yet'       => 'There is no order for this course yet.',
+    'no_invoices'        => 'This order has no payment installments yet.',
+    'shared_order'       => 'This order covers :count courses; amounts and installments are for the whole order.',
+    'selected_owner'     => 'Owner of selected course',
     'courses_title'      => 'Registered courses',
     'no_order'           => 'No paid order found for this student.',
     'duration'           => 'Duration',

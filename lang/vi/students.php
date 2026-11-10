@@ -55,6 +55,7 @@ return [
     'view'               => 'Xem chi tiết',
 
     // Chi tiết
+    'back_to'            => 'Quay lại :code',
     'back'               => 'Quay lại danh sách',
     'edit'               => 'Chỉnh sửa',
     'info'               => 'Thông tin học viên',
@@ -73,6 +74,20 @@ return [
         'Lost'       => 'Từ chối',
         'Archived'   => 'Lưu trữ',
     ],
+    // Chi tiết: đầu trang, thẻ khóa học, tham chiếu
+    'stat_courses'       => 'Số khóa học',
+    'stat_total'         => 'Tổng học phí',
+    'remaining'          => 'Còn lại',
+    'collected'          => 'Đã thu :amount',
+    'chip_opportunity'   => 'Cơ hội :code',
+    'chip_order'         => 'Đơn :code',
+    'chip_quotation'     => 'Báo giá :code',
+    'chip_student'       => 'Học viên :code',
+    'no_quotation'       => 'Cơ hội này chưa có báo giá.',
+    'no_order_yet'       => 'Khách chưa có đơn hàng cho khóa học này.',
+    'no_invoices'        => 'Đơn hàng chưa có đợt thanh toán nào.',
+    'shared_order'       => 'Đơn hàng gồm :count khóa học, số tiền và các đợt thanh toán tính chung cho cả đơn.',
+    'selected_owner'     => 'Người phụ trách khóa đang chọn',
     'courses_title'      => 'Khóa học đã đăng ký',
     'no_order'           => 'Không tìm thấy đơn hàng đã thanh toán của học viên này.',
     'duration'           => 'Thời lượng',

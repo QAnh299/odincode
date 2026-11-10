@@ -16,8 +16,10 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Chi tiết học viên: thông tin học viên, khoá học đã đăng ký, thanh toán (đơn hàng + các đợt hoá đơn),
- * cơ hội gốc và các lần đăng ký khác của cùng khách hàng.
+ * Chi tiết học viên: đầu trang (tổng học phí / đã thu / còn lại), dải thẻ các khóa học khách đã đăng ký
+ * hoặc đang được tư vấn (cuộn ngang, gom theo mọi cơ hội cùng Lead), chi tiết khóa đang chọn
+ * (tab Thanh toán / Lịch sử chăm sóc / Lịch hẹn), thông tin học viên và nguồn gốc.
+ * Các mã cơ hội / đơn / báo giá / hóa đơn / khóa học / Lead dẫn sang trang chi tiết nếu vai trò có trang đó.
  * Xem theo Student::visibleTo(); Chỉnh sửa (họ tên, SĐT, email, ngày sinh, trạng thái) chỉ dành cho
  * Sale Leader (học viên của đội) và Salesperson (học viên từ cơ hội mình phụ trách).
  */
@@ -41,12 +43,12 @@ class Show extends Component
 
     public ?string $notice = null;
 
-    // Lịch sử cơ hội: Opportunity đang mở (mặc định đóng hết) và tab đang xem
-    public ?string $openOpportunity = null;
+    // Thẻ khóa học đang chọn ("{opportunity_id}|{course_id}") và tab đang xem của khóa đó
+    public string $selectedCard = '';
 
-    public string $opportunityTab = 'care';
+    public string $courseTab = 'payment';
 
-    const OPPORTUNITY_TABS = ['care', 'appointments'];
+    const COURSE_TABS = ['payment', 'care', 'appointments'];
 
     public function mount(Student $student): void
     {
@@ -60,6 +62,10 @@ class Show extends Component
             'opportunity.employee.team:team_id,team_name',
             'opportunity.stage:stage_id,stage_name',
         ]);
+
+        // Mặc định mở khóa học của lần đăng ký này
+        $cards = $this->courseCards;
+        $this->selectedCard = ($cards->firstWhere('opportunity_id', $student->opportunity_id) ?? $cards->first())['key'] ?? '';
     }
 
     #[Computed]
@@ -90,47 +96,30 @@ class Show extends Component
         return $this->routePrefix === Role::SALESPERSON;
     }
 
-    /**
-     * Đơn hàng đã đóng tiền + báo giá, khoá học, voucher, các đợt hoá đơn.
-     */
-    #[Computed]
-    public function order(): ?SalesOrder
-    {
-        $order = $this->student->paidOrder();
-
-        return $order?->load([
-            'quotation.details' => fn ($q) => $q->orderBy('course_id'),
-            'quotation.details.course',
-            'quotation.voucher',
-            'invoices' => fn ($q) => $q->orderBy('payment_installment'),
-        ]);
-    }
+    // Trang chi tiết nối tiếp breadcrumb "Quản lý học viên › mã học viên › ..." (trait Concerns\StudentTrail)
+    const TRAIL_PAGES = ['opportunities', 'quotations', 'orders', 'invoices'];
 
     /**
-     * Các lần đăng ký khác của cùng khách hàng (cùng Lead, Opportunity khác).
+     * Link sang trang chi tiết "{vai trò}.{tên}.show" nếu vai trò hiện tại có trang đó, ngược lại null.
+     * Cơ hội / báo giá / đơn hàng / hóa đơn mang theo ?student= để trang đó hiện breadcrumb từ học viên này.
      */
-    #[Computed]
-    public function otherEnrollments(): Collection
+    public function detailUrl(string $name, mixed $model): ?string
     {
-        $leadId = $this->student->opportunity?->lead_id;
+        $route = $this->routePrefix.'.'.$name.'.show';
 
-        if (! $leadId) {
-            return collect();
+        if ($model === null || ! Route::has($route)) {
+            return null;
         }
 
-        return Student::query()
-            ->visibleTo(Auth::user()->employee)
-            ->whereKeyNot($this->student->getKey())
-            ->whereHas('opportunity', fn ($q) => $q->where('lead_id', $leadId))
-            ->orderByDesc('conversion_date')
-            ->get(['student_id', 'conversion_date', 'status', 'opportunity_id']);
+        return route($route, in_array($name, self::TRAIL_PAGES, true)
+            ? [$model, 'student' => $this->student->student_id]
+            : $model);
     }
 
-    // ── Lịch sử cơ hội ────────────────────────────────────────────────
+    // ── Khóa học ──────────────────────────────────────────────────────
 
     /**
-     * Các lần khách hàng là Opportunity (cùng Lead), mới nhất lên đầu. Mỗi Opportunity kèm các khoá học
-     * (courses) lấy từ báo giá đã có đơn hàng, nếu chưa có thì báo giá mới nhất.
+     * Các cơ hội của khách (cùng Lead) trong phạm vi được xem, mới nhất lên đầu.
      */
     #[Computed]
     public function opportunities(): Collection
@@ -141,82 +130,141 @@ class Show extends Component
             return collect();
         }
 
-        $opportunities = Opportunity::query()
+        return Opportunity::query()
             ->visibleTo(Auth::user()->employee)
             ->where('lead_id', $leadId)
             ->with([
                 'stage:stage_id,stage_name',
-                'employee:employee_id,full_name',
-                'student:student_id,opportunity_id',
+                'employee:employee_id,full_name,team_id',
+                'employee.team:team_id,team_name',
+                'student:student_id,opportunity_id,status',
                 'quotations' => fn ($q) => $q->orderByDesc('created_at'),
-                'quotations.details.course:course_id,course_name',
+                'quotations.details' => fn ($q) => $q->orderBy('course_id'),
+                'quotations.details.course',
+                'quotations.order',
             ])
             ->orderByDesc('conversion_date')
             ->get();
-
-        $ordered = SalesOrder::query()
-            ->whereIn('quotation_id', $opportunities->flatMap->quotations->pluck('quotation_id'))
-            ->pluck('quotation_id')
-            ->all();
-
-        return $opportunities->each(function (Opportunity $opportunity) use ($ordered) {
-            $quotation = $opportunity->quotations->first(fn ($q) => in_array($q->quotation_id, $ordered, true))
-                ?? $opportunity->quotations->first();
-
-            $opportunity->courses = $quotation?->details->map(fn ($d) => $d->course?->course_name ?? $d->course_id)->all() ?? [];
-        });
     }
 
     /**
-     * Mở / đóng một Opportunity trong Lịch sử cơ hội (mở thì về tab Lịch sử chăm sóc).
+     * Thẻ khóa học: mỗi dòng khóa học trong báo giá của từng cơ hội (báo giá đã có đơn, chưa có thì báo giá mới nhất).
+     * Cơ hội chưa có báo giá vẫn có một thẻ "Chưa có khoá học" để xem lịch sử chăm sóc.
+     * Tổng tiền / đã thu của đơn nhiều khóa chia theo tỷ lệ thành tiền từng dòng.
      */
-    public function toggleOpportunity(string $opportunityId): void
+    #[Computed]
+    public function courseCards(): Collection
     {
-        if (! $this->opportunities->contains('opportunity_id', $opportunityId)) {
+        return $this->opportunities->flatMap(function (Opportunity $opportunity) {
+            $quotation = $opportunity->quotations->first(fn ($q) => $q->order !== null) ?? $opportunity->quotations->first();
+            $order = $quotation?->order;
+            $details = $quotation?->details ?? collect();
+
+            $status = $opportunity->student
+                ? ['label' => __('students.status_name.'.$opportunity->student->status), 'tone' => 'st-tone--'.$opportunity->student->status]
+                : ['label' => __('students.opportunity_status.'.$opportunity->status), 'tone' => 'st-opp--'.$opportunity->status];
+
+            $base = [
+                'opportunity_id' => $opportunity->opportunity_id,
+                'opportunity'    => $opportunity,
+                'quotation'      => $quotation,
+                'order'          => $order,
+                'status'         => $status,
+            ];
+
+            if ($details->isEmpty()) {
+                return [$base + [
+                    'key' => $opportunity->opportunity_id.'|', 'detail' => null, 'course' => null,
+                    'name' => __('students.no_courses'), 'course_id' => null, 'total' => 0.0, 'paid' => 0.0,
+                ]];
+            }
+
+            $lines = (float) $details->sum('line_total');
+
+            return $details->map(function ($detail) use ($base, $order, $lines) {
+                $share = $lines > 0 ? (float) $detail->line_total / $lines : 0;
+
+                return $base + [
+                    'key'       => $base['opportunity_id'].'|'.$detail->course_id,
+                    'detail'    => $detail,
+                    'course'    => $detail->course,
+                    'name'      => $detail->course?->course_name ?? $detail->course_id,
+                    'course_id' => $detail->course_id,
+                    'total'     => $order ? round((float) $order->total_amount * $share) : (float) $detail->line_total,
+                    'paid'      => $order ? round((float) $order->paid_amount * $share) : 0.0,
+                ];
+            })->all();
+        })->values();
+    }
+
+    /**
+     * Số liệu đầu trang: số khóa học, tổng học phí, đã thanh toán, còn lại (theo các thẻ có khóa học).
+     */
+    #[Computed]
+    public function totals(): array
+    {
+        $cards = $this->courseCards->whereNotNull('detail');
+        $total = (float) $cards->sum('total');
+        $paid = (float) $cards->sum('paid');
+
+        return ['courses' => $cards->count(), 'total' => $total, 'paid' => $paid, 'remaining' => max(0, $total - $paid)];
+    }
+
+    #[Computed]
+    public function selected(): ?array
+    {
+        return $this->courseCards->firstWhere('key', $this->selectedCard) ?? $this->courseCards->first();
+    }
+
+    /**
+     * Đơn hàng của khóa đang chọn kèm các đợt hoá đơn.
+     */
+    #[Computed]
+    public function selectedOrder(): ?SalesOrder
+    {
+        $order = $this->selected['order'] ?? null;
+
+        return $order?->load(['invoices' => fn ($q) => $q->orderBy('payment_installment')]);
+    }
+
+    public function selectCard(string $key): void
+    {
+        if (! $this->courseCards->contains('key', $key)) {
             return;
         }
 
-        $this->openOpportunity = $this->openOpportunity === $opportunityId ? null : $opportunityId;
-        $this->opportunityTab = 'care';
+        $this->selectedCard = $key;
+        $this->courseTab = 'payment';
+        unset($this->selected, $this->selectedOrder, $this->openCares, $this->openAppointments);
     }
 
-    public function setOpportunityTab(string $tab): void
+    public function setCourseTab(string $tab): void
     {
-        $this->opportunityTab = in_array($tab, self::OPPORTUNITY_TABS, true) ? $tab : 'care';
+        $this->courseTab = in_array($tab, self::COURSE_TABS, true) ? $tab : 'payment';
     }
 
     /**
-     * Opportunity đang mở (chỉ trong phạm vi được xem).
-     */
-    protected function openedOpportunity(): ?Opportunity
-    {
-        return $this->openOpportunity
-            ? $this->opportunities->firstWhere('opportunity_id', $this->openOpportunity)
-            : null;
-    }
-
-    /**
-     * Lịch sử chăm sóc của Opportunity đang mở, mới nhất lên đầu.
+     * Lịch sử chăm sóc của cơ hội chứa khóa đang chọn, mới nhất lên đầu.
      */
     #[Computed]
     public function openCares(): Collection
     {
-        return $this->openedOpportunity()?->careResults()
-            ->with(['activity', 'employee:employee_id,full_name'])
-            ->orderByDesc('performed_at')
-            ->get() ?? collect();
+        return $this->selected
+            ? $this->selected['opportunity']->careResults()
+                ->with(['activity', 'employee:employee_id,full_name'])
+                ->orderByDesc('performed_at')
+                ->get()
+            : collect();
     }
 
     /**
-     * Lịch hẹn của Opportunity đang mở, gom theo mã (mới nhất lên đầu).
+     * Lịch hẹn của cơ hội chứa khóa đang chọn, gom theo mã (mới nhất lên đầu).
      */
     #[Computed]
     public function openAppointments(): Collection
     {
-        $opportunity = $this->openedOpportunity();
-
-        return $opportunity
-            ? Appointment::groupForDisplay($opportunity->appointments()->orderBy('scheduled_time')->get())
+        return $this->selected
+            ? Appointment::groupForDisplay($this->selected['opportunity']->appointments()->orderBy('scheduled_time')->get())
             : collect();
     }
 
@@ -228,16 +276,6 @@ class Show extends Component
         $branch = $this->student->opportunity?->lead?->branch;
 
         return $branch ? $branch->branch_name.' - '.$branch->address : null;
-    }
-
-    /**
-     * Link sang chi tiết cơ hội nếu vai trò hiện tại có màn đó (Salesperson, Sale Leader, Giám đốc).
-     */
-    public function opportunityUrl(): ?string
-    {
-        $name = $this->routePrefix.'.opportunities.show';
-
-        return Route::has($name) ? route($name, $this->student->opportunity_id) : null;
     }
 
     // ── Chỉnh sửa ─────────────────────────────────────────────────────
@@ -293,6 +331,9 @@ class Show extends Component
             'date_of_birth' => $this->dateOfBirth ?: null,
             'status'        => $this->status,
         ]);
+
+        // Trạng thái học viên hiện trên thẻ khóa học
+        unset($this->opportunities, $this->courseCards, $this->selected);
 
         $this->editing = false;
         $this->notice = __('students.saved');

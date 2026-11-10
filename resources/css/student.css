@@ -66,16 +66,71 @@
 
 /* ══ Chi tiết ════════════════════════════════════════════════════════ */
 
+/* Trạng thái cơ hội (thẻ khóa học chưa có học viên) */
+.st-opp--InProgress { --tone: #b45309; --tone-bg: #fef3c7; }
+.st-opp--Won { --tone: #15803d; --tone-bg: #dcfce7; }
+.st-opp--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
+.st-opp--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
+
+/* Nhãn nhỏ dạng viên thuốc (mã, trạng thái) */
+.st-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.st-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.6rem;
+    border-radius: 999px;
+    background: var(--tone-bg, color-mix(in srgb, var(--vc-ink) 7%, var(--vc-surface)));
+    color: var(--tone, var(--vc-ink));
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Tiêu đề mục: chữ nhỏ in hoa */
+.st-section {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--vc-muted);
+}
+
+.st-section--card {
+    margin-bottom: 1rem;
+}
+
+.st-empty {
+    margin: 0;
+    padding: 1.25rem;
+    color: var(--vc-muted);
+}
+
+.st-empty--flat {
+    padding: 0.5rem 0 0;
+}
+
+.st-paid { color: #15803d; }
+.st-due { color: #c2410c; }
+
+/* ── Đầu trang ────────────────────────────────────────────────────── */
+
 .st-head {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    gap: 1.25rem 2rem;
+    padding: 1.4rem 1.6rem;
 }
 
 .st-head__main {
     display: flex;
+    flex: 1 1 260px;
     align-items: center;
     gap: 1rem;
     min-width: 0;
@@ -90,198 +145,269 @@
     border-radius: 50%;
     background: var(--vc-tint);
     color: var(--vc-primary);
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 800;
 }
 
-.st-head__name {
-    margin: 0.2rem 0 0.4rem;
-    font-size: 1.45rem;
-    font-weight: 800;
-    overflow-wrap: anywhere;
-}
-
-/* Lưới 2 cột: trái linh hoạt, phải 400px */
-.st-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 400px;
-    gap: 1.25rem;
-    align-items: start;
-}
-
-.st-main,
-.st-side {
+.st-head__who {
     min-width: 0;
 }
 
-.st-title {
-    margin: 0 0 1rem;
-    font-size: 1.05rem;
+.st-head__name {
+    margin: 0 0 0.4rem;
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.st-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2.25rem;
+    margin: 0;
+}
+
+.st-stats dt {
+    margin-bottom: 0.15rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--vc-muted);
+}
+
+.st-stats dd {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.st-head__cta {
+    flex-shrink: 0;
+}
+
+/* Lưới 2 cột: trái linh hoạt, phải 360px */
+.st-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+/* Hai cột cao bằng nhau: thẻ cuối mỗi cột giãn kín đáy */
+.st-main,
+.st-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.st-main > :last-child,
+.st-side > :last-child {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* ── Thẻ khóa học: một hàng, nhiều thẻ thì cuộn ngang ─────────────── */
+
+.st-courses {
+    display: flex;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+    padding: 0.15rem 0.15rem 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+.st-course {
+    display: flex;
+    flex: 1 0 250px; /* ít khóa: giãn kín hàng; nhiều khóa: giữ tối thiểu 250px và cuộn ngang */
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.95rem 1rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 14px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.st-course:hover {
+    border-color: color-mix(in srgb, var(--vc-primary) 45%, var(--vc-border));
+}
+
+.st-course.is-active {
+    border-color: var(--vc-primary);
+    background: color-mix(in srgb, var(--vc-primary) 5%, var(--vc-surface));
+}
+
+.st-course__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.st-course__name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.st-course__meta {
+    font-size: 0.8rem;
+    color: var(--vc-muted);
+}
+
+.st-progress {
+    display: block;
+    height: 6px;
+    margin-top: auto;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--vc-ink) 8%, var(--vc-surface));
+    overflow: hidden;
+}
+
+.st-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--vc-primary);
+}
+
+.st-course__money {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--vc-muted);
+}
+
+.st-course__money strong {
+    color: var(--vc-ink);
     font-weight: 700;
 }
 
-.st-title--bar {
-    margin: 0;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--vc-border);
+/* ── Chi tiết khóa đang chọn ──────────────────────────────────────── */
+
+.st-detail {
+    padding: 0;
+    overflow: hidden;
 }
 
-.st-empty {
-    margin: 0;
-    padding: 1.25rem;
-    color: var(--vc-muted);
+.st-detail__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    padding: 1.25rem 1.4rem 0.7rem;
+    /* Kẻ mờ ngăn tên khóa học với hàng tab */
+    border-bottom: 1px solid color-mix(in srgb, var(--vc-border) 70%, transparent);
+}
+
+.st-detail__title h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.st-detail__title h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.st-detail__title h3 a:hover {
+    color: var(--vc-primary);
+}
+
+.st-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.st-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--vc-ink) 6%, var(--vc-surface));
+    color: var(--vc-ink);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Mã có link sang trang chi tiết */
+a.st-chip.is-link:hover {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.st-ref.is-link,
+.vc-mono.is-link {
+    color: var(--vc-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.st-ref.is-link:hover,
+.vc-mono.is-link:hover {
+    text-decoration: none;
+}
+
+.st-detail__tabs {
+    padding: 0 1.4rem;
+}
+
+/* Tab sát đường kẻ phía trên */
+.vc .st-detail__tabs .od-tab {
+    padding-top: 0.55rem;
+}
+
+.st-pay-wrap {
+    padding: 1.1rem 1.4rem 1.4rem;
 }
 
 /* Tóm tắt thanh toán */
 .st-pay {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.75rem;
-    margin: 0;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--vc-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2.25rem;
+    margin: 0 0 1rem;
 }
 
 .st-pay dt {
     color: var(--vc-muted);
     font-size: 0.78rem;
-    font-weight: 600;
-}
-
-.st-pay dd {
-    margin: 0.2rem 0 0;
-    font-weight: 700;
-}
-
-.st-paid {
-    color: #15803d;
-}
-
-/* Nhãn - giá trị */
-.st-info {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.65rem 1rem;
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-.st-info dt {
-    color: var(--vc-muted);
     font-weight: 500;
 }
 
-.st-info dd {
-    margin: 0;
-    text-align: right;
-    overflow-wrap: anywhere;
+.st-pay dd {
+    margin: 0.15rem 0 0;
+    font-size: 1rem;
+    font-weight: 800;
 }
 
-/* Lịch sử cơ hội: mỗi Opportunity một dòng, mở ra để xem Lịch sử chăm sóc / Lịch hẹn */
-.st-opp--InProgress { --tone: #1d4ed8; --tone-bg: #dbeafe; }
-.st-opp--Won { --tone: #15803d; --tone-bg: #dcfce7; }
-.st-opp--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
-.st-opp--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
-
-.st-opp + .st-opp {
-    border-top: 1px solid var(--vc-border);
-}
-
-.st-opp__head {
-    position: relative;
-    display: grid;
-    gap: 0.3rem;
-    width: 100%;
-    padding: 0.9rem 3rem 0.9rem 1.25rem;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-.st-opp__head:hover,
-.st-opp.is-open .st-opp__head {
-    background: var(--vc-tint);
-}
-
-.st-opp__main {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.st-opp__main .vc-badge {
-    margin-left: auto;
-}
-
-.st-opp__current {
-    padding: 0.05rem 0.5rem;
-    border-radius: 999px;
-    background: var(--vc-primary);
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 600;
-}
-
-.st-opp__courses {
-    font-weight: 600;
-}
-
-.st-opp__chevron {
-    position: absolute;
-    top: 50%;
-    right: 1.25rem;
-    display: inline-flex;
+.st-note {
+    margin: -0.4rem 0 1rem;
+    font-size: 0.8rem;
     color: var(--vc-muted);
-    transform: translateY(-50%);
-    transition: transform 0.15s;
 }
 
-.st-opp.is-open .st-opp__chevron {
-    transform: translateY(-50%) rotate(90deg);
+.st-invoices {
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
 }
 
-.st-opp__body {
-    border-top: 1px solid var(--vc-border);
-}
+/* ── Cột phải ─────────────────────────────────────────────────────── */
 
-/* Các lần đăng ký khác */
-.st-others {
-    display: grid;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.st-others li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.st-others .vc-badge {
-    margin-left: auto;
-}
-
-@media (max-width: 991.98px) {
-    .st-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .st-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .st-side {
-        order: -1;
-    }
-}
-
-/* Tiêu đề card + nút thao tác cùng hàng (VD: Thông tin học viên – Chỉnh sửa) */
 .st-title-row {
     display: flex;
     align-items: baseline;
@@ -290,8 +416,28 @@
     margin-bottom: 1rem;
 }
 
-.st-title-row .st-title {
+.st-title-row .st-section {
     margin: 0;
+}
+
+.st-info {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+}
+
+.st-info dt {
+    margin-bottom: 0.1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--vc-muted);
+}
+
+.st-info dd {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
 }
 
 /* Nút Chỉnh sửa: không nền, chữ xanh primary */
@@ -317,4 +463,24 @@
 .vc .st-edit-btn .odin-icon {
     width: 14px;
     height: 14px;
+}
+
+@media (max-width: 991.98px) {
+    .st-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .st-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .st-head__cta {
+        width: 100%;
+    }
+
+    .st-course {
+        flex-basis: 230px;
+    }
 }
