@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Orders;
 
+use App\Livewire\Concerns\StudentTrail;
 use App\Models\SalesOrder;
 use App\Services\InvoiceService;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,9 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
+    use StudentTrail;
+
     public SalesOrder $order;
 
     public ?array $notice = null;
@@ -37,6 +41,8 @@ class Show extends Component
             'quotation.employee',
             'quotation.opportunity.lead',
         ]);
+
+        $this->initStudentTrail($this->order->quotation?->opportunity_id);
 
         // Vừa xác nhận báo giá (HĐ17) → báo đơn hàng đã được tạo
         if ($text = session('order_notice')) {

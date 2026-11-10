@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Invoices;
 
+use App\Livewire\Concerns\StudentTrail;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Services\TransferAlerts;
@@ -23,6 +24,9 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
+    use StudentTrail;
+
     public Invoice $invoice;
 
     // Thông báo sau thao tác: ['tone' => success|info|danger, 'text' => ...]
@@ -43,6 +47,7 @@ class Show extends Component
         }
 
         $this->loadInvoice($invoice);
+        $this->initStudentTrail($this->invoice->order?->quotation?->opportunity_id);
     }
 
     #[Computed]

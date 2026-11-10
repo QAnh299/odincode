@@ -18,7 +18,7 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $listUrl = route($prefix.'.invoices');
-    $quotationUrl = $quotation && Route::has($prefix.'.quotations.show') ? route($prefix.'.quotations.show', $quotation) : null;
+    $quotationUrl = $quotation && Route::has($prefix.'.quotations.show') ? route($prefix.'.quotations.show', [$quotation] + $this->trailQuery()) : null;
     $paymentType = in_array($order?->payment_type, SalesOrder::PAYMENT_TYPES, true) ? $order->payment_type : null;
 @endphp
 
@@ -28,14 +28,18 @@
         @vite(['resources/css/quotation.css', 'resources/css/invoice.css'])
     @endassets
 
-    <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('invoices.detail.back') }}</a>
-        <span class="qt-crumb__path">
-            <a href="{{ $listUrl }}">{{ __('invoices.title') }}</a>
-            <x-icon name="chevron" />
-            <span aria-current="page">{{ $invoice->invoice_id }}</span>
-        </span>
-    </nav>
+    @if ($trailStudent)
+        @include('livewire.partials.student-trail', ['class' => 'qt-crumb', 'trail' => $this->studentTrail([['opportunities', $quotation?->opportunity_id], ['quotations', $quotation?->quotation_id], ['orders', $order?->order_id], ['invoices', $invoice->invoice_id]])])
+    @else
+        <nav class="qt-crumb" aria-label="breadcrumb">
+            <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('invoices.detail.back') }}</a>
+            <span class="qt-crumb__path">
+                <a href="{{ $listUrl }}">{{ __('invoices.title') }}</a>
+                <x-icon name="chevron" />
+                <span aria-current="page">{{ $invoice->invoice_id }}</span>
+            </span>
+        </nav>
+    @endif
 
     <header class="qt-detail-head">
         <h1 class="qt-detail-head__title">
@@ -195,7 +199,7 @@
                             @foreach ($order->invoices as $item)
                                 <tr wire:key="sib-{{ $item->invoice_id }}" @class(['iv-current' => $item->invoice_id === $invoice->invoice_id])>
                                     <td data-label="{{ __('invoices.code') }}">
-                                        <a href="{{ route($prefix.'.invoices.show', $item) }}" class="qt-mono">{{ $item->invoice_id }}</a>
+                                        <a href="{{ route($prefix.'.invoices.show', [$item] + $this->trailQuery()) }}" class="qt-mono">{{ $item->invoice_id }}</a>
                                         <small>{{ __('invoices.installment', ['number' => $item->payment_installment]) }}</small>
                                     </td>
                                     <td data-label="{{ __('invoices.method_label') }}">{{ $item->payment_method ? __('invoices.method.'.$item->payment_method) : '-' }}</td>

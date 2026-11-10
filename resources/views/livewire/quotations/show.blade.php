@@ -34,7 +34,7 @@
 
     // Link chỉ tạo khi vai trò hiện tại có route tương ứng
     $opportunityUrl = $opportunity && Route::has($prefix.'.opportunities.show')
-        ? route($prefix.'.opportunities.show', $opportunity) : null;
+        ? route($prefix.'.opportunities.show', [$opportunity] + $this->trailQuery()) : null;
     $voucherUrl = $voucher && Route::has($prefix.'.vouchers.show')
         ? route($prefix.'.vouchers.show', $voucher) : null;
 
@@ -56,20 +56,24 @@
 
     {{-- ── Điều hướng: mở từ cơ hội thì quay lại cơ hội, ngược lại về danh sách báo giá ── --}}
     @php $backToOpportunity = $fromOpportunity && $opportunityUrl; @endphp
-    <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $backToOpportunity ? $opportunityUrl : $listUrl }}" class="odin-back">
-            <x-icon name="arrow-left" />{{ $backToOpportunity ? __('quotations.detail.back_opportunity', ['code' => $opportunity->opportunity_id]) : __('quotations.detail.back') }}
-        </a>
-        <span class="qt-crumb__path">
-            @if ($backToOpportunity)
-                <a href="{{ $opportunityUrl }}">{{ __('quotations.detail.opportunity') }} {{ $opportunity->opportunity_id }}</a>
-            @else
-                <a href="{{ $listUrl }}">{{ __('quotations.title') }}</a>
-            @endif
-            <x-icon name="chevron" />
-            <span aria-current="page">{{ $quotation->quotation_id }}</span>
-        </span>
-    </nav>
+    @if ($trailStudent)
+        @include('livewire.partials.student-trail', ['class' => 'qt-crumb', 'trail' => $this->studentTrail([['opportunities', $opportunity?->opportunity_id], ['quotations', $quotation->quotation_id]])])
+    @else
+        <nav class="qt-crumb" aria-label="breadcrumb">
+            <a href="{{ $backToOpportunity ? $opportunityUrl : $listUrl }}" class="odin-back">
+                <x-icon name="arrow-left" />{{ $backToOpportunity ? __('quotations.detail.back_opportunity', ['code' => $opportunity->opportunity_id]) : __('quotations.detail.back') }}
+            </a>
+            <span class="qt-crumb__path">
+                @if ($backToOpportunity)
+                    <a href="{{ $opportunityUrl }}">{{ __('quotations.detail.opportunity') }} {{ $opportunity->opportunity_id }}</a>
+                @else
+                    <a href="{{ $listUrl }}">{{ __('quotations.title') }}</a>
+                @endif
+                <x-icon name="chevron" />
+                <span aria-current="page">{{ $quotation->quotation_id }}</span>
+            </span>
+        </nav>
+    @endif
 
     {{-- ── Đầu trang: mã + trạng thái + hạn ────────────────────────── --}}
     <header class="qt-detail-head">
@@ -343,7 +347,7 @@
                             <dt>{{ __('quotations.detail.order_id') }}</dt>
                             <dd>
                                 @if (Route::has($prefix.'.orders.show'))
-                                    <a href="{{ route($prefix.'.orders.show', $order) }}" class="qt-link qt-mono">{{ $order->order_id }}</a>
+                                    <a href="{{ route($prefix.'.orders.show', [$order] + $this->trailQuery()) }}" class="qt-link qt-mono">{{ $order->order_id }}</a>
                                 @else
                                     <span class="qt-mono">{{ $order->order_id }}</span>
                                 @endif

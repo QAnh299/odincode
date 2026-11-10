@@ -25,8 +25,8 @@
     $vat = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
     $dash = fn ($value) => filled($value) ? $value : '-';
 
-    $quotationUrl = $quotation && Route::has($prefix.'.quotations.show') ? route($prefix.'.quotations.show', $quotation) : null;
-    $opportunityUrl = $quotation && Route::has($prefix.'.opportunities.show') ? route($prefix.'.opportunities.show', $quotation->opportunity_id) : null;
+    $quotationUrl = $quotation && Route::has($prefix.'.quotations.show') ? route($prefix.'.quotations.show', [$quotation] + $this->trailQuery()) : null;
+    $opportunityUrl = $quotation && Route::has($prefix.'.opportunities.show') ? route($prefix.'.opportunities.show', [$quotation->opportunity_id] + $this->trailQuery()) : null;
     $hasInvoiceShow = Route::has($prefix.'.invoices.show');
 @endphp
 
@@ -36,14 +36,18 @@
         @vite(['resources/css/quotation.css', 'resources/css/order.css', 'resources/css/invoice.css'])
     @endassets
 
-    <nav class="qt-crumb" aria-label="breadcrumb">
-        <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('orders.detail.back') }}</a>
-        <span class="qt-crumb__path">
-            <a href="{{ $listUrl }}">{{ __('orders.title') }}</a>
-            <x-icon name="chevron" />
-            <span aria-current="page">{{ $order->order_id }}</span>
-        </span>
-    </nav>
+    @if ($trailStudent)
+        @include('livewire.partials.student-trail', ['class' => 'qt-crumb', 'trail' => $this->studentTrail([['opportunities', $quotation?->opportunity_id], ['quotations', $quotation?->quotation_id], ['orders', $order->order_id]])])
+    @else
+        <nav class="qt-crumb" aria-label="breadcrumb">
+            <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('orders.detail.back') }}</a>
+            <span class="qt-crumb__path">
+                <a href="{{ $listUrl }}">{{ __('orders.title') }}</a>
+                <x-icon name="chevron" />
+                <span aria-current="page">{{ $order->order_id }}</span>
+            </span>
+        </nav>
+    @endif
 
     <header class="qt-detail-head">
         <h1 class="qt-detail-head__title">
@@ -187,7 +191,7 @@
                                         <td data-label="{{ __('orders.detail.invoice_code') }}">
                                             <span class="od-course">
                                                 @if ($hasInvoiceShow)
-                                                    <a href="{{ route($prefix.'.invoices.show', $item) }}" class="qt-link qt-mono">{{ $item->invoice_id }}</a>
+                                                    <a href="{{ route($prefix.'.invoices.show', [$item] + $this->trailQuery()) }}" class="qt-link qt-mono">{{ $item->invoice_id }}</a>
                                                 @else
                                                     <span class="qt-mono">{{ $item->invoice_id }}</span>
                                                 @endif

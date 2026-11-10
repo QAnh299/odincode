@@ -14,16 +14,20 @@
     @endassets
 
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
-    <nav class="vc-crumb" aria-label="breadcrumb">
-        <a href="{{ route($this->routePrefix.'.opportunities') }}" class="odin-back">
-            <x-icon name="arrow-left" />{{ __('opportunities.back') }}
-        </a>
-        <span class="vc-crumb__path">
-            <a href="{{ route($this->routePrefix.'.opportunities') }}">{{ __('opportunities.title') }}</a>
-            <x-icon name="chevron" />
-            <span aria-current="page">{{ $opp->opportunity_id }}</span>
-        </span>
-    </nav>
+    @if ($trailStudent)
+        @include('livewire.partials.student-trail', ['class' => 'vc-crumb', 'trail' => $this->studentTrail([['opportunities', $opp->opportunity_id]])])
+    @else
+        <nav class="vc-crumb" aria-label="breadcrumb">
+            <a href="{{ route($this->routePrefix.'.opportunities') }}" class="odin-back">
+                <x-icon name="arrow-left" />{{ __('opportunities.back') }}
+            </a>
+            <span class="vc-crumb__path">
+                <a href="{{ route($this->routePrefix.'.opportunities') }}">{{ __('opportunities.title') }}</a>
+                <x-icon name="chevron" />
+                <span aria-current="page">{{ $opp->opportunity_id }}</span>
+            </span>
+        </nav>
+    @endif
 
     {{-- ── Đầu trang: tên khách, nút Tạo báo giá + thanh giai đoạn ───── --}}
     <section class="vc-card od-head">
@@ -283,7 +287,7 @@
                                     @php $quoteRoute = $this->routePrefix.'.quotations.show'; $canOpen = \Illuminate\Support\Facades\Route::has($quoteRoute); @endphp
                                     @foreach ($quotations as $quo)
                                         @php
-                                            $quoUrl = $canOpen ? route($quoteRoute, ['quotation' => $quo->quotation_id, 'from' => 'opportunity']) : null;
+                                            $quoUrl = $canOpen ? route($quoteRoute, ['quotation' => $quo->quotation_id, 'from' => 'opportunity'] + $this->trailQuery()) : null;
                                             $isDraft = $quo->status === \App\Models\Quotation::STATUS_DRAFT;
                                             $daysLeft = $isDraft ? $quo->daysUntilExpiry() : null;
                                         @endphp

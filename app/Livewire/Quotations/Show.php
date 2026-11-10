@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Quotations;
 
+use App\Livewire\Concerns\StudentTrail;
 use App\Models\Opportunity;
 use App\Models\Quotation;
 use App\Models\Role;
@@ -28,6 +29,9 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
+    use StudentTrail;
+
     public Quotation $quotation;
 
     // Thông báo sau thao tác: ['tone' => success|info, 'text' => ...]
@@ -54,6 +58,7 @@ class Show extends Component
         }
 
         $this->loadQuotation($quotation);
+        $this->initStudentTrail($this->quotation->opportunity_id);
     }
 
     /**

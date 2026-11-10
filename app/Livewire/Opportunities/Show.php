@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Opportunities;
 
+use App\Livewire\Concerns\StudentTrail;
 use App\Livewire\Leads\Concerns\EditsLead;
 use App\Models\Appointment;
 use App\Models\CareActivity;
@@ -61,6 +62,9 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Show extends Component
 {
+    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
+    use StudentTrail;
+
     use EditsLead;
 
     const TABS = ['care', 'appointments'];
@@ -126,6 +130,8 @@ class Show extends Component
         $this->opportunity = $opportunity->load([
             'lead.branch:branch_id,branch_name,address', 'stage', 'student', 'employee.team:team_id,team_name',
         ]);
+
+        $this->initStudentTrail($opportunity->opportunity_id);
     }
 
     public function setTab(string $tab): void
