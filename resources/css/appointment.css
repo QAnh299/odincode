@@ -1,84 +1,506 @@
-/* ── Trang Lịch hẹn của Salesperson (livewire/appointments/index) ──────
-   Nạp cùng voucher.css (bảng, thẻ thống kê) và opportunity.css (màu loại / trạng thái lịch hẹn);
+/* ── Trang Danh sách lịch hẹn của Salesperson (livewire/appointments/index) ──────
+   Nạp cùng voucher.css (bảng, biến màu), lead.css (popup, thông báo) và opportunity.css (nút thành công / nguy hiểm);
    phần riêng tiền tố .ap-. */
 
-/* Màu thẻ thống kê */
-.ap-tone--today { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
-.ap-tone--tomorrow { --tone: #0369a1; --tone-bg: #e0f2fe; }
-.ap-tone--week { --tone: #7c3aed; --tone-bg: #ede9fe; }
-.ap-tone--overdue { --tone: #b45309; --tone-bg: #fef3c7; }
-
-/* Lịch đã qua giờ hẹn mà chưa cập nhật kết quả */
-.od-apt--Overdue { --tone: #b45309; --tone-bg: #fef3c7; }
-
-.ap-summary {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.ap {
+    --ap-blue: #1d4ed8;
+    --ap-green: #15803d;
+    --ap-red: #b91c1c;
+    --ap-amber: #b45309;
 }
 
-/* Bộ lọc: hàng 1 = lọc nhanh; hàng 2 = tìm kiếm + loại + xoá lọc */
-.ap-filters {
+/* ── Thẻ thống kê ──────────────────────────────────────────────────── */
+
+.ap-stats {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.85rem;
-    align-items: end;
+    margin-bottom: 1rem;
 }
 
-.ap-filters__views {
-    grid-column: 1 / -1;
+.ap-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 12px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    text-align: left;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.ap-filters .vc-search {
-    min-height: 42px;
-    margin-bottom: 0;
+.ap-stat:hover {
+    border-color: color-mix(in srgb, var(--tone) 40%, #fff);
+}
+
+.ap-stat.is-current {
+    border-color: var(--tone);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 14%, transparent);
+}
+
+.ap-stat:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 30%, transparent);
+}
+
+.ap-stat__label {
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ap-stat__value {
+    color: var(--tone);
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.ap-stat--total { --tone: var(--vc-ink); }
+.ap-stat--scheduled { --tone: var(--ap-blue); }
+.ap-stat--success { --tone: var(--ap-green); }
+.ap-stat--failed { --tone: var(--ap-red); }
+
+/* ── Tìm kiếm + lọc ────────────────────────────────────────────────── */
+
+.ap-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px 180px auto;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.ap-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    margin: 0;
+    padding: 0 0.75rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 8px;
+    background: var(--vc-surface);
+    color: var(--vc-muted);
+}
+
+.ap-search:focus-within {
+    border-color: var(--vc-primary);
+    box-shadow: 0 0 0 3px var(--vc-tint);
+}
+
+.ap-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: none;
+    color: var(--vc-ink);
+    font-size: 0.9rem;
+}
+
+.ap-search .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ap-select {
+    min-height: 40px;
+    border-radius: 8px;
+}
+
+.ap-reset {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--vc-border);
+    border-radius: 8px;
+    background: var(--vc-surface);
+    color: var(--vc-muted);
+}
+
+.ap-reset:hover {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+.ap-notice {
+    margin-bottom: 1rem;
+}
+
+/* ── Bảng ──────────────────────────────────────────────────────────── */
+
+.ap-list {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
     border-radius: 12px;
 }
 
-/* Bảng */
-.ap-time {
-    display: block;
-    font-size: 1rem;
-    font-weight: 800;
-}
-
-.ap-day,
-.ap-sub {
-    display: block;
-    margin-top: 0.15rem;
+.ap-loading {
+    position: absolute;
+    top: 0.6rem;
+    right: 1rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     color: var(--vc-muted);
     font-size: 0.8rem;
 }
 
-.ap-sub.vc-mono {
-    display: inline-block;
-    font-size: 0.72rem;
+.ap-table th {
+    padding: 0.8rem 1rem;
+    color: var(--vc-ink);
+    font-size: 0.8rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.ap-table td {
+    padding: 0.85rem 1rem;
+}
+
+.ap-table__actions {
+    width: 1%;
+    text-align: center;
 }
 
 .ap-name {
     display: block;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-/* Lịch hẹn hôm nay chưa diễn ra: nhấn nhẹ */
-.vc-table tbody tr.ap-row--today {
-    background: color-mix(in srgb, var(--vc-primary) 5%, #fff);
+.ap-opp {
+    display: inline-block;
+    margin-top: 0.15rem;
+    color: var(--vc-primary);
+    font-size: 0.78rem;
+    font-style: italic;
 }
+
+.ap-opp:hover {
+    text-decoration: underline;
+}
+
+.ap-time {
+    display: block;
+    font-weight: 800;
+}
+
+.ap-day {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+.ap-day strong {
+    color: var(--vc-ink);
+}
+
+/* Lịch hẹn hôm nay chưa có kết quả: nhấn nhẹ */
+.vc-table tbody tr.ap-row--today {
+    background: color-mix(in srgb, var(--vc-primary) 4%, #fff);
+}
+
+/* Nhãn trạng thái dạng viên thuốc */
+.ap-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--tone-bg);
+    color: var(--tone);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ap-badge--Scheduled { --tone: var(--ap-blue); --tone-bg: #dbeafe; }
+.ap-badge--Overdue { --tone: var(--ap-amber); --tone-bg: #fef3c7; }
+.ap-badge--Success { --tone: var(--ap-green); --tone-bg: #dcfce7; }
+.ap-badge--Failed { --tone: var(--ap-red); --tone-bg: #fee2e2; }
+.ap-badge--Cancelled { --tone: #64748b; --tone-bg: #f1f5f9; }
+
+/* Nút thao tác: 3 ô cố định (Đổi lịch - Kết quả - Hủy) để các dòng thẳng cột */
+.ap-actions {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 32px);
+    gap: 0.35rem;
+    cursor: default;
+}
+
+.ap-act {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--vc-ink);
+    transition: background-color 0.12s, color 0.12s;
+}
+
+.ap .ap-act .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ap-act:hover {
+    background: var(--vc-tint);
+    color: var(--vc-primary);
+}
+
+.ap-act--result { color: var(--ap-green); }
+.ap-act--result:hover { background: #dcfce7; color: var(--ap-green); }
+.ap-act--cancel { color: #dc2626; }
+.ap-act--cancel:hover { background: #fee2e2; color: #dc2626; }
+
+.ap-act:disabled {
+    color: #cbd5e1;
+    background: none;
+    cursor: not-allowed;
+}
+
+.ap-act--blank {
+    pointer-events: none;
+}
+
+/* ── Chân bảng: đếm + phân trang ───────────────────────────────────── */
+
+.ap-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--vc-border);
+}
+
+.ap-foot__count {
+    color: var(--vc-muted);
+    font-size: 0.82rem;
+}
+
+.ap-pager {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.ap-pager__btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--vc-border);
+    border-radius: 8px;
+    background: var(--vc-surface);
+    color: var(--vc-ink);
+    font-size: 0.82rem;
+}
+
+.ap-pager__num {
+    padding: 0;
+}
+
+.ap-pager__btn:hover:not(:disabled) {
+    border-color: var(--vc-primary);
+    color: var(--vc-primary);
+}
+
+.ap-pager__btn.is-active {
+    border-color: var(--vc-ink);
+    background: var(--vc-ink);
+    color: #fff;
+    font-weight: 700;
+}
+
+.ap-pager__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ── Popup thao tác ────────────────────────────────────────────────── */
+
+.ap-dialog {
+    width: min(560px, 100%);
+}
+
+.ap-dialog--result .ld-modal__icon { color: var(--ap-green); background: #dcfce7; }
+.ap-dialog--reschedule .ld-modal__icon { color: var(--ap-blue); background: #dbeafe; }
+.ap-dialog--cancel .ld-modal__icon { color: var(--ap-red); background: #fee2e2; }
+
+.ap-dialog__body {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Tóm tắt lịch hẹn */
+.ap-brief {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    margin: 0;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: #f8faf8;
+}
+
+.ap-brief dt {
+    color: var(--vc-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.ap-brief dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+}
+
+.ap-brief__sub {
+    display: block;
+    color: var(--vc-muted);
+    font-size: 0.78rem;
+}
+
+/* Chọn kết quả: Khách đã đến / Khách không đến */
+.ap-outcome {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.ap-outcome__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.35rem;
+}
+
+.ap-outcome__card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 0.85rem;
+    border: 1.5px solid var(--vc-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.12s, background-color 0.12s;
+}
+
+.ap-outcome__card--Success { --tone: var(--ap-green); --tone-bg: #f0fdf4; }
+.ap-outcome__card--Failed { --tone: var(--ap-red); --tone-bg: #fef2f2; }
+
+.ap-outcome__card:hover {
+    border-color: color-mix(in srgb, var(--tone) 45%, #fff);
+}
+
+.ap-outcome__card.is-active {
+    border-color: var(--tone);
+    background: var(--tone-bg);
+}
+
+.ap-outcome__card:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 20%, transparent);
+}
+
+.ap-outcome__icon {
+    color: var(--tone);
+}
+
+.ap-outcome__card strong {
+    display: block;
+    font-size: 0.9rem;
+}
+
+.ap-outcome__card small {
+    color: var(--vc-muted);
+    font-size: 0.75rem;
+}
+
+.ap-dialog__hint {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 0.8rem;
+}
+
+.ap-dialog__hint .odin-icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 0.1rem;
+}
+
+.ap-dialog__hint--warn {
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    background: #fffbeb;
+    color: var(--ap-amber);
+}
+
+.ap-dialog__foot {
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.ap-dialog__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--vc-primary);
+    font-size: 0.82rem;
+}
+
+.ap-dialog__link .odin-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ap-dialog__buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+/* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 991.98px) {
-    .ap-summary {
+    .ap-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .ap-filters {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    .ap-toolbar {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     }
 
-    .ap-filters__search {
+    .ap-search {
         grid-column: 1 / -1;
+    }
+
+    .ap-table__actions {
+        width: auto;
+        text-align: left;
     }
 }
 
 @media (max-width: 575.98px) {
-    .ap-filters {
+    .ap-brief,
+    .ap-outcome__grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ap-dialog__buttons {
+        width: 100%;
+    }
+
+    .ap-dialog__buttons .vc-btn {
+        flex: 1;
     }
 }

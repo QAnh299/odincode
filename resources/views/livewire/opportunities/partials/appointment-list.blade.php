@@ -2,8 +2,10 @@
     Danh sách lịch hẹn của một Opportunity - dùng chung cho chi tiết Opportunity và chi tiết học viên.
     $appointments: nhóm theo mã lịch hẹn, mới nhất lên đầu - mỗi nhóm ['id', 'no', 'rows' (Test trước, Tư vấn sau)].
     $place: địa điểm (cơ sở của khách). Dòng có can_mark (chỉ ở chi tiết Opportunity) hiện nút Khách đã đến / không đến.
+    $focus (tuỳ chọn): dòng được tham chiếu từ trang Danh sách lịch hẹn ("APT006-Test") - làm nổi bật và cuộn tới.
 --}}
 @php
+    $focus = $focus ?? '';
     $label = fn (string $key, string $value) => \Illuminate\Support\Facades\Lang::has("$key.$value") ? __("$key.$value") : $value;
 @endphp
 
@@ -24,7 +26,10 @@
         {{-- Từng loại: Test / Tư vấn - thời gian, kết quả riêng --}}
         <ul class="od-apt__rows">
             @foreach ($group['rows'] as $row)
-                <li class="od-apt__row" wire:key="apt-{{ $group['id'] }}-{{ $row->appointment_type }}">
+                @php $rowKey = $row->appointment_id.'-'.$row->appointment_type; @endphp
+                <li class="od-apt__row {{ $focus === $rowKey ? 'is-focus' : '' }}" id="apt-{{ $rowKey }}"
+                    wire:key="apt-{{ $group['id'] }}-{{ $row->appointment_type }}"
+                    @if ($focus === $rowKey) x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'center' }))" @endif>
                     <div class="od-apt__type">
                         <span class="od-type od-type--{{ $row->appointment_type }}">
                             {{ $label('opportunities.appointment_type_name', $row->appointment_type) }}

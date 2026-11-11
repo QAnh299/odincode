@@ -16,6 +16,18 @@
     {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     @if ($trailStudent)
         @include('livewire.partials.student-trail', ['class' => 'vc-crumb', 'trail' => $this->studentTrail([['opportunities', $opp->opportunity_id]])])
+    @elseif ($appointmentsBackUrl)
+        {{-- Đi từ trang Danh sách lịch hẹn: Lịch hẹn › mã cơ hội, quay lại đúng bộ lọc / trang đang xem --}}
+        <nav class="vc-crumb" aria-label="breadcrumb">
+            <a href="{{ $appointmentsBackUrl }}" class="odin-back" wire:navigate>
+                <x-icon name="arrow-left" />{{ __('opportunities.back') }}
+            </a>
+            <span class="vc-crumb__path">
+                <a href="{{ $appointmentsBackUrl }}" wire:navigate>{{ __('appointments.title') }}</a>
+                <x-icon name="chevron" />
+                <span aria-current="page">{{ $opp->opportunity_id }}</span>
+            </span>
+        </nav>
     @else
         <nav class="vc-crumb" aria-label="breadcrumb">
             <a href="{{ route($this->routePrefix.'.opportunities') }}" class="odin-back">
@@ -199,7 +211,7 @@
                         @endif
 
                         {{-- Lịch hẹn: mới nhất lên đầu; mỗi mã lịch hẹn gồm dòng Test và/hoặc Tư vấn --}}
-                        @include('livewire.opportunities.partials.appointment-list', ['appointments' => $appointments, 'place' => $this->appointmentPlace])
+                        @include('livewire.opportunities.partials.appointment-list', ['appointments' => $appointments, 'place' => $this->appointmentPlace, 'focus' => $focusApt])
                     @else
                         {{-- Form ghi nhận lần liên hệ tiếp theo (mở từ nút trên hàng tab) --}}
                         @if ($this->needsContact())

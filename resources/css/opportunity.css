@@ -1058,6 +1058,17 @@
 .od-type--Test { color: #7c3aed; }
 .od-type--Consultation { color: #0369a1; }
 
+/* Dòng được tham chiếu từ trang Danh sách lịch hẹn (?apt=) */
+.od-apt__row.is-focus {
+    background: color-mix(in srgb, var(--vc-primary) 8%, #fff);
+    box-shadow: inset 3px 0 0 var(--vc-primary), 0 0 0 1px color-mix(in srgb, var(--vc-primary) 30%, transparent);
+    animation: od-apt-focus 1.6s ease-out 1;
+}
+
+@keyframes od-apt-focus {
+    0%, 30% { box-shadow: inset 3px 0 0 var(--vc-primary), 0 0 0 5px color-mix(in srgb, var(--vc-primary) 30%, transparent); }
+}
+
 .od-apt__row .od-apt__note {
     margin-top: 0.35rem;
 }

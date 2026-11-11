@@ -15,15 +15,18 @@ use App\Models\OpportunityTransfer;
 use App\Models\Role;
 use App\Models\Quotation;
 use App\Models\Stage;
+use App\Services\AppointmentService;
 use App\Services\LeadDistributionService;
 use App\Services\QuotationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -73,6 +76,14 @@ class Show extends Component
 
     #[Url(except: 'care')]
     public string $tab = 'care';
+
+    // Dòng lịch hẹn được tham chiếu từ trang Danh sách lịch hẹn ("APT006-Test"): làm nổi bật và cuộn tới
+    #[Url(as: 'apt', except: '')]
+    public string $focusApt = '';
+
+    // Đi từ trang Danh sách lịch hẹn (?from=appointments&list=bộ lọc): link quay lại đúng danh sách (giữ bộ lọc, trang)
+    #[Locked]
+    public ?string $appointmentsBackUrl = null;
 
     // Thông báo sau khi thao tác lịch hẹn: ['tone' => success|danger, 'text' => ...]
     public ?array $notice = null;
@@ -132,6 +143,25 @@ class Show extends Component
         ]);
 
         $this->initStudentTrail($opportunity->opportunity_id);
+        $this->initAppointmentsBack();
+    }
+
+    /**
+     * Mở từ trang Danh sách lịch hẹn: dựng lại URL danh sách với bộ lọc / trang đang xem (chỉ nhận các tham số của trang đó).
+     */
+    protected function initAppointmentsBack(): void
+    {
+        if (request()->query('from') !== 'appointments' || ! Route::has($this->routePrefix.'.appointments')) {
+            return;
+        }
+
+        parse_str((string) request()->query('list', ''), $list);
+        $list = array_filter(
+            array_intersect_key($list, array_flip(['q', 'status', 'period', 'page'])),
+            fn ($value) => is_string($value) && $value !== '',
+        );
+
+        $this->appointmentsBackUrl = route($this->routePrefix.'.appointments', $list);
     }
 
     public function setTab(string $tab): void
@@ -498,32 +528,12 @@ class Show extends Component
             return;
         }
 
-        $query = $this->opportunityAppointments()
-            ->where('appointment_id', $appointmentId)
-            ->where('appointment_type', $type)
-            ->where('status', Appointment::STATUS_SCHEDULED)
-            ->where('scheduled_time', '<=', now());
+        $this->notice = $this->appointmentService()->mark($this->opportunity, $appointmentId, $type, $status, $result);
 
-        $row = (clone $query)->first(['notes']);
-        $values = ['status' => $status];
-
-        if ($row && $result) {
-            $values['notes'] = ($row->notes ? $row->notes."\n" : '').'Kết quả: '.$result;
+        if ($this->notice['tone'] === 'success') {
+            $this->closeForm();
+            $this->refreshStage();
         }
-
-        $updated = $row ? $query->update($values) : 0;
-
-        if (! $updated) {
-            $this->notice = ['tone' => 'danger', 'text' => __('opportunities.apt_cannot_mark')];
-
-            return;
-        }
-
-        $this->closeForm();
-        $this->notice = match (true) {
-            $this->advanceStageIfDone() => ['tone' => 'success', 'text' => __('opportunities.apt_stage_moved', ['stage' => $this->opportunity->stage->stage_name])],
-            default => ['tone' => 'success', 'text' => __('opportunities.apt_marked')],
-        };
 
         $this->refreshAppointments();
     }
@@ -535,11 +545,7 @@ class Show extends Component
      */
     protected function activeAppointmentTypes(): Collection
     {
-        return $this->opportunityAppointments()
-            ->orderBy('scheduled_time')
-            ->get(['appointment_type', 'status'])
-            ->groupBy('appointment_type')
-            ->reject(fn (Collection $rows) => $rows->last()->status === Appointment::STATUS_CANCELLED);
+        return $this->appointmentService()->activeTypes($this->opportunity);
     }
 
     /**
@@ -568,62 +574,15 @@ class Show extends Component
             ['cancelReason.required' => __('opportunities.apt_cancel_required')],
             ['cancelReason' => __('opportunities.apt_cancel_reason')],
         );
-        $reason = trim($this->cancelReason);
-
-        $query = $this->opportunityAppointments()
-            ->where('appointment_id', $id)
-            ->where('appointment_type', $type)
-            ->where('status', Appointment::STATUS_SCHEDULED)
-            ->where('scheduled_time', '>', now());
-        $row = (clone $query)->first(['notes']);
-
-        if (! $row) {
-            $this->notice = ['tone' => 'danger', 'text' => __('opportunities.apt_cannot_cancel')];
-
-            return;
-        }
-
         $this->tab = 'appointments';
-        $query->update([
-            'status' => Appointment::STATUS_CANCELLED,
-            'notes'  => ($row->notes ? $row->notes."\n" : '').'Lý do hủy: '.$reason,
-        ]);
-        $this->closeForm();
+        $this->notice = $this->appointmentService()->cancel($this->opportunity, $id, $type, trim($this->cancelReason));
 
-        $statuses = $this->opportunityAppointments()->pluck('status');
-        $text = match (true) {
-            ! $statuses->contains(Appointment::STATUS_SCHEDULED) && ! $statuses->contains(Appointment::STATUS_SUCCESS)
-                => $this->closeOpportunity(Opportunity::STATUS_LOST, 'Khách hủy lịch hẹn: '.$reason, 'opportunities.apt_cancelled_lost', []),
-            $this->advanceStageIfDone() => __('opportunities.apt_cancelled_moved', ['stage' => $this->opportunity->stage->stage_name]),
-            default => __('opportunities.apt_cancelled'),
-        };
+        if ($this->notice['tone'] === 'success') {
+            $this->closeForm();
+            $this->refreshStage();
+        }
 
-        $this->notice = ['tone' => 'success', 'text' => $text];
         $this->refreshAppointments();
-    }
-
-    /**
-     * Mọi loại lịch hẹn của Opportunity (Test, Tư vấn) đều đã có lần khách đến (bỏ qua loại khách đã hủy)
-     * → chuyển sang "Data đã xử lý" nếu đang ở stage trước đó. Trả về true nếu đã chuyển.
-     */
-    protected function advanceStageIfDone(): bool
-    {
-        $processed = $this->stages->firstWhere('stage_id', Stage::PROCESSED);
-
-        if (! $processed || $this->stageOrder() >= $processed->sort_order) {
-            return false;
-        }
-
-        $types = $this->activeAppointmentTypes();
-
-        if ($types->isEmpty() || $types->contains(fn (Collection $rows) => ! $rows->contains('status', Appointment::STATUS_SUCCESS))) {
-            return false;
-        }
-
-        $this->opportunity->moveToStage($processed->stage_id);
-        $this->refreshStage();
-
-        return true;
     }
 
     /**
@@ -733,37 +692,14 @@ class Show extends Component
     }
 
     /**
-     * Lịch hẹn đang chờ của Salesperson bắt đầu cùng giờ (theo phút). Test và Tư vấn của cùng một lịch hẹn
-     * được phép trùng giờ nên bỏ qua lịch hẹn đang đổi.
-     */
-    protected function clashFor(string $employeeId, Carbon $time, ?string $appointmentId = null): ?Appointment
-    {
-        return Appointment::query()
-            ->where('employee_id', $employeeId)
-            ->where('status', Appointment::STATUS_SCHEDULED)
-            ->whereBetween('scheduled_time', [$time->copy()->startOfMinute(), $time->copy()->endOfMinute()])
-            ->when($appointmentId, fn ($q) => $q->where('appointment_id', '!=', $appointmentId))
-            ->first();
-    }
-
-    protected function clashMessage(Appointment $clash): string
-    {
-        return __('opportunities.apt_clash', [
-            'type' => __('opportunities.appointment_type_name.'.$clash->appointment_type),
-            'time' => $clash->scheduled_time->format('d/m/Y H:i'),
-            'code' => $clash->appointment_id,
-        ]);
-    }
-
-    /**
      * Kiểm tra giờ bắt đầu của form tạo lịch hẹn: không trùng lịch đang chờ của Salesperson.
      * Lỗi gắn vào ô thời gian.
      */
     protected function checkNewTimes(): bool
     {
         foreach (array_intersect(Appointment::TYPES, $this->newTypes) as $type) {
-            if ($clash = $this->clashFor($this->employeeId(), Carbon::parse($this->newTimes[$type]))) {
-                $this->addError("newTimes.$type", $this->clashMessage($clash));
+            if ($clash = $this->appointmentService()->clashFor($this->employeeId(), Carbon::parse($this->newTimes[$type]))) {
+                $this->addError("newTimes.$type", $this->appointmentService()->clashMessage($clash));
             }
         }
 
@@ -937,18 +873,10 @@ class Show extends Component
             return;
         }
 
-        DB::transaction(function () {
-            foreach ($this->editKeys as $key) {
-                [$id, $type] = explode('-', $key, 2);
-
-                $this->opportunityAppointments()
-                    ->where('appointment_id', $id)
-                    ->where('appointment_type', $type)
-                    ->where('status', Appointment::STATUS_SCHEDULED)
-                    ->where('scheduled_time', '>', now())
-                    ->update(['scheduled_time' => Carbon::parse($this->editTimes[$key])]);
-            }
-        });
+        $this->appointmentService()->reschedule(
+            $this->opportunity,
+            array_intersect_key($this->editTimes, array_flip($this->editKeys)),
+        );
 
         $this->closeForm();
         $this->notice = ['tone' => 'success', 'text' => __('opportunities.apt_rescheduled')];
@@ -963,8 +891,8 @@ class Show extends Component
         foreach ($this->editKeys as $key) {
             [$id] = explode('-', $key, 2);
 
-            if ($clash = $this->clashFor($this->employeeId(), Carbon::parse($this->editTimes[$key]), $id)) {
-                $this->addError("editTimes.$key", $this->clashMessage($clash));
+            if ($clash = $this->appointmentService()->clashFor($this->employeeId(), Carbon::parse($this->editTimes[$key]), $id)) {
+                $this->addError("editTimes.$key", $this->appointmentService()->clashMessage($clash));
             }
         }
 
@@ -1000,6 +928,11 @@ class Show extends Component
     }
 
     // ── Dữ liệu ───────────────────────────────────────────────────────
+
+    protected function appointmentService(): AppointmentService
+    {
+        return app(AppointmentService::class);
+    }
 
     protected function employeeId(): ?string
     {
