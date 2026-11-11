@@ -9,6 +9,7 @@ return [
     'mark_read'        => 'Mark as read',
     'mark_all_read'    => 'Mark all as read',
     'unread_count'     => ':count unread',
+    'notify_done'      => 'Done',
     'mark_tab_read'    => 'Mark as read',
     'no_notifications_tab' => 'No notifications in this section',
     // Notification group tabs

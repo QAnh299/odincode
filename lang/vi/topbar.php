@@ -9,6 +9,7 @@ return [
     'mark_read'        => 'Đã đọc',
     'mark_all_read'    => 'Đánh dấu tất cả đã đọc',
     'unread_count'     => ':count chưa đọc',
+    'notify_done'      => 'Đã xử lý',
     'mark_tab_read'    => 'Đánh dấu đã đọc',
     'no_notifications_tab' => 'Không có thông báo nào trong mục này',
     // Tab nhóm thông báo

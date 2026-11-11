@@ -1118,6 +1118,9 @@ class Show extends Component
     protected function refreshAppointments(): void
     {
         unset($this->appointments, $this->rebookTypes, $this->reschedulable);
+
+        // Lịch hẹn / liên hệ vừa thay đổi: chuông bỏ ngay thông báo đã xử lý
+        $this->dispatch('notifications-refresh');
     }
 
     /**

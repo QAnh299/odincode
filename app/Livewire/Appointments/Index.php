@@ -241,6 +241,11 @@ class Index extends Component
         $this->closeDialog();
         $this->notice = $notice;
         unset($this->counts);
+
+        // Chuông bỏ ngay thông báo lịch hẹn đã xử lý
+        if ($notice['tone'] === 'success') {
+            $this->dispatch('notifications-refresh');
+        }
     }
 
     protected function failed(string $text): void

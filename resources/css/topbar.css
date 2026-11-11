@@ -270,6 +270,22 @@
     color: var(--odin-primary);
 }
 
+/* Phần thông báo đã xử lý: vạch ngăn + mờ đi, nằm cuối danh sách */
+.odin-notify-divider {
+    padding: 0.4rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.odin-notify-item.is-done .odin-notify-item__title {
+    color: #94a3b8;
+}
+
 /* Màu icon theo nhóm (khi chưa đọc) */
 .odin-notify-item.is-unread .odin-notify-item__icon--care { background: #e0f2fe; color: #0369a1; }
 .odin-notify-item.is-unread .odin-notify-item__icon--appointment { background: #ede9fe; color: #7c3aed; }

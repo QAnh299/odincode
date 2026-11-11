@@ -51,8 +51,14 @@
         @endif
 
         <div class="odin-notify-list">
+            @php $doneShown = false; @endphp
             @forelse ($items as $notification)
-                <div class="odin-notify-item {{ $notification['read'] ? 'is-read' : 'is-unread' }}"
+                {{-- Vạch ngăn trước phần thông báo đã xử lý (luôn ở cuối danh sách) --}}
+                @if ($notification['done'] && ! $doneShown)
+                    @php $doneShown = true; @endphp
+                    <div class="odin-notify-divider" wire:key="notify-divider">{{ __('topbar.notify_done') }}</div>
+                @endif
+                <div class="odin-notify-item {{ $notification['done'] ? 'is-read is-done' : ($notification['read'] ? 'is-read' : 'is-unread') }}"
                     wire:key="notify-{{ $notification['key'] }}">
                     <a href="{{ $notification['url'] }}" class="odin-notify-item__link"
                         wire:click.prevent="open('{{ $notification['key'] }}')">
@@ -71,8 +77,7 @@
                                     </svg>
                                     {{ $notification['time'] }}
                                 </span>
-                            @endif
-                        </span>
+                            @endif                        </span>
                     </a>
                     @unless ($notification['read'])
                         <button type="button" class="odin-notify-item__mark" title="{{ __('topbar.mark_read') }}"
