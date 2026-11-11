@@ -1,17 +1,15 @@
 @php
+    use App\Livewire\Leads\Index as LeadIndex;
     use App\Models\Lead;
     use App\Models\Role;
 
     $stats = $this->stats;
 
-    // Thẻ thống kê bấm được: [key trạng thái, icon]. Sale Leader không có Lead chưa phân cho đội.
-    $cards = array_values(array_filter([
-        ['', 'layers'],
-        [\App\Livewire\Leads\Index::UNASSIGNED, 'inbox'],
-        [\App\Livewire\Leads\Index::PENDING_SALESPERSON, 'users'],
-        [Lead::STATUS_CONVERTED, 'check-circle'],
-    ], fn ($card) => $this->routePrefix !== Role::SALE_LEADER || $card[0] !== \App\Livewire\Leads\Index::UNASSIGNED));
+    // Thẻ thống kê bấm được để lọc: Tổng, Chờ phân (đội / Salesperson theo vai trò), Đã phân, Khách cũ quay lại
+    $cards = ['', $this->pendingKey, LeadIndex::ASSIGNED, LeadIndex::RETURNING];
     $activeCard = $this->activeCard();
+
+    $loadingTargets = 'search, status, source, method, branch, from, to, filterCard, resetFilters, gotoPage, nextPage, previousPage';
 @endphp
 
 <div class="vc ld">
@@ -21,7 +19,7 @@
     @endassets
 
     {{-- ── Tiêu đề + nút thao tác ───────────────────────────────────── --}}
-    <header class="vc-head">
+    <header class="vc-head ldl-head">
         <div>
             <h1 class="visually-hidden">{{ __('leads.title') }}</h1>
             @if ($this->fixedBranch)
@@ -33,11 +31,11 @@
             <div class="ld-actions">
                 {{-- Thêm / Import Lead: chỉ Sale Admin --}}
                 @if ($this->canCreate)
+                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
+                        <x-icon name="download" />{{ __('leads.import') }}
+                    </button>
                     <button type="button" class="vc-btn vc-btn--ghost" wire:click="openCreate">
                         <x-icon name="plus" />{{ __('leads.add') }}
-                    </button>
-                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
-                        <x-icon name="upload" />{{ __('leads.import') }}
                     </button>
                 @endif
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="$dispatchTo('leads.distribute', 'open-distribute')">
@@ -61,105 +59,75 @@
         </div>
     @endif
 
-    {{-- ── Thống kê theo bộ lọc (bấm thẻ trạng thái để lọc) ─────────── --}}
-    <div class="vc-summary ld-summary ld-summary--{{ count($cards) }}">
-        @foreach ($cards as [$key, $icon])
-            <button type="button" wire:click="filterCard('{{ $key }}')"
-                class="vc-summary__item ld-st--{{ $key ?: 'all' }} {{ $activeCard === $key ? 'is-current' : '' }}"
+    {{-- ── Thống kê theo bộ lọc (bấm thẻ để lọc, bấm lại để bỏ lọc) ──── --}}
+    <div class="ldl-stats">
+        @foreach ($cards as $key)
+            <button type="button" wire:click="filterCard('{{ $key }}')" wire:key="card-{{ $key ?: 'all' }}"
+                class="ldl-stat ldl-stat--{{ $key ?: 'all' }} {{ $activeCard === $key ? 'is-current' : '' }}"
                 aria-pressed="{{ $activeCard === $key ? 'true' : 'false' }}">
-                <span class="vc-summary__icon"><x-icon :name="$icon" /></span>
-                <span class="vc-summary__text">
-                    <span class="vc-summary__label">{{ __('leads.stat.'.($key ?: 'all')) }}</span>
-                    <span class="vc-summary__value">{{ number_format($stats[$key ?: 'all'], 0, ',', '.') }}</span>
-                </span>
+                <span class="ldl-stat__label">{{ __('leads.card.'.($key ?: 'all')) }}</span>
+                <span class="ldl-stat__value">{{ number_format($stats[$key ?: 'all'], 0, ',', '.') }}</span>
             </button>
         @endforeach
     </div>
 
     {{-- ── Bộ lọc ───────────────────────────────────────────────────── --}}
-    <section class="vc-card ld-filters" aria-label="{{ __('leads.filters') }}">
-        <label class="vc-field ld-filters__search">
-            <span class="vc-field__label">{{ __('leads.search') }}</span>
-            <span class="vc-search">
-                <x-icon name="search" />
-                <input type="search" wire:model.live.debounce.350ms="search"
-                    placeholder="{{ __('leads.search_placeholder') }}">
-                <span class="vc-search__spin" wire:loading.delay wire:target="search">
-                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                </span>
+    <section class="ldl-filters {{ $this->canFilterBranch ? 'ldl-filters--branch' : '' }}" aria-label="{{ __('leads.filters') }}">
+        <label class="ldl-search">
+            <span class="visually-hidden">{{ __('leads.search') }}</span>
+            <x-icon name="search" />
+            <input type="search" wire:model.live.debounce.350ms="search" class="ldl-control"
+                placeholder="{{ __('leads.search_placeholder') }}">
+            <span class="ldl-search__spin" wire:loading.delay wire:target="search">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
             </span>
         </label>
 
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('leads.status') }}</span>
-            <select wire:model.live="status" class="vc-control">
-                <option value="">{{ __('leads.all') }}</option>
-                @foreach (Lead::STATUSES as $option)
-                    <option value="{{ $option }}">{{ __('leads.status_name.'.$option) }}</option>
-                @endforeach
-            </select>
-        </label>
+        <select wire:model.live="status" class="ldl-control" aria-label="{{ __('leads.status') }}">
+            <option value="">{{ __('leads.all_statuses') }}</option>
+            @foreach (Lead::STATUSES as $option)
+                <option value="{{ $option }}">{{ __('leads.status_name.'.$option) }}</option>
+            @endforeach
+        </select>
 
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('leads.source') }}</span>
-            <select wire:model.live="source" class="vc-control">
-                <option value="">{{ __('leads.all') }}</option>
-                @foreach ($this->sources as $option)
-                    <option value="{{ $option }}">{{ $option }}</option>
-                @endforeach
-            </select>
-        </label>
+        <select wire:model.live="source" class="ldl-control" aria-label="{{ __('leads.source') }}">
+            <option value="">{{ __('leads.all_sources') }}</option>
+            @foreach ($this->sources as $option)
+                <option value="{{ $option }}">{{ $option }}</option>
+            @endforeach
+        </select>
 
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('leads.contact_method') }}</span>
-            <select wire:model.live="method" class="vc-control">
-                <option value="">{{ __('leads.all') }}</option>
-                @foreach (Lead::CONTACT_METHODS as $option)
-                    <option value="{{ $option }}">{{ __('leads.method.'.$option) }}</option>
-                @endforeach
-            </select>
-        </label>
+        <select wire:model.live="method" class="ldl-control" aria-label="{{ __('leads.contact_method') }}">
+            <option value="">{{ __('leads.all_methods') }}</option>
+            @foreach (Lead::CONTACT_METHODS as $option)
+                <option value="{{ $option }}">{{ __('leads.method.'.$option) }}</option>
+            @endforeach
+        </select>
 
         @if ($this->canFilterBranch)
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('leads.branch') }}</span>
-                <select wire:model.live="branch" class="vc-control">
-                    <option value="">{{ __('leads.all_branches') }}</option>
-                    @foreach ($this->branches as $option)
-                        <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
-                    @endforeach
-                </select>
-            </label>
+            <select wire:model.live="branch" class="ldl-control" aria-label="{{ __('leads.branch') }}">
+                <option value="">{{ __('leads.all_branches') }}</option>
+                @foreach ($this->branches as $option)
+                    <option value="{{ $option->branch_id }}">{{ $option->branch_name }}</option>
+                @endforeach
+            </select>
         @endif
 
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('leads.from') }}</span>
-            <input type="date" wire:model.live="from" class="vc-control" max="{{ $to ?: '' }}">
-        </label>
+        {{-- Khoảng ngày tạo: bấm 2 ngày trên lịch --}}
+        <x-date-range from="from" to="to" class="ldl-range" />
 
-        <label class="vc-field">
-            <span class="vc-field__label">{{ __('leads.to') }}</span>
-            <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
-        </label>
-
-        <div class="vc-field vc-field--action">
-            <button type="button" class="vc-btn vc-btn--ghost" wire:click="resetFilters" @disabled(! $this->hasFilters())>
-                <x-icon name="refresh" />{{ __('leads.reset') }}
+        @if ($this->hasFilters())
+            <button type="button" class="ldl-reset" wire:click="resetFilters" title="{{ __('leads.reset') }}" aria-label="{{ __('leads.reset') }}">
+                <x-icon name="refresh" />
             </button>
-        </div>
+        @endif
     </section>
 
     {{-- ── Danh sách ────────────────────────────────────────────────── --}}
-    <section class="vc-card vc-results">
-        <div class="vc-results__bar">
-            <span>
-                {!! __('leads.result_count', ['count' => '<strong>'.$leads->total().'</strong>']) !!}
-            </span>
-            <span class="vc-results__loading" wire:loading.delay>
-                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                {{ __('leads.loading') }}
-            </span>
-        </div>
+    <section class="ldl-card">
+        <span class="ldl-loading" wire:loading.delay wire:target="{{ $loadingTargets }}">
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ __('leads.loading') }}
+        </span>
 
         @if ($leads->isEmpty())
             <div class="vc-empty">
@@ -173,22 +141,18 @@
                 @endif
             </div>
         @else
-            <div class="vc-table-wrap" wire:loading.class="is-loading">
-                <table class="vc-table vc-table--static">
+            <div class="ldl-table-wrap" wire:loading.class="is-loading" wire:target="{{ $loadingTargets }}">
+                <table class="ldl-table">
                     <thead>
                         <tr>
-                            <th>{{ __('leads.code') }}</th>
                             <th>{{ __('leads.customer') }}</th>
-                            <th>{{ __('leads.phone') }}</th>
+                            <th>{{ __('leads.col_phone') }}</th>
                             <th>{{ __('leads.source') }}</th>
-                            <th>{{ __('leads.contact_method') }}</th>
-                            @if (! $this->fixedBranch)
-                                <th>{{ __('leads.branch') }}</th>
-                            @endif
+                            <th>{{ __('leads.col_method') }}</th>
                             <th>{{ __('leads.created_at') }}</th>
-                            <th>{{ __('leads.owner') }}</th>
+                            <th>{{ __('leads.col_owner') }}</th>
                             <th>{{ __('leads.status') }}</th>
-                            <th class="text-lg-end">{{ __('leads.actions') }}</th>
+                            <th class="ldl-table__actions">{{ __('leads.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -199,62 +163,66 @@
                                 $returning = $lead->status === Lead::STATUS_NEW && $latest && $latest->status !== \App\Models\Opportunity::STATUS_IN_PROGRESS;
                                 $owner = $returning ? null : $latest?->employee;
                                 $url = route($this->routePrefix.'.leads.show', $lead);
+                                $assignable = $this->canManage && $this->canAssign($lead);
+                                // Chấm trạng thái: chờ phân (cam), đang được chăm sóc (xanh lá), đã chuyển đổi (xanh dương)
+                                $tone = match (true) {
+                                    $lead->status === Lead::STATUS_CONVERTED => 'converted',
+                                    ! $owner || ($owner->ledTeam && $latest->stage_id === \App\Models\Stage::UNTOUCHED) => 'waiting',
+                                    default => 'active',
+                                };
                             @endphp
                             <tr wire:key="lead-{{ $lead->lead_id }}" onclick="window.location='{{ $url }}'">
-                                <td data-label="{{ __('leads.code') }}">
-                                    <span class="vc-mono">{{ $lead->lead_id }}</span>
-                                </td>
                                 <td data-label="{{ __('leads.customer') }}">
-                                    <span class="ld-name">{{ $lead->full_name }}</span>
+                                    <span class="ldl-name">
+                                        {{ $lead->full_name }}
+                                        @if ($returning)
+                                            <span class="ldl-tag" title="{{ __('leads.returning', ['name' => $latest->employee?->full_name ?? '-']) }}">{{ __('leads.returning_tag') }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="ldl-code">
+                                        {{ $lead->lead_id }}
+                                        @if (! $this->fixedBranch && $lead->branch)
+                                            <span class="ldl-code__branch">· {{ $lead->branch->branch_name }}</span>
+                                        @endif
+                                    </span>
                                 </td>
-                                <td data-label="{{ __('leads.phone') }}" class="ld-nowrap">{{ $lead->phone }}</td>
+                                <td data-label="{{ __('leads.col_phone') }}" class="ldl-nowrap">{{ $lead->phone ?: '-' }}</td>
                                 <td data-label="{{ __('leads.source') }}">
                                     @if ($lead->sourceUrlIsLink())
-                                        <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">{{ $lead->source_name }}</a>
+                                        <a href="{{ $lead->source_url }}" target="_blank" rel="noopener noreferrer" class="ldl-link"
+                                            onclick="event.stopPropagation()">{{ $lead->source_name }}</a>
                                     @else
                                         {{ $lead->source_name }}
-                                        @if ($lead->source_url)
-                                            <span class="ld-sub">{{ $lead->source_url }}</span>
-                                        @endif
                                     @endif
                                 </td>
-                                <td data-label="{{ __('leads.contact_method') }}">
-                                    <span class="ld-method ld-method--{{ $lead->contact_method }}">{{ __('leads.method.'.$lead->contact_method) }}</span>
-                                </td>
-                                @if (! $this->fixedBranch)
-                                    <td data-label="{{ __('leads.branch') }}">{{ $lead->branch?->branch_name ?? '-' }}</td>
-                                @endif
-                                <td data-label="{{ __('leads.created_at') }}" class="ld-nowrap">
-                                    {{ $lead->created_at?->format('d/m/Y H:i') }}
-                                </td>
-                                <td data-label="{{ __('leads.owner') }}">
+                                <td data-label="{{ __('leads.col_method') }}">{{ __('leads.method.'.$lead->contact_method) }}</td>
+                                <td data-label="{{ __('leads.created_at') }}" class="ldl-nowrap"
+                                    title="{{ $lead->created_at?->format('d/m/Y H:i') }}">{{ $lead->created_at?->format('d/m/Y') }}</td>
+                                <td data-label="{{ __('leads.col_owner') }}">
                                     @if ($owner)
                                         {{ $owner->full_name }}
-                                        {{-- Cơ hội trưởng nhóm đang giữ ở stage đầu = Lead của đội chờ phân cho Salesperson --}}
-                                        @if ($owner->ledTeam && $lead->latestOpportunity->stage_id === \App\Models\Stage::UNTOUCHED)
-                                            <span class="ld-sub">{{ __('leads.pending_team', ['team' => $owner->ledTeam->team_name]) }}</span>
+                                        {{-- Trưởng nhóm đang giữ ở stage đầu = Lead của đội chờ phân cho Salesperson --}}
+                                        @if ($owner->ledTeam && $latest->stage_id === \App\Models\Stage::UNTOUCHED)
+                                            <span class="ldl-sub">{{ __('leads.pending_team', ['team' => $owner->ledTeam->team_name]) }}</span>
                                         @endif
                                     @else
-                                        <span class="ld-sub">{{ __('leads.unassigned') }}</span>
-                                        @if ($returning)
-                                            <span class="ld-sub">{{ __('leads.returning', ['name' => $latest->employee?->full_name ?? '-']) }}</span>
-                                        @endif
+                                        <span class="ldl-muted">{{ __('leads.not_assigned') }}</span>
                                     @endif
                                 </td>
                                 <td data-label="{{ __('leads.status') }}">
-                                    <span class="vc-badge ld-st--{{ $lead->status }}">
-                                        <span class="vc-badge__dot"></span>{{ __('leads.status_name.'.$lead->status) }}
+                                    <span class="ldl-status ldl-status--{{ $tone }}">
+                                        <span class="ldl-status__dot"></span>{{ __('leads.tone.'.$tone) }}
                                     </span>
                                 </td>
-                                <td data-label="{{ __('leads.actions') }}" class="text-lg-end ld-nowrap">
-                                    @if ($this->canAssign($lead))
-                                        <button type="button" class="vc-icon-btn ld-assign-btn" onclick="event.stopPropagation()"
+                                <td data-label="{{ __('leads.actions') }}" class="ldl-table__actions">
+                                    @if ($assignable)
+                                        <button type="button" class="ldl-icon-btn ldl-icon-btn--assign" onclick="event.stopPropagation()"
                                             wire:click="$dispatchTo('leads.assign-one', 'open-assign-one', { leadId: '{{ $lead->lead_id }}' })"
                                             title="{{ __('leads.assign_one.button') }}" aria-label="{{ __('leads.assign_one.button') }} {{ $lead->lead_id }}">
-                                            <x-icon name="share" />
+                                            <x-icon name="user-plus" />
                                         </button>
                                     @endif
-                                    <a href="{{ $url }}" class="vc-icon-btn" onclick="event.stopPropagation()"
+                                    <a href="{{ $url }}" class="ldl-icon-btn" onclick="event.stopPropagation()"
                                         title="{{ __('leads.view') }}" aria-label="{{ __('leads.view') }} {{ $lead->lead_id }}">
                                         <x-icon name="eye" />
                                     </a>
@@ -265,9 +233,30 @@
                 </table>
             </div>
 
-            @if ($leads->hasPages())
-                <div class="vc-pagination">{{ $leads->links() }}</div>
-            @endif
+            <footer class="ldl-foot">
+                <span class="ldl-foot__count">
+                    {{ __('leads.showing', ['shown' => $leads->count(), 'total' => number_format($leads->total(), 0, ',', '.')]) }}
+                </span>
+                @if ($leads->hasPages())
+                    @php
+                        $current = $leads->currentPage();
+                        $last = $leads->lastPage();
+                        $first = max(1, min($current - 2, $last - 4));
+                    @endphp
+                    <nav class="ldl-pager" aria-label="{{ __('leads.pagination') }}">
+                        <button type="button" class="ldl-pager__btn" wire:click="previousPage" @disabled($leads->onFirstPage())>
+                            {{ __('leads.prev') }}
+                        </button>
+                        @foreach (range($first, min($last, $first + 4)) as $page)
+                            <button type="button" class="ldl-pager__btn ldl-pager__num {{ $page === $current ? 'is-active' : '' }}"
+                                wire:click="gotoPage({{ $page }})" @if ($page === $current) aria-current="page" @endif>{{ $page }}</button>
+                        @endforeach
+                        <button type="button" class="ldl-pager__btn" wire:click="nextPage" @disabled(! $leads->hasMorePages())>
+                            {{ __('leads.next') }}
+                        </button>
+                    </nav>
+                @endif
+            </footer>
         @endif
     </section>
 

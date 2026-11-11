@@ -1,0 +1,249 @@
+/* ── Ô chọn khoảng ngày (components/date-range.blade.php) ──────────── */
+
+.odin-dr {
+    --dr-primary: var(--odin-primary, #005e12);
+    --dr-tint: color-mix(in srgb, var(--dr-primary) 12%, #fff);
+    --dr-border: #e6ebe4;
+    --dr-muted: #6b7280;
+    position: relative;
+    min-width: 0;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.odin-dr__trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 38px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--dr-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--dr-muted);
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.odin-dr__trigger .odin-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.odin-dr__trigger.has-value {
+    color: #1f2937;
+}
+
+.odin-dr__trigger:focus-visible,
+.odin-dr__trigger.is-open {
+    outline: none;
+    border-color: var(--dr-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dr-primary) 15%, transparent);
+}
+
+.odin-dr__text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.odin-dr__panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    z-index: 1050;
+    display: flex;
+    border: 1px solid var(--dr-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
+
+.odin-dr--end .odin-dr__panel { right: 0; }
+.odin-dr--start .odin-dr__panel { left: 0; }
+
+.odin-dr__presets {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 128px;
+    margin: 0;
+    padding: 0.6rem;
+    border-right: 1px solid var(--dr-border);
+    list-style: none;
+}
+
+.odin-dr__presets button {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #1f2937;
+    font-size: 0.82rem;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.odin-dr__presets button:hover {
+    background: var(--dr-tint);
+    color: var(--dr-primary);
+}
+
+.odin-dr__cal {
+    width: 268px;
+    padding: 0.75rem;
+}
+
+.odin-dr__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.odin-dr__month {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.odin-dr__arrow {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #1f2937;
+}
+
+.odin-dr__arrow:hover {
+    background: var(--dr-tint);
+    color: var(--dr-primary);
+}
+
+.odin-dr__arrow .odin-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.odin-dr__arrow--prev .odin-icon {
+    transform: rotate(180deg);
+}
+
+.odin-dr__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 2px;
+}
+
+.odin-dr__wd {
+    padding: 0.3rem 0;
+    color: var(--dr-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.odin-dr__day {
+    position: relative;
+    height: 34px;
+    border: 0;
+    background: none;
+    color: #1f2937;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.odin-dr__day:hover {
+    border-radius: 8px;
+    background: #f1f5f9;
+}
+
+.odin-dr__day.is-out {
+    color: #c0c6ce;
+}
+
+.odin-dr__day.is-today {
+    font-weight: 700;
+    color: var(--dr-primary);
+}
+
+.odin-dr__day.is-in {
+    border-radius: 0;
+    background: var(--dr-tint);
+}
+
+.odin-dr__day.is-start,
+.odin-dr__day.is-end {
+    border-radius: 8px;
+    background: var(--dr-primary);
+    color: var(--odin-on-primary, #fff);
+    font-weight: 700;
+}
+
+.odin-dr__day.is-start:not(.is-end) {
+    border-radius: 8px 0 0 8px;
+}
+
+.odin-dr__day.is-end:not(.is-start) {
+    border-radius: 0 8px 8px 0;
+}
+
+.odin-dr__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--dr-border);
+}
+
+.odin-dr__hint {
+    color: var(--dr-muted);
+    font-size: 0.76rem;
+}
+
+.odin-dr__clear {
+    padding: 0.25rem 0.6rem;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #b91c1c;
+    font-size: 0.8rem;
+}
+
+.odin-dr__clear:hover {
+    background: #fee2e2;
+}
+
+@media (max-width: 575.98px) {
+    .odin-dr__panel {
+        position: fixed;
+        top: auto;
+        right: 16px;
+        bottom: 16px;
+        left: 16px;
+        flex-direction: column;
+    }
+
+    .odin-dr__presets {
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-right: 0;
+        border-bottom: 1px solid var(--dr-border);
+    }
+
+    .odin-dr__presets button {
+        width: auto;
+    }
+
+    .odin-dr__cal {
+        width: 100%;
+    }
+}

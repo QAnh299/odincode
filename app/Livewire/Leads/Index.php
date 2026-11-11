@@ -47,7 +47,13 @@ class Index extends Component
 
     const PENDING_SALESPERSON = 'PendingSales';
 
-    const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON];
+    // Đã phân: Sale Admin - đã giao cho đội (không còn chờ phân cho đội); Sale Leader - đã giao cho Salesperson
+    const ASSIGNED = 'Assigned';
+
+    // Khách cũ quay lại: chờ phân cho đội nhưng từng có cơ hội đã kết thúc (Lead::scopeReturning)
+    const RETURNING = 'Returning';
+
+    const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON, self::ASSIGNED, self::RETURNING];
 
     // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
 
@@ -151,6 +157,15 @@ class Index extends Component
     public function activeCard(): string
     {
         return $this->assign !== '' ? $this->assign : $this->status;
+    }
+
+    /**
+     * Thẻ "Chờ phân" theo vai trò: Sale Leader - chờ phân cho Salesperson; còn lại - chờ phân cho đội.
+     */
+    #[Computed]
+    public function pendingKey(): string
+    {
+        return $this->routePrefix === Role::SALE_LEADER ? self::PENDING_SALESPERSON : self::UNASSIGNED;
     }
 
     public function resetFilters(): void
@@ -752,11 +767,16 @@ class Index extends Component
             ->selectRaw('SUM(status = ?) AS converted_count', [Lead::STATUS_CONVERTED])
             ->first();
 
+        $pending = $this->filtered(Lead::query(), withStatus: false)
+            ->{$this->pendingKey === self::UNASSIGNED ? 'unassigned' : 'pendingSalesperson'}()
+            ->count();
+
         return [
-            'all'                     => (int) $row->total,
-            self::UNASSIGNED          => $this->filtered(Lead::query(), withStatus: false)->unassigned()->count(),
-            self::PENDING_SALESPERSON => $this->filtered(Lead::query(), withStatus: false)->pendingSalesperson()->count(),
-            Lead::STATUS_CONVERTED    => (int) $row->converted_count,
+            'all'                  => (int) $row->total,
+            $this->pendingKey      => $pending,
+            self::ASSIGNED         => (int) $row->total - $pending,
+            self::RETURNING        => $this->filtered(Lead::query(), withStatus: false)->returning()->count(),
+            Lead::STATUS_CONVERTED => (int) $row->converted_count,
         ];
     }
 
@@ -800,6 +820,10 @@ class Index extends Component
                 fn ($q) => $q->unassigned())
             ->when($withStatus && $this->assign === self::PENDING_SALESPERSON,
                 fn ($q) => $q->pendingSalesperson())
+            ->when($withStatus && $this->assign === self::ASSIGNED,
+                fn ($q) => $q->whereNot(fn ($q) => $this->pendingKey === self::UNASSIGNED ? $q->unassigned() : $q->pendingSalesperson()))
+            ->when($withStatus && $this->assign === self::RETURNING,
+                fn ($q) => $q->returning())
             ->when(in_array($this->source, $this->sources, true),
                 fn ($q) => $q->where('source_name', $this->source))
             ->when(in_array($this->method, Lead::CONTACT_METHODS, true),

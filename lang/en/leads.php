@@ -344,7 +344,7 @@ return [
     // Filters
     'filters'                => 'Lead filters',
     'search'                 => 'Search',
-    'search_placeholder'     => 'Search by code, name, phone or email…',
+    'search_placeholder'     => 'Search',
     'all'                    => 'All',
     'all_branches'           => 'All branches',
     'from'                   => 'From',
@@ -370,6 +370,32 @@ return [
     'status'                 => 'Status',
     'actions'                => 'Actions',
     'view'                   => 'View details',
+
+    // Lead list - stat cards, filters, columns, pagination
+    'card' => [
+        'all'          => 'Total leads',
+        'Unassigned'   => 'Waiting',
+        'PendingSales' => 'Waiting',
+        'Assigned'     => 'Assigned',
+        'Returning'    => 'Returning customers',
+    ],
+    'all_statuses'           => 'All statuses',
+    'all_sources'            => 'All sources',
+    'all_methods'            => 'All contact methods',
+    'col_phone'              => 'Phone',
+    'col_method'             => 'Method',
+    'col_owner'              => 'Owner',
+    'not_assigned'           => 'Not assigned',
+    'returning_tag'          => 'Returning',
+    'tone' => [
+        'waiting'   => 'Waiting',
+        'active'    => 'Assigned',
+        'converted' => 'Converted',
+    ],
+    'showing'                => 'Showing :shown of :total leads',
+    'pagination'             => 'Pagination',
+    'prev'                   => 'Previous',
+    'next'                   => 'Next',
 
     // Lead details
     'detail_title'           => 'Lead :code',

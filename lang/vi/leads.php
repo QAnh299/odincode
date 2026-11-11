@@ -344,7 +344,7 @@ return [
     // Bộ lọc
     'filters'                => 'Bộ lọc Lead',
     'search'                 => 'Tìm kiếm',
-    'search_placeholder'     => 'Tìm theo mã, họ tên, SĐT hoặc email…',
+    'search_placeholder'     => 'Tìm kiếm',
     'all'                    => 'Tất cả',
     'all_branches'           => 'Tất cả chi nhánh',
     'from'                   => 'Từ ngày',
@@ -370,6 +370,32 @@ return [
     'status'                 => 'Trạng thái',
     'actions'                => 'Thao tác',
     'view'                   => 'Xem chi tiết',
+
+    // Danh sách Lead - thẻ thống kê, bộ lọc, cột, phân trang
+    'card' => [
+        'all'          => 'Tổng Lead',
+        'Unassigned'   => 'Chờ phân',
+        'PendingSales' => 'Chờ phân',
+        'Assigned'     => 'Đã phân',
+        'Returning'    => 'Khách cũ quay lại',
+    ],
+    'all_statuses'           => 'Tất cả trạng thái',
+    'all_sources'            => 'Tất cả nguồn',
+    'all_methods'            => 'Mọi hình thức liên hệ',
+    'col_phone'              => 'SĐT',
+    'col_method'             => 'Hình thức',
+    'col_owner'              => 'Người phụ trách',
+    'not_assigned'           => 'Chưa phân',
+    'returning_tag'          => 'Khách cũ',
+    'tone' => [
+        'waiting'   => 'Chờ phân',
+        'active'    => 'Đã phân',
+        'converted' => 'Đã chuyển đổi',
+    ],
+    'showing'                => 'Hiển thị :shown trên :total Lead',
+    'pagination'             => 'Phân trang',
+    'prev'                   => 'Trước',
+    'next'                   => 'Sau',
 
     // Chi tiết Lead
     'detail_title'           => 'Lead :code',

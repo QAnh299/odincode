@@ -88,6 +88,15 @@ class Lead extends Model
     }
 
     /**
+     * Khách cũ quay lại: Lead đang chờ phân cho đội nhưng đã từng có cơ hội kết thúc (Won / Lost / Archived).
+     */
+    public function scopeReturning(Builder $query): Builder
+    {
+        return $query->unassigned()
+            ->whereHas('opportunities', fn ($q) => $q->where('status', '!=', Opportunity::STATUS_IN_PROGRESS));
+    }
+
+    /**
      * Khách cũ: đã có cơ hội đã kết thúc (Won / Lost / Archived).
      */
     public function isReturning(): bool

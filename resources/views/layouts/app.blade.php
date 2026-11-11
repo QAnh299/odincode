@@ -32,7 +32,7 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/css/sidebar.css', 'resources/css/theme.css', 'resources/css/topbar.css',
-        'resources/js/app.js'])
+        'resources/css/date-range.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
