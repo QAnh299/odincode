@@ -202,7 +202,7 @@ return [
         'approve_title'    => 'Confirm cash payment',
         'approve_hint'     => 'Only confirm when the cash received matches the invoice. Otherwise ask the salesperson to correct the amount.',
         'cash_approved'    => 'Invoice :code confirmed. The salesperson and accountants were notified; the invoice email was sent to the customer.',
-        'confirm_transfer' => 'Confirm transfer received',
+        'confirm_transfer' => 'Confirm payment',
         'confirm_transfer_confirm' => 'Bank statement checked: confirm :amount received by transfer for invoice :code? This cannot be undone.',
         'confirm_transfer_title' => 'Confirm bank transfer',
         'confirm_transfer_hint' => 'Exact transfers are recorded automatically. Confirm manually only when the customer transferred a different amount and the bank statement shows the full invoice amount has been received.',

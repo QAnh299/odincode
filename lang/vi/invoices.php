@@ -202,7 +202,7 @@ return [
         'approve_title'    => 'Xác nhận thu tiền mặt',
         'approve_hint'     => 'Chỉ xác nhận khi số tiền khách nộp khớp với hóa đơn. Không khớp thì chưa xác nhận và báo Salesperson liên hệ khách.',
         'cash_approved'    => 'Đã xác nhận hóa đơn :code. Salesperson và kế toán đã nhận thông báo; email hóa đơn đã gửi cho khách.',
-        'confirm_transfer' => 'Xác nhận đã nhận chuyển khoản',
+        'confirm_transfer' => 'Xác nhận thu tiền',
         'confirm_transfer_confirm' => 'Đã đối chiếu sao kê và xác nhận nhận :amount chuyển khoản cho hóa đơn :code? Thao tác này không hoàn tác được.',
         'confirm_transfer_title' => 'Xác nhận thu chuyển khoản',
         'confirm_transfer_hint' => 'Hệ thống tự ghi nhận khi khách chuyển đúng số tiền qua mã QR. Chỉ xác nhận thủ công khi khách chuyển lệch hoặc không qua mã QR và sao kê ngân hàng cho thấy khách đã chuyển đủ số tiền hóa đơn.',
