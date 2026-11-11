@@ -84,7 +84,7 @@
 }
 
 .odin-notify-menu {
-    width: 380px;
+    width: 420px;
     max-width: calc(100vw - 2rem);
     padding: 0;
     overflow: hidden;
@@ -158,6 +158,46 @@
     background: color-mix(in srgb, var(--odin-primary) 10%, #fff);
 }
 
+/* Tab nhóm thông báo (Tất cả / Liên hệ / Lịch hẹn / …): cuộn ngang khi hẹp */
+.odin-notify-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--odin-border);
+    scrollbar-width: none;
+}
+
+.odin-notify-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.odin-notify-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-bottom: -1px;
+    padding: 0.45rem 0.6rem 0.55rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.odin-notify-tab:hover {
+    color: var(--odin-ink);
+}
+
+.odin-notify-tab.is-active {
+    border-bottom-color: var(--odin-primary);
+    color: var(--odin-primary);
+}
+
 /* Danh sách thông báo: cuộn khi dài */
 .odin-notify-list {
     max-height: min(440px, 65vh);
@@ -229,6 +269,14 @@
     background: color-mix(in srgb, var(--odin-primary) 14%, #fff);
     color: var(--odin-primary);
 }
+
+/* Màu icon theo nhóm (khi chưa đọc) */
+.odin-notify-item.is-unread .odin-notify-item__icon--care { background: #e0f2fe; color: #0369a1; }
+.odin-notify-item.is-unread .odin-notify-item__icon--appointment { background: #ede9fe; color: #7c3aed; }
+.odin-notify-item.is-unread .odin-notify-item__icon--quotation { background: #fef3c7; color: #b45309; }
+.odin-notify-item.is-unread .odin-notify-item__icon--invoice,
+.odin-notify-item.is-unread .odin-notify-item__icon--paid { background: #dcfce7; color: #15803d; }
+.odin-notify-item.is-unread .odin-notify-item__icon--transfer { background: #fee2e2; color: #b91c1c; }
 
 .odin-notify-item__icon svg {
     width: 17px;

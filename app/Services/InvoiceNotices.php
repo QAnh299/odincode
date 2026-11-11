@@ -23,7 +23,8 @@ class InvoiceNotices
     const LIMIT = 10;
 
     /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon}>
+     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon, kind: string}>
+     *   kind: cash (tiền mặt chờ duyệt) | transfer (chuyển khoản lệch / quá hạn) | overdue (quá hạn thanh toán) | paid (vừa thanh toán)
      */
     public static function for(?Employee $employee): Collection
     {
@@ -75,6 +76,7 @@ class InvoiceNotices
                 'url'   => route('accountant.invoices.show', $invoice),
                 // Hàng đợi xếp lên đầu chuông
                 'at'    => Carbon::create(1970),
+                'kind'  => 'cash',
             ]);
     }
 
@@ -112,6 +114,7 @@ class InvoiceNotices
                     'url'   => route($prefix.'.invoices.show', $invoice),
                     // Lỗi cần xử lý xếp lên đầu chuông
                     'at'    => Carbon::create(1970),
+                    'kind'  => 'transfer',
                 ];
             })
             ->values();
@@ -138,6 +141,7 @@ class InvoiceNotices
                 'time'  => __('invoices.notice.overdue_time', ['date' => $invoice->due_date?->format('d/m/Y')]),
                 'url'   => route('salesperson.invoices.show', $invoice),
                 'at'    => $invoice->due_date,
+                'kind'  => 'overdue',
             ]);
     }
 
@@ -169,6 +173,7 @@ class InvoiceNotices
                     .' · '.$invoice->payment_date->format('d/m H:i'),
                 'url'   => route($prefix.'.invoices.show', $invoice),
                 'at'    => $invoice->payment_date,
+                'kind'  => 'paid',
             ]);
     }
 

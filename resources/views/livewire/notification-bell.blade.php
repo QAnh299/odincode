@@ -22,14 +22,14 @@
                         <span class="odin-notify-menu__count">{{ __('topbar.unread_count', ['count' => $unread]) }}</span>
                     @endif
                 </span>
-                @if ($unread > 0)
+                @if ($tabUnread > 0)
                     <button type="button" class="odin-notify-menu__mark-all" wire:click="markAllRead">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M2 12.5l4.5 4.5L15 8.5" />
                             <path d="M10.5 15.5l1.5 1.5L22 7" />
                         </svg>
-                        {{ __('topbar.mark_all_read') }}
+                        {{ $tab === 'all' ? __('topbar.mark_all_read') : __('topbar.mark_tab_read') }}
                     </button>
                 @endif
             </div>
@@ -38,18 +38,27 @@
             @endif
         </div>
 
+        {{-- Tab nhóm thông báo: Tất cả + từng nhóm của vai trò, kèm số chưa đọc --}}
+        @if ($tabs)
+            <div class="odin-notify-tabs" role="tablist" aria-label="{{ __('topbar.notifications') }}">
+                @foreach ($tabs as $key => $t)
+                    <button type="button" role="tab" wire:click="setTab('{{ $key }}')" wire:key="notify-tab-{{ $key }}"
+                        class="odin-notify-tab {{ $tab === $key ? 'is-active' : '' }}" aria-selected="{{ $tab === $key ? 'true' : 'false' }}">
+                        {{ $t['label'] }} ({{ $t['total'] }})
+                    </button>
+                @endforeach
+            </div>
+        @endif
+
         <div class="odin-notify-list">
             @forelse ($items as $notification)
                 <div class="odin-notify-item {{ $notification['read'] ? 'is-read' : 'is-unread' }}"
                     wire:key="notify-{{ $notification['key'] }}">
                     <a href="{{ $notification['url'] }}" class="odin-notify-item__link"
                         wire:click.prevent="open('{{ $notification['key'] }}')">
-                        <span class="odin-notify-item__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                            </svg>
+                        {{-- Icon theo nhóm thông báo (Liên hệ, Lịch hẹn, Báo giá, Hóa đơn…) --}}
+                        <span class="odin-notify-item__icon odin-notify-item__icon--{{ $notification['group'] }}" aria-hidden="true">
+                            <x-icon :name="$groups[$notification['group']]['icon'] ?? 'info'" />
                         </span>
                         <span class="odin-notify-item__body">
                             <span class="odin-notify-item__title">{{ $notification['title'] }}</span>
@@ -86,7 +95,7 @@
                             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                         </svg>
                     </span>
-                    <span>{{ __('topbar.no_notifications') }}</span>
+                    <span>{{ $tab === 'all' ? __('topbar.no_notifications') : __('topbar.no_notifications_tab') }}</span>
                 </div>
             @endforelse
         </div>
