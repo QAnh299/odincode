@@ -197,7 +197,7 @@ return [
         'transfer_overdue' => 'Khách đã chuyển :received lúc :time vào hóa đơn đã quá hạn nên hệ thống chưa ghi nhận. Salesperson gia hạn hóa đơn, sau đó kế toán đối chiếu sao kê và xác nhận.',
         'transfer_after_reopen' => 'Khách đã chuyển :received lúc :time khi hóa đơn còn quá hạn. Hóa đơn đã được gia hạn: kế toán đối chiếu sao kê với số tiền :amount và xác nhận đã nhận chuyển khoản.',
         'no_method'        => 'Hóa đơn chưa chọn phương thức thanh toán.',
-        'approve_cash'     => 'Xác nhận đã nhận tiền mặt',
+        'approve_cash'     => 'Xác nhận thu tiền',
         'approve_confirm'  => 'Xác nhận đã nhận đủ :amount tiền mặt cho hóa đơn :code? Thao tác này không hoàn tác được.',
         'approve_title'    => 'Xác nhận thu tiền mặt',
         'approve_hint'     => 'Chỉ xác nhận khi số tiền khách nộp khớp với hóa đơn. Không khớp thì chưa xác nhận và báo Salesperson liên hệ khách.',

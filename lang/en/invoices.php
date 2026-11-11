@@ -197,7 +197,7 @@ return [
         'transfer_overdue' => 'The customer sent :received at :time to an overdue invoice, so it was not recorded. The salesperson extends the invoice, then the accountant checks the bank statement and confirms.',
         'transfer_after_reopen' => 'The customer sent :received at :time while the invoice was overdue. The invoice has been extended: the accountant checks the bank statement against :amount and confirms the transfer.',
         'no_method'        => 'No payment method has been chosen for this invoice.',
-        'approve_cash'     => 'Confirm cash received',
+        'approve_cash'     => 'Confirm payment',
         'approve_confirm'  => 'Confirm that :amount in cash was received for invoice :code? This cannot be undone.',
         'approve_title'    => 'Confirm cash payment',
         'approve_hint'     => 'Only confirm when the cash received matches the invoice. Otherwise ask the salesperson to correct the amount.',
