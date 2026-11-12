@@ -36,6 +36,13 @@ class Opportunity extends Model
 
     protected $primaryKey = 'opportunity_id';
 
+    // Cơ hội thay đổi → thẻ thống kê danh sách Lead (chờ phân, khách cũ quay lại) phải tính lại
+    protected static function booted(): void
+    {
+        static::saved(fn () => Lead::touchStats());
+        static::deleted(fn () => Lead::touchStats());
+    }
+
     protected string $idPrefix = 'OPP';
 
     protected int $idLength = 3;

@@ -6,10 +6,27 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Lead extends Model
 {
     use HasFactory, HasStringId;
+
+    // Phiên bản dữ liệu của thẻ thống kê danh sách Lead (Leads\Index::stats): đổi phiên bản = bỏ mọi kết quả đã cache.
+    // Đổi khi Lead / cơ hội / kết quả chăm sóc thay đổi; ghi hàng loạt bằng insert() thì gọi touchStats() thủ công.
+    const STATS_VERSION_KEY = 'leads.stats.version';
+
+    public static function touchStats(): void
+    {
+        Cache::forever(self::STATS_VERSION_KEY, Str::random(8));
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => self::touchStats());
+        static::deleted(fn () => self::touchStats());
+    }
 
     // Trạng thái: New = Sale Admin vừa nhập, Converted = đã phân cho salesperson (đã có Opportunity)
     const STATUS_NEW = 'New';

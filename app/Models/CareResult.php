@@ -28,6 +28,13 @@ class CareResult extends Model
 
     public $timestamps = false;
 
+    // Kết quả chăm sóc đầu tiên đưa Lead ra khỏi "chờ phân cho Salesperson" → thẻ thống kê danh sách Lead phải tính lại
+    protected static function booted(): void
+    {
+        static::saved(fn () => Lead::touchStats());
+        static::deleted(fn () => Lead::touchStats());
+    }
+
     protected $fillable = [
         'result_id',
         'performed_at',

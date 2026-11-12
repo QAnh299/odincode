@@ -120,6 +120,8 @@ CREATE TABLE `Leads` (
   `status` VARCHAR(30) NOT NULL DEFAULT 'New',
   `branch_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`lead_id`),
+  -- Danh sach Lead sap xep moi nhat truoc + phan trang (NFR01)
+  INDEX `idx_leads_created` (`created_at`, `lead_id`),
   CHECK (`source_name` IN ('Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok')),
   -- Thong tin bat buoc phu thuoc kenh lien he (khong phu thuoc nguon Lead):
   --   Phone, Zalo: bat buoc co SDT; Facebook: bat buoc co link nguon (link trang ca nhan/bai viet)
@@ -146,6 +148,8 @@ CREATE TABLE `Opportunities` (
   `stage_id` VARCHAR(10) NOT NULL,
   `employee_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`opportunity_id`),
+  -- Kiem tra Lead co co hoi dang xu ly hay khong (Lead cho phan, khach cu quay lai) (NFR01)
+  INDEX `idx_opp_lead_status` (`lead_id`, `status`),
   CHECK (`expected_value` >= 0),
   CHECK (`status` IN ('InProgress', 'Won', 'Lost', 'Archived')),
   CONSTRAINT `fk_opportunities_lead_id` FOREIGN KEY (`lead_id`)

@@ -11,6 +11,7 @@ use App\Services\LeadImportService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
@@ -40,6 +41,10 @@ class Index extends Component
     use WithFileUploads, WithPagination;
 
     const PER_PAGE = 10;
+
+    // Cache thẻ thống kê (giây): [còn mới, tối đa] - sau mốc đầu vẫn trả số cũ và tính lại ở nền (Cache::flexible),
+    // để khi hết hạn không có nhiều yêu cầu cùng chạy lại các câu đếm toàn bảng
+    const STATS_TTL = [30, 120];
 
     // Tiến độ phân chia (lọc từ thẻ thống kê, không phải trạng thái Lead):
     // chưa phân cho đội / đội đã nhận, chờ phân cho Salesperson
@@ -762,6 +767,20 @@ class Index extends Component
     #[Computed]
     public function stats(): array
     {
+        // Các câu đếm quét toàn bộ bảng Leads → cache theo người xem (phạm vi vai trò) + bộ lọc (trừ trạng thái).
+        // Lead::STATS_VERSION_KEY đổi khi dữ liệu thay đổi; STATS_TTL là giới hạn trễ với thay đổi không qua model.
+        $key = 'leads.stats:'.md5(json_encode([
+            Cache::get(Lead::STATS_VERSION_KEY),
+            Auth::id(),
+            $this->pendingKey,
+            trim($this->search), $this->source, $this->method, $this->branch, $this->from, $this->to,
+        ]));
+
+        return Cache::flexible($key, self::STATS_TTL, fn () => $this->computeStats());
+    }
+
+    protected function computeStats(): array
+    {
         $row = $this->filtered(Lead::query(), withStatus: false)
             ->selectRaw('COUNT(*) AS total')
             ->selectRaw('SUM(status = ?) AS converted_count', [Lead::STATUS_CONVERTED])
@@ -778,6 +797,29 @@ class Index extends Component
             self::RETURNING        => $this->filtered(Lead::query(), withStatus: false)->returning()->count(),
             Lead::STATUS_CONVERTED => (int) $row->converted_count,
         ];
+    }
+
+    /**
+     * Tổng số dòng của danh sách lấy từ thẻ thống kê (đã cache) để phân trang không phải đếm lại.
+     * null = bộ lọc không có thẻ tương ứng → paginate() tự đếm.
+     */
+    protected function knownTotal(): ?int
+    {
+        $status = in_array($this->status, Lead::STATUSES, true) ? $this->status : '';
+        $assign = in_array($this->assign, self::ASSIGN_FILTERS, true) ? $this->assign : '';
+
+        if ($status !== '' && $assign !== '') {
+            return null;
+        }
+
+        $stats = $this->stats;
+
+        return match (true) {
+            $status === '' && $assign === '' => $stats['all'],
+            $status === Lead::STATUS_CONVERTED => $stats[Lead::STATUS_CONVERTED],
+            $status === Lead::STATUS_NEW => $stats['all'] - $stats[Lead::STATUS_CONVERTED],
+            default => $stats[$assign] ?? null,
+        };
     }
 
     public function hasFilters(): bool
@@ -841,11 +883,19 @@ class Index extends Component
 
     public function render()
     {
+        // Phân trang 2 bước: lấy mã Lead của trang (chỉ đọc index created_at + lead_id, trang sâu vẫn nhanh)
+        // rồi mới nạp đủ dòng và quan hệ cho đúng 10 mã đó
         $leads = $this->filtered(Lead::query())
-            ->with(['branch:branch_id,branch_name', 'latestOpportunity.employee:employee_id,full_name', 'latestOpportunity.employee.ledTeam:team_id,team_name,team_leader_id'])
             ->orderByDesc('created_at')
             ->orderByDesc('lead_id')
-            ->paginate(self::PER_PAGE);
+            ->paginate(self::PER_PAGE, ['lead_id'], total: $this->knownTotal());
+
+        $leads->setCollection(Lead::query()
+            ->with(['branch:branch_id,branch_name', 'latestOpportunity.employee:employee_id,full_name', 'latestOpportunity.employee.ledTeam:team_id,team_name,team_leader_id'])
+            ->whereIn('lead_id', $leads->pluck('lead_id'))
+            ->orderByDesc('created_at')
+            ->orderByDesc('lead_id')
+            ->get());
 
         return view('livewire.leads.index', [
             'leads' => $leads,

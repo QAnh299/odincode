@@ -1,0 +1,69 @@
+2026-11-12 10:27:37,052 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-11-12 10:27:37,160 INFO o.a.j.JMeter: Loading user properties from: C:\Users\ADMIN\Downloads\apache-jmeter-5.6.3\apache-jmeter-5.6.3\bin\user.properties
+2026-11-12 10:27:37,161 INFO o.a.j.JMeter: Loading system properties from: C:\Users\ADMIN\Downloads\apache-jmeter-5.6.3\apache-jmeter-5.6.3\bin\system.properties
+2026-11-12 10:27:37,163 INFO o.a.j.JMeter: Setting JMeter property: cookies=C:\Users\ADMIN\AppData\Local\Temp\claude\c3b909529d61730a\78c39170-0d60-4438-945f-fd5c574db483\scratchpad\cookies50.txt
+2026-11-12 10:27:37,163 INFO o.a.j.JMeter: Setting JMeter property: users=2
+2026-11-12 10:27:37,163 INFO o.a.j.JMeter: Setting JMeter property: loops=1
+2026-11-12 10:27:37,163 INFO o.a.j.JMeter: Setting JMeter property: rampup=1
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: Version 5.6.3
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: java.version=21.0.13
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: os.name=Windows 10
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: os.arch=amd64
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: os.version=10.0
+2026-11-12 10:27:37,183 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-11-12 10:27:37,191 INFO o.a.j.JMeter: java.awt.headless=true
+2026-11-12 10:27:37,191 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-11-12 10:27:37,191 INFO o.a.j.JMeter: Available Processors =8
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: JMeterHome=C:\Users\ADMIN\Downloads\apache-jmeter-5.6.3\apache-jmeter-5.6.3
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: user.dir  =D:\code\odincode\tests\performance
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: PWD       =D:\code\odincode\tests\performance
+2026-11-12 10:27:37,224 INFO o.a.j.JMeter: IP: 192.168.1.185 Name: DESKTOP-1MI6150 FullName: DESKTOP-1MI6150
+2026-11-12 10:27:37,264 INFO o.a.j.s.FileServer: Default base='D:\code\odincode\tests\performance'
+2026-11-12 10:27:37,272 INFO o.a.j.s.FileServer: Set new base='D:\code\odincode\tests\performance'
+2026-11-12 10:27:37,975 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-11-12 10:27:38,074 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-11-12 10:27:38,076 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-11-12 10:27:38,086 INFO o.a.j.s.SaveService: Loading file: nfr01.jmx
+2026-11-12 10:27:38,309 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-12 10:27:38,309 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-12 10:27:38,309 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-12 10:27:38,313 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-11-12 10:27:38,313 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-11-12 10:27:38,313 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-11-12 10:27:38,350 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-11-12 10:27:38,402 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-11-12 10:27:38,409 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-12 10:27:38,409 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-11-12 10:27:38,422 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-11-12 10:27:38,423 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-11-12 10:27:38,656 INFO o.a.j.JMeter: Running test (1794454058656)
+2026-11-12 10:27:38,696 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : 50 người dùng đồng thời
+2026-11-12 10:27:38,696 INFO o.a.j.e.StandardJMeterEngine: Starting 2 threads for group 50 người dùng đồng thời.
+2026-11-12 10:27:38,696 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-11-12 10:27:38,696 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=2 ramp-up=1 delayedStart=false
+2026-11-12 10:27:38,714 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-11-12 10:27:38,714 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-11-12 10:27:38,831 INFO o.a.j.t.JMeterThread: Thread started: 50 người dùng đồng thời 1-1
+2026-11-12 10:27:38,837 INFO o.a.j.s.FileServer: Stored: sources.csv
+2026-11-12 10:27:38,874 INFO o.a.j.s.FileServer: Stored: keywords.csv
+2026-11-12 10:27:38,875 INFO o.a.j.s.FileServer: Stored: C:\Users\ADMIN\AppData\Local\Temp\claude\c3b909529d61730a\78c39170-0d60-4438-945f-fd5c574db483\scratchpad\cookies50.txt
+2026-11-12 10:27:39,334 INFO o.a.j.t.JMeterThread: Thread started: 50 người dùng đồng thời 1-2
+2026-11-12 10:27:40,584 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = DESKTOP-1MI6150
+2026-11-12 10:27:40,602 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-11-12 10:27:40,606 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-11-12 10:27:40,606 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-11-12 10:27:40,606 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-11-12 10:27:40,607 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-11-12 10:27:48,616 INFO o.a.j.t.JMeterThread: Thread is done: 50 người dùng đồng thời 1-1
+2026-11-12 10:27:48,616 INFO o.a.j.t.JMeterThread: Thread finished: 50 người dùng đồng thời 1-1
+2026-11-12 10:27:50,341 INFO o.a.j.t.JMeterThread: Thread is done: 50 người dùng đồng thời 1-2
+2026-11-12 10:27:50,356 INFO o.a.j.t.JMeterThread: Thread finished: 50 người dùng đồng thời 1-2
+2026-11-12 10:27:50,356 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-11-12 10:27:50,356 INFO o.a.j.s.FileServer: Close: C:\Users\ADMIN\AppData\Local\Temp\claude\c3b909529d61730a\78c39170-0d60-4438-945f-fd5c574db483\scratchpad\cookies50.txt
+2026-11-12 10:27:50,356 INFO o.a.j.s.FileServer: Close: keywords.csv
+2026-11-12 10:27:50,356 INFO o.a.j.s.FileServer: Close: sources.csv
+2026-11-12 10:27:50,356 INFO o.a.j.r.Summariser: summary =      8 in 00:00:12 =    0.7/s Avg:   595 Min:   226 Max:   825 Err:     0 (0.00%)

@@ -576,6 +576,9 @@ class LeadDistributionService
                 'employee_id'     => $leaderId,
             ]);
         });
+
+        // insert() không phát sự kiện model
+        Lead::touchStats();
     }
 
     /**
@@ -651,6 +654,7 @@ class LeadDistributionService
             }
 
             Opportunity::insert($rows);
+            Lead::touchStats(); // insert() không phát sự kiện model
 
             return $total;
         });
@@ -697,6 +701,7 @@ class LeadDistributionService
 
             Lead::whereIn('lead_id', array_values($oppLeads))
                 ->update(['status' => Lead::STATUS_CONVERTED]);
+            Lead::touchStats(); // update() hàng loạt không phát sự kiện model
 
             return $total;
         });
