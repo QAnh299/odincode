@@ -28,3 +28,8 @@ storage/app/public/lessons/attachments/fr7m9W5icfctf4ZvIFFOc0qRJjRfKbbhZLLSauBr.
 
 # Biến môi trường Azure chứa mật khẩu – không commit
 azure/app-settings.local.json
+
+# NFR06 – bản sao lưu và thư mục tạm khi sao lưu/phục hồi
+/storage/app/private/odin-backup/*
+/storage/app/backup-temp
+/storage/app/restore-temp

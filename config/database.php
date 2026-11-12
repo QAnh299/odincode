@@ -60,6 +60,13 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // NFR06 – sao lưu bằng spatie/laravel-backup (mysqldump)
+            'dump' => [
+                // Thư mục chứa mysqldump nếu không có trong PATH (VD: C:/Program Files/MySQL/MySQL Server 8.0/bin)
+                'dump_binary_path' => env('DB_DUMP_BINARY_PATH', ''),
+                'use_single_transaction' => true,
+                'timeout' => 600,
+            ],
         ],
 
         'mariadb' => [
