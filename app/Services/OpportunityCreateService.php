@@ -29,7 +29,8 @@ class OpportunityCreateService
     public function __construct(
         protected LeadDuplicateService $duplicate,
         protected LeadImportService $import,
-    ) {}
+    ) {
+    }
 
     // ── Tìm khách ─────────────────────────────────────────────────────
 
@@ -181,7 +182,7 @@ class OpportunityCreateService
      * Cập nhật thông tin liên hệ (phone/email/source_url) nếu có thay đổi, cùng transaction.
      * Không tạo Lead mới, Lead giữ nguyên trạng thái Converted.
      *
-     * @param  array{phone?: string, email?: string, source_url?: string}  $contact  Dữ liệu liên hệ mới 
+     * @param  array{phone?: string, email?: string, source_url?: string}  $contact  Dữ liệu liên hệ mới
      * @throws RuntimeException  Khi tình trạng khách đã thay đổi (bị chặn), salesperson không có quyền, hoặc dữ liệu liên hệ vi phạm luật Lead.
      */
     public function create(Lead $lead, Employee $salesperson, array $contact = []): Opportunity

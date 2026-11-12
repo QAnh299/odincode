@@ -27,12 +27,12 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['code', 'name', 'newest', 'oldest'];
+    public const SORTS = ['code', 'name', 'newest', 'oldest'];
 
     // Giá trị bộ lọc đặc biệt: nhân viên chưa thuộc đội nào
-    const NO_TEAM = 'none';
+    public const NO_TEAM = 'none';
 
     #[Url(as: 'q', except: '')]
     public string $search = '';

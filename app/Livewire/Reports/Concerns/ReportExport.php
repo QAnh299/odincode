@@ -199,7 +199,9 @@ trait ReportExport
         [$filters, $criteria] = $this->exportCriteria();
         $data = $this->exportData($period, $filters, $sheets);
         $path = $writer->write($writer->document(array_map(
-            fn ($sheet) => $this->exportSheet($sheet, $data, $period, $criteria), $sheets)));
+            fn ($sheet) => $this->exportSheet($sheet, $data, $period, $criteria),
+            $sheets
+        )));
 
         $this->exportOpen = false;
 
@@ -251,8 +253,10 @@ trait ReportExport
         $columns = [];
         foreach ($catalog as $key => $type) {
             if ($this->exportColumnOn($sheet, $key)) {
-                $columns = array_merge($columns,
-                    $this->expandExportColumn($sheet, $key, $data) ?? [[$this->exportLabel($sheet.'.'.$key), $type, $key]]);
+                $columns = array_merge(
+                    $columns,
+                    $this->expandExportColumn($sheet, $key, $data) ?? [[$this->exportLabel($sheet.'.'.$key), $type, $key]]
+                );
             }
         }
 
@@ -262,8 +266,10 @@ trait ReportExport
             if (in_array($kind, ['group', 'section'], true)) {
                 $n = 0;
             }
-            $out[] = [$kind, array_merge([$kind === 'item' ? ++$n : ($values['_stt'] ?? '')],
-                array_map(fn ($c) => $values[$c[2]] ?? null, $columns))];
+            $out[] = [$kind, array_merge(
+                [$kind === 'item' ? ++$n : ($values['_stt'] ?? '')],
+                array_map(fn ($c) => $values[$c[2]] ?? null, $columns)
+            )];
         }
 
         return array_merge([

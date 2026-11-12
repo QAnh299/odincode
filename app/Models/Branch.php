@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Branch extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trụ sở chính: kế toán trụ sở nhận thay các cơ sở chưa có kế toán đang làm việc (Employee::coveredBranchIds)
-    const HEAD_OFFICE = 'BR001';
+    public const HEAD_OFFICE = 'BR001';
 
     protected $table = 'Branches';
 

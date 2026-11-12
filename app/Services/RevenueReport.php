@@ -28,9 +28,9 @@ use Illuminate\Support\Facades\DB;
 class RevenueReport
 {
     // Nhóm tuổi nợ của hóa đơn chưa thanh toán: số ngày trễ hạn tối đa của nhóm
-    const AGING = ['not_due' => 0, 'd7' => 7, 'd30' => 30, 'more' => PHP_INT_MAX];
+    public const AGING = ['not_due' => 0, 'd7' => 7, 'd30' => 30, 'more' => PHP_INT_MAX];
 
-    const NONE = '__none__';
+    public const NONE = '__none__';
 
     /* ── Truy vấn gốc ─────────────────────────────────────────────────── */
 
@@ -64,7 +64,8 @@ class RevenueReport
     {
         return $this->between(
             $this->orders($f)->join('Invoices as i', 'i.order_id', '=', 'so.order_id')->where('i.status', Invoice::STATUS_PAID),
-            'i.payment_date', $f
+            'i.payment_date',
+            $f
         );
     }
 
@@ -240,7 +241,8 @@ class RevenueReport
         return $this->between(
             $this->orders($f)->joinSub($last, 'lp', 'lp.order_id', '=', 'so.order_id')
                 ->where('so.status', SalesOrder::STATUS_COMPLETED),
-            'lp.paid_at', $f
+            'lp.paid_at',
+            $f
         )->selectRaw('GREATEST(0, DATEDIFF(lp.paid_at, so.created_at)) AS d')->pluck('d')->map(fn ($d) => (int) $d)->all();
     }
 
@@ -350,8 +352,19 @@ class RevenueReport
         $open = $this->openInvoices($f);
 
         $rows = $this->orders($f)->where('so.status', SalesOrder::STATUS_IN_PROGRESS)->where('so.remaining_amount', '>', 0)
-            ->select('so.order_id', 'so.quotation_id', 'so.created_at', 'so.total_amount', 'so.paid_amount', 'so.remaining_amount', 'so.payment_type',
-                'l.full_name as customer', 'l.phone', 'op.employee_id', 'e.full_name as employee')
+            ->select(
+                'so.order_id',
+                'so.quotation_id',
+                'so.created_at',
+                'so.total_amount',
+                'so.paid_amount',
+                'so.remaining_amount',
+                'so.payment_type',
+                'l.full_name as customer',
+                'l.phone',
+                'op.employee_id',
+                'e.full_name as employee'
+            )
             ->get()->map(function ($r) use ($open) {
                 $invoices = array_filter($open[$r->order_id]['invoices'] ?? [], fn ($i) => $i['counted'] > 0);
                 $unpaid = array_sum(array_column($invoices, 'counted'));
@@ -383,8 +396,19 @@ class RevenueReport
             ->whereIn('i.status', [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE])
             ->where(fn ($q) => $q->where('i.due_date', '<', $today)->orWhere('i.status', Invoice::STATUS_OVERDUE))
             ->when($superseded, fn ($q) => $q->whereNotIn('i.invoice_id', $superseded))
-            ->select('i.invoice_id', 'i.order_id', 'i.status', 'i.payment_method', 'i.payment_amount', 'i.due_date', 'i.payment_installment',
-                'l.full_name as customer', 'l.phone', 'op.employee_id', 'e.full_name as employee')
+            ->select(
+                'i.invoice_id',
+                'i.order_id',
+                'i.status',
+                'i.payment_method',
+                'i.payment_amount',
+                'i.due_date',
+                'i.payment_installment',
+                'l.full_name as customer',
+                'l.phone',
+                'op.employee_id',
+                'e.full_name as employee'
+            )
             ->selectRaw('GREATEST(1, DATEDIFF(?, i.due_date)) AS late', [$today])
             ->orderByDesc('late')->orderByDesc('i.payment_amount')
             ->when($limit, fn ($q) => $q->limit($limit))
@@ -489,8 +513,10 @@ class RevenueReport
     {
         $before = now()->subDays($days);
 
-        return array_values(array_filter($this->debtOrders($f),
-            fn ($r) => (int) $r['invoices'] === 0 && (float) $r['uninvoiced'] > 0 && $r['created_at'] <= $before->toDateTimeString()));
+        return array_values(array_filter(
+            $this->debtOrders($f),
+            fn ($r) => (int) $r['invoices'] === 0 && (float) $r['uninvoiced'] > 0 && $r['created_at'] <= $before->toDateTimeString()
+        ));
     }
 
     /* ── Tỷ lệ thu theo tháng tạo đơn ─────────────────────────────────── */
@@ -582,16 +608,36 @@ class RevenueReport
     public function orderList(array $f): array
     {
         return $this->ordersInPeriod($f)
-            ->select('so.order_id', 'so.quotation_id', 'so.created_at', 'so.status', 'so.payment_type', 'so.total_amount', 'so.paid_amount', 'so.remaining_amount',
-                'l.full_name as customer', 'e.full_name as employee')
+            ->select(
+                'so.order_id',
+                'so.quotation_id',
+                'so.created_at',
+                'so.status',
+                'so.payment_type',
+                'so.total_amount',
+                'so.paid_amount',
+                'so.remaining_amount',
+                'l.full_name as customer',
+                'e.full_name as employee'
+            )
             ->orderBy('so.created_at')->get()->map(fn ($r) => (array) $r)->all();
     }
 
     public function paymentList(array $f): array
     {
         return $this->paymentsInPeriod($f)
-            ->select('i.invoice_id', 'i.order_id', 'i.payment_installment', 'i.payment_method', 'i.payment_amount', 'i.issued_date', 'i.due_date', 'i.payment_date',
-                'l.full_name as customer', 'e.full_name as employee')
+            ->select(
+                'i.invoice_id',
+                'i.order_id',
+                'i.payment_installment',
+                'i.payment_method',
+                'i.payment_amount',
+                'i.issued_date',
+                'i.due_date',
+                'i.payment_date',
+                'l.full_name as customer',
+                'e.full_name as employee'
+            )
             ->orderBy('i.payment_date')->get()->map(fn ($r) => (array) $r)->all();
     }
 

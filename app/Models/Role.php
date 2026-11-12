@@ -8,14 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Giá trị role_name trong bảng Roles
-    const DIRECTOR = 'director';       // Giám đốc
-    const SALE_ADMIN = 'sale_admin';   // Sale Admin
-    const SALE_LEADER = 'sale_leader'; // Sale Leader
-    const SALESPERSON = 'salesperson'; // Salesperson
-    const ACCOUNTANT = 'accountant';   // Kế toán
+    public const DIRECTOR = 'director';       // Giám đốc
+    public const SALE_ADMIN = 'sale_admin';   // Sale Admin
+    public const SALE_LEADER = 'sale_leader'; // Sale Leader
+    public const SALESPERSON = 'salesperson'; // Salesperson
+    public const ACCOUNTANT = 'accountant';   // Kế toán
 
     protected $table = 'Roles';
 

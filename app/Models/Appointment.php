@@ -14,18 +14,20 @@ use Illuminate\Support\Collection;
  */
 class Appointment extends Model
 {
-    use HasCompositeKey, HasFactory, HasStringId;
+    use HasCompositeKey;
+    use HasFactory;
+    use HasStringId;
 
     // Loại lịch hẹn
-    const TYPE_TEST = 'Test';
-    const TYPE_CONSULTATION = 'Consultation';
-    const TYPES = [self::TYPE_TEST, self::TYPE_CONSULTATION];
+    public const TYPE_TEST = 'Test';
+    public const TYPE_CONSULTATION = 'Consultation';
+    public const TYPES = [self::TYPE_TEST, self::TYPE_CONSULTATION];
 
     // Trạng thái: Success = khách đã đến, Failed = khách không đến
-    const STATUS_SCHEDULED = 'Scheduled';
-    const STATUS_SUCCESS = 'Success';
-    const STATUS_FAILED = 'Failed';
-    const STATUS_CANCELLED = 'Cancelled';
+    public const STATUS_SCHEDULED = 'Scheduled';
+    public const STATUS_SUCCESS = 'Success';
+    public const STATUS_FAILED = 'Failed';
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $table = 'Appointments';
 

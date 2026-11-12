@@ -18,9 +18,9 @@ use Illuminate\Support\Collection;
  */
 class InvoiceNotices
 {
-    const RECENT_DAYS = 1;
+    public const RECENT_DAYS = 1;
 
-    const LIMIT = 10;
+    public const LIMIT = 10;
 
     /**
      * @return Collection<int, array{title: string, time: string, url: string, at: Carbon, kind: string}>

@@ -17,7 +17,7 @@ use Livewire\Component;
 class TaskCalendar extends Component
 {
     // Số việc mỗi trang của danh sách ngày (vừa chiều cao lưới tháng)
-    const DAY_PAGE_SIZE = 3;
+    public const DAY_PAGE_SIZE = 3;
 
     #[Locked]
     public string $month = '';

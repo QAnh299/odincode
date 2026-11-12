@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class StageHistory extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     protected $table = 'StagesHistory';
 

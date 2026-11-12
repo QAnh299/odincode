@@ -26,10 +26,10 @@ use Livewire\Component;
 class Show extends Component
 {
     // Kỳ xem: 'all' = toàn bộ thời gian; không chọn / giá trị lạ = tháng hiện tại
-    const ALL_TIME = 'all';
+    public const ALL_TIME = 'all';
 
     // Số tháng trong danh sách chọn kỳ (tính lùi từ tháng hiện tại)
-    const MONTHS = 12;
+    public const MONTHS = 12;
 
     public SalesTeam $team;
 

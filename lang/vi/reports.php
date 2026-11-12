@@ -141,7 +141,7 @@ return [
             'share'       => 'Cơ cấu Lead theo nguồn',
             'share_sub'   => 'Nguồn nào mang về nhiều Lead nhất',
             'win_rate'    => 'Tỷ lệ chốt theo nguồn',
-            'win_rate_sub'=> 'Cứ 100 Lead thì chốt được bao nhiêu · đường đứt = trung bình',
+            'win_rate_sub' => 'Cứ 100 Lead thì chốt được bao nhiêu · đường đứt = trung bình',
             'revenue'     => 'Doanh thu theo nguồn',
             'revenue_sub' => 'Tổng giá trị đơn hàng từ Lead của nguồn',
             'monthly'     => 'Lead mới theo tháng và nguồn',
@@ -171,7 +171,7 @@ return [
             'per_lead'   => 'DT / Lead',
             'rating'     => 'Đánh giá',
             'total'      => 'Tổng cộng',
-            'rating_note'=> 'Đánh giá dựa trên tỷ lệ chốt và doanh thu / Lead so với trung bình chung; nguồn dưới :min Lead chưa đủ dữ liệu để đánh giá.',
+            'rating_note' => 'Đánh giá dựa trên tỷ lệ chốt và doanh thu / Lead so với trung bình chung; nguồn dưới :min Lead chưa đủ dữ liệu để đánh giá.',
         ],
 
         'rating' => [

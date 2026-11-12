@@ -10,9 +10,9 @@ use Carbon\CarbonImmutable;
  */
 trait ExportPeriod
 {
-    const EXPORT_TYPES = ['month', 'quarter', 'span', 'year'];
+    public const EXPORT_TYPES = ['month', 'quarter', 'span', 'year'];
 
-    const EXPORT_SPANS = [3, 6, 9];
+    public const EXPORT_SPANS = [3, 6, 9];
 
     public bool $exportOpen = false;
 

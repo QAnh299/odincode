@@ -44,7 +44,7 @@ class OpportunityCreateContactTest extends TestCase
             'branch_id'      => 'BR001',
         ];
 
-        $lead = new Lead;
+        $lead = new Lead();
         foreach (array_merge($defaults, $attrs) as $key => $value) {
             $lead->$key = $value;
         }
@@ -61,15 +61,17 @@ class OpportunityCreateContactTest extends TestCase
         $import = $this->createMock(LeadImportService::class);
 
         // Lấy rules() từ class thật (không dùng __())
-        $realRules = (new class extends LeadImportService {
-            public function __construct() {}
+        $realRules = (new class () extends LeadImportService {
+            public function __construct()
+            {
+            }
         })->rules();
 
         $import->method('rules')->willReturn($realRules);
         $import->method('messages')->willReturn([]);
         $import->method('attributes')->willReturn([]);
 
-        return new OpportunityCreateService(new LeadDuplicateService, $import);
+        return new OpportunityCreateService(new LeadDuplicateService(), $import);
     }
 
     // ── Không có thay đổi ─────────────────────────────────────────────

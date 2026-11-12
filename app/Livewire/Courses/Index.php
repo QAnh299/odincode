@@ -20,7 +20,7 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';

@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Cache;
  */
 class TransferAlerts
 {
-    const KEY = 'invoices.transfer_alerts';
+    public const KEY = 'invoices.transfer_alerts';
 
-    const TTL_DAYS = 30;
+    public const TTL_DAYS = 30;
 
     /**
      * Ghi lại lần chuyển lệch gần nhất của hóa đơn. $overdue = giao dịch vào hóa đơn đã Quá hạn (chờ SP gia hạn).

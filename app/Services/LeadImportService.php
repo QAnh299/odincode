@@ -32,22 +32,24 @@ use ZipArchive;
  */
 class LeadImportService
 {
-    public function __construct(protected LeadDuplicateService $duplicates) {}
+    public function __construct(protected LeadDuplicateService $duplicates)
+    {
+    }
 
     // Số dòng dữ liệu tối đa trong một file
-    const MAX_ROWS = 1000;
+    public const MAX_ROWS = 1000;
 
     // Thư mục lưu file kết quả trên disk local (storage/app/private)
-    const RESULT_DIR = 'lead-imports';
+    public const RESULT_DIR = 'lead-imports';
 
     // Cột trong file mẫu, theo thứ tự
-    const COLUMNS = ['full_name', 'phone', 'email', 'source_name', 'source_url', 'contact_method', 'branch_id'];
+    public const COLUMNS = ['full_name', 'phone', 'email', 'source_name', 'source_url', 'contact_method', 'branch_id'];
 
     // Cột luôn bắt buộc (đánh dấu * trên tiêu đề); SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ
-    const REQUIRED = ['full_name', 'source_name', 'contact_method', 'branch_id'];
+    public const REQUIRED = ['full_name', 'source_name', 'contact_method', 'branch_id'];
 
     // Ngăn cách mã và tên chi nhánh trong ô chọn của file mẫu
-    const BRANCH_SEPARATOR = ' - ';
+    public const BRANCH_SEPARATOR = ' - ';
 
     /**
      * Chuẩn hoá dữ liệu nhập: bỏ khoảng trắng, chuẩn SĐT, kênh liên hệ, mã chi nhánh.
@@ -246,14 +248,25 @@ class LeadImportService
         $validation = fn (string $field, string $range, string $error) => sprintf(
             '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" errorStyle="stop"'
             .' errorTitle="%s" error="%s" sqref="%s2:%3$s%d"><formula1>%s!%s</formula1></dataValidation>',
-            e(__('leads.field.'.$field)), e($error), $column($field), $lastRow, e($ref), $range,
+            e(__('leads.field.'.$field)),
+            e($error),
+            $column($field),
+            $lastRow,
+            e($ref),
+            $range,
         );
 
         $xml = '<dataValidations count="3">'
-            .$validation('source_name', '$C$1:$C$'.max($sourceCount, 1),
-                __('leads.form.source_invalid', ['values' => implode(', ', Lead::SOURCES)]))
-            .$validation('contact_method', '$A$1:$A$'.max($methodCount, 1),
-                __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)]))
+            .$validation(
+                'source_name',
+                '$C$1:$C$'.max($sourceCount, 1),
+                __('leads.form.source_invalid', ['values' => implode(', ', Lead::SOURCES)])
+            )
+            .$validation(
+                'contact_method',
+                '$A$1:$A$'.max($methodCount, 1),
+                __('leads.form.method_invalid', ['values' => implode(', ', Lead::CONTACT_METHODS)])
+            )
             .$validation('branch_id', '$B$1:$B$'.max($branchCount, 1), __('leads.form.branch_invalid'))
             .'</dataValidations>';
 
@@ -264,14 +277,17 @@ class LeadImportService
         $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
         $sheet = preg_replace_callback(
             '#(?=<(?:hyperlinks|printOptions|pageMargins|pageSetup|headerFooter|drawing|legacyDrawing|tableParts|extLst)[\s>/]|</worksheet>)#',
-            fn () => $xml, $sheet, 1,
+            fn () => $xml,
+            $sheet,
+            1,
         );
         $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
 
         $workbook = $zip->getFromName('xl/workbook.xml');
         $workbook = preg_replace(
             '#(<sheet name="'.preg_quote(e($listSheet), '#').'"[^>]*?)state="visible"#u',
-            '$1state="hidden"', $workbook,
+            '$1state="hidden"',
+            $workbook,
         );
         $zip->addFromString('xl/workbook.xml', $workbook);
 
@@ -281,19 +297,19 @@ class LeadImportService
     /* ── Import: xem trước → xác nhận ─────────────────────────────────── */
 
     // Loại dòng trong bảng xem trước (ngoài các tình huống của LeadDuplicateService)
-    const ROW_INVALID = 'invalid';       // lỗi dữ liệu
-    const ROW_FILE_DUP = 'file_dup';     // trùng liên hệ + họ tên với dòng trước trong cùng file
-    const ROW_FILE_FAMILY = 'file_family'; // cùng liên hệ, khác họ tên với dòng trước trong file (người thân)
+    public const ROW_INVALID = 'invalid';       // lỗi dữ liệu
+    public const ROW_FILE_DUP = 'file_dup';     // trùng liên hệ + họ tên với dòng trước trong cùng file
+    public const ROW_FILE_FAMILY = 'file_family'; // cùng liên hệ, khác họ tên với dòng trước trong file (người thân)
 
     // Xử lý một dòng (ô chọn trong bảng xem trước); 'same:<lead_id>' = cùng người với Lead đó
-    const ACTION_CREATE = 'create';
-    const ACTION_SKIP = 'skip';
-    const ACTION_REOPEN = 'reopen';
-    const ACTION_UPDATE = 'update';
-    const ACTION_SAME = 'same:';
+    public const ACTION_CREATE = 'create';
+    public const ACTION_SKIP = 'skip';
+    public const ACTION_REOPEN = 'reopen';
+    public const ACTION_UPDATE = 'update';
+    public const ACTION_SAME = 'same:';
 
     // Bảng xem trước được lưu tạm (JSON) trên disk local tới lúc xác nhận
-    const PREVIEW_TTL_HOURS = 6;
+    public const PREVIEW_TTL_HOURS = 6;
 
     /**
      * Bước 1: đọc file, kiểm tra từng dòng (lỗi dữ liệu, trùng trong file, trùng khách đã có) - chưa ghi gì vào DB.

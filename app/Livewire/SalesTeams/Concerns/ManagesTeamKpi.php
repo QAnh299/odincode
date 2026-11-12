@@ -25,10 +25,10 @@ use Livewire\Attributes\Computed;
 trait ManagesTeamKpi
 {
     // Số tháng tới (ngoài tháng hiện tại) đặt KPI trước được
-    const KPI_NEXT_MONTHS = 2;
+    public const KPI_NEXT_MONTHS = 2;
 
     // Giới hạn DECIMAL(18,2)
-    const KPI_MAX_VALUE = 9999999999999999;
+    public const KPI_MAX_VALUE = 9999999999999999;
 
     /**
      * Các loại chỉ tiêu (ô nhập trong popup): chỉ những loại báo cáo so sánh được (SalesPerformanceReport::TARGETS).

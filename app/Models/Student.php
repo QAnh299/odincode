@@ -14,13 +14,14 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Student extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái (CHECK trong odin.sql: Studying, Dropped, Completed)
-    const STATUS_STUDYING = 'Studying';
-    const STATUS_COMPLETED = 'Completed';
-    const STATUS_DROPPED = 'Dropped';
-    const STATUSES = [self::STATUS_STUDYING, self::STATUS_COMPLETED, self::STATUS_DROPPED];
+    public const STATUS_STUDYING = 'Studying';
+    public const STATUS_COMPLETED = 'Completed';
+    public const STATUS_DROPPED = 'Dropped';
+    public const STATUSES = [self::STATUS_STUDYING, self::STATUS_COMPLETED, self::STATUS_DROPPED];
 
     protected $table = 'Students';
 

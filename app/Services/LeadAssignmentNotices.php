@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
 class LeadAssignmentNotices
 {
     // Số lần phân gần nhất hiển thị
-    const LIMIT = 10;
+    public const LIMIT = 10;
 
     /**
      * @return Collection<int, array{title: string, time: string, url: string, at: Carbon, count: int}>

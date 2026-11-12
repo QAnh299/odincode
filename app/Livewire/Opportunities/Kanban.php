@@ -5,7 +5,6 @@ namespace App\Livewire\Opportunities;
 use App\Models\Appointment;
 use App\Models\Employee;
 use App\Models\Opportunity;
-use App\Models\Quotation;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Models\Stage;
@@ -39,21 +38,21 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Kanban extends Component
 {
-    const PRESETS = ['today', 'yesterday', 'last7', 'month'];
+    public const PRESETS = ['today', 'yesterday', 'last7', 'month'];
 
-    const VIEWS = ['kanban', 'list'];
+    public const VIEWS = ['kanban', 'list'];
 
     // default = việc gấp lên đầu; newest = ngày chuyển đổi mới nhất; value = giá trị dự kiến cao nhất
-    const SORTS = ['default', 'newest', 'value'];
+    public const SORTS = ['default', 'newest', 'value'];
 
     // Số thẻ hiện mỗi lần trong một cột; "Xem thêm" tải thêm chừng ấy
-    const PAGE_SIZE = 20;
+    public const PAGE_SIZE = 20;
 
     // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì coi là cần xử lý
-    const DECISION_WARN_DAYS = 3;
+    public const DECISION_WARN_DAYS = 3;
 
     // Việc cần xử lý, theo mức ưu tiên (nhỏ = gấp hơn): thẻ lên đầu cột, có biểu tượng góc phải trên
-    const URGENCY = [
+    public const URGENCY = [
         'overdue_appointment' => 0, // lịch hẹn đã qua giờ, chưa cập nhật kết quả
         'needs_quotation'     => 1, // stage Chốt chưa có báo giá
         'decision_due'        => 2, // Data đã xử lý sắp hết hạn quyết định
@@ -300,16 +299,22 @@ class Kanban extends Component
             ->visibleTo($this->me)
             ->assigned()
             ->whereDoesntHave('student')
-            ->when($this->activeTeam && $this->canFilterTeam,
-                fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id)))
-            ->when($this->employeeOptions->contains('employee_id', $this->employee),
-                fn ($q) => $q->where('employee_id', $this->employee))
+            ->when(
+                $this->activeTeam && $this->canFilterTeam,
+                fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id))
+            )
+            ->when(
+                $this->employeeOptions->contains('employee_id', $this->employee),
+                fn ($q) => $q->where('employee_id', $this->employee)
+            )
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
             ->when(trim($this->search) !== '', fn ($q) => $this->applySearch($q))
             ->when($this->activeView() === 'kanban', fn ($q) => $q->where('stage_id', '!=', Stage::ARCHIVED))
-            ->when($this->activeView() === 'list' && $this->stages->contains('stage_id', $this->stageFilter),
-                fn ($q) => $q->where('stage_id', $this->stageFilter))
+            ->when(
+                $this->activeView() === 'list' && $this->stages->contains('stage_id', $this->stageFilter),
+                fn ($q) => $q->where('stage_id', $this->stageFilter)
+            )
             ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
 
             // Việc cần xử lý: số báo giá, lịch hẹn đã qua giờ chưa cập nhật, số lần liên hệ

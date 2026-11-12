@@ -8,15 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class CareResult extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Kết quả liên hệ: Thành công (gọi được cho khách), Thất bại (khách từ chối),
     // Không liên lạc được (không nghe máy, thuê bao)
-    const RESULT_SUCCESS = 'Success';
-    const RESULT_FAILED = 'Failed';
-    const RESULT_UNREACHABLE = 'Unreachable';
+    public const RESULT_SUCCESS = 'Success';
+    public const RESULT_FAILED = 'Failed';
+    public const RESULT_UNREACHABLE = 'Unreachable';
 
-    const RESULTS = [self::RESULT_SUCCESS, self::RESULT_FAILED, self::RESULT_UNREACHABLE];
+    public const RESULTS = [self::RESULT_SUCCESS, self::RESULT_FAILED, self::RESULT_UNREACHABLE];
 
     protected $table = 'CareResults';
 

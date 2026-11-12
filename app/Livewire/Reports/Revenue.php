@@ -35,24 +35,24 @@ class Revenue extends Component
 {
     use ReportExport;
 
-    const TABS = ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'];
+    public const TABS = ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'];
 
     // Việc cần xử lý: tiền mặt chờ duyệt quá STALE_CASH_DAYS ngày; đơn chưa lập hóa đơn kỳ tiếp quá STALE_ORDER_DAYS ngày
-    const STALE_CASH_DAYS = 1;
+    public const STALE_CASH_DAYS = 1;
 
-    const STALE_ORDER_DAYS = 7;
+    public const STALE_ORDER_DAYS = 7;
 
     // Số dòng hiện trong mỗi nhóm việc cần xử lý
-    const TODO_ROWS = 5;
+    public const TODO_ROWS = 5;
 
     // Mốc ngày của bảng tỷ lệ thu theo tháng tạo đơn
-    const COHORT_HORIZONS = [7, 30, 60];
+    public const COHORT_HORIZONS = [7, 30, 60];
 
     // Nhận định "đúng hạn tốt nhất" chỉ xét nhân viên có từ chừng này hóa đơn đã thu trong kỳ
-    const MIN_PAID_INVOICES = 3;
+    public const MIN_PAID_INVOICES = 3;
 
     // Cột sắp xếp của bảng theo nhân viên
-    const EMPLOYEE_SORTS = ['collected', 'revenue', 'debt', 'on_time', 'overdue_amount'];
+    public const EMPLOYEE_SORTS = ['collected', 'revenue', 'debt', 'on_time', 'overdue_amount'];
 
     /*
      * Nội dung báo cáo theo vai trò:
@@ -62,7 +62,7 @@ class Revenue extends Component
      *   - Salesperson: đơn mình phụ trách – việc của mình, công nợ của khách mình.
      * tabs: tab hiện; todo: nhóm việc cần xử lý; insights: nhận định; target: chỉ tiêu doanh thu; debt_lists: bảng đơn còn nợ / hóa đơn quá hạn.
      */
-    const ROLE_VIEWS = [
+    public const ROLE_VIEWS = [
         Role::DIRECTOR => [
             'tabs' => ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'], 'todo' => [],
             'insights' => ['top_course', 'best_on_time', 'top_team', 'top_branch'], 'target' => true, 'debt_lists' => false,
@@ -86,7 +86,7 @@ class Revenue extends Component
     ];
 
     // Màu cố định theo chỉ số (cùng bảng màu các báo cáo khác – LeadSources::PALETTE)
-    const COLORS = [
+    public const COLORS = [
         'revenue'     => '#2a78d6',
         'collected'   => '#1baf7a',
         'target'      => '#c3cad5',
@@ -103,7 +103,7 @@ class Revenue extends Component
     ];
 
     // Số dòng hiện trên bảng công nợ (xuất Excel thì đủ)
-    const DEBT_ROWS = 15;
+    public const DEBT_ROWS = 15;
 
     #[Url(except: 'overview')]
     public string $tab = 'overview';
@@ -127,7 +127,7 @@ class Revenue extends Component
     #[Url(as: 'sort', except: 'collected')]
     public string $employeeSort = 'collected';
 
-    const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
+    public const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
 
     public function setTab(string $tab): void
     {
@@ -739,9 +739,9 @@ class Revenue extends Component
     /* ── Xuất Excel (popup chọn kỳ / sheet / cột / xem trước - trait ReportExport) ── */
 
     // Sheet: tổng hợp theo tháng · đơn trong kỳ · thực thu · công nợ · hóa đơn quá hạn · theo nhân viên
-    const EXPORT_SHEETS = ['summary', 'orders', 'payments', 'debt', 'overdue', 'employees'];
+    public const EXPORT_SHEETS = ['summary', 'orders', 'payments', 'debt', 'overdue', 'employees'];
 
-    const EXPORT_LOCKED = ['summary' => 'month', 'orders' => 'order', 'payments' => 'invoice', 'debt' => 'order', 'overdue' => 'invoice', 'employees' => 'name'];
+    public const EXPORT_LOCKED = ['summary' => 'month', 'orders' => 'order', 'payments' => 'invoice', 'debt' => 'order', 'overdue' => 'invoice', 'employees' => 'name'];
 
     // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportBranch = '';
@@ -863,47 +863,57 @@ class Revenue extends Component
             case 'orders':
                 $rows = $data['orders'];
 
-                return array_merge([$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount')])],
+                return array_merge(
+                    [$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount')])],
                     array_map(fn ($r) => ['item', ['order' => $r['order_id'], 'created' => $date($r['created_at']), 'customer' => $r['customer'], 'employee' => $r['employee'],
                         'payment_type' => $type($r['payment_type']), 'status' => __('orders.status.'.$r['status']),
-                        'total' => (float) $r['total_amount'], 'paid' => (float) $r['paid_amount'], 'remaining' => (float) $r['remaining_amount']]], $rows));
+                        'total' => (float) $r['total_amount'], 'paid' => (float) $r['paid_amount'], 'remaining' => (float) $r['remaining_amount']]], $rows)
+                );
 
             case 'payments':
                 $rows = $data['payments'];
 
-                return array_merge([$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
+                return array_merge(
+                    [$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
                     array_map(fn ($r) => ['item', ['invoice' => $r['invoice_id'], 'order' => $r['order_id'], 'installment' => (int) $r['payment_installment'],
                         'customer' => $r['customer'], 'employee' => $r['employee'], 'method' => $method($r['payment_method']), 'amount' => (float) $r['payment_amount'],
                         'due' => $date($r['due_date']), 'paid_at' => $date($r['payment_date']),
-                        'on_time' => $this->exportLabel(substr((string) $r['payment_date'], 0, 10) <= (string) $r['due_date'] ? 'on_time_yes' : 'on_time_no')]], $rows));
+                        'on_time' => $this->exportLabel(substr((string) $r['payment_date'], 0, 10) <= (string) $r['due_date'] ? 'on_time_yes' : 'on_time_no')]], $rows)
+                );
 
             case 'debt':
                 $rows = $data['debt'];
 
-                return array_merge([$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount'),
+                return array_merge(
+                    [$total(['order' => null, 'total' => $sum($rows, 'total_amount'), 'paid' => $sum($rows, 'paid_amount'), 'remaining' => $sum($rows, 'remaining_amount'),
                     'unpaid' => $sum($rows, 'unpaid'), 'uninvoiced' => $sum($rows, 'uninvoiced')])],
                     array_map(fn ($r) => ['item', ['order' => $r['order_id'], 'customer' => $r['customer'], 'phone' => $r['phone'], 'employee' => $r['employee'],
                         'total' => (float) $r['total_amount'], 'paid' => (float) $r['paid_amount'], 'remaining' => (float) $r['remaining_amount'],
-                        'unpaid' => (float) $r['unpaid'], 'uninvoiced' => (float) $r['uninvoiced'], 'late' => (int) $r['late']]], $rows));
+                        'unpaid' => (float) $r['unpaid'], 'uninvoiced' => (float) $r['uninvoiced'], 'late' => (int) $r['late']]], $rows)
+                );
 
             case 'overdue':
                 $rows = $data['overdue'];
 
-                return array_merge([$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
+                return array_merge(
+                    [$total(['invoice' => null, 'amount' => $sum($rows, 'payment_amount')])],
                     array_map(fn ($r) => ['item', ['invoice' => $r['invoice_id'], 'order' => $r['order_id'], 'customer' => $r['customer'], 'phone' => $r['phone'],
                         'employee' => $r['employee'], 'status' => __('invoices.status.'.$r['status']), 'method' => $method($r['payment_method']),
-                        'amount' => (float) $r['payment_amount'], 'due' => $date($r['due_date']), 'late' => (int) $r['late']]], $rows));
+                        'amount' => (float) $r['payment_amount'], 'due' => $date($r['due_date']), 'late' => (int) $r['late']]], $rows)
+                );
 
             default:
                 $rows = $data['employees'];
                 usort($rows, fn ($a, $b) => $b['collected'] <=> $a['collected'] ?: strcmp($a['name'], $b['name']));
                 $paid = array_sum(array_column($rows, 'paid_invoices'));
 
-                return array_merge([$total(['name' => null, 'orders' => array_sum(array_column($rows, 'orders')), 'revenue' => $sum($rows, 'revenue'),
+                return array_merge(
+                    [$total(['name' => null, 'orders' => array_sum(array_column($rows, 'orders')), 'revenue' => $sum($rows, 'revenue'),
                     'collected' => $sum($rows, 'collected'), 'paid_invoices' => $paid,
                     'on_time' => RevenueReport::pct(array_sum(array_column($rows, 'on_time_count')), $paid),
                     'debt' => $sum($rows, 'debt'), 'overdue_count' => array_sum(array_column($rows, 'overdue_count')), 'overdue_amount' => $sum($rows, 'overdue_amount')])],
-                    array_map(fn ($r) => ['item', array_intersect_key($r, $this->exportColumnCatalog()['employees'])], $rows));
+                    array_map(fn ($r) => ['item', array_intersect_key($r, $this->exportColumnCatalog()['employees'])], $rows)
+                );
         }
     }
 

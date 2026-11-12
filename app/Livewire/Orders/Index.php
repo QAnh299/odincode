@@ -41,32 +41,32 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['newest', 'oldest', 'remaining_desc', 'total_desc', 'total_asc', 'code', 'customer'];
+    public const SORTS = ['newest', 'oldest', 'remaining_desc', 'total_desc', 'total_asc', 'code', 'customer'];
 
     // Giá trị bộ lọc hình thức cho đơn chưa xác định hình thức (payment_type NULL hoặc rỗng)
-    const PAYMENT_NONE = 'none';
+    public const PAYMENT_NONE = 'none';
 
     // Tiến độ thanh toán: chưa thanh toán (đã TT = 0), đang thanh toán (0 < đã TT < tổng), đã thanh toán đủ (còn lại = 0)
-    const PROGRESSES = ['unpaid', 'partial', 'paid'];
+    public const PROGRESSES = ['unpaid', 'partial', 'paid'];
 
     // Hóa đơn: có hóa đơn đang chờ (Unpaid + Overdue), có hóa đơn quá hạn, chưa có hóa đơn, cần tạo hóa đơn tiếp
-    const INVOICE_STATES = ['pending', 'overdue', 'none', 'needs_invoice'];
+    public const INVOICE_STATES = ['pending', 'overdue', 'none', 'needs_invoice'];
 
     // Hóa đơn "đang chờ" thanh toán
-    const PENDING_INVOICE_STATUSES = [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE];
+    public const PENDING_INVOICE_STATUSES = [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE];
 
     // Giới hạn tìm kiếm: số từ khóa, độ dài mỗi từ khóa (phần vượt quá bỏ qua)
-    const MAX_TERMS = 8;
-    const MAX_TERM_LENGTH = 100;
+    public const MAX_TERMS = 8;
+    public const MAX_TERM_LENGTH = 100;
 
     // Từ khóa số tiền: ít nhất 3 chữ số; ô số tiền của bộ lọc: tối đa 15 chữ số (DECIMAL(18,2))
-    const MIN_AMOUNT_DIGITS = 3;
-    const MAX_AMOUNT_DIGITS = 15;
+    public const MIN_AMOUNT_DIGITS = 3;
+    public const MAX_AMOUNT_DIGITS = 15;
 
     // Giá trị mặc định của các bộ lọc (key của $form = tên thuộc tính đã áp dụng)
-    const FILTER_DEFAULTS = [
+    public const FILTER_DEFAULTS = [
         'statuses'     => [],
         'paymentTypes' => [],
         'progress'     => '',

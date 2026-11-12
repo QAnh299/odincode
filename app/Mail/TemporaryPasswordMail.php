@@ -13,13 +13,15 @@ use Illuminate\Queue\SerializesModels;
  */
 class TemporaryPasswordMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public string $fullName,
         public string $username,
         public string $temporaryPassword,
-    ) {}
+    ) {
+    }
 
     public function envelope(): Envelope
     {

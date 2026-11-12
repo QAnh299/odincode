@@ -11,26 +11,27 @@ use Illuminate\Support\Facades\DB;
 
 class Opportunity extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
-    const STATUS_IN_PROGRESS = 'InProgress';
-    const STATUS_WON = 'Won';
-    const STATUS_LOST = 'Lost';
-    const STATUS_ARCHIVED = 'Archived';
+    public const STATUS_IN_PROGRESS = 'InProgress';
+    public const STATUS_WON = 'Won';
+    public const STATUS_LOST = 'Lost';
+    public const STATUS_ARCHIVED = 'Archived';
 
-    const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
+    public const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
 
     // Data đã xử lý: số ngày để khách quyết định, tính từ lúc chuyển sang stage này
-    const DECISION_DAYS = 14;
+    public const DECISION_DAYS = 14;
 
     // Data chưa tương tác: được phân quá số ngày này mà chưa liên hệ lần nào → nhắc trên chuông thông báo
-    const FIRST_CONTACT_DAYS = 1;
+    public const FIRST_CONTACT_DAYS = 1;
 
     // Không liên lạc được: lần liên hệ tiếp theo sau số ngày này (hệ thống nhắc khi tới hạn)
-    const RECONTACT_DAYS = 1;
+    public const RECONTACT_DAYS = 1;
 
     // Data đã có lịch hẹn: quá số ngày này kể từ buổi khách không đến mà chưa hẹn lại → Archived
-    const REBOOK_DAYS = 7;
+    public const REBOOK_DAYS = 7;
 
     protected $table = 'Opportunities';
 

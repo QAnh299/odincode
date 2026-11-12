@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 class QuotationReminders
 {
     // Nhắc khi còn 0 - REMIND_DAYS ngày tới hạn
-    const REMIND_DAYS = 1;
+    public const REMIND_DAYS = 1;
 
     /**
      * @return Collection<int, array{title: string, time: string, url: string, at: Carbon}>

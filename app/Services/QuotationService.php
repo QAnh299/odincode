@@ -23,16 +23,16 @@ use Illuminate\Support\Facades\DB;
 class QuotationService
 {
     // Hạn mặc định của báo giá Nháp (ngày, tính từ ngày lập)
-    const DEFAULT_EXPIRY_DAYS = 3;
+    public const DEFAULT_EXPIRY_DAYS = 3;
 
     // Số lượng tối đa một dòng khóa học (chặn nhập nhầm)
-    const MAX_QUANTITY = 999;
+    public const MAX_QUANTITY = 999;
 
     // Lý do từ chối báo giá (HĐ15): khách không đồng ý → Lost; khách không phản hồi đến khi quá hạn → Archived,
     // cùng quy tắc với quy trình xử lý cơ hội (không liên lạc được → Lưu trữ). Chốt 26/10/2026.
-    const REJECT_DECLINED = 'declined';
-    const REJECT_NO_RESPONSE = 'no_response';
-    const REJECT_REASONS = [self::REJECT_DECLINED, self::REJECT_NO_RESPONSE];
+    public const REJECT_DECLINED = 'declined';
+    public const REJECT_NO_RESPONSE = 'no_response';
+    public const REJECT_REASONS = [self::REJECT_DECLINED, self::REJECT_NO_RESPONSE];
 
     /**
      * HĐ2: lý do không lập được báo giá trên cơ hội (khóa lang quotations.form.blocked.*), null = được lập.

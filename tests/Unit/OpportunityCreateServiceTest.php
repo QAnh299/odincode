@@ -5,9 +5,6 @@ namespace Tests\Unit;
 use App\Models\Employee;
 use App\Models\Lead;
 use App\Models\Opportunity;
-use App\Models\SalesOrder;
-use App\Models\Stage;
-use App\Models\Student;
 use App\Services\LeadDuplicateService;
 use App\Services\OpportunityCreateService;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,7 +34,7 @@ class OpportunityCreateServiceTest extends TestCase
      */
     private function makeEmployee(string $id, ?string $phone = '0901000001'): Employee
     {
-        $emp = new Employee;
+        $emp = new Employee();
         $emp->employee_id = $id;
         $emp->full_name   = 'NV '.$id;
         $emp->phone       = $phone;
@@ -50,7 +47,7 @@ class OpportunityCreateServiceTest extends TestCase
      */
     private function makeOpportunity(string $id, string $status, Employee $employee): Opportunity
     {
-        $opp = new Opportunity;
+        $opp = new Opportunity();
         $opp->opportunity_id = $id;
         $opp->status         = $status;
         $opp->employee_id    = $employee->employee_id;
@@ -66,7 +63,7 @@ class OpportunityCreateServiceTest extends TestCase
      */
     private function makeLead(string $leadStatus, array $opportunities): Lead
     {
-        $lead = new Lead;
+        $lead = new Lead();
         $lead->lead_id    = 'LEAD001';
         $lead->full_name  = 'Nguyễn Văn A';
         $lead->phone      = '0901234567';
@@ -271,7 +268,7 @@ class OpportunityCreateServiceTest extends TestCase
         $opp         = $this->makeOpportunity('OPP007', Opportunity::STATUS_WON, $other);
 
         // Dựng Lead với opportunities của EMP002, không phải EMP001
-        $lead = new Lead;
+        $lead = new Lead();
         $lead->lead_id = 'LEAD002';
         $lead->setRelation('opportunities', collect([$opp]));
 
@@ -303,13 +300,13 @@ class OpportunityCreateServiceTest extends TestCase
         $other       = $this->makeEmployee('EMP002');
         $opp         = $this->makeOpportunity('OPP008', Opportunity::STATUS_IN_PROGRESS, $other);
 
-        $lead = new Lead;
+        $lead = new Lead();
         $lead->lead_id = 'LEAD003';
         $lead->status  = Lead::STATUS_CONVERTED;
         $lead->setRelation('opportunities', collect([$opp]));
 
         // Giả lập: sau khi lock, lead có opportunities của EMP001 (có quyền) nhưng state = IN_PROGRESS
-        $leadAfterLock = new Lead;
+        $leadAfterLock = new Lead();
         $leadAfterLock->lead_id = 'LEAD003';
         $leadAfterLock->status  = Lead::STATUS_CONVERTED;
 

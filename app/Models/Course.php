@@ -9,16 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái khóa học (cột status): Đang cung cấp hoặc Ngừng cung cấp
-    const STATUS_ACTIVE = 'Active';
+    public const STATUS_ACTIVE = 'Active';
 
     // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang courses.state.*)
-    const STATE_ACTIVE = 'active';     // status = 'Active'
-    const STATE_INACTIVE = 'inactive'; // status khác 'Active'
+    public const STATE_ACTIVE = 'active';     // status = 'Active'
+    public const STATE_INACTIVE = 'inactive'; // status khác 'Active'
 
-    const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
+    public const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
 
     protected $table = 'Courses';
 
@@ -29,7 +30,7 @@ class Course extends Model
     protected int $idLength = 3;
 
     // Bảng Courses chỉ có created_at
-    const UPDATED_AT = null;
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'course_id',

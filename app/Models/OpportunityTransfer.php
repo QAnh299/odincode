@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class OpportunityTransfer extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     protected $table = 'OpportunityTransfers';
 

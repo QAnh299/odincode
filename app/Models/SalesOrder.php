@@ -9,19 +9,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class SalesOrder extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái đơn hàng (CHECK trong odin.sql: InProgress, Completed). InProgress khi còn nợ, Completed khi hết nợ (HĐ33)
-    const STATUS_IN_PROGRESS = 'InProgress';
-    const STATUS_COMPLETED = 'Completed';
+    public const STATUS_IN_PROGRESS = 'InProgress';
+    public const STATUS_COMPLETED = 'Completed';
 
-    const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_COMPLETED];
+    public const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_COMPLETED];
 
     // Hình thức thanh toán (CHECK trong odin.sql: Full, Installment)
-    const PAYMENT_FULL = 'Full';
-    const PAYMENT_INSTALLMENT = 'Installment';
+    public const PAYMENT_FULL = 'Full';
+    public const PAYMENT_INSTALLMENT = 'Installment';
 
-    const PAYMENT_TYPES = [self::PAYMENT_FULL, self::PAYMENT_INSTALLMENT];
+    public const PAYMENT_TYPES = [self::PAYMENT_FULL, self::PAYMENT_INSTALLMENT];
 
     protected $table = 'SalesOrders';
 
@@ -32,7 +33,7 @@ class SalesOrder extends Model
     protected int $idLength = 3;
 
     // Bảng SalesOrders chỉ có created_at
-    const UPDATED_AT = null;
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'order_id',

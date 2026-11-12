@@ -20,7 +20,7 @@ use OpenSpout\Writer\XLSX\Writer;
  */
 class ReportExcelWriter
 {
-    const FORMATS = [
+    public const FORMATS = [
         'int'      => '#,##0',
         'money'    => '#,##0',
         'decimal'  => '#,##0.0',
@@ -28,9 +28,9 @@ class ReportExcelWriter
         'datetime' => 'dd/mm/yyyy hh:mm',
     ];
 
-    const MIN_WIDTH = 10;
+    public const MIN_WIDTH = 10;
 
-    const MAX_WIDTH = 48;
+    public const MAX_WIDTH = 48;
 
     /**
      * Ghi các sheet ra file tạm, trả về đường dẫn file.

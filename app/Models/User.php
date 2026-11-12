@@ -15,7 +15,10 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasStringId, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use HasStringId;
+    use Notifiable;
 
     protected $table = 'Accounts';
 
@@ -26,7 +29,7 @@ class User extends Authenticatable
     protected int $idLength = 3;
 
     // Bảng Accounts chỉ có created_at
-    const UPDATED_AT = null;
+    public const UPDATED_AT = null;
 
     // Bảng Accounts không có cột remember_token → tắt "ghi nhớ đăng nhập"
     protected $rememberTokenName = '';

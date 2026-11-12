@@ -38,27 +38,28 @@ use RuntimeException;
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithFileUploads;
+    use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
     // Cache thẻ thống kê (giây): [còn mới, tối đa] - sau mốc đầu vẫn trả số cũ và tính lại ở nền (Cache::flexible),
     // để khi hết hạn không có nhiều yêu cầu cùng chạy lại các câu đếm toàn bảng
-    const STATS_TTL = [30, 120];
+    public const STATS_TTL = [30, 120];
 
     // Tiến độ phân chia (lọc từ thẻ thống kê, không phải trạng thái Lead):
     // chưa phân cho đội / đội đã nhận, chờ phân cho Salesperson
-    const UNASSIGNED = 'Unassigned';
+    public const UNASSIGNED = 'Unassigned';
 
-    const PENDING_SALESPERSON = 'PendingSales';
+    public const PENDING_SALESPERSON = 'PendingSales';
 
     // Đã phân: Sale Admin - đã giao cho đội (không còn chờ phân cho đội); Sale Leader - đã giao cho Salesperson
-    const ASSIGNED = 'Assigned';
+    public const ASSIGNED = 'Assigned';
 
     // Khách cũ quay lại: chờ phân cho đội nhưng từng có cơ hội đã kết thúc (Lead::scopeReturning)
-    const RETURNING = 'Returning';
+    public const RETURNING = 'Returning';
 
-    const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON, self::ASSIGNED, self::RETURNING];
+    public const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON, self::ASSIGNED, self::RETURNING];
 
     // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
 
@@ -89,7 +90,7 @@ class Index extends Component
     #[Url(except: '')]
     public string $to = '';
 
-    const FILTERS = ['search', 'status', 'assign', 'source', 'method', 'branch', 'from', 'to'];
+    public const FILTERS = ['search', 'status', 'assign', 'source', 'method', 'branch', 'from', 'to'];
 
     // Popup đang mở: '' | 'create' | 'import'
     public string $modal = '';
@@ -128,7 +129,7 @@ class Index extends Component
 
     public ?int $previewOpen = null;
 
-    const PREVIEW_PER_PAGE = 20;
+    public const PREVIEW_PER_PAGE = 20;
 
     // Thông báo sau khi thêm / import: ['type' => success|warning|danger, 'text' => ...]
     public ?array $notice = null;
@@ -856,22 +857,38 @@ class Index extends Component
                     ->orWhere('phone', 'like', $like)
                     ->orWhere('email', 'like', $like));
             })
-            ->when($withStatus && in_array($this->status, Lead::STATUSES, true),
-                fn ($q) => $q->where('status', $this->status))
-            ->when($withStatus && $this->assign === self::UNASSIGNED,
-                fn ($q) => $q->unassigned())
-            ->when($withStatus && $this->assign === self::PENDING_SALESPERSON,
-                fn ($q) => $q->pendingSalesperson())
-            ->when($withStatus && $this->assign === self::ASSIGNED,
-                fn ($q) => $q->whereNot(fn ($q) => $this->pendingKey === self::UNASSIGNED ? $q->unassigned() : $q->pendingSalesperson()))
-            ->when($withStatus && $this->assign === self::RETURNING,
-                fn ($q) => $q->returning())
-            ->when(in_array($this->source, $this->sources, true),
-                fn ($q) => $q->where('source_name', $this->source))
-            ->when(in_array($this->method, Lead::CONTACT_METHODS, true),
-                fn ($q) => $q->where('contact_method', $this->method))
-            ->when($this->branches->contains('branch_id', $this->branch),
-                fn ($q) => $q->where('branch_id', $this->branch))
+            ->when(
+                $withStatus && in_array($this->status, Lead::STATUSES, true),
+                fn ($q) => $q->where('status', $this->status)
+            )
+            ->when(
+                $withStatus && $this->assign === self::UNASSIGNED,
+                fn ($q) => $q->unassigned()
+            )
+            ->when(
+                $withStatus && $this->assign === self::PENDING_SALESPERSON,
+                fn ($q) => $q->pendingSalesperson()
+            )
+            ->when(
+                $withStatus && $this->assign === self::ASSIGNED,
+                fn ($q) => $q->whereNot(fn ($q) => $this->pendingKey === self::UNASSIGNED ? $q->unassigned() : $q->pendingSalesperson())
+            )
+            ->when(
+                $withStatus && $this->assign === self::RETURNING,
+                fn ($q) => $q->returning()
+            )
+            ->when(
+                in_array($this->source, $this->sources, true),
+                fn ($q) => $q->where('source_name', $this->source)
+            )
+            ->when(
+                in_array($this->method, Lead::CONTACT_METHODS, true),
+                fn ($q) => $q->where('contact_method', $this->method)
+            )
+            ->when(
+                $this->branches->contains('branch_id', $this->branch),
+                fn ($q) => $q->where('branch_id', $this->branch)
+            )
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('created_at', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('created_at', '<=', $this->to));
     }

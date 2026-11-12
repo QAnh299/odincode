@@ -34,19 +34,19 @@ use OpenSpout\Writer\XLSX\Writer;
  */
 class ReportDocumentWriter
 {
-    const FONT = 'Times New Roman';
+    public const FONT = 'Times New Roman';
 
-    const FORMATS = [
+    public const FORMATS = [
         'int'     => '#,##0',
         'money'   => '#,##0',
         'decimal' => '#,##0.0',
         'percent' => '0.0%',
     ];
 
-    const FILLS = ['total' => 'FCE4D6', 'group' => 'EDEDED', 'section' => 'EDEDED', 'header' => 'E8F0E9'];
+    public const FILLS = ['total' => 'FCE4D6', 'group' => 'EDEDED', 'section' => 'EDEDED', 'header' => 'E8F0E9'];
 
     // Chiều cao 1 dòng chữ cỡ 12 (point)
-    const LINE_HEIGHT = 16;
+    public const LINE_HEIGHT = 16;
 
     protected Writer $writer;
 
@@ -129,8 +129,10 @@ class ReportDocumentWriter
         $this->pair([$d('brand'), true], [$d('rule'), false]);
         $this->pair([$d('rule'), false], ['', false]);
         $this->blank();
-        $this->pair([$d('number', ['code' => $document['number']]), false],
-            [$d('place_date', ['day' => $date->format('d'), 'month' => $date->format('m'), 'year' => $date->format('Y')]), false, true]);
+        $this->pair(
+            [$d('number', ['code' => $document['number']]), false],
+            [$d('place_date', ['day' => $date->format('d'), 'month' => $date->format('m'), 'year' => $date->format('Y')]), false, true]
+        );
         $this->blank();
 
         $this->line(mb_strtoupper($sheet['title']), $this->style()->setFontBold()->setFontSize(14), 22);

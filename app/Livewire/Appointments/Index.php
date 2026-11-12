@@ -31,16 +31,16 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
     // Lọc trạng thái: Overdue = đã qua giờ hẹn mà chưa cập nhật kết quả
-    const STATUSES = ['Scheduled', 'Overdue', 'Success', 'Failed', 'Cancelled'];
+    public const STATUSES = ['Scheduled', 'Overdue', 'Success', 'Failed', 'Cancelled'];
 
     // Lọc thời gian
-    const PERIODS = ['today', 'tomorrow', 'week', 'month', 'past'];
+    public const PERIODS = ['today', 'tomorrow', 'week', 'month', 'past'];
 
     // Popup thao tác
-    const DIALOGS = ['result', 'reschedule', 'cancel'];
+    public const DIALOGS = ['result', 'reschedule', 'cancel'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -178,7 +178,10 @@ class Index extends Component
         }
 
         $this->done($this->service()->mark(
-            $row->opportunity, $row->appointment_id, $row->appointment_type, $this->outcome,
+            $row->opportunity,
+            $row->appointment_id,
+            $row->appointment_type,
+            $this->outcome,
             $this->outcome === Appointment::STATUS_SUCCESS ? trim($this->resultNote) : null,
         ));
     }
@@ -255,7 +258,7 @@ class Index extends Component
 
     // ── Dữ liệu ───────────────────────────────────────────────────────
 
-    const RELATIONS = [
+    public const RELATIONS = [
         'opportunity:opportunity_id,lead_id,stage_id,employee_id',
         'opportunity.lead:lead_id,full_name,phone,branch_id',
         'opportunity.lead.branch:branch_id,branch_name',

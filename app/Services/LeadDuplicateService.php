@@ -32,21 +32,21 @@ use RuntimeException;
  */
 class LeadDuplicateService
 {
-    const NEW = 'new';
-    const OTHER_PERSON = 'other_person';
-    const IN_QUEUE = 'in_queue';
-    const IN_PROGRESS = 'in_progress';
-    const REOPEN = 'reopen';
-    const AMBIGUOUS = 'ambiguous';
+    public const NEW = 'new';
+    public const OTHER_PERSON = 'other_person';
+    public const IN_QUEUE = 'in_queue';
+    public const IN_PROGRESS = 'in_progress';
+    public const REOPEN = 'reopen';
+    public const AMBIGUOUS = 'ambiguous';
 
     // Được bổ sung vào Lead cũ khi Lead cũ đang để trống
-    const FILLABLE = ['phone', 'email', 'source_url'];
+    public const FILLABLE = ['phone', 'email', 'source_url'];
 
     // Thông tin liên hệ (cùng danh sách với EditsLead::LEAD_CONTACT_FIELDS)
-    const CONTACT_FIELDS = ['full_name', 'phone', 'email', 'source_url'];
+    public const CONTACT_FIELDS = ['full_name', 'phone', 'email', 'source_url'];
 
     // Đường dẫn Facebook không phải trang cá nhân (bài viết, nhóm, trang chức năng…)
-    const FACEBOOK_RESERVED = [
+    public const FACEBOOK_RESERVED = [
         'profile.php', 'groups', 'pages', 'watch', 'events', 'share', 'sharer.php', 'photo.php', 'photo',
         'permalink.php', 'story.php', 'reel', 'reels', 'marketplace', 'login', 'home.php', 'hashtag', 'gaming',
     ];

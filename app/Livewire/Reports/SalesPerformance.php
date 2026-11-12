@@ -11,7 +11,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -37,19 +36,19 @@ class SalesPerformance extends Component
     use ReportExport;
 
     // Màu cố định theo chỉ số / nhóm
-    const COLORS = [
+    public const COLORS = [
         'revenue' => '#2a78d6',
         'target'  => '#c3cad5',
     ];
 
     // Màu đường của từng đội ở biểu đồ xu hướng tỷ lệ thắng (lặp lại khi nhiều đội hơn)
-    const TEAM_COLORS = ['#2a78d6', '#16a34a', '#d97706', '#9333ea', '#0891b2', '#db2777'];
+    public const TEAM_COLORS = ['#2a78d6', '#16a34a', '#d97706', '#9333ea', '#0891b2', '#db2777'];
 
     // Số dòng hiện trong bảng team / salesperson ('all' = tất cả, bảng có thanh cuộn)
-    const TOPS = ['5', '10', 'all'];
+    public const TOPS = ['5', '10', 'all'];
 
     // Chỉ số dùng để xếp hạng salesperson → chiều sắp (desc: cao là tốt, asc: thấp là tốt)
-    const SORTS = [
+    public const SORTS = [
         'revenue'            => 'desc',
         'won'                => 'desc',
         'close_rate'         => 'desc',
@@ -66,7 +65,7 @@ class SalesPerformance extends Component
      * Chiều: 1 = cao là tốt, -1 = thấp là tốt, 0 = không tô màu.
      * Loại: count = so với trung bình mỗi người trong đội, rate = so với tỷ lệ chung của đội.
      */
-    const COLUMN_GROUPS = [
+    public const COLUMN_GROUPS = [
         'result' => [
             'revenue'    => [1, 'count'],
             'won'        => [1, 'count'],
@@ -84,10 +83,10 @@ class SalesPerformance extends Component
         ],
     ];
 
-    const TREND_MONTHS = 6;
+    public const TREND_MONTHS = 6;
 
     // Biểu đồ tỷ lệ thắng tách theo đội khi phạm vi có không quá số đội này
-    const MAX_TREND_TEAMS = 5;
+    public const MAX_TREND_TEAMS = 5;
 
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
@@ -569,9 +568,9 @@ class SalesPerformance extends Component
     /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
 
     // Sheet: Sales Team · Salesperson; cột luôn có của từng sheet
-    const EXPORT_SHEETS = ['teams', 'employees'];
+    public const EXPORT_SHEETS = ['teams', 'employees'];
 
-    const EXPORT_LOCKED = ['teams' => 'team', 'employees' => 'employee'];
+    public const EXPORT_LOCKED = ['teams' => 'team', 'employees' => 'employee'];
 
     // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportTeam = '';
@@ -772,8 +771,10 @@ class SalesPerformance extends Component
 
         $groups = collect($people)->groupBy('team_id');
         $order = array_column($teams, 'id');
-        $order = array_merge(array_values(array_intersect($order, $groups->keys()->all())),
-            array_values(array_diff($groups->keys()->all(), $order)));
+        $order = array_merge(
+            array_values(array_intersect($order, $groups->keys()->all())),
+            array_values(array_diff($groups->keys()->all(), $order))
+        );
 
         $rows = [['total', ['employee' => $this->exportLabel('total')] + $cells($this->report()->combine($people), false)]];
         foreach ($order as $i => $teamId) {

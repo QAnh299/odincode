@@ -30,11 +30,11 @@ class StudentShowCreateButtonTest extends TestCase
      */
     private function makeEmployee(string $roleName): Employee
     {
-        $emp = new Employee;
+        $emp = new Employee();
         $emp->employee_id = 'EMP001';
 
         // role_name là virtual attribute qua getRoleNameAttribute() — set trực tiếp vào $attributes
-        $role = new Role;
+        $role = new Role();
         $role->role_name = $roleName;
         $emp->setRelation('role', $role);
 
@@ -49,8 +49,10 @@ class StudentShowCreateButtonTest extends TestCase
     {
         $employee = $this->makeEmployee($roleName);
 
-        return new class($employee) {
-            public function __construct(private Employee $employee) {}
+        return new class ($employee) {
+            public function __construct(private Employee $employee)
+            {
+            }
 
             public function routePrefix(): string
             {
@@ -118,11 +120,11 @@ class StudentShowCreateButtonTest extends TestCase
         $leadId      = 'LEAD001';
 
         // Dựng Lead với opportunities của salesperson này
-        $opp = new Opportunity;
+        $opp = new Opportunity();
         $opp->opportunity_id = 'OPP001';
         $opp->employee_id    = $salesperson->employee_id;
 
-        $lead = new Lead;
+        $lead = new Lead();
         $lead->lead_id = $leadId;
         $lead->setRelation('opportunities', collect([$opp]));
 

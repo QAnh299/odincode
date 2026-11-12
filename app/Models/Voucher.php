@@ -9,20 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Voucher extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Giá trị discount_type trong bảng Vouchers
-    const TYPE_PERCENTAGE = 'percentage';
-    const TYPE_FIXED = 'fixed';
+    public const TYPE_PERCENTAGE = 'percentage';
+    public const TYPE_FIXED = 'fixed';
 
     // Trạng thái voucher (cột status): Hoạt động hoặc Không hoạt động
-    const STATUS_ACTIVE = 'Active';
+    public const STATUS_ACTIVE = 'Active';
 
     // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang vouchers.state.*)
-    const STATE_ACTIVE = 'active';     // status = 'Active'
-    const STATE_INACTIVE = 'inactive'; // status khác 'Active'
+    public const STATE_ACTIVE = 'active';     // status = 'Active'
+    public const STATE_INACTIVE = 'inactive'; // status khác 'Active'
 
-    const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
+    public const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
 
     protected $table = 'Vouchers';
 

@@ -23,30 +23,30 @@ use Illuminate\Support\Facades\DB;
 class LeadConversionReport
 {
     // Kết quả của 1 Lead
-    const OUTCOME_NEW = 'new';           // chưa có Cơ hội
-    const OUTCOME_OPEN = 'open';         // đang xử lý
-    const OUTCOME_WON = 'won';
-    const OUTCOME_LOST = 'lost';         // khách từ chối
-    const OUTCOME_ARCHIVED = 'archived'; // không liên lạc được
+    public const OUTCOME_NEW = 'new';           // chưa có Cơ hội
+    public const OUTCOME_OPEN = 'open';         // đang xử lý
+    public const OUTCOME_WON = 'won';
+    public const OUTCOME_LOST = 'lost';         // khách từ chối
+    public const OUTCOME_ARCHIVED = 'archived'; // không liên lạc được
 
-    const OUTCOMES = [self::OUTCOME_WON, self::OUTCOME_OPEN, self::OUTCOME_LOST, self::OUTCOME_ARCHIVED, self::OUTCOME_NEW];
+    public const OUTCOMES = [self::OUTCOME_WON, self::OUTCOME_OPEN, self::OUTCOME_LOST, self::OUTCOME_ARCHIVED, self::OUTCOME_NEW];
 
     // Cơ hội đang xử lý nằm quá số ngày này ở 1 stage thì coi là bị "kẹt"
-    const STUCK_DAYS = [
+    public const STUCK_DAYS = [
         Stage::UNTOUCHED => 2,
         Stage::APPOINTED => 7,
         Stage::PROCESSED => 14,
     ];
 
     // Không có lịch sử chuyển stage: ước tính thời điểm vào stage theo cột này của Cơ hội
-    const STAGE_ESTIMATES = [
+    public const STAGE_ESTIMATES = [
         Stage::APPOINTED => 'first_ok',
         Stage::PROCESSED => 'first_appt_ok',
         Stage::CLOSED    => 'won_at',
     ];
 
     // Số id tối đa trong 1 câu whereIn
-    const CHUNK = 1000;
+    public const CHUNK = 1000;
 
     protected ?array $stages = null;
 
@@ -340,9 +340,24 @@ class LeadConversionReport
             ->leftJoinSub($history, 'hs', 'hs.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($appointments, 'ap', 'ap.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($quotes, 'qt', 'qt.opportunity_id', '=', 'o.opportunity_id')
-            ->select('o.opportunity_id', 'o.lead_id', 'o.employee_id', 'o.conversion_date', 'o.status', 'o.stage_id',
-                's.stage_name', 's.sort_order', 'e.full_name as employee_name', 'e.team_id',
-                'c.first_contact', 'c.last_contact', 'c.first_ok', 'ap.first_appt_ok', 'hs.last_move', 'hs.archived_at')
+            ->select(
+                'o.opportunity_id',
+                'o.lead_id',
+                'o.employee_id',
+                'o.conversion_date',
+                'o.status',
+                'o.stage_id',
+                's.stage_name',
+                's.sort_order',
+                'e.full_name as employee_name',
+                'e.team_id',
+                'c.first_contact',
+                'c.last_contact',
+                'c.first_ok',
+                'ap.first_appt_ok',
+                'hs.last_move',
+                'hs.archived_at'
+            )
             ->selectRaw('st.student_id IS NOT NULL AS student')
             ->selectRaw('COALESCE(c.contacts, 0) AS contacts')
             ->selectRaw('COALESCE(c.contacts_ok, 0) AS contacts_ok')

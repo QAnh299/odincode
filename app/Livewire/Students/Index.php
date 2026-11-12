@@ -5,7 +5,6 @@ namespace App\Livewire\Students;
 use App\Models\Course;
 use App\Models\Employee;
 use App\Models\Role;
-use App\Models\SalesOrder;
 use App\Models\SalesTeam;
 use App\Models\Student;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,9 +28,9 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const FILTERS = ['search', 'status', 'course', 'team', 'employee', 'from', 'to'];
+    public const FILTERS = ['search', 'status', 'course', 'team', 'employee', 'from', 'to'];
 
     // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
 
@@ -181,16 +180,24 @@ class Index extends Component
                     ->orWhere('phone', 'like', $like)
                     ->orWhere('email', 'like', $like));
             })
-            ->when($withStatus && in_array($this->status, Student::STATUSES, true),
-                fn ($q) => $q->where('status', $this->status))
-            ->when($this->courses->contains('course_id', $this->course),
+            ->when(
+                $withStatus && in_array($this->status, Student::STATUSES, true),
+                fn ($q) => $q->where('status', $this->status)
+            )
+            ->when(
+                $this->courses->contains('course_id', $this->course),
                 fn ($q) => $q->whereHas('opportunity.quotations', fn ($quo) => $quo
                     ->whereHas('order', fn ($o) => $o->where('paid_amount', '>', 0))
-                    ->whereHas('details', fn ($d) => $d->where('course_id', $this->course))))
-            ->when($this->canFilterTeam && $this->activeTeam,
-                fn ($q) => $q->whereHas('opportunity.employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id)))
-            ->when($this->employeeOptions->contains('employee_id', $this->employee),
-                fn ($q) => $q->whereHas('opportunity', fn ($o) => $o->where('employee_id', $this->employee)))
+                    ->whereHas('details', fn ($d) => $d->where('course_id', $this->course)))
+            )
+            ->when(
+                $this->canFilterTeam && $this->activeTeam,
+                fn ($q) => $q->whereHas('opportunity.employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id))
+            )
+            ->when(
+                $this->employeeOptions->contains('employee_id', $this->employee),
+                fn ($q) => $q->whereHas('opportunity', fn ($o) => $o->where('employee_id', $this->employee))
+            )
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to));
     }

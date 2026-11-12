@@ -42,29 +42,29 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['newest', 'oldest', 'due', 'amount_desc', 'amount_asc', 'code', 'customer'];
+    public const SORTS = ['newest', 'oldest', 'due', 'amount_desc', 'amount_asc', 'code', 'customer'];
 
     // Tình trạng hạn (chỉ xét hóa đơn chưa thanh toán: Unpaid + Overdue)
-    const DEADLINES = ['valid', 'soon', 'overdue'];
+    public const DEADLINES = ['valid', 'soon', 'overdue'];
 
     // "Sắp đến hạn": còn 0 - SOON_DAYS ngày
-    const SOON_DAYS = 3;
+    public const SOON_DAYS = 3;
 
     // Giá trị bộ lọc phương thức cho hóa đơn chưa chọn phương thức (payment_method IS NULL)
-    const METHOD_NONE = 'none';
+    public const METHOD_NONE = 'none';
 
     // Giới hạn tìm kiếm: số từ khóa, độ dài mỗi từ khóa (phần vượt quá bỏ qua)
-    const MAX_TERMS = 8;
-    const MAX_TERM_LENGTH = 100;
+    public const MAX_TERMS = 8;
+    public const MAX_TERM_LENGTH = 100;
 
     // Từ khóa số tiền: ít nhất 3 chữ số; ô số tiền của bộ lọc: tối đa 15 chữ số (DECIMAL(18,2))
-    const MIN_AMOUNT_DIGITS = 3;
-    const MAX_AMOUNT_DIGITS = 15;
+    public const MIN_AMOUNT_DIGITS = 3;
+    public const MAX_AMOUNT_DIGITS = 15;
 
     // Giá trị mặc định của các bộ lọc (key của $form = tên thuộc tính đã áp dụng)
-    const FILTER_DEFAULTS = [
+    public const FILTER_DEFAULTS = [
         'statuses'    => [],
         'methods'     => [],
         'deadline'    => '',
@@ -770,7 +770,9 @@ class Index extends Component
             ->where('Invoices.invoice_id', 'like', $like)
             ->when($codes['statuses'] !== [], fn ($q) => $q->orWhereIn('Invoices.status', $codes['statuses']))
             ->when($codes['methods'] !== [], fn ($q) => $q->orWhereIn(
-                DB::raw("COALESCE(Invoices.payment_method, '')"), $codes['methods']))
+                DB::raw("COALESCE(Invoices.payment_method, '')"),
+                $codes['methods']
+            ))
             ->when($amount !== null, fn ($q) => $q->orWhere('Invoices.payment_amount', $amount))
             ->orWhere('Invoices.order_id', 'like', $like)
             ->orWhere('Invoices.created_by_employee_id', 'like', $like)

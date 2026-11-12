@@ -18,7 +18,7 @@ use Livewire\Component;
 class ChangePassword extends Component
 {
     // Số lần nhập sai mật khẩu hiện tại tối đa trong 1 phút
-    const MAX_ATTEMPTS = 5;
+    public const MAX_ATTEMPTS = 5;
 
     public string $current_password = '';
     public string $password = '';

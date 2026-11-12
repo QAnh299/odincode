@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SalesTeam extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     protected $table = 'SalesTeams';
 

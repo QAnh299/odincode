@@ -13,7 +13,6 @@ use App\Models\Invoice;
 use App\Models\Opportunity;
 use App\Models\OpportunityTransfer;
 use App\Models\Role;
-use App\Models\Quotation;
 use App\Models\Stage;
 use App\Services\AppointmentService;
 use App\Services\LeadDistributionService;
@@ -70,7 +69,7 @@ class Show extends Component
 
     use EditsLead;
 
-    const TABS = ['care', 'appointments'];
+    public const TABS = ['care', 'appointments'];
 
     public Opportunity $opportunity;
 
@@ -185,18 +184,18 @@ class Show extends Component
     // ── Ghi nhận liên hệ (chăm sóc) ───────────────────────────────────
 
     // Hoạt động liên hệ theo stage
-    const STAGE_ACTIVITIES = [
+    public const STAGE_ACTIVITIES = [
         Stage::UNTOUCHED => CareActivity::INITIAL,
         Stage::APPOINTED => CareActivity::RESCHEDULE,
         Stage::PROCESSED => CareActivity::DECISION,
     ];
 
     // Data chưa tương tác: đủ số lần không liên lạc được này → Archived
-    const MAX_UNREACHABLE_CONTACTS = 4;
+    public const MAX_UNREACHABLE_CONTACTS = 4;
 
     // Data đã có lịch hẹn: không liên lạc được quá số ngày này (tính từ buổi khách không đến) → Archived.
     // Data đã xử lý dùng hạn quyết định Opportunity::DECISION_DAYS.
-    const UNREACHABLE_DAYS = [
+    public const UNREACHABLE_DAYS = [
         Stage::APPOINTED => Opportunity::REBOOK_DAYS,
     ];
 

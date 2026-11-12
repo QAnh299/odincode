@@ -9,17 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái nhân viên (cột status): Đang làm việc hoặc Đã nghỉ việc
-    const STATUS_WORKING = 'Working';
-    const STATUS_RESIGNED = 'Resigned';
+    public const STATUS_WORKING = 'Working';
+    public const STATUS_RESIGNED = 'Resigned';
 
     // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang employees.state.*)
-    const STATE_WORKING = 'working';   // status = 'Working'
-    const STATE_RESIGNED = 'resigned'; // status khác 'Working'
+    public const STATE_WORKING = 'working';   // status = 'Working'
+    public const STATE_RESIGNED = 'resigned'; // status khác 'Working'
 
-    const STATES = [self::STATE_WORKING, self::STATE_RESIGNED];
+    public const STATES = [self::STATE_WORKING, self::STATE_RESIGNED];
 
     protected $table = 'Employees';
 

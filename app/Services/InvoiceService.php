@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Mail;
 class InvoiceService
 {
     // Hạn thanh toán mặc định của hóa đơn mới (ngày, tính từ ngày lập)
-    const DEFAULT_DUE_DAYS = 7;
+    public const DEFAULT_DUE_DAYS = 7;
 
     /**
      * HĐ18 – HĐ19: lý do không tạo được hóa đơn (khóa lang invoices.form.blocked.*), null = được tạo.

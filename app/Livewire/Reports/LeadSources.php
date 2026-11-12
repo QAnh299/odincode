@@ -32,10 +32,10 @@ class LeadSources extends Component
     use ReportExport;
 
     // Bảng màu phân loại (thứ tự cố định) - dùng chung các trang báo cáo (LeadConversion::PALETTE)
-    const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+    public const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
     // Màu cố định theo nguồn - biểu đồ và bảng dùng chung để người xem nhận ra nguồn qua màu
-    const SOURCE_COLORS = [
+    public const SOURCE_COLORS = [
         'Zalo'         => '#2a78d6',
         'Facebook'     => '#eb6834',
         'Website ODIN' => '#1baf7a',
@@ -44,10 +44,10 @@ class LeadSources extends Component
         'Instagram'    => '#6250d6',
     ];
 
-    const OTHER_COLOR = '#9ca3af';
+    public const OTHER_COLOR = '#9ca3af';
 
     // Kết quả xử lý Lead (mỗi Lead đúng 1 nhóm) → [màu nền, màu chữ trên thanh]
-    const OUTCOMES = [
+    public const OUTCOMES = [
         'won'            => ['#1f9d55', '#ffffff'],
         'in_progress'    => ['#8fb8ec', '#1f2937'],
         'failed'         => ['#eda5a5', '#1f2937'],
@@ -55,15 +55,15 @@ class LeadSources extends Component
     ];
 
     // Tỷ lệ chốt theo nguồn: từ trung bình trở lên tô đậm, dưới trung bình tô nhạt
-    const RATE_COLORS = ['above' => '#2a78d6', 'below' => '#a9c8ef'];
+    public const RATE_COLORS = ['above' => '#2a78d6', 'below' => '#a9c8ef'];
 
     // Thẻ KPI: màu đường xu hướng khi tăng (giảm luôn đỏ)
-    const TREND_COLORS = ['count' => '#2a78d6', 'rate' => '#1baf7a', 'down' => '#e34948'];
+    public const TREND_COLORS = ['count' => '#2a78d6', 'rate' => '#1baf7a', 'down' => '#e34948'];
 
     // Nguồn ít hơn số Lead này chưa đủ để đánh giá / chọn "cao nhất" (tỷ lệ chưa đáng tin)
-    const MIN_LEADS = 10;
+    public const MIN_LEADS = 10;
 
-    const PRESETS = ['month', 'quarter', '6m', 'year'];
+    public const PRESETS = ['month', 'quarter', '6m', 'year'];
 
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
@@ -484,12 +484,12 @@ class LeadSources extends Component
     /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
 
     // Chỉ 1 sheet: báo cáo theo nguồn Lead
-    const EXPORT_SHEETS = ['summary'];
+    public const EXPORT_SHEETS = ['summary'];
 
-    const EXPORT_LOCKED = ['summary' => 'source'];
+    public const EXPORT_LOCKED = ['summary' => 'source'];
 
     // Chỉ số của sheet theo nguồn → kiểu cột
-    const EXPORT_METRICS = [
+    public const EXPORT_METRICS = [
         'leads' => 'int', 'converted' => 'int', 'conversion_rate' => 'percent', 'won' => 'int', 'lost' => 'int',
         'win_rate' => 'percent', 'close_rate' => 'percent', 'revenue' => 'money', 'paid' => 'money',
         'revenue_per_lead' => 'money', 'revenue_share' => 'percent',

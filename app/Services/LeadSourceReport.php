@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class LeadSourceReport
 {
     // Chiều nhóm → biểu thức SQL trên bảng Leads (alias l)
-    const DIMENSIONS = [
+    public const DIMENSIONS = [
         'source' => 'l.source_name',
         'method' => 'l.contact_method',
         'branch' => 'l.branch_id',

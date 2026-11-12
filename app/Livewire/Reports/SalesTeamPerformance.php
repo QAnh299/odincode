@@ -26,33 +26,33 @@ use Livewire\Attributes\Url;
 #[Layout('layouts.app')]
 class SalesTeamPerformance extends SalesPerformance
 {
-    const TABS = ['teams', 'employees'];
+    public const TABS = ['teams', 'employees'];
 
     // Biểu đồ tròn cơ cấu theo đội: chỉ số chọn được ở dropdown
-    const SHARES = ['revenue', 'students'];
+    public const SHARES = ['revenue', 'students'];
 
     // Tab Nhân viên - biểu đồ tròn: nhiều người hơn số này thì giữ (số này - 1) người cao nhất, còn lại gộp "Nhân viên khác"
-    const EMP_SHARE_MAX = 10;
+    public const EMP_SHARE_MAX = 10;
 
-    const EMP_OTHER_COLOR = '#c3cad5';
+    public const EMP_OTHER_COLOR = '#c3cad5';
 
     // Tab Nhân viên - biểu đồ top: số người, các chỉ số chọn được (→ đơn vị)
-    const EMP_TOP = 10;
+    public const EMP_TOP = 10;
 
-    const EMP_METRICS = ['revenue' => 'money', 'won' => 'count', 'close_rate' => 'percent', 'students' => 'count'];
+    public const EMP_METRICS = ['revenue' => 'money', 'won' => 'count', 'close_rate' => 'percent', 'students' => 'count'];
 
     // Xếp hạng theo tỷ lệ thắng chỉ tính người có ít nhất số cơ hội đóng (Won + Lost) này (ít quá thì tỷ lệ không đáng tin)
-    const EMP_MIN_CLOSED = 5;
+    public const EMP_MIN_CLOSED = 5;
 
     // Màu cố định của từng đội (theo thứ tự đội trong phạm vi) - dùng chung cho mọi biểu đồ và bảng xếp hạng;
     // đủ 12 màu khác nhau để biểu đồ tròn phân biệt được từng đội (nhiều đội hơn thì lặp lại)
-    const PALETTE = [
+    public const PALETTE = [
         '#2a78d6', '#eb6834', '#16a34a', '#9333ea', '#0891b2', '#db2777',
         '#d99a0b', '#b91c1c', '#65a30d', '#92400e', '#475569', '#6366f1',
     ];
 
     // Tình trạng xử lý Lead đã giao (4 nhóm, cộng lại = Lead đã giao) → [khoá chỉ số, màu cột, màu chữ trong cột]
-    const STATUS_SERIES = [
+    public const STATUS_SERIES = [
         'won'       => ['status_won', '#1f9d4f', '#ffffff'],
         'progress'  => ['status_progress', '#7fb0ea', '#14213d'],
         'unreached' => ['status_unreached', '#eaa3a3', '#14213d'],
@@ -60,10 +60,10 @@ class SalesTeamPerformance extends SalesPerformance
     ];
 
     // Biểu đồ tình trạng xử lý: quá số đội này thì cột mảnh lại cho gọn
-    const STATUS_COMPACT_TEAMS = 5;
+    public const STATUS_COMPACT_TEAMS = 5;
 
     // Biểu đồ theo tháng: kỳ ngắn hơn 2 tháng thì xem 6 tháng gần nhất, kỳ dài thì tối đa số tháng này
-    const MAX_TREND_MONTHS = 12;
+    public const MAX_TREND_MONTHS = 12;
 
     #[Url(except: 'teams')]
     public string $tab = 'teams';
@@ -346,7 +346,9 @@ class SalesTeamPerformance extends SalesPerformance
     public function teamMonthly(): array
     {
         return $this->report()->aggregate(
-            $this->monthsFilter(array_column($this->trend, 'month'), $this->filterValues($this->activeMonth)), 'team_month');
+            $this->monthsFilter(array_column($this->trend, 'month'), $this->filterValues($this->activeMonth)),
+            'team_month'
+        );
     }
 
     /**

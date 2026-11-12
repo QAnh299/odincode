@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class TeamSalesTarget extends Model
 {
-    use HasCompositeKey, HasFactory;
+    use HasCompositeKey;
+    use HasFactory;
 
     // status (odin.sql): Active, Completed, Ended, Cancelled
-    const STATUS_ACTIVE = 'Active';
+    public const STATUS_ACTIVE = 'Active';
 
-    const STATUS_CANCELLED = 'Cancelled';
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $table = 'TeamSalesTargets';
 

@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\DB;
 class SalesPerformanceReport
 {
     // Chiều nhóm → biểu thức SQL (o = dòng dữ liệu đã có employee_id + event_at, e = Employees)
-    const DIMENSIONS = [
+    public const DIMENSIONS = [
         'all'        => "'all'",
         'employee'   => 'o.employee_id',
         'team'       => 'e.team_id',
@@ -50,36 +50,36 @@ class SalesPerformanceReport
     ];
 
     // Cam kết thời gian phản hồi đầu tiên (giờ, từ lúc giao Lead đến lần liên hệ đầu)
-    const RESPONSE_SLA_HOURS = 4;
+    public const RESPONSE_SLA_HOURS = 4;
 
     // Lead được giao quá số giờ này mà chưa liên hệ lần nào = cần nhắc / chuyển người phụ trách
-    const UNCONTACTED_HOURS = 24;
+    public const UNCONTACTED_HOURS = 24;
 
     // Cơ hội đang xử lý không có tương tác nào (liên hệ, chuyển stage, lịch hẹn) quá số ngày này = "nguội"
-    const STALE_DAYS = 7;
+    public const STALE_DAYS = 7;
 
     // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì cần xử lý (giống Kanban)
-    const DECISION_WARN_DAYS = 3;
+    public const DECISION_WARN_DAYS = 3;
 
     // Việc cần xử lý (khoá trong alerts())
-    const ALERTS = ['overdue_appointment', 'needs_quotation', 'decision_due', 'stale'];
+    public const ALERTS = ['overdue_appointment', 'needs_quotation', 'decision_due', 'stale'];
 
     // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh. KPI đội chỉ gồm doanh thu và học viên mới
     // (số Lead được giao do Sale Admin phân bổ nên không làm chỉ tiêu của đội)
-    const TARGETS = [
+    public const TARGETS = [
         'Revenue'     => 'revenue',
         'NewStudents' => 'students',
     ];
 
     // Chỉ số gốc (cộng dồn được); FLOATS là số thực (tiền, giờ, ngày)
-    const SUMMABLE = [
+    public const SUMMABLE = [
         'assigned', 'processed', 'moved', 'contacts', 'contacts_ok', 'unreachable', 'backward',
         'response_hours', 'response_n', 'won', 'lost', 'close_days', 'close_n', 'revenue', 'paid', 'students',
         'orders', 'care', 'care_ok', 'appts', 'appts_ok', 'transfers_out',
         'contacted', 'contacted_ok', 'status_won', 'status_closed', 'status_new', 'status_unreached',
     ];
 
-    const FLOATS = ['response_hours', 'close_days', 'revenue', 'paid'];
+    public const FLOATS = ['response_hours', 'close_days', 'revenue', 'paid'];
 
     protected ?array $funnel = null;
 
@@ -306,16 +306,20 @@ class SalesPerformanceReport
             ->select('o.employee_id')
             ->selectRaw('COALESCE(a.overdue, 0) > 0 AS overdue_appointment')
             ->selectRaw('(o.stage_id = ? AND COALESCE(q.quotes, 0) = 0) AS needs_quotation', [Stage::CLOSED])
-            ->selectRaw('(o.stage_id = ? AND DATE_ADD((
+            ->selectRaw(
+                '(o.stage_id = ? AND DATE_ADD((
                     SELECT MIN(cr.performed_at) FROM CareResults cr
                     WHERE cr.opportunity_id = o.opportunity_id AND cr.activity_id = ?
                       AND cr.performed_at >= COALESCE(h.processed_at, o.conversion_date)
                 ), INTERVAL ? DAY) <= ?) AS decision_due',
-                [Stage::PROCESSED, CareActivity::DECISION, Opportunity::DECISION_DAYS, $now->copy()->addDays(self::DECISION_WARN_DAYS)])
-            ->selectRaw('(o.stage_id <> ? AND COALESCE(a.upcoming, 0) = 0 AND GREATEST(o.conversion_date,
+                [Stage::PROCESSED, CareActivity::DECISION, Opportunity::DECISION_DAYS, $now->copy()->addDays(self::DECISION_WARN_DAYS)]
+            )
+            ->selectRaw(
+                '(o.stage_id <> ? AND COALESCE(a.upcoming, 0) = 0 AND GREATEST(o.conversion_date,
                     COALESCE(c.last_care, o.conversion_date), COALESCE(h.last_move, o.conversion_date),
                     COALESCE(a.last_appt, o.conversion_date)) < ?) AS stale',
-                [Stage::CLOSED, $now->copy()->subDays(self::STALE_DAYS)]);
+                [Stage::CLOSED, $now->copy()->subDays(self::STALE_DAYS)]
+            );
 
         $query = DB::query()->fromSub($flags, 'f')->select('f.employee_id')->groupBy('f.employee_id')
             ->selectRaw('SUM(f.'.implode(' OR f.', self::ALERTS).') AS flagged');

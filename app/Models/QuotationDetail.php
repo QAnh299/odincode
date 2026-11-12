@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuotationDetail extends Model
 {
-    use HasCompositeKey, HasFactory;
+    use HasCompositeKey;
+    use HasFactory;
 
     protected $table = 'QuotationDetails';
 

@@ -41,12 +41,12 @@ class LeadConversion extends Component
         openExport as protected openExportPeriod;
     }
 
-    const TABS = ['overview', 'sources', 'velocity', 'care', 'cohort'];
+    public const TABS = ['overview', 'sources', 'velocity', 'care', 'cohort'];
 
     // Bảng màu phân loại dùng chung các trang báo cáo; màu đi theo thực thể / chỉ số
-    const PALETTE = LeadSources::PALETTE;
+    public const PALETTE = LeadSources::PALETTE;
 
-    const COLORS = [
+    public const COLORS = [
         'leads'            => '#2a78d6',
         'opportunities'    => '#6250d6',
         'won'              => '#1baf7a',
@@ -63,24 +63,24 @@ class LeadConversion extends Component
     ];
 
     // Nhóm thời gian phản hồi đầu tiên (giờ, cận trên)
-    const RESPONSE_BUCKETS = ['h1' => 1, 'h4' => 4, 'h24' => 24, 'd3' => 72, 'more' => INF];
+    public const RESPONSE_BUCKETS = ['h1' => 1, 'h4' => 4, 'h24' => 24, 'd3' => 72, 'more' => INF];
 
     // Nhóm thời gian chốt (ngày, cận trên)
-    const CLOSE_BUCKETS = ['d7' => 7, 'd14' => 14, 'd30' => 30, 'd60' => 60, 'more' => INF];
+    public const CLOSE_BUCKETS = ['d7' => 7, 'd14' => 14, 'd30' => 30, 'd60' => 60, 'more' => INF];
 
     // Số lần liên hệ: 0, 1, …, 5+ (số cuối gộp từ đó trở lên)
-    const CONTACT_BUCKETS = [0, 1, 2, 3, 4, 5];
+    public const CONTACT_BUCKETS = [0, 1, 2, 3, 4, 5];
 
-    const COHORT_ROWS = 12;
+    public const COHORT_ROWS = 12;
 
-    const COHORT_LINES = 6;
+    public const COHORT_LINES = 6;
 
-    const STUCK_LIMIT = 50;
+    public const STUCK_LIMIT = 50;
 
-    const COHORT_METRICS = ['won', 'converted', 'student'];
+    public const COHORT_METRICS = ['won', 'converted', 'student'];
 
     // Bộ lọc riêng trong từng khung biểu đồ: khung => loại lọc (tính tiếp trên kết quả của bộ lọc chung)
-    const PANELS = [
+    public const PANELS = [
         'funnel'         => 'source',
         'share'          => 'share',
         'outcomes'       => 'method',
@@ -97,11 +97,11 @@ class LeadConversion extends Component
     ];
 
     // Xuất Excel: các sheet, cột luôn có của từng sheet (không bỏ chọn được), số dòng xem trước trong popup
-    const EXPORT_SHEETS = ['summary', 'leads', 'care', 'appointments'];
+    public const EXPORT_SHEETS = ['summary', 'leads', 'care', 'appointments'];
 
-    const EXPORT_LOCKED = ['summary' => 'source', 'leads' => 'name', 'care' => 'at', 'appointments' => 'at'];
+    public const EXPORT_LOCKED = ['summary' => 'source', 'leads' => 'name', 'care' => 'at', 'appointments' => 'at'];
 
-    const EXPORT_PREVIEW_ROWS = 50;
+    public const EXPORT_PREVIEW_ROWS = 50;
 
     /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
@@ -145,7 +145,7 @@ class LeadConversion extends Component
 
     public string $exportTab = 'summary';
 
-    const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
+    public const FILTERS = ['from', 'to', 'branch', 'team', 'employee'];
 
     public function setTab(string $tab): void
     {
@@ -673,7 +673,9 @@ class LeadConversion extends Component
         }
 
         $byOutcome = fn (array $outcomes) => LeadConversionReport::avg(array_column(
-            array_filter($facts, fn ($f) => in_array($f['outcome'], $outcomes, true)), 'contacts'));
+            array_filter($facts, fn ($f) => in_array($f['outcome'], $outcomes, true)),
+            'contacts'
+        ));
         $total = count($contacts);
         $countResult = fn ($r) => count(array_filter($contacts, fn ($c) => $c['result'] === $r));
 
@@ -1011,7 +1013,9 @@ class LeadConversion extends Component
         [$filters, $criteria] = $this->exportCriteria();
         $data = $this->exportData($period, $filters, $sheets);
         $path = $writer->write($writer->document(array_map(
-            fn ($sheet) => $this->exportSheet($sheet, $this->exportRows($sheet, $data), $period, $criteria), $sheets)));
+            fn ($sheet) => $this->exportSheet($sheet, $this->exportRows($sheet, $data), $period, $criteria),
+            $sheets
+        )));
 
         $this->exportOpen = false;
 
@@ -1092,8 +1096,10 @@ class LeadConversion extends Component
             'title'   => $this->exportLabel('title.'.$sheet),
             'period'  => $period['label'],
             'scope'   => [$period['range'], $criteria],
-            'columns' => array_merge([[$this->exportLabel('stt'), 'stt']],
-                array_map(fn ($key) => [$this->exportLabel($sheet.'.'.$key), $catalog[$key]], $keys)),
+            'columns' => array_merge(
+                [[$this->exportLabel('stt'), 'stt']],
+                array_map(fn ($key) => [$this->exportLabel($sheet.'.'.$key), $catalog[$key]], $keys)
+            ),
             'rows'    => $out,
         ];
     }
@@ -1315,10 +1321,14 @@ class LeadConversion extends Component
         return match (self::PANELS[$panel]) {
             'method' => ['' => __('reports.all')] + $labels(Lead::CONTACT_METHODS, fn ($method) => __('leads.method.'.$method)),
             'period' => ['' => $t('chart.period_auto'), 'month' => $t('chart.period_month'), 'week' => $t('chart.period_week')],
-            'share'  => $labels($this->seesAll ? ['leads', 'opportunities', 'won', 'students'] : ['leads', 'won', 'students'],
-                fn ($key) => $this->shareLabel($key)),
-            'rate'   => $labels($this->seesAll ? ['win_rate', 'close_rate', 'conversion_rate'] : ['win_rate', 'close_rate'],
-                fn ($key) => $t('metric.'.$key)),
+            'share'  => $labels(
+                $this->seesAll ? ['leads', 'opportunities', 'won', 'students'] : ['leads', 'won', 'students'],
+                fn ($key) => $this->shareLabel($key)
+            ),
+            'rate'   => $labels(
+                $this->seesAll ? ['win_rate', 'close_rate', 'conversion_rate'] : ['win_rate', 'close_rate'],
+                fn ($key) => $t('metric.'.$key)
+            ),
             default  => ['' => __('reports.all')] + array_combine($this->sources, $this->sources),
         };
     }

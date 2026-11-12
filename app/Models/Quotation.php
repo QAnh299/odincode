@@ -9,14 +9,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quotation extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái báo giá (CHECK trong odin.sql: Draft, Confirmed, Rejected)
-    const STATUS_DRAFT = 'Draft';
-    const STATUS_CONFIRMED = 'Confirmed';
-    const STATUS_REJECTED = 'Rejected';
+    public const STATUS_DRAFT = 'Draft';
+    public const STATUS_CONFIRMED = 'Confirmed';
+    public const STATUS_REJECTED = 'Rejected';
 
-    const STATUSES = [self::STATUS_DRAFT, self::STATUS_CONFIRMED, self::STATUS_REJECTED];
+    public const STATUSES = [self::STATUS_DRAFT, self::STATUS_CONFIRMED, self::STATUS_REJECTED];
 
     protected $table = 'Quotations';
 

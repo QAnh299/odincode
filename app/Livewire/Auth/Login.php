@@ -19,14 +19,14 @@ use Livewire\Component;
 class Login extends Component
 {
     // Số yêu cầu quên mật khẩu tối đa từ một IP trong 10 phút
-    const FORGOT_MAX_PER_IP = 5;
+    public const FORGOT_MAX_PER_IP = 5;
 
     // Thời gian chờ (giây) giữa hai lần cấp mật khẩu tạm cho cùng một tài khoản
-    const FORGOT_ACCOUNT_COOLDOWN = 120;
+    public const FORGOT_ACCOUNT_COOLDOWN = 120;
 
     // Cookie lưu tên đăng nhập khi chọn "Ghi nhớ tài khoản" (30 ngày, tính bằng phút)
-    const REMEMBER_COOKIE = 'odin_remember_username';
-    const REMEMBER_MINUTES = 60 * 24 * 30;
+    public const REMEMBER_COOKIE = 'odin_remember_username';
+    public const REMEMBER_MINUTES = 60 * 24 * 30;
 
     // 'login' = form đăng nhập, 'forgot' = form quên mật khẩu
     public string $mode = 'login';
@@ -155,7 +155,9 @@ class Login extends Component
             try {
                 // Gửi mail trước, thành công mới ghi đè để tránh khoá người dùng khi mail lỗi
                 Mail::to($email)->send(new TemporaryPasswordMail(
-                    $user->employee->full_name, $user->username, $temporaryPassword,
+                    $user->employee->full_name,
+                    $user->username,
+                    $temporaryPassword,
                 ));
             } catch (\Throwable $e) {
                 Log::error('Gửi mật khẩu tạm thất bại', ['account_id' => $user->account_id, 'error' => $e->getMessage()]);

@@ -57,11 +57,16 @@ class SalesCalendar
                 $types = $rows->sortBy(fn ($r) => array_search($r->appointment_type, Appointment::TYPES));
                 $done = $rows->every(fn ($r) => $r->status !== Appointment::STATUS_SCHEDULED);
 
-                return $this->item("appointment-$id", $first->scheduled_time, strtolower($types->first()->appointment_type),
+                return $this->item(
+                    "appointment-$id",
+                    $first->scheduled_time,
+                    strtolower($types->first()->appointment_type),
                     $types->map(fn ($r) => __('opportunities.appointment_type_name.'.$r->appointment_type))->implode(' + '),
-                    $first->opportunity, $first->notes,
+                    $first->opportunity,
+                    $first->notes,
                     route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),
-                    $done);
+                    $done
+                );
             })
             ->values()
             ->all();
@@ -114,9 +119,17 @@ class SalesCalendar
             ->whereBetween('expiry_date', [$from->toDateString(), $to->toDateString()])
             ->with(['opportunity.lead:lead_id,full_name', 'opportunity.stage:stage_id,stage_name'])
             ->get()
-            ->map(fn (Quotation $quotation) => $this->item("quotation-{$quotation->quotation_id}", $quotation->expiry_date->copy()->endOfDay(),
-                'quotation', __('calendar.kind.quotation'), $quotation->opportunity, $quotation->quotation_id,
-                route('salesperson.quotations.show', $quotation), false, false))
+            ->map(fn (Quotation $quotation) => $this->item(
+                "quotation-{$quotation->quotation_id}",
+                $quotation->expiry_date->copy()->endOfDay(),
+                'quotation',
+                __('calendar.kind.quotation'),
+                $quotation->opportunity,
+                $quotation->quotation_id,
+                route('salesperson.quotations.show', $quotation),
+                false,
+                false
+            ))
             ->all();
     }
 
@@ -127,15 +140,30 @@ class SalesCalendar
             ->whereBetween('performed_at', [$from, $to])
             ->with(['activity:activity_id,activity_name', 'opportunity.lead:lead_id,full_name', 'opportunity.stage:stage_id,stage_name'])
             ->get()
-            ->map(fn (CareResult $care) => $this->item("care-{$care->result_id}", $care->performed_at, 'care',
-                $care->activity?->activity_name ?? __('calendar.kind.care'), $care->opportunity, $care->notes,
-                route('salesperson.opportunities.show', $care->opportunity_id), true))
+            ->map(fn (CareResult $care) => $this->item(
+                "care-{$care->result_id}",
+                $care->performed_at,
+                'care',
+                $care->activity?->activity_name ?? __('calendar.kind.care'),
+                $care->opportunity,
+                $care->notes,
+                route('salesperson.opportunities.show', $care->opportunity_id),
+                true
+            ))
             ->all();
     }
 
-    protected function item(string $key, Carbon $at, string $kind, string $label, ?Opportunity $opportunity, ?string $note,
-        string $url, bool $done, bool $timed = true): array
-    {
+    protected function item(
+        string $key,
+        Carbon $at,
+        string $kind,
+        string $label,
+        ?Opportunity $opportunity,
+        ?string $note,
+        string $url,
+        bool $done,
+        bool $timed = true
+    ): array {
         return [
             'key'     => $key,
             'day'     => $at->toDateString(),

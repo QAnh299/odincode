@@ -37,24 +37,24 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['newest', 'oldest', 'expiring', 'code', 'total_desc', 'total_asc', 'customer'];
+    public const SORTS = ['newest', 'oldest', 'expiring', 'code', 'total_desc', 'total_asc', 'customer'];
 
     // Tình trạng hạn (chỉ xét báo giá Nháp)
-    const DEADLINES = ['valid', 'soon', 'overdue'];
+    public const DEADLINES = ['valid', 'soon', 'overdue'];
 
     // "Sắp hết hạn": còn 0 - SOON_DAYS ngày
-    const SOON_DAYS = 3;
+    public const SOON_DAYS = 3;
 
-    const ORDER_STATES = ['with', 'without'];
+    public const ORDER_STATES = ['with', 'without'];
 
     // Giới hạn tìm kiếm: số từ khóa, độ dài mỗi từ khóa (phần vượt quá bỏ qua)
-    const MAX_TERMS = 8;
-    const MAX_TERM_LENGTH = 100;
+    public const MAX_TERMS = 8;
+    public const MAX_TERM_LENGTH = 100;
 
     // Giá trị mặc định của các bộ lọc (key của $form = tên thuộc tính đã áp dụng)
-    const FILTER_DEFAULTS = [
+    public const FILTER_DEFAULTS = [
         'statuses'    => [],
         'deadline'    => '',
         'orderState'  => '',

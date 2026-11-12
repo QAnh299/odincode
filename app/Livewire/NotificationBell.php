@@ -35,9 +35,9 @@ class NotificationBell extends Component
     public string $tab = 'all';
 
     // Giữ thông báo đã xử lý trong lịch sử bao lâu / tối đa bao nhiêu mục
-    const HISTORY_DAYS = 7;
+    public const HISTORY_DAYS = 7;
 
-    const HISTORY_LIMIT = 30;
+    public const HISTORY_LIMIT = 30;
 
     /**
      * Trang khác vừa thao tác (cập nhật lịch hẹn, ghi nhận liên hệ…): render lại để chuyển thông báo đã xử lý xuống dưới.

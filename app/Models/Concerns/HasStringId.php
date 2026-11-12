@@ -33,7 +33,7 @@ trait HasStringId
      */
     public static function nextId(): string
     {
-        $model = new static;
+        $model = new static();
         $key = $model->getKeyName();
         $prefix = $model->idPrefix;
 
@@ -55,7 +55,7 @@ trait HasStringId
      */
     public static function nextIds(int $count): array
     {
-        $model = new static;
+        $model = new static();
         $prefix = $model->idPrefix;
         $start = (int) substr(static::nextId(), strlen($prefix));
 

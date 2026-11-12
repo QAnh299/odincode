@@ -9,20 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Trạng thái hóa đơn (CHECK trong odin.sql: Unpaid, Paid, Overdue). Unpaid hiển thị "Chờ thanh toán"
-    const STATUS_UNPAID = 'Unpaid';
-    const STATUS_PAID = 'Paid';
-    const STATUS_OVERDUE = 'Overdue';
+    public const STATUS_UNPAID = 'Unpaid';
+    public const STATUS_PAID = 'Paid';
+    public const STATUS_OVERDUE = 'Overdue';
 
-    const STATUSES = [self::STATUS_UNPAID, self::STATUS_PAID, self::STATUS_OVERDUE];
+    public const STATUSES = [self::STATUS_UNPAID, self::STATUS_PAID, self::STATUS_OVERDUE];
 
     // Phương thức thanh toán (CHECK trong odin.sql: BankTransfer, Cash; cột cho phép NULL)
-    const METHOD_BANK_TRANSFER = 'BankTransfer';
-    const METHOD_CASH = 'Cash';
+    public const METHOD_BANK_TRANSFER = 'BankTransfer';
+    public const METHOD_CASH = 'Cash';
 
-    const METHODS = [self::METHOD_BANK_TRANSFER, self::METHOD_CASH];
+    public const METHODS = [self::METHOD_BANK_TRANSFER, self::METHOD_CASH];
 
     protected $table = 'Invoices';
 

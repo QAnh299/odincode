@@ -8,16 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class CareActivity extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // "Liên hệ ban đầu": liên hệ ở stage Data chưa tương tác
-    const INITIAL = 'ACT001';
+    public const INITIAL = 'ACT001';
 
     // "Xếp lại lịch": liên hệ ở stage Data đã có lịch hẹn khi khách không đến
-    const RESCHEDULE = 'ACT002';
+    public const RESCHEDULE = 'ACT002';
 
     // "Chốt đăng ký": liên hệ ở stage Data đã xử lý
-    const DECISION = 'ACT003';
+    public const DECISION = 'ACT003';
 
     protected $table = 'CareActivities';
 

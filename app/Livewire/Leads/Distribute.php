@@ -30,7 +30,7 @@ use RuntimeException;
  */
 class Distribute extends Component
 {
-    const MODES = ['auto', 'manual'];
+    public const MODES = ['auto', 'manual'];
 
     public bool $open = false;
 

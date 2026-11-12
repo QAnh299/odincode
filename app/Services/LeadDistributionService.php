@@ -40,25 +40,27 @@ use RuntimeException;
  */
 class LeadDistributionService
 {
-    const MAX_PER_SALESPERSON = 50;
+    public const MAX_PER_SALESPERSON = 50;
 
     // Tiêu chí cộng hạng hiệu suất (tính theo tháng trước) → khoá chỉ số trong SalesPerformanceReport
     //   avg_close_days = TB số ngày từ lúc được giao Lead đến khi chốt thành công (Won)
-    const CRITERIA = ['revenue', 'close_rate', 'avg_close_days'];
+    public const CRITERIA = ['revenue', 'close_rate', 'avg_close_days'];
 
     // Tiêu chí càng nhỏ càng tốt
-    const LOWER_IS_BETTER = ['avg_close_days'];
+    public const LOWER_IS_BETTER = ['avg_close_days'];
 
     // Cỡ mẫu tối thiểu để tiêu chí tỷ lệ / trung bình đáng tin (tránh 1/1 = 100%, 1 đơn chốt trong 1 ngày):
     //   close_rate     → số Cơ hội đã đóng (Won + Lost) trong tháng
     //   avg_close_days → số Cơ hội chốt thành công (Won) trong tháng
     // Chưa đủ thì coi như không có số liệu (xếp cuối). Doanh thu là số tuyệt đối nên không cần ngưỡng.
-    const MIN_SAMPLE = ['close_rate' => 15, 'avg_close_days' => 4];
+    public const MIN_SAMPLE = ['close_rate' => 15, 'avg_close_days' => 4];
 
     // Số đội / salesperson nhận Lead dư
-    const TOP = 2;
+    public const TOP = 2;
 
-    public function __construct(protected SalesPerformanceReport $report) {}
+    public function __construct(protected SalesPerformanceReport $report)
+    {
+    }
 
     /**
      * Tháng trước (tháng hiện tại chưa kết thúc nên chưa đủ số liệu): [from, to, nhãn m/Y].

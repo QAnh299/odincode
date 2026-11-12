@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
  */
 class PerformanceLeadSeeder extends Seeder
 {
-    const CHUNK = 1000;
+    public const CHUNK = 1000;
 
     public function run(): void
     {

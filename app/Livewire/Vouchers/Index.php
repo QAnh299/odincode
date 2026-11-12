@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Vouchers;
 
-use App\Models\Quotation;
 use App\Models\Voucher;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -20,9 +19,9 @@ class Index extends Component
 {
     use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['newest', 'oldest', 'ending', 'code'];
+    public const SORTS = ['newest', 'oldest', 'ending', 'code'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -113,8 +112,10 @@ class Index extends Component
                     }
                 });
             })
-            ->when(in_array($this->type, [Voucher::TYPE_PERCENTAGE, Voucher::TYPE_FIXED], true),
-                fn ($q) => $q->where('discount_type', $this->type))
+            ->when(
+                in_array($this->type, [Voucher::TYPE_PERCENTAGE, Voucher::TYPE_FIXED], true),
+                fn ($q) => $q->where('discount_type', $this->type)
+            )
             ->when(in_array($this->state, Voucher::STATES, true), fn ($q) => $q->state($this->state))
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('end_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('start_date', '<=', $this->to))

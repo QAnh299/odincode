@@ -48,7 +48,7 @@ class Show extends Component
 
     public string $courseTab = 'payment';
 
-    const COURSE_TABS = ['payment', 'care', 'appointments'];
+    public const COURSE_TABS = ['payment', 'care', 'appointments'];
 
     public function mount(Student $student): void
     {
@@ -97,7 +97,7 @@ class Show extends Component
     }
 
     // Trang chi tiết nối tiếp breadcrumb "Quản lý học viên › mã học viên › ..." (trait Concerns\StudentTrail)
-    const TRAIL_PAGES = ['opportunities', 'quotations', 'orders', 'invoices'];
+    public const TRAIL_PAGES = ['opportunities', 'quotations', 'orders', 'invoices'];
 
     /**
      * Link sang trang chi tiết "{vai trò}.{tên}.show" nếu vai trò hiện tại có trang đó, ngược lại null.

@@ -11,11 +11,12 @@ use Illuminate\Support\Str;
 
 class Lead extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory;
+    use HasStringId;
 
     // Phiên bản dữ liệu của thẻ thống kê danh sách Lead (Leads\Index::stats): đổi phiên bản = bỏ mọi kết quả đã cache.
     // Đổi khi Lead / cơ hội / kết quả chăm sóc thay đổi; ghi hàng loạt bằng insert() thì gọi touchStats() thủ công.
-    const STATS_VERSION_KEY = 'leads.stats.version';
+    public const STATS_VERSION_KEY = 'leads.stats.version';
 
     public static function touchStats(): void
     {
@@ -29,19 +30,19 @@ class Lead extends Model
     }
 
     // Trạng thái: New = Sale Admin vừa nhập, Converted = đã phân cho salesperson (đã có Opportunity)
-    const STATUS_NEW = 'New';
-    const STATUS_CONVERTED = 'Converted';
-    const STATUSES = [self::STATUS_NEW, self::STATUS_CONVERTED];
+    public const STATUS_NEW = 'New';
+    public const STATUS_CONVERTED = 'Converted';
+    public const STATUSES = [self::STATUS_NEW, self::STATUS_CONVERTED];
 
-    const CONTACT_METHODS = ['Zalo', 'Phone', 'Facebook'];
+    public const CONTACT_METHODS = ['Zalo', 'Phone', 'Facebook'];
 
     // Nguồn Lead (theo ràng buộc CHECK source_name trong odin.sql)
-    const SOURCES = ['Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok'];
+    public const SOURCES = ['Facebook', 'Workshop', 'Website ODIN', 'Zalo', 'Instagram', 'TikTok'];
 
     // Thông tin bắt buộc theo kênh liên hệ (Salesperson cần biết liên hệ Lead qua đâu):
     // Điện thoại, Zalo → bắt buộc SĐT; Facebook → bắt buộc Link nguồn
-    const METHODS_PHONE_REQUIRED = ['Phone', 'Zalo'];
-    const METHODS_LINK_REQUIRED = ['Facebook'];
+    public const METHODS_PHONE_REQUIRED = ['Phone', 'Zalo'];
+    public const METHODS_LINK_REQUIRED = ['Facebook'];
 
     protected $table = 'Leads';
 
@@ -52,7 +53,7 @@ class Lead extends Model
     protected int $idLength = 3;
 
     // Bảng Leads chỉ có created_at
-    const UPDATED_AT = null;
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'lead_id',

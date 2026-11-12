@@ -29,11 +29,12 @@ use Livewire\WithPagination;
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use ManagesTeamKpi, WithPagination;
+    use ManagesTeamKpi;
+    use WithPagination;
 
-    const PER_PAGE = 10;
+    public const PER_PAGE = 10;
 
-    const SORTS = ['name', 'newest', 'oldest', 'members'];
+    public const SORTS = ['name', 'newest', 'oldest', 'members'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -344,7 +345,7 @@ class Index extends Component
         $data = $this->validateForm();
 
         $team = DB::transaction(function () use ($data) {
-            $team = $this->editingTeam ?? new SalesTeam;
+            $team = $this->editingTeam ?? new SalesTeam();
 
             $team->fill([
                 'team_name'        => $data['team_name'],

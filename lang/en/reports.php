@@ -138,7 +138,7 @@ return [
             'share'       => 'Lead mix by source',
             'share_sub'   => 'Which sources bring the most leads',
             'win_rate'    => 'Win rate by source',
-            'win_rate_sub'=> 'Out of 100 leads, how many close · dashed line = average',
+            'win_rate_sub' => 'Out of 100 leads, how many close · dashed line = average',
             'revenue'     => 'Revenue by source',
             'revenue_sub' => 'Total order value from the source\'s leads',
             'monthly'     => 'New leads by month and source',
@@ -168,7 +168,7 @@ return [
             'per_lead'   => 'Rev. / lead',
             'rating'     => 'Rating',
             'total'      => 'Total',
-            'rating_note'=> 'Rating is based on win rate and revenue / lead versus the overall average; sources under :min leads are not rated yet.',
+            'rating_note' => 'Rating is based on win rate and revenue / lead versus the overall average; sources under :min leads are not rated yet.',
         ],
 
         'rating' => [
