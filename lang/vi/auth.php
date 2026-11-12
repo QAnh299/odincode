@@ -26,6 +26,7 @@ return [
     'password_required' => 'Vui lòng nhập mật khẩu.',
     'password_min'      => 'Mật khẩu phải có ít nhất :min ký tự.',
     'account_disabled'  => 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.',
+    'locked'            => 'Tài khoản tạm khóa do nhập sai mật khẩu :max lần liên tiếp. Vui lòng thử lại sau :minutes phút.',
     'no_role'           => 'Tài khoản chưa được phân quyền.',
 
     // Giao diện trang đăng nhập

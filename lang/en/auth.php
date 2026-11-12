@@ -26,6 +26,7 @@ return [
     'password_required' => 'Please enter your password.',
     'password_min'      => 'The password must be at least :min characters.',
     'account_disabled'  => 'This account has been disabled. Please contact the administrator.',
+    'locked'            => 'This account is temporarily locked after :max wrong passwords in a row. Please try again in :minutes minutes.',
     'no_role'           => 'This account has not been assigned a role.',
 
     // Login page layout

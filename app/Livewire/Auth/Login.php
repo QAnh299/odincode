@@ -24,6 +24,10 @@ class Login extends Component
     // Thời gian chờ (giây) giữa hai lần cấp mật khẩu tạm cho cùng một tài khoản
     public const FORGOT_ACCOUNT_COOLDOWN = 120;
 
+    // Nhập sai mật khẩu quá số lần này thì tạm khóa đăng nhập tài khoản trong LOGIN_LOCK_SECONDS
+    public const LOGIN_MAX_ATTEMPTS = 5;
+    public const LOGIN_LOCK_SECONDS = 900;
+
     // Cookie lưu tên đăng nhập khi chọn "Ghi nhớ tài khoản" (30 ngày, tính bằng phút)
     public const REMEMBER_COOKIE = 'odin_remember_username';
     public const REMEMBER_MINUTES = 60 * 24 * 30;
@@ -78,12 +82,31 @@ class Login extends Component
         $this->resetErrorBag('auth');
         $this->validate();
 
+        // Đếm số lần sai theo tên đăng nhập (kể cả tên không tồn tại, để không lộ tài khoản nào có thật)
+        $limiter = $this->limiter();
+        $lockKey = 'login:'.mb_strtolower(trim($this->username));
+
+        if ($limiter->tooManyAttempts($lockKey, self::LOGIN_MAX_ATTEMPTS)) {
+            $this->addError('auth', __('auth.locked', [
+                'max'     => self::LOGIN_MAX_ATTEMPTS,
+                'minutes' => (int) ceil($limiter->availableIn($lockKey) / 60),
+            ]));
+            return;
+        }
+
         $user = User::with('employee.role')->where('username', $this->username)->first();
 
         if (! $user || ! Hash::check($this->password, $user->password)) {
-            $this->addError('auth', __('auth.failed'));
+            $limiter->hit($lockKey, self::LOGIN_LOCK_SECONDS);
+            Log::warning('Đăng nhập sai mật khẩu', ['username' => $this->username, 'ip' => request()->ip(), 'attempts' => $limiter->attempts($lockKey)]);
+
+            $this->addError('auth', $limiter->tooManyAttempts($lockKey, self::LOGIN_MAX_ATTEMPTS)
+                ? __('auth.locked', ['max' => self::LOGIN_MAX_ATTEMPTS, 'minutes' => (int) ceil(self::LOGIN_LOCK_SECONDS / 60)])
+                : __('auth.failed'));
             return;
         }
+
+        $limiter->clear($lockKey);
 
         if (! $user->canSignIn()) {
             $this->addError('auth', __('auth.account_disabled'));
@@ -175,7 +198,7 @@ class Login extends Component
     }
 
     /**
-     * Đếm số lần yêu cầu bằng cache file - không phụ thuộc bảng `cache` trong DB.
+     * Đếm số lần yêu cầu (quên mật khẩu, đăng nhập sai) bằng cache file - không phụ thuộc bảng `cache` trong DB.
      */
     private function limiter(): RateLimiter
     {
