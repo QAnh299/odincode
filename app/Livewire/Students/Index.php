@@ -226,11 +226,7 @@ class Index extends Component
     public function render()
     {
         $students = $this->filtered()
-            ->with([
-                'lead:lead_id',
-                'lead.latestOpportunity' => fn ($q) => $q->select(['Opportunities.opportunity_id', 'Opportunities.lead_id', 'Opportunities.employee_id']),
-                'lead.latestOpportunity.employee:employee_id,full_name',
-            ])
+            ->with(['lead:lead_id'])
             ->orderByDesc('conversion_date')
             ->orderByDesc('student_id')
             ->paginate(self::PER_PAGE);

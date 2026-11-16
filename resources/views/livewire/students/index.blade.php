@@ -142,9 +142,6 @@
                             <th>{{ __('students.student') }}</th>
                             <th>{{ __('students.phone') }}</th>
                             <th>{{ __('students.conversion_date') }}</th>
-                            @unless ($isSalesperson)
-                                <th>{{ __('students.owner') }}</th>
-                            @endunless
                             <th>{{ __('students.status') }}</th>
                             <th class="text-lg-end">{{ __('students.actions') }}</th>
                         </tr>
@@ -166,9 +163,6 @@
                                 <td data-label="{{ __('students.conversion_date') }}" class="st-nowrap">
                                     {{ $student->conversion_date?->format('d/m/Y') }}
                                 </td>
-                                @unless ($isSalesperson)
-                                    <td data-label="{{ __('students.owner') }}">{{ $student->lead?->latestOpportunity?->employee?->full_name ?? '-' }}</td>
-                                @endunless
                                 <td data-label="{{ __('students.status') }}">
                                     <span class="vc-badge st-tone--{{ $student->status }}">
                                         <span class="vc-badge__dot"></span>{{ __('students.status_name.'.$student->status) }}

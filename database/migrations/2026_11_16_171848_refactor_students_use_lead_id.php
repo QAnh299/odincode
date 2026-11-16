@@ -31,11 +31,11 @@ return new class extends Migration
         );
 
         // 3. Nếu tồn tại nhiều bản ghi Student cùng Lead (dữ liệu cũ sai):
-        //    xóa bản cũ hơn (student_id nhỏ hơn = tạo trước)
+        //    xóa bản mới hơn (student_id lớn hơn), giữ bản cũ nhất để opportunity_id vẫn trỏ đúng cơ hội đầu tiên
         DB::statement(
             'DELETE s1 FROM Students s1
              INNER JOIN Students s2
-               ON s1.lead_id = s2.lead_id AND s1.student_id < s2.student_id'
+               ON s1.lead_id = s2.lead_id AND s1.student_id > s2.student_id'
         );
 
         // 4. Đặt lead_id NOT NULL + UNIQUE

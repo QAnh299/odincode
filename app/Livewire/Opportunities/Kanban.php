@@ -294,11 +294,16 @@ class Kanban extends Component
 
     public function render()
     {
-        // Opportunity đã thanh toán (lần đầu) và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
+        // Opportunity đã thanh toán và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
+        // Ẩn: (1) cơ hội đã tạo học viên trực tiếp, (2) cơ hội Won của khách cũ quay lại (không tạo học viên mới)
         $opportunities = Opportunity::query()
             ->visibleTo($this->me)
             ->assigned()
             ->whereDoesntHave('student')
+            ->whereNot(fn ($q) => $q
+                ->where('status', \App\Models\Opportunity::STATUS_WON)
+                ->whereHas('lead.student')
+            )
             ->when(
                 $this->activeTeam && $this->canFilterTeam,
                 fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id))
