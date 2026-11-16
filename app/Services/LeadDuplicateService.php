@@ -153,7 +153,7 @@ class LeadDuplicateService
         return [
             'opportunities' => fn ($q) => $q->orderByDesc('conversion_date')->orderByDesc('opportunity_id'),
             'opportunities.employee:employee_id,full_name',
-            'opportunities.student:student_id,full_name,status,lead_id',
+            'opportunities.student:student_id,opportunity_id,full_name,status',
         ];
     }
 

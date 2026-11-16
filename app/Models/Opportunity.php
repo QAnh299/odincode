@@ -119,12 +119,12 @@ class Opportunity extends Model
     }
 
     /**
-     * Học viên của người đứng sau cơ hội này (qua lead_id).
-     * Trả về cùng một học viên cho mọi cơ hội của cùng một Lead.
+     * Học viên được tạo từ chính cơ hội này (qua opportunity_id).
+     * Dùng để kiểm tra "cơ hội này đã chốt chưa?" — không dùng để lấy thông tin người học.
      */
     public function student()
     {
-        return $this->hasOne(Student::class, 'lead_id', 'lead_id');
+        return $this->hasOne(Student::class, 'opportunity_id', 'opportunity_id');
     }
 
     public function appointments()

@@ -135,7 +135,7 @@ class Show extends Component
                 'stage:stage_id,stage_name',
                 'employee:employee_id,full_name,team_id',
                 'employee.team:team_id,team_name',
-                'student:student_id,lead_id,status',
+                'student:student_id,opportunity_id,status',
                 'quotations' => fn ($q) => $q->orderByDesc('created_at'),
                 'quotations.details' => fn ($q) => $q->orderBy('course_id'),
                 'quotations.details.course',

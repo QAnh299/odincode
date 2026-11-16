@@ -363,7 +363,7 @@ class OpportunityCreateService
         return [
             'opportunities'                              => fn ($q) => $q->orderByDesc('conversion_date'),
             'opportunities.employee:employee_id,full_name,phone',
-            'opportunities.student:student_id,status,lead_id',
+            'opportunities.student:student_id,opportunity_id,status',
             'opportunities.quotations.details.course:course_id,course_name',
             'opportunities.quotations.order',
             'student:student_id,lead_id,status',
