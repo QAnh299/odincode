@@ -58,13 +58,14 @@
                     @php $doneShown = true; @endphp
                     <div class="odin-notify-divider" wire:key="notify-divider">{{ __('topbar.notify_done') }}</div>
                 @endif
-                <div class="odin-notify-item {{ $notification['done'] ? 'is-read is-done' : ($notification['read'] ? 'is-read' : 'is-unread') }}"
+                @php $isAlert = ! $notification['done'] && ($notification['kind'] ?? null) === 'transfer'; @endphp
+                <div class="odin-notify-item {{ $notification['done'] ? 'is-read is-done' : ($notification['read'] ? 'is-read' : 'is-unread') }} {{ $isAlert ? 'is-alert' : '' }}"
                     wire:key="notify-{{ $notification['key'] }}">
                     <a href="{{ $notification['url'] }}" class="odin-notify-item__link"
                         wire:click.prevent="open('{{ $notification['key'] }}')">
                         {{-- Icon theo nhóm thông báo (Liên hệ, Lịch hẹn, Báo giá, Hóa đơn…) --}}
                         <span class="odin-notify-item__icon odin-notify-item__icon--{{ $notification['group'] }}" aria-hidden="true">
-                            <x-icon :name="$groups[$notification['group']]['icon'] ?? 'info'" />
+                            <x-icon :name="$isAlert ? 'alert' : ($groups[$notification['group']]['icon'] ?? 'info')" />
                         </span>
                         <span class="odin-notify-item__body">
                             <span class="odin-notify-item__title">{{ $notification['title'] }}</span>

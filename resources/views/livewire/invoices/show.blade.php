@@ -72,7 +72,9 @@
                 <x-icon name="check-circle" />
                 {{ $isCash
                     ? __('invoices.detail.paid_cash', ['name' => $invoice->accountant?->full_name ?? '-', 'date' => $invoice->payment_date?->format('d/m/Y H:i')])
-                    : __('invoices.detail.paid_transfer', ['date' => $invoice->payment_date?->format('d/m/Y H:i')]) }}
+                    : ($invoice->accountant
+                        ? __('invoices.detail.paid_transfer_manual', ['name' => $invoice->accountant->full_name, 'date' => $invoice->payment_date?->format('d/m/Y H:i')])
+                        : __('invoices.detail.paid_transfer', ['date' => $invoice->payment_date?->format('d/m/Y H:i')])) }}
             @elseif ($status === Invoice::STATUS_OVERDUE)
                 <x-icon name="alert" />{{ __('invoices.detail.overdue_note') }}
             @elseif ($isCash)
@@ -151,7 +153,8 @@
                             @elseif ($isCash)
                                 {{ $invoice->accountant?->full_name ?? '-' }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @else
-                                {{ __('invoices.detail.system') }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
+                                {{-- Chuyển khoản: kế toán xác nhận thủ công thì có tên, hệ thống tự khớp thì "Hệ thống" --}}
+                                {{ $invoice->accountant?->full_name ?? __('invoices.detail.system') }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @endif
                         </dd>
                     </div>

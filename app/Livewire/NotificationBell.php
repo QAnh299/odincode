@@ -90,10 +90,11 @@ class NotificationBell extends Component
         $live = $this->items();
         $history = $this->syncHistory($live);
 
-        // Chưa đọc → đã xem chưa xử lý (sắp xếp ổn định, giữ thứ tự gốc trong từng phần) → đã xử lý (mới xử lý trước)
+        // Cảnh báo chuyển khoản (cần xử lý) luôn đứng đầu kể cả đã đọc → chưa đọc → đã xem chưa xử lý
+        // (sắp xếp ổn định, giữ thứ tự gốc trong từng phần) → đã xử lý (mới xử lý trước)
         $all = $live
             ->map(fn (array $item) => $item + ['read' => in_array($item['key'], $read, true), 'done' => false])
-            ->sortBy(fn (array $item) => $item['read'] ? 1 : 0)
+            ->sortBy(fn (array $item) => (($item['kind'] ?? null) === 'transfer' ? 0 : 2) + ($item['read'] ? 1 : 0))
             ->concat(collect($history)
                 ->filter(fn (array $item) => $item['done_at'] !== null)
                 ->sortByDesc('done_at')

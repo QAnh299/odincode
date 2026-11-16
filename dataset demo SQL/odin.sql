@@ -359,6 +359,7 @@ CREATE TABLE `Invoices` (
   `order_id` VARCHAR(10) NOT NULL,
   `payment_installment` INT NOT NULL DEFAULT 1,
   `created_by_employee_id` VARCHAR(10) NOT NULL,
+  -- Ke toan xac nhan thanh toan (tien mat, hoac chuyen khoan xac nhan thu cong); NULL = he thong tu khop giao dich chuyen khoan
   `accountant_id` VARCHAR(10) NULL,
   PRIMARY KEY (`invoice_id`),
   UNIQUE KEY `uq_invoices_order_installment` (`order_id`, `payment_installment`),
@@ -366,8 +367,6 @@ CREATE TABLE `Invoices` (
   CHECK (`payment_installment` > 0),
   CHECK (`due_date` >= `issued_date`),
   CHECK (`payment_method` IN ('BankTransfer', 'Cash')),
-  -- Chuyen khoan do he thong xac nhan giao dich nen khong co ke toan; tien mat do ke toan duyet (accountant_id)
-  CHECK (`payment_method` IS NULL OR `payment_method` <> 'BankTransfer' OR `accountant_id` IS NULL),
   CHECK (`status` IN ('Unpaid', 'Paid', 'Overdue')),
   CONSTRAINT `fk_invoices_order_id` FOREIGN KEY (`order_id`)
     REFERENCES `SalesOrders` (`order_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,

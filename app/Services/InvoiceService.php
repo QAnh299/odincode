@@ -247,7 +247,7 @@ class InvoiceService
 
     /**
      * Kế toán xác nhận thủ công hóa đơn chuyển khoản sau khi đối chiếu sao kê → ghi nhận thanh toán.
-     * accountant_id vẫn để trống vì CHECK của Invoices (chuyển khoản không có kế toán); người xác nhận ghi vào log 'payments'.
+     * Ghi mã kế toán vào accountant_id (15/11/2026) để phân biệt với giao dịch hệ thống tự khớp (accountant_id trống).
      */
     public function confirmTransfer(Invoice $invoice, Employee $accountant): Invoice
     {
@@ -257,7 +257,7 @@ class InvoiceService
             'invoice' => $invoice->invoice_id, 'amount' => $invoice->payment_amount, 'accountant' => $accountant->employee_id,
         ]);
 
-        return $this->recordPayment($invoice, null, now());
+        return $this->recordPayment($invoice, $accountant->employee_id, now());
     }
 
     /**
@@ -297,7 +297,8 @@ class InvoiceService
     }
 
     /**
-     * HĐ33 – HĐ35 trong một giao dịch: hóa đơn → Đã thanh toán (ngày thanh toán; mã kế toán nếu tiền mặt);
+     * HĐ33 – HĐ35 trong một giao dịch: hóa đơn → Đã thanh toán (ngày thanh toán; mã kế toán khi kế toán xác nhận,
+     * trống khi hệ thống tự khớp giao dịch chuyển khoản);
      * đơn tăng đã thanh toán, tính lại còn lại, Completed khi hết nợ; lần thanh toán đầu: cơ hội → Won (SalesOrder tự tạo học viên).
      * Sau khi giao dịch xong: gửi email hóa đơn cho khách (HĐ34) – lỗi gửi chỉ ghi log, không hoàn tác thanh toán.
      */
@@ -314,7 +315,7 @@ class InvoiceService
             $invoice->update([
                 'status'        => Invoice::STATUS_PAID,
                 'payment_date'  => $paidAt,
-                'accountant_id' => $isCash ? $accountantId : null,
+                'accountant_id' => $accountantId,
             ]);
 
             $paidAmount = min((float) $order->total_amount, (float) $order->paid_amount + (float) $invoice->payment_amount);

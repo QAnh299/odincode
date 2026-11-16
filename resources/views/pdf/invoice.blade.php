@@ -136,7 +136,9 @@
             · {{ $P('paid_at') }}: <strong>{{ $invoice->payment_date?->format('d/m/Y H:i') }}</strong><br>
             {{ $invoice->payment_method === \App\Models\Invoice::METHOD_CASH
                 ? $P('confirmed_cash', ['name' => $invoice->accountant?->full_name ?? '-'])
-                : $P('confirmed_transfer') }}
+                : ($invoice->accountant
+                    ? $P('confirmed_transfer_manual', ['name' => $invoice->accountant->full_name])
+                    : $P('confirmed_transfer')) }}
         </div>
     @endif
 

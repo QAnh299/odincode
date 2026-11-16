@@ -101,16 +101,23 @@ class InvoiceNotices
             ->get()
             ->map(function (Invoice $invoice) use ($prefix) {
                 $alert = TransferAlerts::find($invoice->invoice_id);
+                // Ba tình huống (giống khung cảnh báo ở trang hóa đơn): chuyển vào hóa đơn đang Quá hạn;
+                // chuyển khi quá hạn và SP đã gia hạn (chờ kế toán xác nhận); chuyển lệch số tiền
+                $case = match (true) {
+                    $invoice->status === Invoice::STATUS_OVERDUE => 'transfer_overdue',
+                    $alert['overdue']                            => 'transfer_reopened',
+                    default                                      => 'transfer_mismatch',
+                };
 
                 return [
-                    'title' => __($invoice->status === Invoice::STATUS_OVERDUE ? 'invoices.notice.transfer_overdue' : 'invoices.notice.transfer_mismatch', [
+                    'title' => __('invoices.notice.'.$case, [
                         'code'     => $invoice->invoice_id,
                         'name'     => $invoice->order?->quotation?->opportunity?->lead?->full_name ?? '-',
                         'received' => self::money($alert['amount']),
                         'amount'   => self::money($invoice->payment_amount),
                     ]),
                     // Kế toán: kiểm tra và xác nhận; Salesperson: theo dõi, nhắc khách nếu chuyển thiếu
-                    'time'  => __($prefix === 'accountant' ? 'invoices.notice.transfer_mismatch_time' : 'invoices.notice.transfer_mismatch_time_sp', ['time' => $alert['at']->format('d/m H:i')]),
+                    'time'  => __('invoices.notice.'.$case.'_time'.($prefix === 'accountant' ? '' : '_sp'), ['time' => $alert['at']->format('d/m H:i')]),
                     'url'   => route($prefix.'.invoices.show', $invoice),
                     // Lỗi cần xử lý xếp lên đầu chuông
                     'at'    => Carbon::create(1970),
@@ -169,7 +176,9 @@ class InvoiceNotices
                 ]),
                 'time'  => ($invoice->payment_method === Invoice::METHOD_CASH
                         ? __('invoices.notice.by_accountant', ['name' => $invoice->accountant?->full_name ?? '-'])
-                        : __('invoices.notice.by_system'))
+                        : ($invoice->accountant
+                            ? __('invoices.notice.by_accountant_transfer', ['name' => $invoice->accountant->full_name])
+                            : __('invoices.notice.by_system')))
                     .' · '.$invoice->payment_date->format('d/m H:i'),
                 'url'   => route($prefix.'.invoices.show', $invoice),
                 'at'    => $invoice->payment_date,

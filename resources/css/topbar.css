@@ -294,6 +294,36 @@
 .odin-notify-item.is-unread .odin-notify-item__icon--paid { background: #dcfce7; color: #15803d; }
 .odin-notify-item.is-unread .odin-notify-item__icon--transfer { background: #fee2e2; color: #b91c1c; }
 
+/* Cảnh báo chuyển khoản cần xử lý (kế toán và Salesperson): nền đỏ nhạt, vạch và icon đỏ, cả khi đã đọc */
+.odin-notify-item.is-alert,
+.odin-notify-item.is-alert.is-unread {
+    background: #fef2f2;
+}
+
+.odin-notify-item.is-alert:hover {
+    background: #fee2e2;
+}
+
+.odin-notify-item.is-alert::before {
+    content: "";
+    position: absolute;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #dc2626;
+}
+
+.odin-notify-item.is-alert .odin-notify-item__icon {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.odin-notify-item.is-alert .odin-notify-item__title {
+    color: #991b1b;
+}
+
 .odin-notify-item__icon svg {
     width: 17px;
     height: 17px;
