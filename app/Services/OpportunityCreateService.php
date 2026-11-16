@@ -310,9 +310,13 @@ class OpportunityCreateService
      */
     public function studyingCourses(Lead $lead): Collection
     {
+        if ($lead->student?->status !== Student::STATUS_STUDYING) {
+            return collect();
+        }
+
         return $lead->opportunities
-            ->filter(fn (Opportunity $opp) => $opp->student?->status === Student::STATUS_STUDYING)
             ->flatMap(fn (Opportunity $opp) => $opp->quotations
+                ->filter(fn ($q) => (float) ($q->order?->paid_amount ?? 0) > 0)
                 ->flatMap(fn ($q) => $q->details->map(fn ($d) => $d->course?->course_name ?? $d->course_id)))
             ->filter()
             ->unique()
