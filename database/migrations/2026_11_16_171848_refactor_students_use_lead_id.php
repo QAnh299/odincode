@@ -15,6 +15,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // CSDL tạo mới từ odin.sql đã có sẵn lead_id → không cần chuyển đổi
+        if (Schema::hasColumn('Students', 'lead_id')) {
+            return;
+        }
+
         // 1. Thêm lead_id (nullable trước để có thể populate)
         Schema::table('Students', function (Blueprint $table) {
             $table->string('lead_id', 10)->nullable()->after('opportunity_id');
@@ -44,8 +49,11 @@ return new class extends Migration
             $table->unique('lead_id', 'uq_students_lead');
         });
 
-        // 5. Bỏ UNIQUE trên opportunity_id (giữ cột + FK cho báo cáo)
+        // 5. Bỏ UNIQUE trên opportunity_id (giữ cột + FK cho báo cáo).
+        //    FK fk_students_opportunity_id đang dùng index UNIQUE này nên phải tạo index thường thay thế trước
+        //    (MySQL báo lỗi 1553 nếu bỏ index mà FK đang cần). Đặt tên trùng tên FK như CSDL tạo từ odin.sql.
         Schema::table('Students', function (Blueprint $table) {
+            $table->index('opportunity_id', 'fk_students_opportunity_id');
             $table->dropUnique('uq_students_opportunity');
         });
     }
@@ -54,8 +62,10 @@ return new class extends Migration
     {
         Schema::table('Students', function (Blueprint $table) {
             $table->unique('opportunity_id', 'uq_students_opportunity');
-            $table->dropUnique('uq_students_lead');
+            $table->dropIndex('fk_students_opportunity_id');
+            // Bỏ FK trước rồi mới bỏ index UNIQUE mà FK đang dùng (tránh lỗi 1553)
             $table->dropForeign('fk_students_lead_id');
+            $table->dropUnique('uq_students_lead');
             $table->dropColumn('lead_id');
         });
     }

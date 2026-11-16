@@ -192,16 +192,16 @@ VALUES
   ('OPP030', '2026-08-13 09:00:00', 5500000.00, 'Won', 'LEAD040', 'STG004', 'EMP007');
 
 INSERT INTO `Students`
-  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`)
+  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`)
 VALUES
-  ('STD001', 'Nguyễn Bảo Châu', '0912000001', 'baochau@example.test', '2002-05-18', '2026-09-17 09:00:00', 'Studying', 'OPP001'),
-  ('STD002', 'Trương Hải Yến', '0912000037', 'haiyen@example.test', '2003-04-12', '2026-10-02 09:00:00', 'Studying', 'OPP027'),
-  ('STD003', 'Phí Minh Quân', '0912000038', 'minhquan@example.test', '1999-12-01', '2026-10-11 15:00:00', 'Studying', 'OPP028'),
-  ('STD004', 'Lò Thị Hoa', '0912000039', 'thihoa@example.test', '2000-09-09', '2026-07-15 11:00:00', 'Completed', 'OPP029'),
-  ('STD005', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', '2017-03-15', '2026-08-21 16:00:00', 'Dropped', 'OPP030'),
+  ('STD001', 'Nguyễn Bảo Châu', '0912000001', 'baochau@example.test', '2002-05-18', '2026-09-17 09:00:00', 'Studying', 'OPP001', 'LEAD001'),
+  ('STD002', 'Trương Hải Yến', '0912000037', 'haiyen@example.test', '2003-04-12', '2026-10-02 09:00:00', 'Studying', 'OPP027', 'LEAD037'),
+  ('STD003', 'Phí Minh Quân', '0912000038', 'minhquan@example.test', '1999-12-01', '2026-10-11 15:00:00', 'Studying', 'OPP028', 'LEAD038'),
+  ('STD004', 'Lò Thị Hoa', '0912000039', 'thihoa@example.test', '2000-09-09', '2026-07-15 11:00:00', 'Completed', 'OPP029', 'LEAD039'),
+  ('STD005', 'Ninh Đức Toàn', '0912000040', 'ductoan@example.test', '2017-03-15', '2026-08-21 16:00:00', 'Dropped', 'OPP030', 'LEAD040'),
   -- Hoc vien tu lan thanh toan thanh cong dau tien (chot 22/10/2026): don tra gop da dong tien
-  ('STD145', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-17 11:00:00', 'Studying', 'OPP003'),
-  ('STD146', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-24 10:00:00', 'Studying', 'OPP007');
+  ('STD145', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-17 11:00:00', 'Studying', 'OPP003', 'LEAD003'),
+  ('STD146', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-24 10:00:00', 'Studying', 'OPP007', 'LEAD007');
 
 INSERT INTO `Appointments`
   (`appointment_id`, `appointment_type`, `scheduled_time`, `status`, `notes`, `employee_id`, `opportunity_id`)
@@ -5815,158 +5815,158 @@ VALUES
   ('INV209', '2026-10-19', '2026-10-22', 8500000.00, 'Unpaid', 'BankTransfer', NULL, 'ORD167', 1, 'EMP010', NULL);
 
 INSERT INTO `Students`
-  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`)
+  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`)
 VALUES
-  ('STD006', 'Đỗ Kim Ngân', '0843492658', 'ngando30@example.test', '2007-11-01', '2026-06-25 16:59:00', 'Studying', 'OPP031'),
-  ('STD007', 'Đặng Xuân Bách', '0312166543', NULL, '2015-11-07', '2026-05-23 11:16:00', 'Completed', 'OPP034'),
-  ('STD008', 'Lê Hải Phương', '0365630681', NULL, '2005-01-03', '2026-05-24 12:25:00', 'Studying', 'OPP037'),
-  ('STD009', 'Lâm Đăng Hải', '0521295507', NULL, '2009-10-19', '2026-06-23 14:53:00', 'Studying', 'OPP039'),
-  ('STD010', 'Lê Hà Hằng', '0832083705', 'hahangl1995@example.test', '2016-09-24', '2026-05-25 14:16:00', 'Completed', 'OPP040'),
-  ('STD011', 'Hoàng Thanh Ngân', '0949354135', 'nganhoang2007@example.test', '2018-04-05', '2026-05-25 12:04:00', 'Completed', 'OPP042'),
-  ('STD012', 'Đỗ Duy Hùng', '0974589856', 'duyhungd2008@example.test', '2018-04-24', '2026-05-26 17:52:00', 'Completed', 'OPP043'),
-  ('STD013', 'Nguyễn Mạnh Long', '0921117117', 'manhlongn@example.test', '2001-04-06', '2026-05-24 19:31:00', 'Completed', 'OPP047'),
-  ('STD014', 'Nguyễn Thành Hưng', '0354410817', NULL, '2000-04-19', '2026-06-30 11:30:00', 'Studying', 'OPP051'),
-  ('STD015', 'Nguyễn Quang Vinh', '0367463566', 'quangvinhn1999@example.test', '2002-03-22', '2026-05-25 21:39:00', 'Completed', 'OPP057'),
-  ('STD016', 'Đặng Hải Loan', '0561176837', 'loandh@example.test', '2006-08-08', '2026-06-01 10:24:00', 'Studying', 'OPP058'),
-  ('STD017', 'Võ Bảo Trung', '0922655057', 'trungvb@example.test', '2008-02-20', '2026-05-30 14:14:00', 'Completed', 'OPP059'),
-  ('STD018', 'Trần Văn Lâm', '0967811000', 'lamtran12@example.test', '2018-05-08', '2026-05-31 12:00:00', 'Completed', 'OPP060'),
-  ('STD019', 'Lê Anh Hùng', '0376168810', 'hungla@example.test', '2005-01-09', '2026-06-05 08:50:00', 'Studying', 'OPP073'),
-  ('STD020', 'Lê Ngọc Hạnh', '0921922825', 'hanhle@example.test', '1993-10-12', '2026-06-05 12:59:00', 'Completed', 'OPP075'),
-  ('STD021', 'Trần Gia Hiếu', '0969953101', 'hieutg1997@example.test', '1987-04-09', '2026-06-08 13:27:00', 'Completed', 'OPP076'),
-  ('STD022', 'Phan Thu Uyên', '0323718004', NULL, '2006-11-02', '2026-07-14 18:52:00', 'Studying', 'OPP088'),
-  ('STD023', 'Nguyễn Hà Trâm', '0856686234', 'hatramn1991@example.test', '2015-02-18', '2026-06-13 10:43:00', 'Completed', 'OPP096'),
-  ('STD024', 'Nguyễn Hữu Huy', '0967800540', 'huynh2001@example.test', '2018-11-08', '2026-06-24 08:02:00', 'Completed', 'OPP101'),
-  ('STD025', 'Chu Minh Lan', '0823744894', 'minhlanc90@example.test', '2017-06-18', '2026-06-18 11:50:00', 'Completed', 'OPP102'),
-  ('STD026', 'Phạm Hoàng Nghĩa', '0956276898', NULL, '2002-02-23', '2026-06-14 19:01:00', 'Studying', 'OPP104'),
-  ('STD027', 'Trần Bảo Mai', '0318104550', 'maitran88@example.test', '1987-01-21', '2026-06-23 14:31:00', 'Completed', 'OPP110'),
-  ('STD028', 'Đỗ Thùy Hân', '0972090600', 'thuyhand@example.test', '2004-04-24', '2026-06-24 13:11:00', 'Studying', 'OPP124'),
-  ('STD029', 'Nguyễn Trung Quân', '0366604261', 'quannguyen@example.test', '2002-05-04', '2026-06-25 19:07:00', 'Studying', 'OPP129'),
-  ('STD030', 'Tô Kim Ly', '0888576991', 'kimlyt2001@example.test', '2003-09-20', '2026-08-23 10:05:00', 'Studying', 'OPP132'),
-  ('STD031', 'Hồ Hà Vy', '0779308209', 'havyh78@example.test', '2019-08-24', '2026-06-27 19:19:00', 'Completed', 'OPP133'),
-  ('STD032', 'Nguyễn Hà Anh', '0329947080', 'anhnh1993@example.test', '2015-03-22', '2026-06-23 11:59:00', 'Completed', 'OPP135'),
-  ('STD033', 'Nguyễn Công Đăng', '0942823667', NULL, '2020-04-13', '2026-06-30 13:49:00', 'Completed', 'OPP136'),
-  ('STD034', 'Hoàng Đăng Tú', '0348353471', 'tuhd2001@example.test', '2015-02-07', '2026-07-11 12:58:00', 'Studying', 'OPP137'),
-  ('STD035', 'Nghiêm Công Đạt', '0338468254', NULL, '2007-12-02', '2026-08-28 14:39:00', 'Studying', 'OPP140'),
-  ('STD036', 'Nguyễn Hồng Hạnh', '0314307768', NULL, '2009-06-26', '2026-08-09 11:54:00', 'Studying', 'OPP142'),
-  ('STD037', 'Vũ Đăng Long', '0713839403', NULL, '2001-06-10', '2026-06-24 19:38:00', 'Studying', 'OPP143'),
-  ('STD038', 'Hoàng Hà Lan', '0916502778', 'lanhoang2000@example.test', '2003-11-13', '2026-06-25 08:24:00', 'Studying', 'OPP147'),
-  ('STD039', 'Nguyễn Minh Trâm', '0340982632', 'tramnm1990@example.test', '2015-07-24', '2026-06-26 13:20:00', 'Completed', 'OPP151'),
-  ('STD040', 'Trần Thu Quỳnh', '0914412239', 'quynhtt47@example.test', '2020-04-28', '2026-06-26 15:11:00', 'Completed', 'OPP160'),
-  ('STD041', 'Nguyễn Văn Lâm', '0371642605', NULL, '2000-11-18', '2026-07-02 11:20:00', 'Completed', 'OPP174'),
-  ('STD042', 'Lê Bảo Trang', '0976934547', 'trangle2008@example.test', '2007-03-13', '2026-08-04 08:47:00', 'Studying', 'OPP175'),
-  ('STD043', 'Nguyễn Thu Ngọc', '0763152750', 'ngocnguyen27@example.test', '2000-12-25', '2026-07-05 11:30:00', 'Studying', 'OPP180'),
-  ('STD044', 'Đào Hữu Duy', '0961465315', 'duydh16@example.test', '2003-04-02', '2026-07-08 13:41:00', 'Studying', 'OPP182'),
-  ('STD045', 'Phạm Thị Hà', '0967073847', 'hapham82@example.test', '2002-02-11', '2026-08-17 14:13:00', 'Studying', 'OPP187'),
-  ('STD046', 'Hoàng Hà Châu', '0748726963', 'hachauh68@example.test', '2007-01-08', '2026-08-19 19:44:00', 'Studying', 'OPP199'),
-  ('STD047', 'Hồ Quỳnh Chi', '0338699411', 'quynhchih28@example.test', '1989-12-07', '2026-07-17 12:09:00', 'Studying', 'OPP202'),
-  ('STD048', 'Nguyễn Hồng Thảo', '0358114137', 'thaonh1993@example.test', '2006-08-08', '2026-07-13 16:27:00', 'Studying', 'OPP210'),
-  ('STD049', 'Phạm Thị Thảo', '0963380016', 'thaopham37@example.test', '2005-12-24', '2026-09-17 10:37:00', 'Studying', 'OPP211'),
-  ('STD050', 'Trịnh Ngọc Vân', '0872343465', 'ngocvant2002@example.test', '2006-03-26', '2026-08-18 16:11:00', 'Studying', 'OPP214'),
-  ('STD051', 'Phạm Hữu Toàn', '0844541668', 'huutoanp1992@example.test', '2001-02-20', '2026-09-19 13:20:00', 'Studying', 'OPP220'),
-  ('STD052', 'Nguyễn Đăng Phong', '0986349687', NULL, '2004-07-21', '2026-08-18 18:08:00', 'Studying', 'OPP221'),
-  ('STD053', 'Nguyễn Hà Hân', '0870380813', 'hannguyen1998@example.test', '2008-11-03', '2026-08-04 11:56:00', 'Studying', 'OPP223'),
-  ('STD054', 'Nguyễn Thanh Chi', '0959389392', NULL, '1995-12-05', '2026-07-18 19:05:00', 'Studying', 'OPP225'),
-  ('STD055', 'Nguyễn Hữu Thắng', '0382417995', 'thangnh2010@example.test', '1998-08-08', '2026-07-27 11:27:00', 'Studying', 'OPP229'),
-  ('STD056', 'Nguyễn Mai Thảo', '0930837654', 'maithaon46@example.test', '2007-06-27', '2026-09-21 10:46:00', 'Studying', 'OPP232'),
-  ('STD057', 'Nguyễn Kim Huyền', '0948548532', 'kimhuyenn1996@example.test', '2003-05-27', '2026-07-21 17:38:00', 'Studying', 'OPP239'),
-  ('STD058', 'Hoàng Hữu Hiếu', '0924330915', 'hieuhoang@example.test', '1995-03-16', '2026-07-30 19:00:00', 'Studying', 'OPP240'),
-  ('STD059', 'Nguyễn Hà An', '0768262770', 'annguyen10@example.test', '1996-09-18', '2026-07-27 09:34:00', 'Studying', 'OPP241'),
-  ('STD060', 'Lê Đăng Khoa', '0712369529', 'dangkhoal94@example.test', '1997-09-09', '2026-07-31 19:04:00', 'Studying', 'OPP251'),
-  ('STD061', 'Đào Hà Yến', '0987922670', 'yendao1996@example.test', '1994-03-15', '2026-08-03 13:08:00', 'Studying', 'OPP252'),
-  ('STD062', 'Lê Mai Hạnh', '0829187085', NULL, '2001-10-04', '2026-09-04 10:18:00', 'Studying', 'OPP255'),
-  ('STD063', 'Đoàn Tiến Phong', '0810036751', NULL, '1991-02-21', '2026-07-29 11:33:00', 'Studying', 'OPP257'),
-  ('STD064', 'Nguyễn Tiến Hưng', '0322624021', 'tienhungn1993@example.test', '2002-05-14', '2026-08-02 08:31:00', 'Studying', 'OPP258'),
-  ('STD065', 'Lương Đăng Kiên', '0989892910', 'dangkienl70@example.test', '1989-09-09', '2026-08-04 12:19:00', 'Studying', 'OPP260'),
-  ('STD066', 'Đỗ Duy Anh', '0350562469', 'anhdo@example.test', '2002-02-13', '2026-07-25 13:54:00', 'Studying', 'OPP261'),
-  ('STD067', 'Nguyễn Bảo Thư', '0939579598', 'baothun@example.test', '2003-07-27', '2026-07-27 15:00:00', 'Studying', 'OPP263'),
-  ('STD068', 'Tô Quang Bách', '0762725889', 'bachtq1998@example.test', '2004-06-20', '2026-09-06 16:16:00', 'Studying', 'OPP266'),
-  ('STD069', 'Đặng Thùy Lan', '0325701955', 'landang95@example.test', '1991-05-04', '2026-08-17 13:40:00', 'Studying', 'OPP267'),
-  ('STD070', 'Nguyễn Thu Thư', '0913939253', 'thunt@example.test', '2020-12-26', '2026-07-31 08:51:00', 'Studying', 'OPP268'),
-  ('STD071', 'Lê Văn Khang', '0859886417', NULL, '2009-08-13', '2026-08-29 15:39:00', 'Studying', 'OPP269'),
-  ('STD072', 'Hoàng Công Tuấn', '0338717110', NULL, '2009-03-25', '2026-08-06 08:04:00', 'Studying', 'OPP275'),
-  ('STD073', 'Lê Duy Tú', '0921390326', NULL, '2003-12-01', '2026-08-08 17:05:00', 'Studying', 'OPP284'),
-  ('STD074', 'Phạm Bảo Mai', '0384676872', 'baomaip@example.test', '2017-07-09', '2026-08-18 19:47:00', 'Studying', 'OPP285'),
-  ('STD075', 'Nguyễn Minh Phong', '0763337569', 'phongnm@example.test', '1990-09-10', '2026-08-14 09:13:00', 'Studying', 'OPP287'),
-  ('STD076', 'Huỳnh Kim Mai', '0363580656', 'maihk34@example.test', '2001-07-11', '2026-09-25 11:27:00', 'Studying', 'OPP288'),
-  ('STD077', 'Vũ Phương An', '0325462351', 'anvp2001@example.test', '2003-05-24', '2026-08-06 08:19:00', 'Studying', 'OPP290'),
-  ('STD078', 'Nguyễn Tiến Thắng', '0934333961', NULL, '2005-02-13', '2026-09-11 08:45:00', 'Studying', 'OPP291'),
-  ('STD079', 'Đặng Lan Chi', '0976700087', 'chidl@example.test', '2015-03-02', '2026-08-03 17:59:00', 'Studying', 'OPP292'),
-  ('STD080', 'Trần Diệu Quỳnh', '0725575728', 'quynhtd2005@example.test', '2003-02-08', '2026-09-28 17:34:00', 'Studying', 'OPP293'),
-  ('STD081', 'Cao Kim Thư', '0362627246', 'kimthuc1997@example.test', '2010-12-24', '2026-10-16 11:43:00', 'Studying', 'OPP299'),
-  ('STD082', 'Lâm Tiến Đăng', '0911741681', NULL, '2020-12-07', '2026-08-09 19:01:00', 'Studying', 'OPP301'),
-  ('STD083', 'Trần Gia Thắng', '0747577823', NULL, '2004-12-20', '2026-08-13 15:37:00', 'Studying', 'OPP303'),
-  ('STD084', 'Nguyễn Thùy My', '0365504605', 'mynt95@example.test', '2008-08-28', '2026-08-20 17:32:00', 'Studying', 'OPP310'),
-  ('STD085', 'Trịnh Tuấn Lộc', '0936608386', 'tuanloct@example.test', '2001-10-08', '2026-09-04 18:45:00', 'Studying', 'OPP312'),
-  ('STD086', 'Nguyễn Công Nam', '0922965334', 'namnguyen@example.test', '2005-06-24', '2026-09-16 09:00:00', 'Studying', 'OPP314'),
-  ('STD087', 'Lê Kim Giang', '0814621160', NULL, '2002-05-12', '2026-08-14 15:47:00', 'Studying', 'OPP316'),
-  ('STD088', 'Đỗ Trung Phong', '0969640505', 'phongdt@example.test', '2020-10-11', '2026-08-17 12:23:00', 'Studying', 'OPP319'),
-  ('STD089', 'Nguyễn Tiến Quân', '0925450781', NULL, '2017-09-25', '2026-08-22 16:41:00', 'Studying', 'OPP322'),
-  ('STD090', 'Hà Đăng Duy', '0874479747', NULL, '2007-03-25', '2026-08-16 10:42:00', 'Dropped', 'OPP332'),
-  ('STD091', 'Phan Ngọc Mai', '0748145400', 'ngocmaip@example.test', '1991-07-19', '2026-08-31 10:28:00', 'Studying', 'OPP341'),
-  ('STD092', 'Lâm Duy Bách', '0562039105', 'bachlam1992@example.test', '2020-09-14', '2026-09-18 12:28:00', 'Studying', 'OPP348'),
-  ('STD093', 'Lê Thùy Nhi', '0761884602', 'nhile15@example.test', '2018-02-01', '2026-08-22 17:28:00', 'Dropped', 'OPP351'),
-  ('STD094', 'Hoàng Lan My', '0963748641', 'lanmyh49@example.test', '2010-03-15', '2026-08-30 15:21:00', 'Studying', 'OPP356'),
-  ('STD095', 'Trần Thị Vân', '0734653606', NULL, '2020-05-19', '2026-08-24 10:14:00', 'Studying', 'OPP357'),
-  ('STD096', 'Hoàng Phương Hương', '0859181504', 'huonghoang@example.test', '2018-01-25', '2026-08-17 13:16:00', 'Studying', 'OPP359'),
-  ('STD097', 'Trần Trung Thịnh', '0357490950', NULL, '1997-02-04', '2026-08-20 16:37:00', 'Dropped', 'OPP366'),
-  ('STD098', 'Phạm Thu Chi', '0976930418', 'chipt@example.test', '2009-07-15', '2026-09-18 10:35:00', 'Studying', 'OPP370'),
-  ('STD099', 'Võ Đức Bách', '0329990986', NULL, '2008-08-08', '2026-09-07 13:04:00', 'Studying', 'OPP378'),
-  ('STD100', 'Chu Thị An', '0945327977', 'anchu@example.test', '1996-10-22', '2026-08-21 14:58:00', 'Studying', 'OPP380'),
-  ('STD101', 'Phùng Thu Phương', '0562450513', 'thuphuongp17@example.test', '2001-05-24', '2026-10-05 16:46:00', 'Studying', 'OPP384'),
-  ('STD102', 'Trần Hải Nhung', '0321749743', NULL, '1996-07-19', '2026-08-28 14:17:00', 'Dropped', 'OPP393'),
-  ('STD103', 'Nguyễn Hồng Quỳnh', '0314929810', 'quynhnguyen2009@example.test', '2005-03-26', '2026-09-28 15:57:00', 'Studying', 'OPP404'),
-  ('STD104', 'Hoàng Quỳnh Trang', '0986624945', NULL, '2010-04-09', '2026-09-09 10:35:00', 'Dropped', 'OPP424'),
-  ('STD105', 'Hồ Hữu Thịnh', '0369218145', NULL, '2009-07-27', '2026-09-07 18:59:00', 'Studying', 'OPP426'),
-  ('STD106', 'Nguyễn Thanh Anh', '0948582967', 'anhnt60@example.test', '2006-09-02', '2026-09-20 18:12:00', 'Studying', 'OPP435'),
-  ('STD107', 'Nguyễn Thu My', '0978430358', 'mynt46@example.test', '2004-07-27', '2026-09-12 19:27:00', 'Studying', 'OPP447'),
-  ('STD108', 'Trần Thành Nghĩa', '0564295641', 'thanhnghiat78@example.test', '1992-04-22', '2026-09-13 17:26:00', 'Studying', 'OPP448'),
-  ('STD109', 'Đỗ Minh Lộc', '0370955703', 'minhlocd@example.test', '2009-06-04', '2026-09-17 16:15:00', 'Studying', 'OPP450'),
-  ('STD110', 'Nguyễn Tiến Vinh', '0965328993', 'tienvinhn2005@example.test', '2006-01-27', '2026-09-22 11:59:00', 'Studying', 'OPP453'),
-  ('STD111', 'Lâm Khánh Mai', '0568513176', NULL, '2018-09-16', '2026-09-13 12:46:00', 'Studying', 'OPP456'),
-  ('STD112', 'Phạm Xuân Long', '0962319067', 'xuanlongp1997@example.test', '2019-02-12', '2026-09-26 14:55:00', 'Studying', 'OPP459'),
-  ('STD113', 'Vũ Khánh Giang', '0752668908', 'giangvk2003@example.test', '1988-03-14', '2026-09-21 21:16:00', 'Studying', 'OPP460'),
-  ('STD114', 'Nguyễn Tuấn Duy', '0332125318', 'duynt35@example.test', '2016-09-28', '2026-09-16 13:11:00', 'Dropped', 'OPP464'),
-  ('STD115', 'Nguyễn Công Việt', '0983356842', 'vietnguyen2000@example.test', '1993-09-06', '2026-09-20 15:32:00', 'Studying', 'OPP465'),
-  ('STD116', 'Hoàng Khánh Châu', '0962357966', 'chauhoang1999@example.test', '2016-05-22', '2026-09-25 11:42:00', 'Studying', 'OPP466'),
-  ('STD117', 'Đặng Quang Minh', '0345069973', 'minhdang2010@example.test', '2006-06-23', '2026-09-17 15:10:00', 'Studying', 'OPP468'),
-  ('STD118', 'Phạm Hữu Dũng', '0888591718', 'huudungp2001@example.test', '2003-05-22', '2026-09-17 17:53:00', 'Studying', 'OPP473'),
-  ('STD119', 'Trịnh Bảo Hằng', '0363602856', 'hangtrinh1997@example.test', '1996-12-23', '2026-09-19 08:18:00', 'Studying', 'OPP475'),
-  ('STD120', 'Hoàng Hà Loan', '0886741626', NULL, '1999-09-21', '2026-09-22 13:00:00', 'Studying', 'OPP478'),
-  ('STD121', 'Phạm Thành Minh', '0762553866', 'minhpt@example.test', '2001-12-05', '2026-09-21 18:25:00', 'Studying', 'OPP479'),
-  ('STD122', 'Dương Trung Hải', '0765671897', 'haiduong2001@example.test', '1992-12-21', '2026-10-06 10:45:00', 'Studying', 'OPP491'),
-  ('STD123', 'Bùi Bảo Thảo', '0969926832', 'thaobb2003@example.test', '2019-11-05', '2026-09-24 11:35:00', 'Studying', 'OPP500'),
-  ('STD124', 'Lê Quang Lâm', '0952822476', NULL, '2016-09-17', '2026-10-06 13:14:00', 'Studying', 'OPP502'),
-  ('STD125', 'Bùi Phương An', '0965889999', NULL, '2004-12-22', '2026-09-26 10:35:00', 'Studying', 'OPP503'),
-  ('STD126', 'Phan Minh Quỳnh', '0979100288', 'minhquynhp@example.test', '2018-01-24', '2026-09-28 11:01:00', 'Studying', 'OPP505'),
-  ('STD127', 'Hoàng Minh Khôi', '0977784459', NULL, '2020-08-21', '2026-10-02 19:03:00', 'Studying', 'OPP509'),
-  ('STD128', 'Nguyễn Quang Đạt', '0934456511', 'datnq2010@example.test', '1990-04-15', '2026-10-05 09:46:00', 'Studying', 'OPP511'),
-  ('STD129', 'Hoàng Mạnh Long', '0979008112', 'longhm10@example.test', '2002-10-17', '2026-09-25 09:33:00', 'Studying', 'OPP512'),
-  ('STD130', 'Nguyễn Quỳnh Ngân', '0967586599', NULL, '2004-11-27', '2026-10-15 19:08:00', 'Studying', 'OPP515'),
-  ('STD131', 'Đặng Tiến Hùng', '0339745136', 'hungdang2010@example.test', '2006-07-22', '2026-09-27 13:36:00', 'Studying', 'OPP520'),
-  ('STD132', 'Trần Hải Trâm', '0826285869', 'tramth2@example.test', '1993-11-06', '2026-10-04 09:51:00', 'Studying', 'OPP521'),
-  ('STD133', 'Nguyễn Hồng An', '0561335064', 'annh@example.test', '2018-11-26', '2026-10-01 14:32:00', 'Studying', 'OPP527'),
-  ('STD134', 'Nguyễn Tuấn Thịnh', '0881161573', NULL, '2007-02-20', '2026-10-02 09:53:00', 'Studying', 'OPP528'),
-  ('STD135', 'Đỗ Thùy Hương', '0921324844', 'thuyhuongd47@example.test', '2002-09-19', '2026-10-07 09:52:00', 'Studying', 'OPP531'),
-  ('STD136', 'Trần Diệu Lan', '0385442659', 'lantd5@example.test', '2017-04-24', '2026-10-01 13:47:00', 'Studying', 'OPP533'),
-  ('STD137', 'Nguyễn Hoàng Đăng', '0828755114', 'hoangdangn@example.test', '2015-07-04', '2026-10-09 15:47:00', 'Studying', 'OPP546'),
-  ('STD138', 'Lê Tiến Bách', '0861100867', 'bachlt13@example.test', '2016-02-23', '2026-10-08 22:19:00', 'Studying', 'OPP547'),
-  ('STD139', 'Nguyễn Quang Hiếu', '0386563072', 'hieunq45@example.test', '2007-12-09', '2026-10-16 17:07:00', 'Studying', 'OPP565'),
-  ('STD140', 'Vũ Thu Hà', '0338541801', 'havu2010@example.test', '2016-03-02', '2026-10-11 18:00:00', 'Studying', 'OPP567'),
-  ('STD141', 'Phan Tiến Hiếu', '0777976432', 'hieuphan@example.test', '1986-09-21', '2026-10-14 16:37:00', 'Studying', 'OPP590'),
-  ('STD142', 'Trần Đức Huy', '0732448717', NULL, '1996-08-28', '2026-10-18 15:52:00', 'Studying', 'OPP592'),
-  ('STD143', 'Phan Đăng Tuấn', '0922999574', 'tuanpd7@example.test', '2006-04-20', '2026-10-20 16:27:00', 'Studying', 'OPP595'),
-  ('STD144', 'Đinh Quang Khang', '0859658940', 'khangdq@example.test', '2016-02-02', '2026-10-19 18:37:00', 'Studying', 'OPP602'),
+  ('STD006', 'Đỗ Kim Ngân', '0843492658', 'ngando30@example.test', '2007-11-01', '2026-06-25 16:59:00', 'Studying', 'OPP031', 'LEAD041'),
+  ('STD007', 'Đặng Xuân Bách', '0312166543', NULL, '2015-11-07', '2026-05-23 11:16:00', 'Completed', 'OPP034', 'LEAD044'),
+  ('STD008', 'Lê Hải Phương', '0365630681', NULL, '2005-01-03', '2026-05-24 12:25:00', 'Studying', 'OPP037', 'LEAD047'),
+  ('STD009', 'Lâm Đăng Hải', '0521295507', NULL, '2009-10-19', '2026-06-23 14:53:00', 'Studying', 'OPP039', 'LEAD049'),
+  ('STD010', 'Lê Hà Hằng', '0832083705', 'hahangl1995@example.test', '2016-09-24', '2026-05-25 14:16:00', 'Completed', 'OPP040', 'LEAD050'),
+  ('STD011', 'Hoàng Thanh Ngân', '0949354135', 'nganhoang2007@example.test', '2018-04-05', '2026-05-25 12:04:00', 'Completed', 'OPP042', 'LEAD052'),
+  ('STD012', 'Đỗ Duy Hùng', '0974589856', 'duyhungd2008@example.test', '2018-04-24', '2026-05-26 17:52:00', 'Completed', 'OPP043', 'LEAD053'),
+  ('STD013', 'Nguyễn Mạnh Long', '0921117117', 'manhlongn@example.test', '2001-04-06', '2026-05-24 19:31:00', 'Completed', 'OPP047', 'LEAD057'),
+  ('STD014', 'Nguyễn Thành Hưng', '0354410817', NULL, '2000-04-19', '2026-06-30 11:30:00', 'Studying', 'OPP051', 'LEAD061'),
+  ('STD015', 'Nguyễn Quang Vinh', '0367463566', 'quangvinhn1999@example.test', '2002-03-22', '2026-05-25 21:39:00', 'Completed', 'OPP057', 'LEAD067'),
+  ('STD016', 'Đặng Hải Loan', '0561176837', 'loandh@example.test', '2006-08-08', '2026-06-01 10:24:00', 'Studying', 'OPP058', 'LEAD068'),
+  ('STD017', 'Võ Bảo Trung', '0922655057', 'trungvb@example.test', '2008-02-20', '2026-05-30 14:14:00', 'Completed', 'OPP059', 'LEAD069'),
+  ('STD018', 'Trần Văn Lâm', '0967811000', 'lamtran12@example.test', '2018-05-08', '2026-05-31 12:00:00', 'Completed', 'OPP060', 'LEAD070'),
+  ('STD019', 'Lê Anh Hùng', '0376168810', 'hungla@example.test', '2005-01-09', '2026-06-05 08:50:00', 'Studying', 'OPP073', 'LEAD083'),
+  ('STD020', 'Lê Ngọc Hạnh', '0921922825', 'hanhle@example.test', '1993-10-12', '2026-06-05 12:59:00', 'Completed', 'OPP075', 'LEAD085'),
+  ('STD021', 'Trần Gia Hiếu', '0969953101', 'hieutg1997@example.test', '1987-04-09', '2026-06-08 13:27:00', 'Completed', 'OPP076', 'LEAD086'),
+  ('STD022', 'Phan Thu Uyên', '0323718004', NULL, '2006-11-02', '2026-07-14 18:52:00', 'Studying', 'OPP088', 'LEAD098'),
+  ('STD023', 'Nguyễn Hà Trâm', '0856686234', 'hatramn1991@example.test', '2015-02-18', '2026-06-13 10:43:00', 'Completed', 'OPP096', 'LEAD106'),
+  ('STD024', 'Nguyễn Hữu Huy', '0967800540', 'huynh2001@example.test', '2018-11-08', '2026-06-24 08:02:00', 'Completed', 'OPP101', 'LEAD111'),
+  ('STD025', 'Chu Minh Lan', '0823744894', 'minhlanc90@example.test', '2017-06-18', '2026-06-18 11:50:00', 'Completed', 'OPP102', 'LEAD112'),
+  ('STD026', 'Phạm Hoàng Nghĩa', '0956276898', NULL, '2002-02-23', '2026-06-14 19:01:00', 'Studying', 'OPP104', 'LEAD114'),
+  ('STD027', 'Trần Bảo Mai', '0318104550', 'maitran88@example.test', '1987-01-21', '2026-06-23 14:31:00', 'Completed', 'OPP110', 'LEAD120'),
+  ('STD028', 'Đỗ Thùy Hân', '0972090600', 'thuyhand@example.test', '2004-04-24', '2026-06-24 13:11:00', 'Studying', 'OPP124', 'LEAD134'),
+  ('STD029', 'Nguyễn Trung Quân', '0366604261', 'quannguyen@example.test', '2002-05-04', '2026-06-25 19:07:00', 'Studying', 'OPP129', 'LEAD139'),
+  ('STD030', 'Tô Kim Ly', '0888576991', 'kimlyt2001@example.test', '2003-09-20', '2026-08-23 10:05:00', 'Studying', 'OPP132', 'LEAD142'),
+  ('STD031', 'Hồ Hà Vy', '0779308209', 'havyh78@example.test', '2019-08-24', '2026-06-27 19:19:00', 'Completed', 'OPP133', 'LEAD143'),
+  ('STD032', 'Nguyễn Hà Anh', '0329947080', 'anhnh1993@example.test', '2015-03-22', '2026-06-23 11:59:00', 'Completed', 'OPP135', 'LEAD145'),
+  ('STD033', 'Nguyễn Công Đăng', '0942823667', NULL, '2020-04-13', '2026-06-30 13:49:00', 'Completed', 'OPP136', 'LEAD146'),
+  ('STD034', 'Hoàng Đăng Tú', '0348353471', 'tuhd2001@example.test', '2015-02-07', '2026-07-11 12:58:00', 'Studying', 'OPP137', 'LEAD147'),
+  ('STD035', 'Nghiêm Công Đạt', '0338468254', NULL, '2007-12-02', '2026-08-28 14:39:00', 'Studying', 'OPP140', 'LEAD150'),
+  ('STD036', 'Nguyễn Hồng Hạnh', '0314307768', NULL, '2009-06-26', '2026-08-09 11:54:00', 'Studying', 'OPP142', 'LEAD152'),
+  ('STD037', 'Vũ Đăng Long', '0713839403', NULL, '2001-06-10', '2026-06-24 19:38:00', 'Studying', 'OPP143', 'LEAD153'),
+  ('STD038', 'Hoàng Hà Lan', '0916502778', 'lanhoang2000@example.test', '2003-11-13', '2026-06-25 08:24:00', 'Studying', 'OPP147', 'LEAD157'),
+  ('STD039', 'Nguyễn Minh Trâm', '0340982632', 'tramnm1990@example.test', '2015-07-24', '2026-06-26 13:20:00', 'Completed', 'OPP151', 'LEAD161'),
+  ('STD040', 'Trần Thu Quỳnh', '0914412239', 'quynhtt47@example.test', '2020-04-28', '2026-06-26 15:11:00', 'Completed', 'OPP160', 'LEAD170'),
+  ('STD041', 'Nguyễn Văn Lâm', '0371642605', NULL, '2000-11-18', '2026-07-02 11:20:00', 'Completed', 'OPP174', 'LEAD184'),
+  ('STD042', 'Lê Bảo Trang', '0976934547', 'trangle2008@example.test', '2007-03-13', '2026-08-04 08:47:00', 'Studying', 'OPP175', 'LEAD185'),
+  ('STD043', 'Nguyễn Thu Ngọc', '0763152750', 'ngocnguyen27@example.test', '2000-12-25', '2026-07-05 11:30:00', 'Studying', 'OPP180', 'LEAD190'),
+  ('STD044', 'Đào Hữu Duy', '0961465315', 'duydh16@example.test', '2003-04-02', '2026-07-08 13:41:00', 'Studying', 'OPP182', 'LEAD192'),
+  ('STD045', 'Phạm Thị Hà', '0967073847', 'hapham82@example.test', '2002-02-11', '2026-08-17 14:13:00', 'Studying', 'OPP187', 'LEAD197'),
+  ('STD046', 'Hoàng Hà Châu', '0748726963', 'hachauh68@example.test', '2007-01-08', '2026-08-19 19:44:00', 'Studying', 'OPP199', 'LEAD209'),
+  ('STD047', 'Hồ Quỳnh Chi', '0338699411', 'quynhchih28@example.test', '1989-12-07', '2026-07-17 12:09:00', 'Studying', 'OPP202', 'LEAD212'),
+  ('STD048', 'Nguyễn Hồng Thảo', '0358114137', 'thaonh1993@example.test', '2006-08-08', '2026-07-13 16:27:00', 'Studying', 'OPP210', 'LEAD220'),
+  ('STD049', 'Phạm Thị Thảo', '0963380016', 'thaopham37@example.test', '2005-12-24', '2026-09-17 10:37:00', 'Studying', 'OPP211', 'LEAD221'),
+  ('STD050', 'Trịnh Ngọc Vân', '0872343465', 'ngocvant2002@example.test', '2006-03-26', '2026-08-18 16:11:00', 'Studying', 'OPP214', 'LEAD224'),
+  ('STD051', 'Phạm Hữu Toàn', '0844541668', 'huutoanp1992@example.test', '2001-02-20', '2026-09-19 13:20:00', 'Studying', 'OPP220', 'LEAD230'),
+  ('STD052', 'Nguyễn Đăng Phong', '0986349687', NULL, '2004-07-21', '2026-08-18 18:08:00', 'Studying', 'OPP221', 'LEAD231'),
+  ('STD053', 'Nguyễn Hà Hân', '0870380813', 'hannguyen1998@example.test', '2008-11-03', '2026-08-04 11:56:00', 'Studying', 'OPP223', 'LEAD233'),
+  ('STD054', 'Nguyễn Thanh Chi', '0959389392', NULL, '1995-12-05', '2026-07-18 19:05:00', 'Studying', 'OPP225', 'LEAD235'),
+  ('STD055', 'Nguyễn Hữu Thắng', '0382417995', 'thangnh2010@example.test', '1998-08-08', '2026-07-27 11:27:00', 'Studying', 'OPP229', 'LEAD239'),
+  ('STD056', 'Nguyễn Mai Thảo', '0930837654', 'maithaon46@example.test', '2007-06-27', '2026-09-21 10:46:00', 'Studying', 'OPP232', 'LEAD242'),
+  ('STD057', 'Nguyễn Kim Huyền', '0948548532', 'kimhuyenn1996@example.test', '2003-05-27', '2026-07-21 17:38:00', 'Studying', 'OPP239', 'LEAD249'),
+  ('STD058', 'Hoàng Hữu Hiếu', '0924330915', 'hieuhoang@example.test', '1995-03-16', '2026-07-30 19:00:00', 'Studying', 'OPP240', 'LEAD250'),
+  ('STD059', 'Nguyễn Hà An', '0768262770', 'annguyen10@example.test', '1996-09-18', '2026-07-27 09:34:00', 'Studying', 'OPP241', 'LEAD251'),
+  ('STD060', 'Lê Đăng Khoa', '0712369529', 'dangkhoal94@example.test', '1997-09-09', '2026-07-31 19:04:00', 'Studying', 'OPP251', 'LEAD261'),
+  ('STD061', 'Đào Hà Yến', '0987922670', 'yendao1996@example.test', '1994-03-15', '2026-08-03 13:08:00', 'Studying', 'OPP252', 'LEAD262'),
+  ('STD062', 'Lê Mai Hạnh', '0829187085', NULL, '2001-10-04', '2026-09-04 10:18:00', 'Studying', 'OPP255', 'LEAD265'),
+  ('STD063', 'Đoàn Tiến Phong', '0810036751', NULL, '1991-02-21', '2026-07-29 11:33:00', 'Studying', 'OPP257', 'LEAD267'),
+  ('STD064', 'Nguyễn Tiến Hưng', '0322624021', 'tienhungn1993@example.test', '2002-05-14', '2026-08-02 08:31:00', 'Studying', 'OPP258', 'LEAD268'),
+  ('STD065', 'Lương Đăng Kiên', '0989892910', 'dangkienl70@example.test', '1989-09-09', '2026-08-04 12:19:00', 'Studying', 'OPP260', 'LEAD270'),
+  ('STD066', 'Đỗ Duy Anh', '0350562469', 'anhdo@example.test', '2002-02-13', '2026-07-25 13:54:00', 'Studying', 'OPP261', 'LEAD271'),
+  ('STD067', 'Nguyễn Bảo Thư', '0939579598', 'baothun@example.test', '2003-07-27', '2026-07-27 15:00:00', 'Studying', 'OPP263', 'LEAD273'),
+  ('STD068', 'Tô Quang Bách', '0762725889', 'bachtq1998@example.test', '2004-06-20', '2026-09-06 16:16:00', 'Studying', 'OPP266', 'LEAD276'),
+  ('STD069', 'Đặng Thùy Lan', '0325701955', 'landang95@example.test', '1991-05-04', '2026-08-17 13:40:00', 'Studying', 'OPP267', 'LEAD277'),
+  ('STD070', 'Nguyễn Thu Thư', '0913939253', 'thunt@example.test', '2020-12-26', '2026-07-31 08:51:00', 'Studying', 'OPP268', 'LEAD278'),
+  ('STD071', 'Lê Văn Khang', '0859886417', NULL, '2009-08-13', '2026-08-29 15:39:00', 'Studying', 'OPP269', 'LEAD279'),
+  ('STD072', 'Hoàng Công Tuấn', '0338717110', NULL, '2009-03-25', '2026-08-06 08:04:00', 'Studying', 'OPP275', 'LEAD285'),
+  ('STD073', 'Lê Duy Tú', '0921390326', NULL, '2003-12-01', '2026-08-08 17:05:00', 'Studying', 'OPP284', 'LEAD294'),
+  ('STD074', 'Phạm Bảo Mai', '0384676872', 'baomaip@example.test', '2017-07-09', '2026-08-18 19:47:00', 'Studying', 'OPP285', 'LEAD295'),
+  ('STD075', 'Nguyễn Minh Phong', '0763337569', 'phongnm@example.test', '1990-09-10', '2026-08-14 09:13:00', 'Studying', 'OPP287', 'LEAD297'),
+  ('STD076', 'Huỳnh Kim Mai', '0363580656', 'maihk34@example.test', '2001-07-11', '2026-09-25 11:27:00', 'Studying', 'OPP288', 'LEAD298'),
+  ('STD077', 'Vũ Phương An', '0325462351', 'anvp2001@example.test', '2003-05-24', '2026-08-06 08:19:00', 'Studying', 'OPP290', 'LEAD300'),
+  ('STD078', 'Nguyễn Tiến Thắng', '0934333961', NULL, '2005-02-13', '2026-09-11 08:45:00', 'Studying', 'OPP291', 'LEAD301'),
+  ('STD079', 'Đặng Lan Chi', '0976700087', 'chidl@example.test', '2015-03-02', '2026-08-03 17:59:00', 'Studying', 'OPP292', 'LEAD302'),
+  ('STD080', 'Trần Diệu Quỳnh', '0725575728', 'quynhtd2005@example.test', '2003-02-08', '2026-09-28 17:34:00', 'Studying', 'OPP293', 'LEAD303'),
+  ('STD081', 'Cao Kim Thư', '0362627246', 'kimthuc1997@example.test', '2010-12-24', '2026-10-16 11:43:00', 'Studying', 'OPP299', 'LEAD309'),
+  ('STD082', 'Lâm Tiến Đăng', '0911741681', NULL, '2020-12-07', '2026-08-09 19:01:00', 'Studying', 'OPP301', 'LEAD311'),
+  ('STD083', 'Trần Gia Thắng', '0747577823', NULL, '2004-12-20', '2026-08-13 15:37:00', 'Studying', 'OPP303', 'LEAD313'),
+  ('STD084', 'Nguyễn Thùy My', '0365504605', 'mynt95@example.test', '2008-08-28', '2026-08-20 17:32:00', 'Studying', 'OPP310', 'LEAD320'),
+  ('STD085', 'Trịnh Tuấn Lộc', '0936608386', 'tuanloct@example.test', '2001-10-08', '2026-09-04 18:45:00', 'Studying', 'OPP312', 'LEAD322'),
+  ('STD086', 'Nguyễn Công Nam', '0922965334', 'namnguyen@example.test', '2005-06-24', '2026-09-16 09:00:00', 'Studying', 'OPP314', 'LEAD324'),
+  ('STD087', 'Lê Kim Giang', '0814621160', NULL, '2002-05-12', '2026-08-14 15:47:00', 'Studying', 'OPP316', 'LEAD326'),
+  ('STD088', 'Đỗ Trung Phong', '0969640505', 'phongdt@example.test', '2020-10-11', '2026-08-17 12:23:00', 'Studying', 'OPP319', 'LEAD329'),
+  ('STD089', 'Nguyễn Tiến Quân', '0925450781', NULL, '2017-09-25', '2026-08-22 16:41:00', 'Studying', 'OPP322', 'LEAD332'),
+  ('STD090', 'Hà Đăng Duy', '0874479747', NULL, '2007-03-25', '2026-08-16 10:42:00', 'Dropped', 'OPP332', 'LEAD342'),
+  ('STD091', 'Phan Ngọc Mai', '0748145400', 'ngocmaip@example.test', '1991-07-19', '2026-08-31 10:28:00', 'Studying', 'OPP341', 'LEAD351'),
+  ('STD092', 'Lâm Duy Bách', '0562039105', 'bachlam1992@example.test', '2020-09-14', '2026-09-18 12:28:00', 'Studying', 'OPP348', 'LEAD358'),
+  ('STD093', 'Lê Thùy Nhi', '0761884602', 'nhile15@example.test', '2018-02-01', '2026-08-22 17:28:00', 'Dropped', 'OPP351', 'LEAD361'),
+  ('STD094', 'Hoàng Lan My', '0963748641', 'lanmyh49@example.test', '2010-03-15', '2026-08-30 15:21:00', 'Studying', 'OPP356', 'LEAD366'),
+  ('STD095', 'Trần Thị Vân', '0734653606', NULL, '2020-05-19', '2026-08-24 10:14:00', 'Studying', 'OPP357', 'LEAD367'),
+  ('STD096', 'Hoàng Phương Hương', '0859181504', 'huonghoang@example.test', '2018-01-25', '2026-08-17 13:16:00', 'Studying', 'OPP359', 'LEAD369'),
+  ('STD097', 'Trần Trung Thịnh', '0357490950', NULL, '1997-02-04', '2026-08-20 16:37:00', 'Dropped', 'OPP366', 'LEAD376'),
+  ('STD098', 'Phạm Thu Chi', '0976930418', 'chipt@example.test', '2009-07-15', '2026-09-18 10:35:00', 'Studying', 'OPP370', 'LEAD380'),
+  ('STD099', 'Võ Đức Bách', '0329990986', NULL, '2008-08-08', '2026-09-07 13:04:00', 'Studying', 'OPP378', 'LEAD388'),
+  ('STD100', 'Chu Thị An', '0945327977', 'anchu@example.test', '1996-10-22', '2026-08-21 14:58:00', 'Studying', 'OPP380', 'LEAD390'),
+  ('STD101', 'Phùng Thu Phương', '0562450513', 'thuphuongp17@example.test', '2001-05-24', '2026-10-05 16:46:00', 'Studying', 'OPP384', 'LEAD394'),
+  ('STD102', 'Trần Hải Nhung', '0321749743', NULL, '1996-07-19', '2026-08-28 14:17:00', 'Dropped', 'OPP393', 'LEAD403'),
+  ('STD103', 'Nguyễn Hồng Quỳnh', '0314929810', 'quynhnguyen2009@example.test', '2005-03-26', '2026-09-28 15:57:00', 'Studying', 'OPP404', 'LEAD414'),
+  ('STD104', 'Hoàng Quỳnh Trang', '0986624945', NULL, '2010-04-09', '2026-09-09 10:35:00', 'Dropped', 'OPP424', 'LEAD434'),
+  ('STD105', 'Hồ Hữu Thịnh', '0369218145', NULL, '2009-07-27', '2026-09-07 18:59:00', 'Studying', 'OPP426', 'LEAD436'),
+  ('STD106', 'Nguyễn Thanh Anh', '0948582967', 'anhnt60@example.test', '2006-09-02', '2026-09-20 18:12:00', 'Studying', 'OPP435', 'LEAD445'),
+  ('STD107', 'Nguyễn Thu My', '0978430358', 'mynt46@example.test', '2004-07-27', '2026-09-12 19:27:00', 'Studying', 'OPP447', 'LEAD457'),
+  ('STD108', 'Trần Thành Nghĩa', '0564295641', 'thanhnghiat78@example.test', '1992-04-22', '2026-09-13 17:26:00', 'Studying', 'OPP448', 'LEAD458'),
+  ('STD109', 'Đỗ Minh Lộc', '0370955703', 'minhlocd@example.test', '2009-06-04', '2026-09-17 16:15:00', 'Studying', 'OPP450', 'LEAD460'),
+  ('STD110', 'Nguyễn Tiến Vinh', '0965328993', 'tienvinhn2005@example.test', '2006-01-27', '2026-09-22 11:59:00', 'Studying', 'OPP453', 'LEAD463'),
+  ('STD111', 'Lâm Khánh Mai', '0568513176', NULL, '2018-09-16', '2026-09-13 12:46:00', 'Studying', 'OPP456', 'LEAD466'),
+  ('STD112', 'Phạm Xuân Long', '0962319067', 'xuanlongp1997@example.test', '2019-02-12', '2026-09-26 14:55:00', 'Studying', 'OPP459', 'LEAD469'),
+  ('STD113', 'Vũ Khánh Giang', '0752668908', 'giangvk2003@example.test', '1988-03-14', '2026-09-21 21:16:00', 'Studying', 'OPP460', 'LEAD470'),
+  ('STD114', 'Nguyễn Tuấn Duy', '0332125318', 'duynt35@example.test', '2016-09-28', '2026-09-16 13:11:00', 'Dropped', 'OPP464', 'LEAD474'),
+  ('STD115', 'Nguyễn Công Việt', '0983356842', 'vietnguyen2000@example.test', '1993-09-06', '2026-09-20 15:32:00', 'Studying', 'OPP465', 'LEAD475'),
+  ('STD116', 'Hoàng Khánh Châu', '0962357966', 'chauhoang1999@example.test', '2016-05-22', '2026-09-25 11:42:00', 'Studying', 'OPP466', 'LEAD476'),
+  ('STD117', 'Đặng Quang Minh', '0345069973', 'minhdang2010@example.test', '2006-06-23', '2026-09-17 15:10:00', 'Studying', 'OPP468', 'LEAD478'),
+  ('STD118', 'Phạm Hữu Dũng', '0888591718', 'huudungp2001@example.test', '2003-05-22', '2026-09-17 17:53:00', 'Studying', 'OPP473', 'LEAD483'),
+  ('STD119', 'Trịnh Bảo Hằng', '0363602856', 'hangtrinh1997@example.test', '1996-12-23', '2026-09-19 08:18:00', 'Studying', 'OPP475', 'LEAD485'),
+  ('STD120', 'Hoàng Hà Loan', '0886741626', NULL, '1999-09-21', '2026-09-22 13:00:00', 'Studying', 'OPP478', 'LEAD488'),
+  ('STD121', 'Phạm Thành Minh', '0762553866', 'minhpt@example.test', '2001-12-05', '2026-09-21 18:25:00', 'Studying', 'OPP479', 'LEAD489'),
+  ('STD122', 'Dương Trung Hải', '0765671897', 'haiduong2001@example.test', '1992-12-21', '2026-10-06 10:45:00', 'Studying', 'OPP491', 'LEAD501'),
+  ('STD123', 'Bùi Bảo Thảo', '0969926832', 'thaobb2003@example.test', '2019-11-05', '2026-09-24 11:35:00', 'Studying', 'OPP500', 'LEAD510'),
+  ('STD124', 'Lê Quang Lâm', '0952822476', NULL, '2016-09-17', '2026-10-06 13:14:00', 'Studying', 'OPP502', 'LEAD512'),
+  ('STD125', 'Bùi Phương An', '0965889999', NULL, '2004-12-22', '2026-09-26 10:35:00', 'Studying', 'OPP503', 'LEAD513'),
+  ('STD126', 'Phan Minh Quỳnh', '0979100288', 'minhquynhp@example.test', '2018-01-24', '2026-09-28 11:01:00', 'Studying', 'OPP505', 'LEAD515'),
+  ('STD127', 'Hoàng Minh Khôi', '0977784459', NULL, '2020-08-21', '2026-10-02 19:03:00', 'Studying', 'OPP509', 'LEAD519'),
+  ('STD128', 'Nguyễn Quang Đạt', '0934456511', 'datnq2010@example.test', '1990-04-15', '2026-10-05 09:46:00', 'Studying', 'OPP511', 'LEAD521'),
+  ('STD129', 'Hoàng Mạnh Long', '0979008112', 'longhm10@example.test', '2002-10-17', '2026-09-25 09:33:00', 'Studying', 'OPP512', 'LEAD522'),
+  ('STD130', 'Nguyễn Quỳnh Ngân', '0967586599', NULL, '2004-11-27', '2026-10-15 19:08:00', 'Studying', 'OPP515', 'LEAD525'),
+  ('STD131', 'Đặng Tiến Hùng', '0339745136', 'hungdang2010@example.test', '2006-07-22', '2026-09-27 13:36:00', 'Studying', 'OPP520', 'LEAD530'),
+  ('STD132', 'Trần Hải Trâm', '0826285869', 'tramth2@example.test', '1993-11-06', '2026-10-04 09:51:00', 'Studying', 'OPP521', 'LEAD531'),
+  ('STD133', 'Nguyễn Hồng An', '0561335064', 'annh@example.test', '2018-11-26', '2026-10-01 14:32:00', 'Studying', 'OPP527', 'LEAD537'),
+  ('STD134', 'Nguyễn Tuấn Thịnh', '0881161573', NULL, '2007-02-20', '2026-10-02 09:53:00', 'Studying', 'OPP528', 'LEAD538'),
+  ('STD135', 'Đỗ Thùy Hương', '0921324844', 'thuyhuongd47@example.test', '2002-09-19', '2026-10-07 09:52:00', 'Studying', 'OPP531', 'LEAD541'),
+  ('STD136', 'Trần Diệu Lan', '0385442659', 'lantd5@example.test', '2017-04-24', '2026-10-01 13:47:00', 'Studying', 'OPP533', 'LEAD543'),
+  ('STD137', 'Nguyễn Hoàng Đăng', '0828755114', 'hoangdangn@example.test', '2015-07-04', '2026-10-09 15:47:00', 'Studying', 'OPP546', 'LEAD556'),
+  ('STD138', 'Lê Tiến Bách', '0861100867', 'bachlt13@example.test', '2016-02-23', '2026-10-08 22:19:00', 'Studying', 'OPP547', 'LEAD557'),
+  ('STD139', 'Nguyễn Quang Hiếu', '0386563072', 'hieunq45@example.test', '2007-12-09', '2026-10-16 17:07:00', 'Studying', 'OPP565', 'LEAD575'),
+  ('STD140', 'Vũ Thu Hà', '0338541801', 'havu2010@example.test', '2016-03-02', '2026-10-11 18:00:00', 'Studying', 'OPP567', 'LEAD577'),
+  ('STD141', 'Phan Tiến Hiếu', '0777976432', 'hieuphan@example.test', '1986-09-21', '2026-10-14 16:37:00', 'Studying', 'OPP590', 'LEAD600'),
+  ('STD142', 'Trần Đức Huy', '0732448717', NULL, '1996-08-28', '2026-10-18 15:52:00', 'Studying', 'OPP592', 'LEAD602'),
+  ('STD143', 'Phan Đăng Tuấn', '0922999574', 'tuanpd7@example.test', '2006-04-20', '2026-10-20 16:27:00', 'Studying', 'OPP595', 'LEAD605'),
+  ('STD144', 'Đinh Quang Khang', '0859658940', 'khangdq@example.test', '2016-02-02', '2026-10-19 18:37:00', 'Studying', 'OPP602', 'LEAD612'),
   -- Hoc vien tu lan thanh toan thanh cong dau tien (chot 22/10/2026): don tra gop da dong tien
-  ('STD147', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-30 16:58:00', 'Studying', 'OPP259'),
-  ('STD148', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-20 12:30:00', 'Studying', 'OPP358'),
-  ('STD149', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-09-02 19:48:00', 'Studying', 'OPP369'),
-  ('STD150', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-09-03 10:33:00', 'Studying', 'OPP413'),
-  ('STD151', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-10 11:46:00', 'Studying', 'OPP477'),
-  ('STD152', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-25 18:50:00', 'Studying', 'OPP494'),
-  ('STD153', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-10-01 11:50:00', 'Studying', 'OPP513'),
-  ('STD154', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-10-03 11:59:00', 'Studying', 'OPP517'),
-  ('STD155', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-12 12:41:00', 'Studying', 'OPP560'),
-  ('STD156', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-10 11:20:00', 'Studying', 'OPP573');
+  ('STD147', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-30 16:58:00', 'Studying', 'OPP259', 'LEAD269'),
+  ('STD148', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-20 12:30:00', 'Studying', 'OPP358', 'LEAD368'),
+  ('STD149', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-09-02 19:48:00', 'Studying', 'OPP369', 'LEAD379'),
+  ('STD150', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-09-03 10:33:00', 'Studying', 'OPP413', 'LEAD423'),
+  ('STD151', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-10 11:46:00', 'Studying', 'OPP477', 'LEAD487'),
+  ('STD152', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-25 18:50:00', 'Studying', 'OPP494', 'LEAD504'),
+  ('STD153', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-10-01 11:50:00', 'Studying', 'OPP513', 'LEAD523'),
+  ('STD154', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-10-03 11:59:00', 'Studying', 'OPP517', 'LEAD527'),
+  ('STD155', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-12 12:41:00', 'Studying', 'OPP560', 'LEAD570'),
+  ('STD156', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-10 11:20:00', 'Studying', 'OPP573', 'LEAD583');
 
 -- ============================================================
 -- DU LIEU DEMO BO SUNG 2 – ODIN CRM (05/2026 - 10/2026)
@@ -32010,440 +32010,440 @@ VALUES
   ('INV830', '2026-10-18', '2026-10-21', 2800000.00, 'Paid', 'Cash', '2026-10-19 08:30:00', 'ORD680', 1, 'EMP042', 'EMP024');
 
 INSERT INTO `Students`
-  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`)
+  (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`)
 VALUES
-  ('STD157', 'Tô Hữu Uyên', '0992625378', 'uyenth687@example.test', '2009-07-17', '2026-06-12 14:37:00', 'Studying', 'OPP655'),
-  ('STD158', 'Lý Thanh Châu', '0574335557', 'chault293@example.test', '2009-03-14', '2026-08-11 09:03:00', 'Studying', 'OPP657'),
-  ('STD159', 'Vũ Thu Vy', '0562273030', 'vyvt91@example.test', '2011-07-18', '2026-06-12 12:10:00', 'Studying', 'OPP660'),
-  ('STD160', 'Huỳnh Minh Yến', '0518432513', 'yenhm332@example.test', '1992-04-12', '2026-05-24 08:46:00', 'Studying', 'OPP661'),
-  ('STD161', 'Đặng Thanh Phúc', '0743436805', 'phucdt95@example.test', '1997-07-09', '2026-06-03 08:18:00', 'Studying', 'OPP663'),
-  ('STD162', 'Lâm Hoài Trúc', '0566407921', 'truclh575@example.test', '2006-04-23', '2026-06-27 08:45:00', 'Studying', 'OPP664'),
-  ('STD163', 'Phan Thị Huy', '0377591028', 'huypt192@example.test', '1992-04-23', '2026-05-15 08:44:00', 'Completed', 'OPP666'),
-  ('STD164', 'Trần Đức Trúc', '0308581758', 'tructd963@example.test', '1995-06-07', '2026-06-03 08:21:00', 'Studying', 'OPP669'),
-  ('STD165', 'Nguyễn Kim Uyên', '0556654321', 'uyennk916@example.test', '2006-06-04', '2026-05-19 08:04:00', 'Studying', 'OPP671'),
-  ('STD166', 'Cao Văn Trúc', '0556252886', 'truccv819@example.test', '1992-10-24', '2026-05-17 08:15:00', 'Studying', 'OPP672'),
-  ('STD167', 'Huỳnh Gia Nam', '0548621712', 'namhg872@example.test', '2011-12-05', '2026-05-22 08:03:00', 'Studying', 'OPP675'),
-  ('STD168', 'Đặng Phương Minh', '0964482089', 'minhdp179@example.test', '2012-03-24', '2026-07-14 08:10:00', 'Studying', 'OPP684'),
-  ('STD169', 'Phạm Kim Khoa', '0365754867', 'khoapk785@example.test', '1992-10-08', '2026-06-20 20:47:00', 'Studying', 'OPP694'),
-  ('STD170', 'Đặng Minh My', '0727291106', 'mydm750@example.test', '2001-01-23', '2026-07-10 14:14:00', 'Studying', 'OPP696'),
-  ('STD171', 'Dương Bảo Khôi', '0779601387', 'khoidb604@example.test', '1991-06-01', '2026-08-09 14:45:00', 'Studying', 'OPP701'),
-  ('STD172', 'Ngô Thanh Uyên', '0557927149', 'uyennt937@example.test', '2012-05-12', '2026-06-17 19:18:00', 'Studying', 'OPP703'),
-  ('STD173', 'Lê Mỹ Hương', '0960495276', 'huonglm272@example.test', '1991-01-04', '2026-08-01 08:38:00', 'Studying', 'OPP705'),
-  ('STD174', 'Phạm Thu Ngọc', '0894079071', 'ngocpt464@example.test', '2007-02-18', '2026-08-08 20:25:00', 'Studying', 'OPP708'),
-  ('STD175', 'Hà Thu Hải', '0547780496', 'haiht282@example.test', '2011-09-04', '2026-06-19 16:11:00', 'Studying', 'OPP711'),
-  ('STD176', 'Hà Nhật Thắng', '0928395618', 'thanghn312@example.test', '1991-09-15', '2026-06-18 08:08:00', 'Studying', 'OPP714'),
-  ('STD177', 'Lê Kim Duy', '0332583498', 'duylk423@example.test', '2008-08-27', '2026-07-02 12:54:00', 'Completed', 'OPP720'),
-  ('STD178', 'Chu Hải Châu', '0524278720', 'chauch697@example.test', '1998-01-22', '2026-07-13 08:35:00', 'Studying', 'OPP726'),
-  ('STD179', 'Lê Gia Tâm', '0509470714', 'tamlg34@example.test', '2009-04-06', '2026-08-11 09:04:00', 'Studying', 'OPP732'),
-  ('STD180', 'Hoàng Đức Hoa', '0828235056', 'hoahd787@example.test', '1994-02-26', '2026-07-20 16:36:00', 'Completed', 'OPP734'),
-  ('STD181', 'Ngô Đức Linh', '0363682585', 'linhnd564@example.test', '2002-08-01', '2026-08-12 16:20:00', 'Studying', 'OPP737'),
-  ('STD182', 'Vũ Phương Long', '0950935470', 'longvp245@example.test', '2010-10-08', '2026-08-08 14:23:00', 'Studying', 'OPP738'),
-  ('STD183', 'Dương Bảo Thắng', '0811717049', 'thangdb277@example.test', '2004-07-23', '2026-08-03 08:24:00', 'Studying', 'OPP746'),
-  ('STD184', 'Trần Thu Duy', '0904992468', 'duytt871@example.test', '2008-11-11', '2026-08-24 19:27:00', 'Studying', 'OPP756'),
-  ('STD185', 'Vũ Kim Sơn', '0853656207', 'sonvk407@example.test', '2002-06-28', '2026-08-27 09:41:00', 'Studying', 'OPP757'),
-  ('STD186', 'Nguyễn Ngọc Thắng', '0764157515', 'thangnn967@example.test', '1993-06-11', '2026-08-28 08:32:00', 'Studying', 'OPP766'),
-  ('STD187', 'Đặng Tuấn Thư', '0962467275', 'thudt141@example.test', '2012-07-21', '2026-09-01 15:05:00', 'Studying', 'OPP773'),
-  ('STD188', 'Mai Kim Minh', '0566494343', 'minhmk411@example.test', '2011-06-03', '2026-08-23 08:38:00', 'Studying', 'OPP774'),
-  ('STD189', 'Huỳnh Hữu Tâm', '0952568298', 'tamhh147@example.test', '1993-06-17', '2026-09-26 08:23:00', 'Studying', 'OPP781'),
-  ('STD190', 'Lâm Phương Minh', '0362297612', 'minhlp520@example.test', '2003-09-15', '2026-09-30 15:39:00', 'Studying', 'OPP784'),
-  ('STD191', 'Đặng Ngọc Vy', '0582762777', 'vydn333@example.test', '2002-06-01', '2026-10-10 08:48:00', 'Studying', 'OPP785'),
-  ('STD192', 'Lê Văn An', '0989354832', 'anlv346@example.test', '1993-06-03', '2026-09-28 14:38:00', 'Studying', 'OPP788'),
-  ('STD193', 'Hồ Thanh Khang', '0330087394', 'khanght843@example.test', '2005-09-23', '2026-10-26 14:08:00', 'Studying', 'OPP807'),
-  ('STD194', 'Lý Mỹ Tùng', '0700118894', 'tunglm169@example.test', '1996-06-14', '2026-10-19 08:33:00', 'Studying', 'OPP814'),
-  ('STD195', 'Đặng Kim Long', '0327946461', 'longdk591@example.test', '1992-08-23', '2026-05-21 08:45:00', 'Studying', 'OPP823'),
-  ('STD196', 'Tô Mỹ Ngân', '0984405617', 'ngantm176@example.test', '2003-11-28', '2026-06-01 19:44:00', 'Studying', 'OPP826'),
-  ('STD197', 'Trần Tuấn Hải', '0772974520', 'haitt274@example.test', '2001-02-14', '2026-05-27 20:50:00', 'Studying', 'OPP831'),
-  ('STD198', 'Trần Thu Quân', '0562476399', 'quantt894@example.test', '2004-11-07', '2026-07-04 18:41:00', 'Studying', 'OPP858'),
-  ('STD199', 'Hồ Minh Tùng', '0336336914', 'tunghm532@example.test', '1999-05-06', '2026-06-30 17:49:00', 'Completed', 'OPP861'),
-  ('STD200', 'Tô Bảo Hà', '0904465392', 'hatb937@example.test', '1994-08-25', '2026-07-06 13:25:00', 'Studying', 'OPP867'),
-  ('STD201', 'Trịnh Quốc Châu', '0882174257', 'chautq990@example.test', '2009-07-05', '2026-06-23 08:11:00', 'Studying', 'OPP868'),
-  ('STD202', 'Huỳnh Ngọc Nhi', '0761468125', 'nhihn918@example.test', '2005-01-13', '2026-07-25 08:58:00', 'Studying', 'OPP888'),
-  ('STD203', 'Lý Tuấn Hà', '0707063490', 'halt368@example.test', '1995-08-13', '2026-08-02 11:19:00', 'Studying', 'OPP892'),
-  ('STD204', 'Ngô Thị Uyên', '0323191920', 'uyennt995@example.test', '2000-04-21', '2026-09-28 10:54:00', 'Studying', 'OPP893'),
-  ('STD205', 'Lâm Gia Phúc', '0879483759', 'phuclg617@example.test', '1996-05-18', '2026-08-08 08:19:00', 'Studying', 'OPP895'),
-  ('STD206', 'Lê Nhật My', '0810634735', 'myln247@example.test', '1996-04-10', '2026-10-03 08:18:00', 'Studying', 'OPP902'),
-  ('STD207', 'Đinh Hữu Khang', '0519572926', 'khangdh209@example.test', '1998-09-26', '2026-08-05 08:03:00', 'Studying', 'OPP903'),
-  ('STD208', 'Lý Hải Duy', '0565274648', 'duylh175@example.test', '2001-02-08', '2026-08-12 08:50:00', 'Studying', 'OPP904'),
-  ('STD209', 'Đặng Thu Yến', '0599151963', 'yendt557@example.test', '1998-05-26', '2026-08-13 08:15:00', 'Studying', 'OPP917'),
-  ('STD210', 'Vũ Nhật Yến', '0357499406', 'yenvn620@example.test', '2003-04-05', '2026-09-12 15:07:00', 'Studying', 'OPP919'),
-  ('STD211', 'Hà Nhật Ngân', '0356854015', 'nganhn688@example.test', '2006-12-17', '2026-09-07 08:28:00', 'Studying', 'OPP925'),
-  ('STD212', 'Vũ Khánh Trúc', '0302579499', 'trucvk39@example.test', '2011-08-28', '2026-10-11 18:04:00', 'Studying', 'OPP938'),
-  ('STD213', 'Lê Hải Lan', '0830582506', 'lanlh226@example.test', '2001-08-21', '2026-09-18 08:21:00', 'Studying', 'OPP943'),
-  ('STD214', 'Lý Kim Nghĩa', '0548601472', 'nghialk810@example.test', '2010-01-24', '2026-09-15 14:44:00', 'Studying', 'OPP945'),
-  ('STD215', 'Hà Thanh Hương', '0345143694', 'huonght863@example.test', '2007-06-08', '2026-09-13 16:01:00', 'Studying', 'OPP946'),
-  ('STD216', 'Nguyễn Hoài Huy', '0315714243', 'huynh85@example.test', '1992-07-24', '2026-09-23 12:00:00', 'Studying', 'OPP961'),
-  ('STD217', 'Mai Quốc Uyên', '0735625886', 'uyenmq384@example.test', '2002-07-26', '2026-09-27 08:13:00', 'Studying', 'OPP968'),
-  ('STD218', 'Lâm Anh Ngọc', '0558383622', 'ngocla397@example.test', '2009-04-23', '2026-10-28 16:01:00', 'Studying', 'OPP988'),
-  ('STD219', 'Cao Thanh Trúc', '0774369375', 'trucct213@example.test', '2009-06-03', '2026-05-14 18:20:00', 'Studying', 'OPP1003'),
-  ('STD220', 'Đinh Hải An', '0301760107', 'andh619@example.test', '2000-12-11', '2026-06-01 08:28:00', 'Studying', 'OPP1005'),
-  ('STD221', 'Đặng Nhật Hương', '0534034370', 'huongdn927@example.test', '2009-03-22', '2026-05-15 08:12:00', 'Studying', 'OPP1017'),
-  ('STD222', 'Lâm Ngọc Ly', '0764148472', 'lyln906@example.test', '1990-03-12', '2026-06-24 08:25:00', 'Studying', 'OPP1025'),
-  ('STD223', 'Nguyễn Phương Sơn', '0326343256', 'sonnp670@example.test', '2006-07-19', '2026-07-23 20:40:00', 'Studying', 'OPP1026'),
-  ('STD224', 'Tô Quốc Duy', '0531533073', 'duytq599@example.test', '1990-03-13', '2026-07-22 08:34:00', 'Studying', 'OPP1032'),
-  ('STD225', 'Nguyễn Khánh Duy', '0944587388', 'duynk701@example.test', '1992-06-02', '2026-08-25 14:09:00', 'Studying', 'OPP1085'),
-  ('STD226', 'Ngô Bảo Nam', '0599227026', 'namnb132@example.test', '2007-02-19', '2026-08-22 08:41:00', 'Studying', 'OPP1089'),
-  ('STD227', 'Võ Hữu My', '0305159477', 'myvh59@example.test', '2006-06-16', '2026-09-06 08:12:00', 'Studying', 'OPP1099'),
-  ('STD228', 'Hoàng Minh Châu', '0571202449', 'chauhm895@example.test', '1992-05-11', '2026-10-27 08:50:00', 'Studying', 'OPP1100'),
-  ('STD229', 'Phạm Hữu Khoa', '0821127370', 'khoaph148@example.test', '1999-01-27', '2026-08-22 20:59:00', 'Studying', 'OPP1106'),
-  ('STD230', 'Đỗ Minh Nam', '0332817489', 'namdm340@example.test', '2000-08-01', '2026-10-13 16:07:00', 'Studying', 'OPP1122'),
-  ('STD231', 'Phạm Khánh Ly', '0573133043', 'lypk454@example.test', '2012-06-16', '2026-05-19 08:52:00', 'Completed', 'OPP1152'),
-  ('STD232', 'Trần Bảo Hoa', '0377776170', 'hoatb917@example.test', '2005-12-20', '2026-07-11 08:27:00', 'Studying', 'OPP1167'),
-  ('STD233', 'Phạm Quốc Khoa', '0745922131', 'khoapq912@example.test', '1990-02-07', '2026-06-01 08:16:00', 'Studying', 'OPP1168'),
-  ('STD234', 'Chu Quốc Duy', '0732254027', 'duycq71@example.test', '2006-08-23', '2026-06-10 14:31:00', 'Studying', 'OPP1171'),
-  ('STD235', 'Chu Văn Linh', '0344272062', 'linhcv965@example.test', '1995-08-07', '2026-07-25 15:47:00', 'Dropped', 'OPP1185'),
-  ('STD236', 'Hoàng Thu Thắng', '0708208792', 'thanght615@example.test', '2007-03-27', '2026-07-01 08:16:00', 'Studying', 'OPP1191'),
-  ('STD237', 'Bùi Thu Sơn', '0799680660', 'sonbt871@example.test', '2011-02-13', '2026-07-04 08:36:00', 'Studying', 'OPP1194'),
-  ('STD238', 'Dương Gia Yến', '0371583397', 'yendg339@example.test', '1999-08-10', '2026-06-19 12:55:00', 'Studying', 'OPP1204'),
-  ('STD239', 'Mai Văn An', '0830433918', 'anmv113@example.test', '2005-06-19', '2026-08-08 08:15:00', 'Studying', 'OPP1210'),
-  ('STD240', 'Hồ Minh Khoa', '0778300824', 'khoahm497@example.test', '1991-02-23', '2026-09-11 18:34:00', 'Studying', 'OPP1241'),
-  ('STD241', 'Lâm Ngọc Mai', '0368226438', 'mailn49@example.test', '2000-09-07', '2026-08-17 08:49:00', 'Studying', 'OPP1257'),
-  ('STD242', 'Cao Thị Linh', '0858622197', 'linhct901@example.test', '1999-02-28', '2026-09-20 21:55:00', 'Studying', 'OPP1268'),
-  ('STD243', 'Lý Mỹ Trúc', '0586566122', 'truclm476@example.test', '2001-04-02', '2026-10-20 08:05:00', 'Studying', 'OPP1298'),
-  ('STD244', 'Chu Phương Sơn', '0793524670', 'soncp815@example.test', '1992-06-22', '2026-10-25 12:12:00', 'Studying', 'OPP1307'),
-  ('STD245', 'Hoàng Hữu Tâm', '0922595769', 'tamhh488@example.test', '1993-01-27', '2026-08-04 08:39:00', 'Studying', 'OPP1327'),
-  ('STD246', 'Đỗ Văn Hiếu', '0912795480', 'hieudv106@example.test', '1995-10-26', '2026-08-07 08:47:00', 'Studying', 'OPP1332'),
-  ('STD247', 'Cao Tuấn Long', '0973939085', 'longct542@example.test', '2000-03-22', '2026-05-21 08:01:00', 'Studying', 'OPP1335'),
-  ('STD248', 'Tô Hữu Hà', '0510612824', 'hath404@example.test', '2000-08-23', '2026-06-11 08:40:00', 'Studying', 'OPP1341'),
-  ('STD249', 'Trịnh Hữu Thắng', '0838243362', 'thangth328@example.test', '2001-02-03', '2026-06-30 19:02:00', 'Studying', 'OPP1344'),
-  ('STD250', 'Lê Gia Yến', '0998681093', 'yenlg949@example.test', '2006-12-28', '2026-06-28 10:15:00', 'Dropped', 'OPP1350'),
-  ('STD251', 'Nguyễn Hữu Giang', '0360743215', 'giangnh378@example.test', '1999-10-12', '2026-08-07 12:45:00', 'Studying', 'OPP1356'),
-  ('STD252', 'Huỳnh Anh Phong', '0842846756', 'phongha567@example.test', '2009-06-06', '2026-08-02 13:43:00', 'Studying', 'OPP1376'),
-  ('STD253', 'Hồ Anh Thắng', '0346799349', 'thangha345@example.test', '1997-01-15', '2026-07-18 08:42:00', 'Studying', 'OPP1377'),
-  ('STD254', 'Cao Tuấn Thư', '0851656445', 'thuct845@example.test', '2001-02-23', '2026-09-23 17:40:00', 'Dropped', 'OPP1381'),
-  ('STD255', 'Đặng Anh Tú', '0507656758', 'tuda926@example.test', '1998-04-20', '2026-07-31 13:51:00', 'Studying', 'OPP1383'),
-  ('STD256', 'Phạm Hữu Tùng', '0704106252', 'tungph690@example.test', '2012-09-28', '2026-08-01 08:13:00', 'Studying', 'OPP1390'),
-  ('STD257', 'Chu Thị Ly', '0790030988', 'lyct474@example.test', '1999-09-09', '2026-07-22 08:47:00', 'Studying', 'OPP1392'),
-  ('STD258', 'Vũ Thị Quân', '0544053290', 'quanvt844@example.test', '1993-12-20', '2026-09-04 08:23:00', 'Studying', 'OPP1398'),
-  ('STD259', 'Võ Hữu Nghĩa', '0537988547', 'nghiavh492@example.test', '2008-10-19', '2026-08-19 08:12:00', 'Studying', 'OPP1405'),
-  ('STD260', 'Lê Quốc Quân', '0789969451', 'quanlq969@example.test', '2004-07-05', '2026-08-16 08:23:00', 'Dropped', 'OPP1420'),
-  ('STD261', 'Hồ Minh An', '0781686147', 'anhm810@example.test', '2000-08-22', '2026-10-04 08:14:00', 'Studying', 'OPP1429'),
-  ('STD262', 'Hoàng Phương Long', '0364677601', 'longhp791@example.test', '2004-11-01', '2026-10-04 10:58:00', 'Studying', 'OPP1431'),
-  ('STD263', 'Huỳnh Thị Lan', '0593402221', 'lanht574@example.test', '1993-04-05', '2026-09-18 17:48:00', 'Studying', 'OPP1434'),
-  ('STD264', 'Lê Mỹ Thư', '0877546479', 'thulm904@example.test', '1991-10-06', '2026-10-26 20:19:00', 'Studying', 'OPP1462'),
-  ('STD265', 'Mai Phương Ly', '0939670823', 'lymp434@example.test', '2001-06-17', '2026-10-23 18:29:00', 'Studying', 'OPP1463'),
-  ('STD266', 'Nguyễn Kim Huy', '0757760623', 'huynk860@example.test', '1992-05-21', '2026-10-26 10:21:00', 'Studying', 'OPP1464'),
-  ('STD267', 'Lý Gia Huy', '0322035618', 'huylg468@example.test', '2000-10-12', '2026-08-09 08:07:00', 'Studying', 'OPP1482'),
-  ('STD268', 'Phạm Hải Ngọc', '0951631266', 'ngocph198@example.test', '1990-10-26', '2026-08-06 20:46:00', 'Studying', 'OPP1492'),
-  ('STD269', 'Lê Mỹ Nghĩa', '0713857972', 'nghialm38@example.test', '1993-08-21', '2026-07-24 08:36:00', 'Studying', 'OPP1501'),
-  ('STD270', 'Nguyễn Kim Thư', '0970830848', 'thunk469@example.test', '1991-10-10', '2026-07-23 08:49:00', 'Studying', 'OPP1512'),
-  ('STD271', 'Đặng Anh Minh', '0559616441', 'minhda113@example.test', '2007-11-11', '2026-10-12 08:46:00', 'Studying', 'OPP1530'),
-  ('STD272', 'Võ Minh Hương', '0725605410', 'huongvm125@example.test', '1996-11-28', '2026-08-18 08:01:00', 'Studying', 'OPP1532'),
-  ('STD273', 'Đinh Hải Hân', '0725112564', 'handh319@example.test', '1994-01-27', '2026-09-08 12:59:00', 'Dropped', 'OPP1536'),
-  ('STD274', 'Dương Nhật Tùng', '0589495114', 'tungdn787@example.test', '2011-08-03', '2026-08-31 10:10:00', 'Studying', 'OPP1538'),
-  ('STD275', 'Ngô Thị Trí', '0923436483', 'trint514@example.test', '1993-06-08', '2026-05-11 13:43:00', 'Studying', 'OPP1577'),
-  ('STD276', 'Mai Văn Tú', '0315324028', 'tumv765@example.test', '2002-11-27', '2026-06-09 08:40:00', 'Studying', 'OPP1584'),
-  ('STD277', 'Lâm Nhật Hải', '0532410310', 'hailn30@example.test', '1990-09-24', '2026-05-25 08:27:00', 'Completed', 'OPP1585'),
-  ('STD278', 'Nguyễn Hữu Hân', '0379752347', 'hannh815@example.test', '2010-07-17', '2026-06-19 08:18:00', 'Studying', 'OPP1604'),
-  ('STD279', 'Nguyễn Kim Hà', '0769467874', 'hank456@example.test', '1996-02-01', '2026-07-06 08:48:00', 'Studying', 'OPP1619'),
-  ('STD280', 'Lâm Mỹ Nghĩa', '0886288087', 'nghialm521@example.test', '2003-11-27', '2026-07-30 08:02:00', 'Studying', 'OPP1629'),
-  ('STD281', 'Đỗ Gia Sơn', '0399389350', 'sondg995@example.test', '1999-11-09', '2026-08-13 08:35:00', 'Studying', 'OPP1630'),
-  ('STD282', 'Nguyễn Bảo Trí', '0748649383', 'trinb759@example.test', '1991-03-17', '2026-08-13 08:47:00', 'Studying', 'OPP1652'),
-  ('STD283', 'Đỗ Ngọc Ngân', '0911378318', 'ngandn376@example.test', '2003-10-20', '2026-08-28 08:30:00', 'Studying', 'OPP1666'),
-  ('STD284', 'Lâm Tuấn Ly', '0725556023', 'lylt407@example.test', '2002-02-13', '2026-08-24 19:34:00', 'Studying', 'OPP1675'),
-  ('STD285', 'Chu Hải Trang', '0374178337', 'trangch720@example.test', '2004-11-08', '2026-08-24 08:39:00', 'Studying', 'OPP1676'),
-  ('STD286', 'Lý Phương Hải', '0312386934', 'hailp121@example.test', '1998-03-04', '2026-09-18 08:13:00', 'Studying', 'OPP1698'),
-  ('STD287', 'Hồ Tuấn Khoa', '0569219093', 'khoaht584@example.test', '1991-04-18', '2026-10-19 08:41:00', 'Studying', 'OPP1708'),
-  ('STD288', 'Lý Bảo Nhi', '0556567342', 'nhilb600@example.test', '1992-10-24', '2026-10-16 08:10:00', 'Studying', 'OPP1715'),
-  ('STD289', 'Huỳnh Quốc Anh', '0847931831', 'anhhq494@example.test', '1994-01-10', '2026-10-13 08:20:00', 'Studying', 'OPP1716'),
-  ('STD290', 'Phan Mỹ Khang', '0358370907', 'khangpm14@example.test', '2003-10-04', '2026-10-24 08:45:00', 'Studying', 'OPP1727'),
-  ('STD291', 'Bùi Anh Duy', '0338768962', 'duyba498@example.test', '2005-04-23', '2026-07-13 18:50:00', 'Studying', 'OPP1732'),
-  ('STD292', 'Huỳnh Ngọc Ly', '0514225141', 'lyhn158@example.test', '2011-11-20', '2026-06-03 13:27:00', 'Studying', 'OPP1733'),
-  ('STD293', 'Tô Thị Bình', '0383687334', 'binhtt818@example.test', '1997-06-09', '2026-05-16 08:41:00', 'Studying', 'OPP1735'),
-  ('STD294', 'Lý Minh Lan', '0582802463', 'lanlm472@example.test', '2002-11-09', '2026-06-07 10:35:00', 'Studying', 'OPP1740'),
-  ('STD295', 'Huỳnh Thanh Trí', '0809874002', 'triht861@example.test', '1996-01-12', '2026-06-05 09:40:00', 'Studying', 'OPP1746'),
-  ('STD296', 'Hồ Thanh Nghĩa', '0874719252', 'nghiaht708@example.test', '2010-04-11', '2026-05-25 20:04:00', 'Studying', 'OPP1747'),
-  ('STD297', 'Hồ Thu Tùng', '0875703714', 'tunght589@example.test', '2001-01-03', '2026-06-10 08:32:00', 'Studying', 'OPP1761'),
-  ('STD298', 'Chu Hoài Trí', '0711131620', 'trich300@example.test', '1999-01-17', '2026-06-20 08:08:00', 'Studying', 'OPP1762'),
-  ('STD299', 'Dương Anh Giang', '0565847382', 'giangda733@example.test', '1996-03-21', '2026-06-13 19:15:00', 'Studying', 'OPP1767'),
-  ('STD300', 'Đinh Ngọc Lan', '0987859113', 'landn248@example.test', '2001-01-04', '2026-07-09 13:09:00', 'Studying', 'OPP1782'),
-  ('STD301', 'Huỳnh Hữu My', '0711350669', 'myhh465@example.test', '2008-02-14', '2026-07-31 08:28:00', 'Studying', 'OPP1798'),
-  ('STD302', 'Huỳnh Khánh Châu', '0912347960', 'chauhk387@example.test', '1998-07-27', '2026-07-30 14:14:00', 'Studying', 'OPP1801'),
-  ('STD303', 'Ngô Hải Lan', '0577029433', 'lannh851@example.test', '2000-02-08', '2026-07-27 14:10:00', 'Studying', 'OPP1805'),
-  ('STD304', 'Lý Khánh Dũng', '0928352523', 'dunglk435@example.test', '2003-10-01', '2026-07-27 11:03:00', 'Studying', 'OPP1806'),
-  ('STD305', 'Lê Thu Nghĩa', '0733554020', 'nghialt242@example.test', '2002-03-04', '2026-09-19 08:14:00', 'Studying', 'OPP1810'),
-  ('STD306', 'Hồ Nhật My', '0792212626', 'myhn551@example.test', '1990-12-09', '2026-08-28 08:42:00', 'Dropped', 'OPP1812'),
-  ('STD307', 'Đặng Tuấn Tâm', '0838171544', 'tamdt553@example.test', '2010-08-07', '2026-07-15 11:57:00', 'Studying', 'OPP1813'),
-  ('STD308', 'Hồ Ngọc Quỳnh', '0911713210', 'quynhhn271@example.test', '1994-03-25', '2026-07-27 19:37:00', 'Studying', 'OPP1814'),
-  ('STD309', 'Trần Thu Sơn', '0715865898', 'sontt242@example.test', '1998-12-22', '2026-08-04 20:51:00', 'Studying', 'OPP1823'),
-  ('STD310', 'Dương Nhật Anh', '0365957804', 'anhdn559@example.test', '1995-11-18', '2026-09-15 08:23:00', 'Studying', 'OPP1844'),
-  ('STD311', 'Võ Minh Hà', '0978295183', 'havm733@example.test', '2009-02-09', '2026-08-26 08:42:00', 'Studying', 'OPP1849'),
-  ('STD312', 'Bùi Hữu Giang', '0787991886', 'giangbh312@example.test', '2002-12-15', '2026-10-14 08:14:00', 'Studying', 'OPP1858'),
-  ('STD313', 'Võ Quốc Trúc', '0851984885', 'trucvq263@example.test', '2010-06-22', '2026-10-28 08:16:00', 'Studying', 'OPP1859'),
-  ('STD314', 'Võ Văn Thảo', '0368427627', 'thaovv408@example.test', '1991-06-19', '2026-09-18 08:36:00', 'Studying', 'OPP1862'),
-  ('STD315', 'Tô Thị Trúc', '0982026261', 'tructt72@example.test', '1996-08-11', '2026-09-27 08:01:00', 'Studying', 'OPP1863'),
-  ('STD316', 'Trần Minh Hải', '0967535236', 'haitm137@example.test', '2003-03-05', '2026-10-18 09:14:00', 'Studying', 'OPP1869'),
-  ('STD317', 'Tô Hải Ngân', '0559808802', 'nganth301@example.test', '1992-04-16', '2026-10-02 08:19:00', 'Studying', 'OPP1879'),
-  ('STD318', 'Mai Bảo Tùng', '0760109057', 'tungmb133@example.test', '2006-04-27', '2026-09-27 08:29:00', 'Studying', 'OPP1886'),
-  ('STD319', 'Dương Thị Phong', '0847884573', 'phongdt399@example.test', '2001-09-10', '2026-10-19 19:00:00', 'Studying', 'OPP1888'),
-  ('STD320', 'Phan Quốc Hoa', '0708921464', 'hoapq496@example.test', '1998-06-23', '2026-10-18 08:35:00', 'Studying', 'OPP1889'),
-  ('STD321', 'Lê Hữu Trang', '0767883682', 'tranglh78@example.test', '2009-10-21', '2026-10-24 15:08:00', 'Studying', 'OPP1893'),
-  ('STD322', 'Trịnh Nhật Trúc', '0786925952', 'tructn692@example.test', '1991-05-11', '2026-05-21 14:50:00', 'Completed', 'OPP1910'),
-  ('STD323', 'Phan Hải Linh', '0877071378', 'linhph493@example.test', '1994-03-09', '2026-07-26 08:16:00', 'Studying', 'OPP1919'),
-  ('STD324', 'Dương Gia Thắng', '0852993405', 'thangdg853@example.test', '1991-10-06', '2026-05-25 08:38:00', 'Completed', 'OPP1927'),
-  ('STD325', 'Lê Thu Yến', '0352639652', 'yenlt953@example.test', '2001-07-03', '2026-06-01 08:12:00', 'Studying', 'OPP1932'),
-  ('STD326', 'Mai Đức Lan', '0830790982', 'lanmd50@example.test', '1995-06-19', '2026-06-15 08:19:00', 'Studying', 'OPP1968'),
-  ('STD327', 'Bùi Gia Nam', '0771116304', 'nambg682@example.test', '1996-12-21', '2026-08-24 18:40:00', 'Studying', 'OPP1971'),
-  ('STD328', 'Lý Minh Linh', '0804020813', 'linhlm296@example.test', '2005-11-06', '2026-07-29 08:16:00', 'Studying', 'OPP1976'),
-  ('STD329', 'Trịnh Khánh Ngân', '0332149299', 'ngantk681@example.test', '1990-04-28', '2026-08-13 17:25:00', 'Studying', 'OPP1979'),
-  ('STD330', 'Cao Thanh Trang', '0388054954', 'trangct724@example.test', '2000-04-19', '2026-08-12 08:15:00', 'Studying', 'OPP1980'),
-  ('STD331', 'Trần Bảo Hoa', '0853608942', 'hoatb275@example.test', '2001-08-08', '2026-07-31 17:28:00', 'Studying', 'OPP1985'),
-  ('STD332', 'Hoàng Mỹ Linh', '0938285594', 'linhhm517@example.test', '2002-05-22', '2026-08-14 08:17:00', 'Studying', 'OPP2001'),
-  ('STD333', 'Phạm Thị Anh', '0904315375', 'anhpt594@example.test', '1994-05-06', '2026-09-28 20:55:00', 'Studying', 'OPP2002'),
-  ('STD334', 'Hoàng Gia Dũng', '0599987664', 'dunghg433@example.test', '1993-05-11', '2026-09-05 17:36:00', 'Studying', 'OPP2008'),
-  ('STD335', 'Ngô Thanh Linh', '0307451934', 'linhnt694@example.test', '2009-01-08', '2026-09-27 08:00:00', 'Studying', 'OPP2020'),
-  ('STD336', 'Vũ Thanh Ngọc', '0911075503', 'ngocvt560@example.test', '2006-06-05', '2026-08-26 17:16:00', 'Studying', 'OPP2031'),
-  ('STD337', 'Huỳnh Mỹ Phong', '0898268311', 'phonghm20@example.test', '2007-05-11', '2026-09-14 09:44:00', 'Studying', 'OPP2034'),
-  ('STD338', 'Nguyễn Anh Tú', '0911374681', 'tuna305@example.test', '1998-12-17', '2026-09-16 16:54:00', 'Studying', 'OPP2046'),
-  ('STD339', 'Nguyễn Thị Mai', '0821583407', 'maint571@example.test', '2008-10-23', '2026-09-19 08:43:00', 'Studying', 'OPP2052'),
-  ('STD340', 'Mai Gia Quân', '0969623149', 'quanmg785@example.test', '2001-03-25', '2026-09-21 11:51:00', 'Studying', 'OPP2064'),
-  ('STD341', 'Lê Hải Yến', '0859054336', 'yenlh856@example.test', '1999-09-26', '2026-10-05 19:30:00', 'Studying', 'OPP2065'),
-  ('STD342', 'Phan Gia Ly', '0817636669', 'lypg15@example.test', '1997-12-07', '2026-10-28 11:34:00', 'Studying', 'OPP2073'),
-  ('STD343', 'Vũ Minh Phong', '0725358994', 'phongvm788@example.test', '2011-03-27', '2026-06-07 18:44:00', 'Studying', 'OPP2090'),
-  ('STD344', 'Vũ Hải Duy', '0380952820', 'duyvh374@example.test', '1994-04-01', '2026-08-02 12:44:00', 'Studying', 'OPP2091'),
-  ('STD345', 'Dương Hữu Minh', '0367924537', 'minhdh120@example.test', '1990-10-24', '2026-06-11 09:10:00', 'Studying', 'OPP2093'),
-  ('STD346', 'Lê Mỹ Thảo', '0973641006', 'thaolm564@example.test', '1998-11-15', '2026-05-22 18:27:00', 'Studying', 'OPP2112'),
-  ('STD347', 'Huỳnh Minh Tùng', '0509772607', 'tunghm467@example.test', '2005-06-16', '2026-06-10 19:03:00', 'Studying', 'OPP2113'),
-  ('STD348', 'Cao Hữu Nghĩa', '0562715629', 'nghiach602@example.test', '2012-05-16', '2026-05-30 08:31:00', 'Studying', 'OPP2114'),
-  ('STD349', 'Cao Ngọc Trang', '0825207709', 'trangcn85@example.test', '1999-09-20', '2026-06-09 08:36:00', 'Studying', 'OPP2123'),
-  ('STD350', 'Ngô Anh Duy', '0967924844', 'duyna989@example.test', '2002-06-12', '2026-07-03 08:48:00', 'Studying', 'OPP2127'),
-  ('STD351', 'Hoàng Nhật Nam', '0752356812', 'namhn391@example.test', '1997-05-19', '2026-07-25 20:49:00', 'Dropped', 'OPP2131'),
-  ('STD352', 'Mai Anh Ngọc', '0986529866', 'ngocma312@example.test', '2011-12-05', '2026-07-12 08:05:00', 'Studying', 'OPP2136'),
-  ('STD353', 'Vũ Hữu Huy', '0577245289', 'huyvh100@example.test', '1998-11-25', '2026-08-11 08:08:00', 'Studying', 'OPP2140'),
-  ('STD354', 'Mai Hoài Hiếu', '0800660713', 'hieumh904@example.test', '2000-07-17', '2026-06-17 08:24:00', 'Studying', 'OPP2141'),
-  ('STD355', 'Trần Nhật Hân', '0557840166', 'hantn439@example.test', '1992-05-26', '2026-06-28 08:30:00', 'Studying', 'OPP2150'),
-  ('STD356', 'Đinh Khánh Chi', '0558916510', 'chidk869@example.test', '2008-02-04', '2026-07-15 08:44:00', 'Studying', 'OPP2152'),
-  ('STD357', 'Chu Hải Hải', '0385593912', 'haich148@example.test', '1993-08-07', '2026-06-25 16:54:00', 'Studying', 'OPP2157'),
-  ('STD358', 'Tô Quốc Minh', '0376116232', 'minhtq31@example.test', '2011-02-27', '2026-06-30 08:00:00', 'Studying', 'OPP2165'),
-  ('STD359', 'Phan Hải Nghĩa', '0973848392', 'nghiaph537@example.test', '2011-11-13', '2026-06-29 16:46:00', 'Studying', 'OPP2168'),
-  ('STD360', 'Dương Ngọc Giang', '0939857904', 'giangdn301@example.test', '2003-03-23', '2026-07-26 20:03:00', 'Studying', 'OPP2175'),
-  ('STD361', 'Phan Thị Thắng', '0549615942', 'thangpt571@example.test', '2002-04-16', '2026-08-04 08:02:00', 'Studying', 'OPP2176'),
-  ('STD362', 'Mai Thu Thư', '0817747766', 'thumt681@example.test', '1994-04-09', '2026-07-16 08:43:00', 'Completed', 'OPP2178'),
-  ('STD363', 'Dương Quốc Thảo', '0581382332', 'thaodq117@example.test', '1994-12-19', '2026-07-18 08:00:00', 'Studying', 'OPP2185'),
-  ('STD364', 'Lâm Quốc Duy', '0979579777', 'duylq318@example.test', '1997-12-12', '2026-09-08 08:41:00', 'Dropped', 'OPP2189'),
-  ('STD365', 'Trần Minh Hà', '0327938285', 'hatm465@example.test', '1996-11-18', '2026-07-19 12:42:00', 'Studying', 'OPP2192'),
-  ('STD366', 'Bùi Thu Khang', '0396373192', 'khangbt341@example.test', '2012-04-13', '2026-08-06 09:51:00', 'Studying', 'OPP2193'),
-  ('STD367', 'Chu Anh Minh', '0812848569', 'minhca823@example.test', '2001-04-06', '2026-09-27 08:22:00', 'Studying', 'OPP2197'),
-  ('STD368', 'Hà Anh Vy', '0583154062', 'vyha30@example.test', '2004-09-05', '2026-07-24 08:19:00', 'Completed', 'OPP2198'),
-  ('STD369', 'Vũ Quốc Tú', '0310191246', 'tuvq435@example.test', '1990-01-19', '2026-07-16 20:30:00', 'Studying', 'OPP2203'),
-  ('STD370', 'Võ Thị My', '0504993024', 'myvt818@example.test', '2000-12-04', '2026-09-06 08:12:00', 'Studying', 'OPP2207'),
-  ('STD371', 'Võ Nhật Nghĩa', '0526343344', 'nghiavn853@example.test', '2008-03-07', '2026-10-03 16:13:00', 'Studying', 'OPP2211'),
-  ('STD372', 'Trần Minh Trí', '0845221365', 'tritm433@example.test', '1998-02-24', '2026-08-15 17:22:00', 'Studying', 'OPP2213'),
-  ('STD373', 'Đỗ Thị Dũng', '0775117606', 'dungdt967@example.test', '1990-05-06', '2026-09-19 08:11:00', 'Studying', 'OPP2221'),
-  ('STD374', 'Cao Minh Hà', '0756825882', 'hacm943@example.test', '2005-10-19', '2026-09-16 15:51:00', 'Studying', 'OPP2228'),
-  ('STD375', 'Trịnh Ngọc Tùng', '0394764915', 'tungtn823@example.test', '2010-05-05', '2026-09-18 15:23:00', 'Studying', 'OPP2229'),
-  ('STD376', 'Lâm Kim Thắng', '0733366476', 'thanglk339@example.test', '2004-05-25', '2026-10-23 08:14:00', 'Studying', 'OPP2252'),
-  ('STD377', 'Chu Minh Phúc', '0791789314', 'phuccm116@example.test', '1997-11-17', '2026-10-26 08:13:00', 'Studying', 'OPP2268'),
-  ('STD378', 'Vũ Minh Linh', '0971472374', 'linhvm549@example.test', '1993-08-13', '2026-06-16 09:35:00', 'Studying', 'OPP2281'),
-  ('STD379', 'Nguyễn Đức Ngân', '0938224134', 'ngannd188@example.test', '1991-11-04', '2026-08-05 08:45:00', 'Studying', 'OPP2282'),
-  ('STD380', 'Võ Thu Sơn', '0508405110', 'sonvt507@example.test', '2011-09-18', '2026-06-02 19:07:00', 'Studying', 'OPP2286'),
-  ('STD381', 'Hà Phương Anh', '0782131016', 'anhhp366@example.test', '1996-09-15', '2026-05-29 18:53:00', 'Studying', 'OPP2289'),
-  ('STD382', 'Chu Thu Quỳnh', '0960989636', 'quynhct733@example.test', '1994-05-25', '2026-08-02 15:49:00', 'Studying', 'OPP2316'),
-  ('STD383', 'Phan Hoài Bình', '0506136966', 'binhph762@example.test', '1999-09-18', '2026-07-06 08:10:00', 'Studying', 'OPP2319'),
-  ('STD384', 'Hà Hải Phong', '0917333016', 'phonghh849@example.test', '2000-01-07', '2026-07-24 19:14:00', 'Dropped', 'OPP2335'),
-  ('STD385', 'Vũ Khánh Hương', '0723917359', 'huongvk110@example.test', '1999-09-15', '2026-08-03 16:26:00', 'Studying', 'OPP2338'),
-  ('STD386', 'Hoàng Đức Sơn', '0930140816', 'sonhd773@example.test', '1997-07-06', '2026-07-30 08:38:00', 'Studying', 'OPP2343'),
-  ('STD387', 'Phạm Hoài Trí', '0954511383', 'triph801@example.test', '2010-01-12', '2026-08-10 16:09:00', 'Studying', 'OPP2349'),
-  ('STD388', 'Phan Nhật Giang', '0556210589', 'giangpn912@example.test', '2000-01-02', '2026-07-16 08:44:00', 'Studying', 'OPP2355'),
-  ('STD389', 'Phan Văn Duy', '0588012385', 'duypv81@example.test', '2003-04-11', '2026-09-28 08:01:00', 'Studying', 'OPP2369'),
-  ('STD390', 'Bùi Minh My', '0997235449', 'mybm743@example.test', '2012-04-02', '2026-09-23 08:35:00', 'Studying', 'OPP2406'),
-  ('STD391', 'Lâm Ngọc Tâm', '0550585652', 'tamln836@example.test', '2004-06-11', '2026-05-26 08:40:00', 'Studying', 'OPP2442'),
-  ('STD392', 'Đỗ Khánh Anh', '0710469064', 'anhdk338@example.test', '2002-10-07', '2026-06-10 09:29:00', 'Studying', 'OPP2445'),
-  ('STD393', 'Vũ Văn Thảo', '0304157658', 'thaovv955@example.test', '2012-05-22', '2026-06-12 08:26:00', 'Studying', 'OPP2451'),
-  ('STD394', 'Nguyễn Bảo Khang', '0323699863', 'khangnb946@example.test', '2004-01-17', '2026-06-25 17:05:00', 'Studying', 'OPP2457'),
-  ('STD395', 'Đỗ Phương Quỳnh', '0326730899', 'quynhdp240@example.test', '2006-05-22', '2026-06-10 18:49:00', 'Studying', 'OPP2460'),
-  ('STD396', 'Nguyễn Văn Ngọc', '0877137522', 'ngocnv361@example.test', '2008-09-24', '2026-07-04 13:13:00', 'Studying', 'OPP2471'),
-  ('STD397', 'Tô Đức Lan', '0801280549', 'lantd71@example.test', '1994-10-02', '2026-06-29 12:11:00', 'Studying', 'OPP2473'),
-  ('STD398', 'Phạm Anh Hải', '0731675055', 'haipa928@example.test', '1991-02-05', '2026-06-18 10:40:00', 'Studying', 'OPP2501'),
-  ('STD399', 'Đinh Khánh Minh', '0564895552', 'minhdk933@example.test', '2007-02-05', '2026-07-05 08:50:00', 'Studying', 'OPP2503'),
-  ('STD400', 'Phạm Hoài Khoa', '0392133230', 'khoaph43@example.test', '1999-12-26', '2026-06-18 17:42:00', 'Studying', 'OPP2504'),
-  ('STD401', 'Phạm Đức Quân', '0723134932', 'quanpd695@example.test', '2010-02-16', '2026-08-05 08:17:00', 'Studying', 'OPP2505'),
-  ('STD402', 'Trịnh Hải Châu', '0888577135', 'chauth876@example.test', '1996-06-15', '2026-06-21 08:48:00', 'Completed', 'OPP2510'),
-  ('STD403', 'Dương Quốc Hiếu', '0510555202', 'hieudq915@example.test', '2009-06-24', '2026-06-19 14:15:00', 'Studying', 'OPP2512'),
-  ('STD404', 'Vũ Quốc Tùng', '0771249744', 'tungvq169@example.test', '2005-02-21', '2026-06-26 08:38:00', 'Studying', 'OPP2515'),
-  ('STD405', 'Cao Hoài Ly', '0803988220', 'lych363@example.test', '1995-01-21', '2026-08-25 17:44:00', 'Studying', 'OPP2516'),
-  ('STD406', 'Lý Anh Khôi', '0503324803', 'khoila486@example.test', '2002-12-03', '2026-08-03 16:46:00', 'Studying', 'OPP2518'),
-  ('STD407', 'Phan Hữu Giang', '0828503794', 'giangph611@example.test', '2000-02-14', '2026-07-30 18:54:00', 'Studying', 'OPP2519'),
-  ('STD408', 'Cao Gia Thắng', '0865991585', 'thangcg549@example.test', '2008-11-26', '2026-07-22 08:36:00', 'Studying', 'OPP2520'),
-  ('STD409', 'Hà Thu Hải', '0734971725', 'haiht951@example.test', '1996-05-05', '2026-07-29 08:18:00', 'Studying', 'OPP2522'),
-  ('STD410', 'Võ Thanh Ngọc', '0805262633', 'ngocvt371@example.test', '2012-07-16', '2026-09-10 08:38:00', 'Studying', 'OPP2523'),
-  ('STD411', 'Đinh Kim Nhi', '0541810044', 'nhidk81@example.test', '2004-03-15', '2026-08-01 15:46:00', 'Studying', 'OPP2526'),
-  ('STD412', 'Nguyễn Quốc Lan', '0368378435', 'lannq978@example.test', '1990-09-10', '2026-07-30 08:41:00', 'Studying', 'OPP2527'),
-  ('STD413', 'Vũ Gia Chi', '0756485919', 'chivg152@example.test', '2005-04-11', '2026-08-27 08:47:00', 'Studying', 'OPP2539'),
-  ('STD414', 'Vũ Đức Châu', '0359330131', 'chauvd917@example.test', '1996-03-28', '2026-07-20 08:07:00', 'Studying', 'OPP2541'),
-  ('STD415', 'Chu Mỹ Nghĩa', '0905570693', 'nghiacm371@example.test', '1993-08-15', '2026-09-06 08:46:00', 'Studying', 'OPP2542'),
-  ('STD416', 'Phan Thị Giang', '0964984288', 'giangpt771@example.test', '2011-07-24', '2026-09-08 08:25:00', 'Studying', 'OPP2559'),
-  ('STD417', 'Lê Văn Nghĩa', '0351071991', 'nghialv68@example.test', '1992-02-22', '2026-08-30 08:40:00', 'Studying', 'OPP2564'),
-  ('STD418', 'Ngô Quốc Vy', '0371328378', 'vynq878@example.test', '1992-04-11', '2026-08-26 14:09:00', 'Studying', 'OPP2566'),
-  ('STD419', 'Hà Thị Quỳnh', '0749636804', 'quynhht339@example.test', '1999-01-10', '2026-10-08 08:37:00', 'Studying', 'OPP2570'),
-  ('STD420', 'Lâm Gia Anh', '0597003336', 'anhlg681@example.test', '1993-01-27', '2026-08-25 08:26:00', 'Studying', 'OPP2573'),
-  ('STD421', 'Vũ Bảo Yến', '0886441153', 'yenvb883@example.test', '2005-08-13', '2026-08-20 08:22:00', 'Studying', 'OPP2579'),
-  ('STD422', 'Tô Bảo Bình', '0908984011', 'binhtb964@example.test', '2011-04-26', '2026-10-14 15:58:00', 'Studying', 'OPP2584'),
-  ('STD423', 'Chu Thu Nam', '0977979652', 'namct313@example.test', '1997-05-03', '2026-10-06 14:33:00', 'Studying', 'OPP2594'),
-  ('STD424', 'Hoàng Phương Dũng', '0896210183', 'dunghp318@example.test', '2012-02-05', '2026-09-29 08:04:00', 'Studying', 'OPP2596'),
-  ('STD425', 'Phạm Mỹ Yến', '0393139301', 'yenpm595@example.test', '2009-11-18', '2026-09-20 08:23:00', 'Studying', 'OPP2603'),
-  ('STD426', 'Huỳnh Mỹ Trang', '0968386040', 'tranghm791@example.test', '2001-11-15', '2026-09-26 08:45:00', 'Studying', 'OPP2607'),
-  ('STD427', 'Võ Kim Yến', '0951116215', 'yenvk931@example.test', '2006-10-04', '2026-10-22 12:33:00', 'Studying', 'OPP2624'),
-  ('STD428', 'Tô Phương Thảo', '0700901724', 'thaotp977@example.test', '2000-06-25', '2026-06-07 08:39:00', 'Studying', 'OPP2638'),
-  ('STD429', 'Hoàng Thị Quân', '0873896073', 'quanht858@example.test', '1991-03-08', '2026-06-11 10:22:00', 'Studying', 'OPP2642'),
-  ('STD430', 'Lê Anh Bình', '0794089062', 'binhla519@example.test', '1994-10-26', '2026-05-31 09:29:00', 'Studying', 'OPP2643'),
-  ('STD431', 'Bùi Ngọc Linh', '0811033422', 'linhbn583@example.test', '1993-12-28', '2026-05-18 12:03:00', 'Studying', 'OPP2644'),
-  ('STD432', 'Lê Anh Lan', '0517146657', 'lanla522@example.test', '2000-11-02', '2026-05-12 14:06:00', 'Studying', 'OPP2647'),
-  ('STD433', 'Cao Thị Tú', '0736521178', 'tuct177@example.test', '2008-03-19', '2026-06-02 08:29:00', 'Studying', 'OPP2651'),
-  ('STD434', 'Võ Thanh Trang', '0764764428', 'trangvt59@example.test', '1992-09-07', '2026-06-19 13:13:00', 'Studying', 'OPP2654'),
-  ('STD435', 'Nguyễn Anh An', '0507225018', 'anna241@example.test', '1996-08-25', '2026-05-16 16:44:00', 'Studying', 'OPP2669'),
-  ('STD436', 'Nguyễn Hữu Duy', '0814324507', 'duynh546@example.test', '2002-07-21', '2026-06-21 15:33:00', 'Studying', 'OPP2671'),
-  ('STD437', 'Huỳnh Anh Trúc', '0858269194', 'trucha666@example.test', '2011-07-16', '2026-07-04 08:17:00', 'Studying', 'OPP2672'),
-  ('STD438', 'Ngô Bảo My', '0789040946', 'mynb870@example.test', '2006-07-01', '2026-08-12 08:15:00', 'Studying', 'OPP2673'),
-  ('STD439', 'Võ Thị Vy', '0352043901', 'vyvt759@example.test', '2004-01-11', '2026-06-30 08:18:00', 'Studying', 'OPP2682'),
-  ('STD440', 'Lý Thanh Thảo', '0811991044', 'thaolt448@example.test', '1997-07-02', '2026-10-01 08:11:00', 'Studying', 'OPP2698'),
-  ('STD441', 'Mai Nhật Dũng', '0858074276', 'dungmn529@example.test', '2001-02-08', '2026-07-16 17:17:00', 'Studying', 'OPP2699'),
-  ('STD442', 'Mai Minh Ngân', '0857076310', 'nganmm544@example.test', '2007-06-22', '2026-08-14 08:47:00', 'Studying', 'OPP2700'),
-  ('STD443', 'Trịnh Hoài Tâm', '0371957093', 'tamth904@example.test', '1998-06-02', '2026-07-26 08:50:00', 'Studying', 'OPP2711'),
-  ('STD444', 'Trần Tuấn Giang', '0364572390', 'giangtt841@example.test', '2003-06-28', '2026-09-27 08:27:00', 'Studying', 'OPP2712'),
-  ('STD445', 'Nguyễn Hoài Bình', '0563500585', 'binhnh750@example.test', '2007-02-09', '2026-07-15 08:12:00', 'Studying', 'OPP2717'),
-  ('STD446', 'Đinh Minh Quân', '0393988332', 'quandm742@example.test', '1995-10-26', '2026-07-31 08:04:00', 'Studying', 'OPP2719'),
-  ('STD447', 'Phan Kim Hiếu', '0794105089', 'hieupk654@example.test', '2005-05-27', '2026-07-24 20:23:00', 'Studying', 'OPP2720'),
-  ('STD448', 'Lâm Nhật Hà', '0749742745', 'haln133@example.test', '2005-12-22', '2026-07-29 19:58:00', 'Studying', 'OPP2721'),
-  ('STD449', 'Nguyễn Minh Ngọc', '0996929201', 'ngocnm628@example.test', '1992-10-23', '2026-07-28 08:40:00', 'Studying', 'OPP2723'),
-  ('STD450', 'Vũ Khánh Sơn', '0987296860', 'sonvk230@example.test', '1991-04-12', '2026-08-13 18:15:00', 'Studying', 'OPP2724'),
-  ('STD451', 'Lê Văn Minh', '0891300089', 'minhlv374@example.test', '1999-08-06', '2026-08-16 13:23:00', 'Studying', 'OPP2737'),
-  ('STD452', 'Chu Phương Thắng', '0892608497', 'thangcp308@example.test', '2002-11-03', '2026-09-08 08:05:00', 'Studying', 'OPP2738'),
-  ('STD453', 'Dương Thị Vy', '0340639614', 'vydt353@example.test', '2007-09-01', '2026-10-16 08:24:00', 'Studying', 'OPP2740'),
-  ('STD454', 'Bùi Nhật Nhi', '0367625269', 'nhibn644@example.test', '1994-06-01', '2026-08-27 18:31:00', 'Studying', 'OPP2741'),
-  ('STD455', 'Đỗ Tuấn Trang', '0324118615', 'trangdt149@example.test', '2002-02-26', '2026-09-03 10:46:00', 'Studying', 'OPP2742'),
-  ('STD456', 'Võ Hữu Tú', '0876005707', 'tuvh62@example.test', '2006-12-01', '2026-10-08 08:11:00', 'Studying', 'OPP2748'),
-  ('STD457', 'Lê Ngọc Sơn', '0819243449', 'sonln367@example.test', '2005-06-06', '2026-09-23 18:42:00', 'Studying', 'OPP2749'),
-  ('STD458', 'Lê Hữu Anh', '0976114040', 'anhlh185@example.test', '2007-05-23', '2026-08-29 11:26:00', 'Studying', 'OPP2752'),
-  ('STD459', 'Phan Tuấn Nhi', '0364802456', 'nhipt282@example.test', '2008-01-27', '2026-10-10 08:42:00', 'Studying', 'OPP2755'),
-  ('STD460', 'Lý Thanh Duy', '0560128529', 'duylt477@example.test', '2011-12-25', '2026-09-28 08:50:00', 'Studying', 'OPP2761'),
-  ('STD461', 'Lâm Ngọc Thảo', '0763370487', 'thaoln645@example.test', '1995-08-08', '2026-09-22 08:59:00', 'Studying', 'OPP2762'),
-  ('STD462', 'Phạm Tuấn Sơn', '0825002857', 'sonpt301@example.test', '1996-11-21', '2026-09-23 08:41:00', 'Studying', 'OPP2763'),
-  ('STD463', 'Trần Nhật Ngân', '0503952025', 'ngantn182@example.test', '2003-10-21', '2026-09-13 08:05:00', 'Studying', 'OPP2769'),
-  ('STD464', 'Trần Anh Bình', '0551001264', 'binhta154@example.test', '1995-02-08', '2026-09-15 08:21:00', 'Studying', 'OPP2770'),
-  ('STD465', 'Phan Anh Khoa', '0763961013', 'khoapa429@example.test', '1990-09-01', '2026-10-09 08:47:00', 'Studying', 'OPP2773'),
-  ('STD466', 'Vũ Thị Long', '0525715676', 'longvt598@example.test', '2002-05-06', '2026-10-05 08:13:00', 'Studying', 'OPP2784'),
-  ('STD467', 'Tô Hải Quỳnh', '0765626352', 'quynhth237@example.test', '1992-03-08', '2026-09-13 12:36:00', 'Studying', 'OPP2786'),
-  ('STD468', 'Lâm Hữu Hiếu', '0377452457', 'hieulh174@example.test', '1992-08-21', '2026-10-13 19:52:00', 'Studying', 'OPP2791'),
-  ('STD469', 'Ngô Thanh Sơn', '0516486342', 'sonnt447@example.test', '1993-06-08', '2026-10-23 08:57:00', 'Studying', 'OPP2793'),
-  ('STD470', 'Trịnh Ngọc Hương', '0514120899', 'huongtn145@example.test', '2010-05-17', '2026-10-16 20:16:00', 'Studying', 'OPP2798'),
-  ('STD471', 'Bùi Mỹ Ngọc', '0770238276', 'ngocbm224@example.test', '2001-07-02', '2026-10-24 19:08:00', 'Studying', 'OPP2806'),
-  ('STD472', 'Đặng Khánh Bình', '0565845100', 'binhdk994@example.test', '1992-11-07', '2026-06-01 09:35:00', 'Studying', 'OPP2815'),
-  ('STD473', 'Vũ Anh Hải', '0908836431', 'haiva189@example.test', '1998-06-16', '2026-06-09 08:32:00', 'Studying', 'OPP2821'),
-  ('STD474', 'Huỳnh Gia Châu', '0554986837', 'chauhg317@example.test', '1998-11-21', '2026-06-21 13:42:00', 'Completed', 'OPP2825'),
-  ('STD475', 'Nguyễn Mỹ Hương', '0864284884', 'huongnm607@example.test', '2008-05-05', '2026-06-11 08:27:00', 'Studying', 'OPP2830'),
-  ('STD476', 'Bùi Văn Lan', '0794026998', 'lanbv120@example.test', '1998-02-20', '2026-07-20 08:43:00', 'Studying', 'OPP2834'),
-  ('STD477', 'Võ Ngọc Minh', '0564543463', 'minhvn266@example.test', '2004-02-06', '2026-05-27 12:54:00', 'Studying', 'OPP2837'),
-  ('STD478', 'Huỳnh Gia Nghĩa', '0881827937', 'nghiahg434@example.test', '1996-11-26', '2026-05-30 08:23:00', 'Studying', 'OPP2838'),
-  ('STD479', 'Lê Hoài Thắng', '0764269569', 'thanglh320@example.test', '1990-03-22', '2026-05-16 13:06:00', 'Studying', 'OPP2839'),
-  ('STD480', 'Dương Hữu Khang', '0833563468', 'khangdh442@example.test', '2004-06-12', '2026-05-25 11:48:00', 'Studying', 'OPP2841'),
-  ('STD481', 'Trịnh Phương Minh', '0347347577', 'minhtp85@example.test', '2000-12-24', '2026-06-21 20:40:00', 'Studying', 'OPP2846'),
-  ('STD482', 'Tô Anh Thắng', '0810841416', 'thangta251@example.test', '2008-02-08', '2026-07-04 08:01:00', 'Studying', 'OPP2847'),
-  ('STD483', 'Ngô Phương Minh', '0552980447', 'minhnp76@example.test', '2007-03-19', '2026-07-01 19:34:00', 'Studying', 'OPP2848'),
-  ('STD484', 'Trần Anh Anh', '0853332819', 'anhta531@example.test', '1992-03-27', '2026-06-28 08:20:00', 'Studying', 'OPP2850'),
-  ('STD485', 'Ngô Quốc Nam', '0703301845', 'namnq425@example.test', '1990-09-12', '2026-06-18 10:56:00', 'Studying', 'OPP2851'),
-  ('STD486', 'Phan Thị Trang', '0347733810', 'trangpt148@example.test', '2006-01-21', '2026-06-22 08:02:00', 'Studying', 'OPP2866'),
-  ('STD487', 'Lý Gia Huy', '0805239345', 'huylg50@example.test', '1995-07-17', '2026-07-22 08:03:00', 'Studying', 'OPP2877'),
-  ('STD488', 'Dương Bảo Phúc', '0943434344', 'phucdb744@example.test', '1995-11-09', '2026-07-17 18:49:00', 'Studying', 'OPP2882'),
-  ('STD489', 'Võ Thanh Thảo', '0520700971', 'thaovt442@example.test', '2002-09-18', '2026-07-31 17:40:00', 'Studying', 'OPP2885'),
-  ('STD490', 'Trần Gia Hà', '0963574681', 'hatg825@example.test', '2002-04-13', '2026-07-20 14:52:00', 'Studying', 'OPP2889'),
-  ('STD491', 'Huỳnh Minh Trí', '0905897848', 'trihm606@example.test', '1992-07-18', '2026-08-07 08:40:00', 'Studying', 'OPP2893'),
-  ('STD492', 'Hồ Hải Khang', '0843155219', 'khanghh506@example.test', '1997-11-02', '2026-07-29 12:35:00', 'Studying', 'OPP2899'),
-  ('STD493', 'Cao Anh Trang', '0354755141', 'trangca320@example.test', '1990-12-02', '2026-08-08 08:44:00', 'Studying', 'OPP2903'),
-  ('STD494', 'Bùi Nhật Nam', '0565746236', 'nambn548@example.test', '2000-05-11', '2026-07-25 08:25:00', 'Studying', 'OPP2907'),
-  ('STD495', 'Lý Hữu Giang', '0802332778', 'gianglh614@example.test', '1994-10-01', '2026-08-12 20:14:00', 'Studying', 'OPP2908'),
-  ('STD496', 'Đinh Đức Anh', '0833651665', 'anhdd187@example.test', '1993-03-04', '2026-08-10 08:16:00', 'Studying', 'OPP2910'),
-  ('STD497', 'Vũ Mỹ Tùng', '0508857586', 'tungvm150@example.test', '1994-02-02', '2026-09-07 12:13:00', 'Studying', 'OPP2911'),
-  ('STD498', 'Vũ Ngọc Thảo', '0753944670', 'thaovn273@example.test', '1999-01-21', '2026-08-03 15:25:00', 'Studying', 'OPP2913'),
-  ('STD499', 'Phan Quốc Hương', '0543604062', 'huongpq120@example.test', '2000-06-15', '2026-08-26 08:44:00', 'Studying', 'OPP2915'),
-  ('STD500', 'Hà Hoài Trí', '0782215352', 'trihh822@example.test', '1991-01-27', '2026-09-04 19:04:00', 'Studying', 'OPP2920'),
-  ('STD501', 'Đặng Anh Linh', '0789256369', 'linhda697@example.test', '2001-12-26', '2026-10-05 10:55:00', 'Studying', 'OPP2923'),
-  ('STD502', 'Hoàng Thị Hân', '0377821017', 'hanht301@example.test', '2000-11-24', '2026-08-16 08:16:00', 'Studying', 'OPP2925'),
-  ('STD503', 'Lý Hải Vy', '0988435483', 'vylh692@example.test', '2010-06-20', '2026-08-27 08:20:00', 'Studying', 'OPP2932'),
-  ('STD504', 'Võ Nhật Uyên', '0336945974', 'uyenvn603@example.test', '2009-07-06', '2026-08-30 09:04:00', 'Studying', 'OPP2933'),
-  ('STD505', 'Trịnh Anh Bình', '0825293965', 'binhta738@example.test', '2007-06-19', '2026-08-19 19:32:00', 'Studying', 'OPP2940'),
-  ('STD506', 'Huỳnh Mỹ Hiếu', '0362011123', 'hieuhm929@example.test', '1999-04-23', '2026-09-15 13:07:00', 'Studying', 'OPP2941'),
-  ('STD507', 'Huỳnh Thị Khôi', '0896678241', 'khoiht693@example.test', '1999-03-04', '2026-10-25 14:10:00', 'Studying', 'OPP2947'),
-  ('STD508', 'Dương Kim Lan', '0886392666', 'landk60@example.test', '2012-12-23', '2026-08-14 08:03:00', 'Studying', 'OPP2950'),
-  ('STD509', 'Dương Nhật Bình', '0819989225', 'binhdn264@example.test', '1993-07-21', '2026-08-20 13:16:00', 'Studying', 'OPP2954'),
-  ('STD510', 'Bùi Hoài Thắng', '0752922948', 'thangbh236@example.test', '1992-11-12', '2026-09-01 17:49:00', 'Studying', 'OPP2956'),
-  ('STD511', 'Ngô Ngọc Tùng', '0983632203', 'tungnn407@example.test', '2000-06-19', '2026-09-09 13:14:00', 'Studying', 'OPP2957'),
-  ('STD512', 'Cao Văn Minh', '0788689893', 'minhcv58@example.test', '1998-05-05', '2026-10-12 14:35:00', 'Studying', 'OPP2966'),
-  ('STD513', 'Bùi Ngọc Minh', '0911407695', 'minhbn268@example.test', '2005-09-28', '2026-09-20 19:58:00', 'Studying', 'OPP2968'),
-  ('STD514', 'Trịnh Mỹ Sơn', '0766579818', 'sontm359@example.test', '1999-09-25', '2026-09-13 08:36:00', 'Studying', 'OPP2969'),
-  ('STD515', 'Lê Minh Hải', '0970102476', 'hailm836@example.test', '1999-11-22', '2026-10-13 12:37:00', 'Studying', 'OPP2972'),
-  ('STD516', 'Phan Ngọc Giang', '0934797329', 'giangpn539@example.test', '2010-12-14', '2026-10-27 10:24:00', 'Studying', 'OPP2978'),
-  ('STD517', 'Hoàng Bảo Trúc', '0528214534', 'truchb729@example.test', '2003-09-02', '2026-10-16 20:36:00', 'Studying', 'OPP2989'),
-  ('STD518', 'Vũ Thu Hà', '0527131853', 'havt974@example.test', '2001-03-03', '2026-10-26 11:16:00', 'Studying', 'OPP2992'),
-  ('STD519', 'Hoàng Anh Châu', '0374384606', 'chauha80@example.test', '2005-09-10', '2026-09-19 08:23:00', 'Studying', 'OPP3011'),
-  ('STD520', 'Ngô Hữu Vy', '0758366198', 'vynh413@example.test', '2008-06-16', '2026-10-11 09:24:00', 'Studying', 'OPP3025'),
-  ('STD521', 'Vũ Kim Nghĩa', '0578306178', 'nghiavk181@example.test', '1999-03-13', '2026-09-16 17:27:00', 'Studying', 'OPP3029'),
-  ('STD522', 'Đặng Nhật Châu', '0883270101', 'chaudn104@example.test', '2005-06-06', '2026-09-16 08:38:00', 'Dropped', 'OPP3036'),
-  ('STD523', 'Ngô Bảo Quỳnh', '0553815521', 'quynhnb265@example.test', '2001-07-10', '2026-10-25 13:57:00', 'Studying', 'OPP3037'),
-  ('STD524', 'Dương Tuấn Nhi', '0947000232', 'nhidt12@example.test', '2007-03-09', '2026-10-24 18:56:00', 'Studying', 'OPP3042'),
-  ('STD525', 'Phan Hoài Minh', '0799921236', 'minhph319@example.test', '1998-12-28', '2026-10-15 15:50:00', 'Studying', 'OPP3045'),
-  ('STD526', 'Mai Khánh Thắng', '0531333412', 'thangmk226@example.test', '1996-05-20', '2026-10-07 14:45:00', 'Studying', 'OPP3061'),
-  ('STD527', 'Hồ Bảo Thắng', '0876621431', 'thanghb399@example.test', '2002-04-24', '2026-09-19 08:37:00', 'Studying', 'OPP3065'),
-  ('STD528', 'Tô Anh Châu', '0902039446', 'chauta103@example.test', '2003-11-28', '2026-10-07 11:30:00', 'Studying', 'OPP3089'),
-  ('STD529', 'Đinh Bảo Châu', '0824395104', 'chaudb656@example.test', '2009-06-23', '2026-09-15 09:14:00', 'Studying', 'OPP3098'),
-  ('STD530', 'Hoàng Bảo Quỳnh', '0586958050', 'quynhhb516@example.test', '2011-10-19', '2026-09-29 08:45:00', 'Studying', 'OPP3101'),
-  ('STD531', 'Bùi Mỹ Quỳnh', '0511102699', 'quynhbm752@example.test', '2008-12-14', '2026-09-21 08:42:00', 'Studying', 'OPP3131'),
-  ('STD532', 'Hoàng Thị Quân', '0884624663', 'quanht463@example.test', '1991-10-13', '2026-10-09 15:45:00', 'Studying', 'OPP3135'),
-  ('STD533', 'Đặng Đức Linh', '0944570189', 'linhdd516@example.test', '2002-05-28', '2026-09-18 17:18:00', 'Studying', 'OPP3137'),
-  ('STD534', 'Lê Gia Hân', '0513326413', 'hanlg389@example.test', '1990-01-24', '2026-09-19 11:46:00', 'Studying', 'OPP3140'),
-  ('STD535', 'Lâm Minh Hoa', '0339275527', 'hoalm114@example.test', '2003-09-27', '2026-10-04 08:41:00', 'Studying', 'OPP3144'),
-  ('STD536', 'Trịnh Thu Huy', '0931321817', 'huytt694@example.test', '1996-06-01', '2026-09-16 09:16:00', 'Studying', 'OPP3145'),
-  ('STD537', 'Võ Kim Hà', '0712133166', 'havk140@example.test', '2000-12-01', '2026-09-21 09:37:00', 'Studying', 'OPP3146'),
-  ('STD538', 'Lê Hoài Trí', '0719841660', 'trilh130@example.test', '1992-06-10', '2026-10-25 19:53:00', 'Studying', 'OPP3192'),
-  ('STD539', 'Võ Mỹ Hoa', '0861266801', 'hoavm829@example.test', '2005-05-11', '2026-10-07 17:55:00', 'Studying', 'OPP3200'),
-  ('STD540', 'Ngô Phương Duy', '0834352734', 'duynp652@example.test', '2008-02-15', '2026-09-24 08:41:00', 'Studying', 'OPP3219'),
-  ('STD541', 'Đặng Phương Tú', '0520865399', 'tudp596@example.test', '1990-12-04', '2026-10-25 10:21:00', 'Studying', 'OPP3235'),
-  ('STD542', 'Lý Khánh Hoa', '0921932702', 'hoalk995@example.test', '2000-05-20', '2026-10-13 11:34:00', 'Studying', 'OPP3237'),
-  ('STD543', 'Nguyễn Mỹ Hiếu', '0862379351', 'hieunm717@example.test', '2011-09-15', '2026-10-01 08:29:00', 'Studying', 'OPP3253'),
-  ('STD544', 'Tô Thanh Phúc', '0931250737', 'phuctt541@example.test', '2004-06-28', '2026-09-20 08:20:00', 'Studying', 'OPP3259'),
-  ('STD545', 'Huỳnh Anh Mai', '0866743029', 'maiha67@example.test', '1998-12-19', '2026-10-08 08:32:00', 'Studying', 'OPP3265'),
-  ('STD546', 'Dương Anh Trang', '0865143922', 'trangda164@example.test', '1995-05-04', '2026-10-01 08:11:00', 'Studying', 'OPP3267'),
-  ('STD547', 'Trịnh Đức Huy', '0966907617', 'huytd639@example.test', '2000-07-07', '2026-10-09 08:38:00', 'Studying', 'OPP3294'),
-  ('STD548', 'Đặng Gia Quân', '0834409224', 'quandg33@example.test', '1994-12-02', '2026-10-23 13:00:00', 'Studying', 'OPP3309'),
-  ('STD549', 'Cao Khánh Long', '0355018822', 'longck908@example.test', '2001-04-10', '2026-10-14 08:35:00', 'Studying', 'OPP3311'),
-  ('STD550', 'Nguyễn Phương Châu', '0924476567', 'chaunp407@example.test', '1992-11-26', '2026-10-24 08:47:00', 'Studying', 'OPP3314'),
-  ('STD551', 'Mai Tuấn Quân', '0319202479', 'quanmt935@example.test', '2006-06-02', '2026-10-05 17:06:00', 'Studying', 'OPP3335'),
-  ('STD552', 'Phạm Mỹ Hân', '0920274688', 'hanpm801@example.test', '1996-11-14', '2026-09-19 08:49:00', 'Studying', 'OPP3338'),
-  ('STD553', 'Lâm Gia Linh', '0765736940', 'linhlg46@example.test', '2000-02-15', '2026-10-12 08:30:00', 'Studying', 'OPP3358'),
-  ('STD554', 'Bùi Thu Duy', '0372151982', 'duybt367@example.test', '1997-03-01', '2026-10-12 08:07:00', 'Studying', 'OPP3372'),
-  ('STD555', 'Hồ Phương Dũng', '0864669826', 'dunghp481@example.test', '2000-11-09', '2026-10-27 12:06:00', 'Studying', 'OPP3393'),
-  ('STD556', 'Trịnh Gia Lan', '0378587421', 'lantg296@example.test', '1997-05-03', '2026-10-24 08:49:00', 'Studying', 'OPP3398'),
-  ('STD557', 'Chu Mỹ Thắng', '0828669765', 'thangcm221@example.test', '1991-05-19', '2026-09-24 10:26:00', 'Studying', 'OPP3422'),
-  ('STD558', 'Huỳnh Ngọc Ngọc', '0710726844', 'ngochn254@example.test', '1997-12-05', '2026-10-05 08:22:00', 'Studying', 'OPP3426'),
-  ('STD559', 'Hà Phương Nghĩa', '0993256430', 'nghiahp779@example.test', '1992-11-13', '2026-09-26 08:37:00', 'Dropped', 'OPP3431'),
-  ('STD560', 'Võ Phương Quỳnh', '0375543671', 'quynhvp25@example.test', '2003-01-21', '2026-10-19 08:11:00', 'Studying', 'OPP3449'),
-  ('STD561', 'Phạm Bảo Huy', '0561855646', 'huypb637@example.test', '2011-04-06', '2026-10-14 08:00:00', 'Studying', 'OPP3462'),
-  ('STD562', 'Phan Hải Thắng', '0948234183', 'thangph84@example.test', '1990-11-21', '2026-10-20 17:18:00', 'Studying', 'OPP3465'),
-  ('STD563', 'Lâm Kim Ngọc', '0515714902', 'ngoclk329@example.test', '2012-03-26', '2026-10-13 08:40:00', 'Studying', 'OPP3478'),
-  ('STD564', 'Cao Thu Linh', '0798647846', 'linhct572@example.test', '1992-08-12', '2026-09-30 08:27:00', 'Studying', 'OPP3490'),
-  ('STD565', 'Đinh Gia Trúc', '0552837560', 'trucdg257@example.test', '1994-01-09', '2026-09-30 08:20:00', 'Dropped', 'OPP3497'),
-  ('STD566', 'Dương Hải Tâm', '0788773093', 'tamdh425@example.test', '1994-06-25', '2026-09-19 11:03:00', 'Studying', 'OPP3507'),
-  ('STD567', 'Vũ Thu Quỳnh', '0578540087', 'quynhvt390@example.test', '1992-02-10', '2026-10-22 08:26:00', 'Studying', 'OPP3532'),
-  ('STD568', 'Ngô Khánh Nam', '0553021371', 'namnk684@example.test', '1994-02-14', '2026-09-28 16:52:00', 'Studying', 'OPP3586'),
-  ('STD569', 'Đỗ Phương Anh', '0890085895', 'anhdp500@example.test', '2005-12-12', '2026-09-25 12:52:00', 'Studying', 'OPP3587'),
-  ('STD570', 'Lê Kim Duy', '0510836283', 'duylk870@example.test', '2000-03-23', '2026-10-14 20:54:00', 'Studying', 'OPP3620'),
-  ('STD571', 'Hoàng Kim Trí', '0868225704', 'trihk56@example.test', '2006-09-18', '2026-10-16 08:24:00', 'Studying', 'OPP3622'),
-  ('STD572', 'Dương Ngọc Hải', '0775398873', 'haidn330@example.test', '1990-01-14', '2026-09-25 08:19:00', 'Studying', 'OPP3625'),
-  ('STD573', 'Vũ Hoài Minh', '0368530760', 'minhvh211@example.test', '2009-04-14', '2026-09-29 13:58:00', 'Studying', 'OPP3628'),
-  ('STD574', 'Hoàng Mỹ Nhi', '0838415394', 'nhihm655@example.test', '2011-10-12', '2026-10-02 10:33:00', 'Studying', 'OPP3631'),
-  ('STD575', 'Lâm Khánh Sơn', '0306296299', 'sonlk236@example.test', '2007-05-13', '2026-09-24 15:42:00', 'Studying', 'OPP3655'),
-  ('STD576', 'Lý Văn Tâm', '0950260421', 'tamlv345@example.test', '2005-09-13', '2026-10-10 09:57:00', 'Studying', 'OPP3658'),
-  ('STD577', 'Phạm Mỹ Huy', '0355012141', 'huypm29@example.test', '2007-12-15', '2026-10-08 08:04:00', 'Studying', 'OPP3682'),
-  ('STD578', 'Huỳnh Hải Tâm', '0864490056', 'tamhh127@example.test', '2010-08-13', '2026-10-15 08:15:00', 'Studying', 'OPP3701'),
-  ('STD579', 'Mai Hải Nam', '0356742709', 'nammh440@example.test', '2004-10-10', '2026-10-13 20:25:00', 'Studying', 'OPP3704'),
-  ('STD580', 'Dương Phương Chi', '0524138463', 'chidp953@example.test', '1994-12-12', '2026-09-14 08:09:00', 'Studying', 'OPP3715'),
-  ('STD581', 'Phạm Nhật Linh', '0549238980', 'linhpn782@example.test', '2011-09-13', '2026-10-20 15:50:00', 'Studying', 'OPP3724'),
-  ('STD582', 'Đinh Kim Tùng', '0354769736', 'tungdk347@example.test', '2007-11-26', '2026-10-14 19:59:00', 'Studying', 'OPP3736'),
-  ('STD583', 'Vũ Hữu Phúc', '0362513382', 'phucvh889@example.test', '2010-04-21', '2026-09-15 11:53:00', 'Studying', 'OPP3759'),
-  ('STD584', 'Tô Thị Quỳnh', '0550917580', 'quynhtt100@example.test', '2005-06-24', '2026-09-23 08:05:00', 'Studying', 'OPP3764'),
-  ('STD585', 'Trần Ngọc Thắng', '0513349719', 'thangtn900@example.test', '2009-12-17', '2026-09-22 16:33:00', 'Studying', 'OPP3768'),
-  ('STD586', 'Đinh Đức Hân', '0779682119', 'handd971@example.test', '2011-05-19', '2026-10-28 17:25:00', 'Studying', 'OPP3808'),
-  ('STD587', 'Lâm Mỹ Uyên', '0884948904', 'uyenlm764@example.test', '1993-01-04', '2026-10-22 11:05:00', 'Studying', 'OPP3819'),
-  ('STD588', 'Đỗ Phương Chi', '0805193377', 'chidp738@example.test', '1998-10-20', '2026-10-27 18:52:00', 'Studying', 'OPP3823');
+  ('STD157', 'Tô Hữu Uyên', '0992625378', 'uyenth687@example.test', '2009-07-17', '2026-06-12 14:37:00', 'Studying', 'OPP655', 'LEAD669'),
+  ('STD158', 'Lý Thanh Châu', '0574335557', 'chault293@example.test', '2009-03-14', '2026-08-11 09:03:00', 'Studying', 'OPP657', 'LEAD671'),
+  ('STD159', 'Vũ Thu Vy', '0562273030', 'vyvt91@example.test', '2011-07-18', '2026-06-12 12:10:00', 'Studying', 'OPP660', 'LEAD674'),
+  ('STD160', 'Huỳnh Minh Yến', '0518432513', 'yenhm332@example.test', '1992-04-12', '2026-05-24 08:46:00', 'Studying', 'OPP661', 'LEAD675'),
+  ('STD161', 'Đặng Thanh Phúc', '0743436805', 'phucdt95@example.test', '1997-07-09', '2026-06-03 08:18:00', 'Studying', 'OPP663', 'LEAD677'),
+  ('STD162', 'Lâm Hoài Trúc', '0566407921', 'truclh575@example.test', '2006-04-23', '2026-06-27 08:45:00', 'Studying', 'OPP664', 'LEAD678'),
+  ('STD163', 'Phan Thị Huy', '0377591028', 'huypt192@example.test', '1992-04-23', '2026-05-15 08:44:00', 'Completed', 'OPP666', 'LEAD680'),
+  ('STD164', 'Trần Đức Trúc', '0308581758', 'tructd963@example.test', '1995-06-07', '2026-06-03 08:21:00', 'Studying', 'OPP669', 'LEAD683'),
+  ('STD165', 'Nguyễn Kim Uyên', '0556654321', 'uyennk916@example.test', '2006-06-04', '2026-05-19 08:04:00', 'Studying', 'OPP671', 'LEAD685'),
+  ('STD166', 'Cao Văn Trúc', '0556252886', 'truccv819@example.test', '1992-10-24', '2026-05-17 08:15:00', 'Studying', 'OPP672', 'LEAD686'),
+  ('STD167', 'Huỳnh Gia Nam', '0548621712', 'namhg872@example.test', '2011-12-05', '2026-05-22 08:03:00', 'Studying', 'OPP675', 'LEAD689'),
+  ('STD168', 'Đặng Phương Minh', '0964482089', 'minhdp179@example.test', '2012-03-24', '2026-07-14 08:10:00', 'Studying', 'OPP684', 'LEAD698'),
+  ('STD169', 'Phạm Kim Khoa', '0365754867', 'khoapk785@example.test', '1992-10-08', '2026-06-20 20:47:00', 'Studying', 'OPP694', 'LEAD708'),
+  ('STD170', 'Đặng Minh My', '0727291106', 'mydm750@example.test', '2001-01-23', '2026-07-10 14:14:00', 'Studying', 'OPP696', 'LEAD710'),
+  ('STD171', 'Dương Bảo Khôi', '0779601387', 'khoidb604@example.test', '1991-06-01', '2026-08-09 14:45:00', 'Studying', 'OPP701', 'LEAD715'),
+  ('STD172', 'Ngô Thanh Uyên', '0557927149', 'uyennt937@example.test', '2012-05-12', '2026-06-17 19:18:00', 'Studying', 'OPP703', 'LEAD717'),
+  ('STD173', 'Lê Mỹ Hương', '0960495276', 'huonglm272@example.test', '1991-01-04', '2026-08-01 08:38:00', 'Studying', 'OPP705', 'LEAD719'),
+  ('STD174', 'Phạm Thu Ngọc', '0894079071', 'ngocpt464@example.test', '2007-02-18', '2026-08-08 20:25:00', 'Studying', 'OPP708', 'LEAD722'),
+  ('STD175', 'Hà Thu Hải', '0547780496', 'haiht282@example.test', '2011-09-04', '2026-06-19 16:11:00', 'Studying', 'OPP711', 'LEAD725'),
+  ('STD176', 'Hà Nhật Thắng', '0928395618', 'thanghn312@example.test', '1991-09-15', '2026-06-18 08:08:00', 'Studying', 'OPP714', 'LEAD728'),
+  ('STD177', 'Lê Kim Duy', '0332583498', 'duylk423@example.test', '2008-08-27', '2026-07-02 12:54:00', 'Completed', 'OPP720', 'LEAD734'),
+  ('STD178', 'Chu Hải Châu', '0524278720', 'chauch697@example.test', '1998-01-22', '2026-07-13 08:35:00', 'Studying', 'OPP726', 'LEAD740'),
+  ('STD179', 'Lê Gia Tâm', '0509470714', 'tamlg34@example.test', '2009-04-06', '2026-08-11 09:04:00', 'Studying', 'OPP732', 'LEAD746'),
+  ('STD180', 'Hoàng Đức Hoa', '0828235056', 'hoahd787@example.test', '1994-02-26', '2026-07-20 16:36:00', 'Completed', 'OPP734', 'LEAD748'),
+  ('STD181', 'Ngô Đức Linh', '0363682585', 'linhnd564@example.test', '2002-08-01', '2026-08-12 16:20:00', 'Studying', 'OPP737', 'LEAD751'),
+  ('STD182', 'Vũ Phương Long', '0950935470', 'longvp245@example.test', '2010-10-08', '2026-08-08 14:23:00', 'Studying', 'OPP738', 'LEAD752'),
+  ('STD183', 'Dương Bảo Thắng', '0811717049', 'thangdb277@example.test', '2004-07-23', '2026-08-03 08:24:00', 'Studying', 'OPP746', 'LEAD760'),
+  ('STD184', 'Trần Thu Duy', '0904992468', 'duytt871@example.test', '2008-11-11', '2026-08-24 19:27:00', 'Studying', 'OPP756', 'LEAD770'),
+  ('STD185', 'Vũ Kim Sơn', '0853656207', 'sonvk407@example.test', '2002-06-28', '2026-08-27 09:41:00', 'Studying', 'OPP757', 'LEAD771'),
+  ('STD186', 'Nguyễn Ngọc Thắng', '0764157515', 'thangnn967@example.test', '1993-06-11', '2026-08-28 08:32:00', 'Studying', 'OPP766', 'LEAD780'),
+  ('STD187', 'Đặng Tuấn Thư', '0962467275', 'thudt141@example.test', '2012-07-21', '2026-09-01 15:05:00', 'Studying', 'OPP773', 'LEAD787'),
+  ('STD188', 'Mai Kim Minh', '0566494343', 'minhmk411@example.test', '2011-06-03', '2026-08-23 08:38:00', 'Studying', 'OPP774', 'LEAD788'),
+  ('STD189', 'Huỳnh Hữu Tâm', '0952568298', 'tamhh147@example.test', '1993-06-17', '2026-09-26 08:23:00', 'Studying', 'OPP781', 'LEAD795'),
+  ('STD190', 'Lâm Phương Minh', '0362297612', 'minhlp520@example.test', '2003-09-15', '2026-09-30 15:39:00', 'Studying', 'OPP784', 'LEAD798'),
+  ('STD191', 'Đặng Ngọc Vy', '0582762777', 'vydn333@example.test', '2002-06-01', '2026-10-10 08:48:00', 'Studying', 'OPP785', 'LEAD799'),
+  ('STD192', 'Lê Văn An', '0989354832', 'anlv346@example.test', '1993-06-03', '2026-09-28 14:38:00', 'Studying', 'OPP788', 'LEAD802'),
+  ('STD193', 'Hồ Thanh Khang', '0330087394', 'khanght843@example.test', '2005-09-23', '2026-10-26 14:08:00', 'Studying', 'OPP807', 'LEAD821'),
+  ('STD194', 'Lý Mỹ Tùng', '0700118894', 'tunglm169@example.test', '1996-06-14', '2026-10-19 08:33:00', 'Studying', 'OPP814', 'LEAD828'),
+  ('STD195', 'Đặng Kim Long', '0327946461', 'longdk591@example.test', '1992-08-23', '2026-05-21 08:45:00', 'Studying', 'OPP823', 'LEAD837'),
+  ('STD196', 'Tô Mỹ Ngân', '0984405617', 'ngantm176@example.test', '2003-11-28', '2026-06-01 19:44:00', 'Studying', 'OPP826', 'LEAD840'),
+  ('STD197', 'Trần Tuấn Hải', '0772974520', 'haitt274@example.test', '2001-02-14', '2026-05-27 20:50:00', 'Studying', 'OPP831', 'LEAD845'),
+  ('STD198', 'Trần Thu Quân', '0562476399', 'quantt894@example.test', '2004-11-07', '2026-07-04 18:41:00', 'Studying', 'OPP858', 'LEAD872'),
+  ('STD199', 'Hồ Minh Tùng', '0336336914', 'tunghm532@example.test', '1999-05-06', '2026-06-30 17:49:00', 'Completed', 'OPP861', 'LEAD875'),
+  ('STD200', 'Tô Bảo Hà', '0904465392', 'hatb937@example.test', '1994-08-25', '2026-07-06 13:25:00', 'Studying', 'OPP867', 'LEAD881'),
+  ('STD201', 'Trịnh Quốc Châu', '0882174257', 'chautq990@example.test', '2009-07-05', '2026-06-23 08:11:00', 'Studying', 'OPP868', 'LEAD882'),
+  ('STD202', 'Huỳnh Ngọc Nhi', '0761468125', 'nhihn918@example.test', '2005-01-13', '2026-07-25 08:58:00', 'Studying', 'OPP888', 'LEAD902'),
+  ('STD203', 'Lý Tuấn Hà', '0707063490', 'halt368@example.test', '1995-08-13', '2026-08-02 11:19:00', 'Studying', 'OPP892', 'LEAD906'),
+  ('STD204', 'Ngô Thị Uyên', '0323191920', 'uyennt995@example.test', '2000-04-21', '2026-09-28 10:54:00', 'Studying', 'OPP893', 'LEAD907'),
+  ('STD205', 'Lâm Gia Phúc', '0879483759', 'phuclg617@example.test', '1996-05-18', '2026-08-08 08:19:00', 'Studying', 'OPP895', 'LEAD909'),
+  ('STD206', 'Lê Nhật My', '0810634735', 'myln247@example.test', '1996-04-10', '2026-10-03 08:18:00', 'Studying', 'OPP902', 'LEAD916'),
+  ('STD207', 'Đinh Hữu Khang', '0519572926', 'khangdh209@example.test', '1998-09-26', '2026-08-05 08:03:00', 'Studying', 'OPP903', 'LEAD917'),
+  ('STD208', 'Lý Hải Duy', '0565274648', 'duylh175@example.test', '2001-02-08', '2026-08-12 08:50:00', 'Studying', 'OPP904', 'LEAD918'),
+  ('STD209', 'Đặng Thu Yến', '0599151963', 'yendt557@example.test', '1998-05-26', '2026-08-13 08:15:00', 'Studying', 'OPP917', 'LEAD931'),
+  ('STD210', 'Vũ Nhật Yến', '0357499406', 'yenvn620@example.test', '2003-04-05', '2026-09-12 15:07:00', 'Studying', 'OPP919', 'LEAD933'),
+  ('STD211', 'Hà Nhật Ngân', '0356854015', 'nganhn688@example.test', '2006-12-17', '2026-09-07 08:28:00', 'Studying', 'OPP925', 'LEAD939'),
+  ('STD212', 'Vũ Khánh Trúc', '0302579499', 'trucvk39@example.test', '2011-08-28', '2026-10-11 18:04:00', 'Studying', 'OPP938', 'LEAD952'),
+  ('STD213', 'Lê Hải Lan', '0830582506', 'lanlh226@example.test', '2001-08-21', '2026-09-18 08:21:00', 'Studying', 'OPP943', 'LEAD957'),
+  ('STD214', 'Lý Kim Nghĩa', '0548601472', 'nghialk810@example.test', '2010-01-24', '2026-09-15 14:44:00', 'Studying', 'OPP945', 'LEAD959'),
+  ('STD215', 'Hà Thanh Hương', '0345143694', 'huonght863@example.test', '2007-06-08', '2026-09-13 16:01:00', 'Studying', 'OPP946', 'LEAD960'),
+  ('STD216', 'Nguyễn Hoài Huy', '0315714243', 'huynh85@example.test', '1992-07-24', '2026-09-23 12:00:00', 'Studying', 'OPP961', 'LEAD975'),
+  ('STD217', 'Mai Quốc Uyên', '0735625886', 'uyenmq384@example.test', '2002-07-26', '2026-09-27 08:13:00', 'Studying', 'OPP968', 'LEAD982'),
+  ('STD218', 'Lâm Anh Ngọc', '0558383622', 'ngocla397@example.test', '2009-04-23', '2026-10-28 16:01:00', 'Studying', 'OPP988', 'LEAD1002'),
+  ('STD219', 'Cao Thanh Trúc', '0774369375', 'trucct213@example.test', '2009-06-03', '2026-05-14 18:20:00', 'Studying', 'OPP1003', 'LEAD1017'),
+  ('STD220', 'Đinh Hải An', '0301760107', 'andh619@example.test', '2000-12-11', '2026-06-01 08:28:00', 'Studying', 'OPP1005', 'LEAD1019'),
+  ('STD221', 'Đặng Nhật Hương', '0534034370', 'huongdn927@example.test', '2009-03-22', '2026-05-15 08:12:00', 'Studying', 'OPP1017', 'LEAD1031'),
+  ('STD222', 'Lâm Ngọc Ly', '0764148472', 'lyln906@example.test', '1990-03-12', '2026-06-24 08:25:00', 'Studying', 'OPP1025', 'LEAD1039'),
+  ('STD223', 'Nguyễn Phương Sơn', '0326343256', 'sonnp670@example.test', '2006-07-19', '2026-07-23 20:40:00', 'Studying', 'OPP1026', 'LEAD1040'),
+  ('STD224', 'Tô Quốc Duy', '0531533073', 'duytq599@example.test', '1990-03-13', '2026-07-22 08:34:00', 'Studying', 'OPP1032', 'LEAD1046'),
+  ('STD225', 'Nguyễn Khánh Duy', '0944587388', 'duynk701@example.test', '1992-06-02', '2026-08-25 14:09:00', 'Studying', 'OPP1085', 'LEAD1099'),
+  ('STD226', 'Ngô Bảo Nam', '0599227026', 'namnb132@example.test', '2007-02-19', '2026-08-22 08:41:00', 'Studying', 'OPP1089', 'LEAD1103'),
+  ('STD227', 'Võ Hữu My', '0305159477', 'myvh59@example.test', '2006-06-16', '2026-09-06 08:12:00', 'Studying', 'OPP1099', 'LEAD1113'),
+  ('STD228', 'Hoàng Minh Châu', '0571202449', 'chauhm895@example.test', '1992-05-11', '2026-10-27 08:50:00', 'Studying', 'OPP1100', 'LEAD1114'),
+  ('STD229', 'Phạm Hữu Khoa', '0821127370', 'khoaph148@example.test', '1999-01-27', '2026-08-22 20:59:00', 'Studying', 'OPP1106', 'LEAD1120'),
+  ('STD230', 'Đỗ Minh Nam', '0332817489', 'namdm340@example.test', '2000-08-01', '2026-10-13 16:07:00', 'Studying', 'OPP1122', 'LEAD1136'),
+  ('STD231', 'Phạm Khánh Ly', '0573133043', 'lypk454@example.test', '2012-06-16', '2026-05-19 08:52:00', 'Completed', 'OPP1152', 'LEAD1166'),
+  ('STD232', 'Trần Bảo Hoa', '0377776170', 'hoatb917@example.test', '2005-12-20', '2026-07-11 08:27:00', 'Studying', 'OPP1167', 'LEAD1181'),
+  ('STD233', 'Phạm Quốc Khoa', '0745922131', 'khoapq912@example.test', '1990-02-07', '2026-06-01 08:16:00', 'Studying', 'OPP1168', 'LEAD1182'),
+  ('STD234', 'Chu Quốc Duy', '0732254027', 'duycq71@example.test', '2006-08-23', '2026-06-10 14:31:00', 'Studying', 'OPP1171', 'LEAD1185'),
+  ('STD235', 'Chu Văn Linh', '0344272062', 'linhcv965@example.test', '1995-08-07', '2026-07-25 15:47:00', 'Dropped', 'OPP1185', 'LEAD1199'),
+  ('STD236', 'Hoàng Thu Thắng', '0708208792', 'thanght615@example.test', '2007-03-27', '2026-07-01 08:16:00', 'Studying', 'OPP1191', 'LEAD1205'),
+  ('STD237', 'Bùi Thu Sơn', '0799680660', 'sonbt871@example.test', '2011-02-13', '2026-07-04 08:36:00', 'Studying', 'OPP1194', 'LEAD1208'),
+  ('STD238', 'Dương Gia Yến', '0371583397', 'yendg339@example.test', '1999-08-10', '2026-06-19 12:55:00', 'Studying', 'OPP1204', 'LEAD1218'),
+  ('STD239', 'Mai Văn An', '0830433918', 'anmv113@example.test', '2005-06-19', '2026-08-08 08:15:00', 'Studying', 'OPP1210', 'LEAD1224'),
+  ('STD240', 'Hồ Minh Khoa', '0778300824', 'khoahm497@example.test', '1991-02-23', '2026-09-11 18:34:00', 'Studying', 'OPP1241', 'LEAD1255'),
+  ('STD241', 'Lâm Ngọc Mai', '0368226438', 'mailn49@example.test', '2000-09-07', '2026-08-17 08:49:00', 'Studying', 'OPP1257', 'LEAD1271'),
+  ('STD242', 'Cao Thị Linh', '0858622197', 'linhct901@example.test', '1999-02-28', '2026-09-20 21:55:00', 'Studying', 'OPP1268', 'LEAD1282'),
+  ('STD243', 'Lý Mỹ Trúc', '0586566122', 'truclm476@example.test', '2001-04-02', '2026-10-20 08:05:00', 'Studying', 'OPP1298', 'LEAD1312'),
+  ('STD244', 'Chu Phương Sơn', '0793524670', 'soncp815@example.test', '1992-06-22', '2026-10-25 12:12:00', 'Studying', 'OPP1307', 'LEAD1321'),
+  ('STD245', 'Hoàng Hữu Tâm', '0922595769', 'tamhh488@example.test', '1993-01-27', '2026-08-04 08:39:00', 'Studying', 'OPP1327', 'LEAD1341'),
+  ('STD246', 'Đỗ Văn Hiếu', '0912795480', 'hieudv106@example.test', '1995-10-26', '2026-08-07 08:47:00', 'Studying', 'OPP1332', 'LEAD1346'),
+  ('STD247', 'Cao Tuấn Long', '0973939085', 'longct542@example.test', '2000-03-22', '2026-05-21 08:01:00', 'Studying', 'OPP1335', 'LEAD1349'),
+  ('STD248', 'Tô Hữu Hà', '0510612824', 'hath404@example.test', '2000-08-23', '2026-06-11 08:40:00', 'Studying', 'OPP1341', 'LEAD1355'),
+  ('STD249', 'Trịnh Hữu Thắng', '0838243362', 'thangth328@example.test', '2001-02-03', '2026-06-30 19:02:00', 'Studying', 'OPP1344', 'LEAD1358'),
+  ('STD250', 'Lê Gia Yến', '0998681093', 'yenlg949@example.test', '2006-12-28', '2026-06-28 10:15:00', 'Dropped', 'OPP1350', 'LEAD1364'),
+  ('STD251', 'Nguyễn Hữu Giang', '0360743215', 'giangnh378@example.test', '1999-10-12', '2026-08-07 12:45:00', 'Studying', 'OPP1356', 'LEAD1370'),
+  ('STD252', 'Huỳnh Anh Phong', '0842846756', 'phongha567@example.test', '2009-06-06', '2026-08-02 13:43:00', 'Studying', 'OPP1376', 'LEAD1390'),
+  ('STD253', 'Hồ Anh Thắng', '0346799349', 'thangha345@example.test', '1997-01-15', '2026-07-18 08:42:00', 'Studying', 'OPP1377', 'LEAD1391'),
+  ('STD254', 'Cao Tuấn Thư', '0851656445', 'thuct845@example.test', '2001-02-23', '2026-09-23 17:40:00', 'Dropped', 'OPP1381', 'LEAD1395'),
+  ('STD255', 'Đặng Anh Tú', '0507656758', 'tuda926@example.test', '1998-04-20', '2026-07-31 13:51:00', 'Studying', 'OPP1383', 'LEAD1397'),
+  ('STD256', 'Phạm Hữu Tùng', '0704106252', 'tungph690@example.test', '2012-09-28', '2026-08-01 08:13:00', 'Studying', 'OPP1390', 'LEAD1404'),
+  ('STD257', 'Chu Thị Ly', '0790030988', 'lyct474@example.test', '1999-09-09', '2026-07-22 08:47:00', 'Studying', 'OPP1392', 'LEAD1406'),
+  ('STD258', 'Vũ Thị Quân', '0544053290', 'quanvt844@example.test', '1993-12-20', '2026-09-04 08:23:00', 'Studying', 'OPP1398', 'LEAD1412'),
+  ('STD259', 'Võ Hữu Nghĩa', '0537988547', 'nghiavh492@example.test', '2008-10-19', '2026-08-19 08:12:00', 'Studying', 'OPP1405', 'LEAD1419'),
+  ('STD260', 'Lê Quốc Quân', '0789969451', 'quanlq969@example.test', '2004-07-05', '2026-08-16 08:23:00', 'Dropped', 'OPP1420', 'LEAD1434'),
+  ('STD261', 'Hồ Minh An', '0781686147', 'anhm810@example.test', '2000-08-22', '2026-10-04 08:14:00', 'Studying', 'OPP1429', 'LEAD1443'),
+  ('STD262', 'Hoàng Phương Long', '0364677601', 'longhp791@example.test', '2004-11-01', '2026-10-04 10:58:00', 'Studying', 'OPP1431', 'LEAD1445'),
+  ('STD263', 'Huỳnh Thị Lan', '0593402221', 'lanht574@example.test', '1993-04-05', '2026-09-18 17:48:00', 'Studying', 'OPP1434', 'LEAD1448'),
+  ('STD264', 'Lê Mỹ Thư', '0877546479', 'thulm904@example.test', '1991-10-06', '2026-10-26 20:19:00', 'Studying', 'OPP1462', 'LEAD1476'),
+  ('STD265', 'Mai Phương Ly', '0939670823', 'lymp434@example.test', '2001-06-17', '2026-10-23 18:29:00', 'Studying', 'OPP1463', 'LEAD1477'),
+  ('STD266', 'Nguyễn Kim Huy', '0757760623', 'huynk860@example.test', '1992-05-21', '2026-10-26 10:21:00', 'Studying', 'OPP1464', 'LEAD1478'),
+  ('STD267', 'Lý Gia Huy', '0322035618', 'huylg468@example.test', '2000-10-12', '2026-08-09 08:07:00', 'Studying', 'OPP1482', 'LEAD1496'),
+  ('STD268', 'Phạm Hải Ngọc', '0951631266', 'ngocph198@example.test', '1990-10-26', '2026-08-06 20:46:00', 'Studying', 'OPP1492', 'LEAD1506'),
+  ('STD269', 'Lê Mỹ Nghĩa', '0713857972', 'nghialm38@example.test', '1993-08-21', '2026-07-24 08:36:00', 'Studying', 'OPP1501', 'LEAD1515'),
+  ('STD270', 'Nguyễn Kim Thư', '0970830848', 'thunk469@example.test', '1991-10-10', '2026-07-23 08:49:00', 'Studying', 'OPP1512', 'LEAD1526'),
+  ('STD271', 'Đặng Anh Minh', '0559616441', 'minhda113@example.test', '2007-11-11', '2026-10-12 08:46:00', 'Studying', 'OPP1530', 'LEAD1544'),
+  ('STD272', 'Võ Minh Hương', '0725605410', 'huongvm125@example.test', '1996-11-28', '2026-08-18 08:01:00', 'Studying', 'OPP1532', 'LEAD1546'),
+  ('STD273', 'Đinh Hải Hân', '0725112564', 'handh319@example.test', '1994-01-27', '2026-09-08 12:59:00', 'Dropped', 'OPP1536', 'LEAD1550'),
+  ('STD274', 'Dương Nhật Tùng', '0589495114', 'tungdn787@example.test', '2011-08-03', '2026-08-31 10:10:00', 'Studying', 'OPP1538', 'LEAD1552'),
+  ('STD275', 'Ngô Thị Trí', '0923436483', 'trint514@example.test', '1993-06-08', '2026-05-11 13:43:00', 'Studying', 'OPP1577', 'LEAD1591'),
+  ('STD276', 'Mai Văn Tú', '0315324028', 'tumv765@example.test', '2002-11-27', '2026-06-09 08:40:00', 'Studying', 'OPP1584', 'LEAD1598'),
+  ('STD277', 'Lâm Nhật Hải', '0532410310', 'hailn30@example.test', '1990-09-24', '2026-05-25 08:27:00', 'Completed', 'OPP1585', 'LEAD1599'),
+  ('STD278', 'Nguyễn Hữu Hân', '0379752347', 'hannh815@example.test', '2010-07-17', '2026-06-19 08:18:00', 'Studying', 'OPP1604', 'LEAD1618'),
+  ('STD279', 'Nguyễn Kim Hà', '0769467874', 'hank456@example.test', '1996-02-01', '2026-07-06 08:48:00', 'Studying', 'OPP1619', 'LEAD1633'),
+  ('STD280', 'Lâm Mỹ Nghĩa', '0886288087', 'nghialm521@example.test', '2003-11-27', '2026-07-30 08:02:00', 'Studying', 'OPP1629', 'LEAD1643'),
+  ('STD281', 'Đỗ Gia Sơn', '0399389350', 'sondg995@example.test', '1999-11-09', '2026-08-13 08:35:00', 'Studying', 'OPP1630', 'LEAD1644'),
+  ('STD282', 'Nguyễn Bảo Trí', '0748649383', 'trinb759@example.test', '1991-03-17', '2026-08-13 08:47:00', 'Studying', 'OPP1652', 'LEAD1666'),
+  ('STD283', 'Đỗ Ngọc Ngân', '0911378318', 'ngandn376@example.test', '2003-10-20', '2026-08-28 08:30:00', 'Studying', 'OPP1666', 'LEAD1680'),
+  ('STD284', 'Lâm Tuấn Ly', '0725556023', 'lylt407@example.test', '2002-02-13', '2026-08-24 19:34:00', 'Studying', 'OPP1675', 'LEAD1689'),
+  ('STD285', 'Chu Hải Trang', '0374178337', 'trangch720@example.test', '2004-11-08', '2026-08-24 08:39:00', 'Studying', 'OPP1676', 'LEAD1690'),
+  ('STD286', 'Lý Phương Hải', '0312386934', 'hailp121@example.test', '1998-03-04', '2026-09-18 08:13:00', 'Studying', 'OPP1698', 'LEAD1712'),
+  ('STD287', 'Hồ Tuấn Khoa', '0569219093', 'khoaht584@example.test', '1991-04-18', '2026-10-19 08:41:00', 'Studying', 'OPP1708', 'LEAD1722'),
+  ('STD288', 'Lý Bảo Nhi', '0556567342', 'nhilb600@example.test', '1992-10-24', '2026-10-16 08:10:00', 'Studying', 'OPP1715', 'LEAD1729'),
+  ('STD289', 'Huỳnh Quốc Anh', '0847931831', 'anhhq494@example.test', '1994-01-10', '2026-10-13 08:20:00', 'Studying', 'OPP1716', 'LEAD1730'),
+  ('STD290', 'Phan Mỹ Khang', '0358370907', 'khangpm14@example.test', '2003-10-04', '2026-10-24 08:45:00', 'Studying', 'OPP1727', 'LEAD1741'),
+  ('STD291', 'Bùi Anh Duy', '0338768962', 'duyba498@example.test', '2005-04-23', '2026-07-13 18:50:00', 'Studying', 'OPP1732', 'LEAD1746'),
+  ('STD292', 'Huỳnh Ngọc Ly', '0514225141', 'lyhn158@example.test', '2011-11-20', '2026-06-03 13:27:00', 'Studying', 'OPP1733', 'LEAD1747'),
+  ('STD293', 'Tô Thị Bình', '0383687334', 'binhtt818@example.test', '1997-06-09', '2026-05-16 08:41:00', 'Studying', 'OPP1735', 'LEAD1749'),
+  ('STD294', 'Lý Minh Lan', '0582802463', 'lanlm472@example.test', '2002-11-09', '2026-06-07 10:35:00', 'Studying', 'OPP1740', 'LEAD1754'),
+  ('STD295', 'Huỳnh Thanh Trí', '0809874002', 'triht861@example.test', '1996-01-12', '2026-06-05 09:40:00', 'Studying', 'OPP1746', 'LEAD1760'),
+  ('STD296', 'Hồ Thanh Nghĩa', '0874719252', 'nghiaht708@example.test', '2010-04-11', '2026-05-25 20:04:00', 'Studying', 'OPP1747', 'LEAD1761'),
+  ('STD297', 'Hồ Thu Tùng', '0875703714', 'tunght589@example.test', '2001-01-03', '2026-06-10 08:32:00', 'Studying', 'OPP1761', 'LEAD1775'),
+  ('STD298', 'Chu Hoài Trí', '0711131620', 'trich300@example.test', '1999-01-17', '2026-06-20 08:08:00', 'Studying', 'OPP1762', 'LEAD1776'),
+  ('STD299', 'Dương Anh Giang', '0565847382', 'giangda733@example.test', '1996-03-21', '2026-06-13 19:15:00', 'Studying', 'OPP1767', 'LEAD1781'),
+  ('STD300', 'Đinh Ngọc Lan', '0987859113', 'landn248@example.test', '2001-01-04', '2026-07-09 13:09:00', 'Studying', 'OPP1782', 'LEAD1796'),
+  ('STD301', 'Huỳnh Hữu My', '0711350669', 'myhh465@example.test', '2008-02-14', '2026-07-31 08:28:00', 'Studying', 'OPP1798', 'LEAD1812'),
+  ('STD302', 'Huỳnh Khánh Châu', '0912347960', 'chauhk387@example.test', '1998-07-27', '2026-07-30 14:14:00', 'Studying', 'OPP1801', 'LEAD1815'),
+  ('STD303', 'Ngô Hải Lan', '0577029433', 'lannh851@example.test', '2000-02-08', '2026-07-27 14:10:00', 'Studying', 'OPP1805', 'LEAD1819'),
+  ('STD304', 'Lý Khánh Dũng', '0928352523', 'dunglk435@example.test', '2003-10-01', '2026-07-27 11:03:00', 'Studying', 'OPP1806', 'LEAD1820'),
+  ('STD305', 'Lê Thu Nghĩa', '0733554020', 'nghialt242@example.test', '2002-03-04', '2026-09-19 08:14:00', 'Studying', 'OPP1810', 'LEAD1824'),
+  ('STD306', 'Hồ Nhật My', '0792212626', 'myhn551@example.test', '1990-12-09', '2026-08-28 08:42:00', 'Dropped', 'OPP1812', 'LEAD1826'),
+  ('STD307', 'Đặng Tuấn Tâm', '0838171544', 'tamdt553@example.test', '2010-08-07', '2026-07-15 11:57:00', 'Studying', 'OPP1813', 'LEAD1827'),
+  ('STD308', 'Hồ Ngọc Quỳnh', '0911713210', 'quynhhn271@example.test', '1994-03-25', '2026-07-27 19:37:00', 'Studying', 'OPP1814', 'LEAD1828'),
+  ('STD309', 'Trần Thu Sơn', '0715865898', 'sontt242@example.test', '1998-12-22', '2026-08-04 20:51:00', 'Studying', 'OPP1823', 'LEAD1837'),
+  ('STD310', 'Dương Nhật Anh', '0365957804', 'anhdn559@example.test', '1995-11-18', '2026-09-15 08:23:00', 'Studying', 'OPP1844', 'LEAD1858'),
+  ('STD311', 'Võ Minh Hà', '0978295183', 'havm733@example.test', '2009-02-09', '2026-08-26 08:42:00', 'Studying', 'OPP1849', 'LEAD1863'),
+  ('STD312', 'Bùi Hữu Giang', '0787991886', 'giangbh312@example.test', '2002-12-15', '2026-10-14 08:14:00', 'Studying', 'OPP1858', 'LEAD1872'),
+  ('STD313', 'Võ Quốc Trúc', '0851984885', 'trucvq263@example.test', '2010-06-22', '2026-10-28 08:16:00', 'Studying', 'OPP1859', 'LEAD1873'),
+  ('STD314', 'Võ Văn Thảo', '0368427627', 'thaovv408@example.test', '1991-06-19', '2026-09-18 08:36:00', 'Studying', 'OPP1862', 'LEAD1876'),
+  ('STD315', 'Tô Thị Trúc', '0982026261', 'tructt72@example.test', '1996-08-11', '2026-09-27 08:01:00', 'Studying', 'OPP1863', 'LEAD1877'),
+  ('STD316', 'Trần Minh Hải', '0967535236', 'haitm137@example.test', '2003-03-05', '2026-10-18 09:14:00', 'Studying', 'OPP1869', 'LEAD1883'),
+  ('STD317', 'Tô Hải Ngân', '0559808802', 'nganth301@example.test', '1992-04-16', '2026-10-02 08:19:00', 'Studying', 'OPP1879', 'LEAD1893'),
+  ('STD318', 'Mai Bảo Tùng', '0760109057', 'tungmb133@example.test', '2006-04-27', '2026-09-27 08:29:00', 'Studying', 'OPP1886', 'LEAD1900'),
+  ('STD319', 'Dương Thị Phong', '0847884573', 'phongdt399@example.test', '2001-09-10', '2026-10-19 19:00:00', 'Studying', 'OPP1888', 'LEAD1902'),
+  ('STD320', 'Phan Quốc Hoa', '0708921464', 'hoapq496@example.test', '1998-06-23', '2026-10-18 08:35:00', 'Studying', 'OPP1889', 'LEAD1903'),
+  ('STD321', 'Lê Hữu Trang', '0767883682', 'tranglh78@example.test', '2009-10-21', '2026-10-24 15:08:00', 'Studying', 'OPP1893', 'LEAD1907'),
+  ('STD322', 'Trịnh Nhật Trúc', '0786925952', 'tructn692@example.test', '1991-05-11', '2026-05-21 14:50:00', 'Completed', 'OPP1910', 'LEAD1924'),
+  ('STD323', 'Phan Hải Linh', '0877071378', 'linhph493@example.test', '1994-03-09', '2026-07-26 08:16:00', 'Studying', 'OPP1919', 'LEAD1933'),
+  ('STD324', 'Dương Gia Thắng', '0852993405', 'thangdg853@example.test', '1991-10-06', '2026-05-25 08:38:00', 'Completed', 'OPP1927', 'LEAD1941'),
+  ('STD325', 'Lê Thu Yến', '0352639652', 'yenlt953@example.test', '2001-07-03', '2026-06-01 08:12:00', 'Studying', 'OPP1932', 'LEAD1946'),
+  ('STD326', 'Mai Đức Lan', '0830790982', 'lanmd50@example.test', '1995-06-19', '2026-06-15 08:19:00', 'Studying', 'OPP1968', 'LEAD1982'),
+  ('STD327', 'Bùi Gia Nam', '0771116304', 'nambg682@example.test', '1996-12-21', '2026-08-24 18:40:00', 'Studying', 'OPP1971', 'LEAD1985'),
+  ('STD328', 'Lý Minh Linh', '0804020813', 'linhlm296@example.test', '2005-11-06', '2026-07-29 08:16:00', 'Studying', 'OPP1976', 'LEAD1990'),
+  ('STD329', 'Trịnh Khánh Ngân', '0332149299', 'ngantk681@example.test', '1990-04-28', '2026-08-13 17:25:00', 'Studying', 'OPP1979', 'LEAD1993'),
+  ('STD330', 'Cao Thanh Trang', '0388054954', 'trangct724@example.test', '2000-04-19', '2026-08-12 08:15:00', 'Studying', 'OPP1980', 'LEAD1994'),
+  ('STD331', 'Trần Bảo Hoa', '0853608942', 'hoatb275@example.test', '2001-08-08', '2026-07-31 17:28:00', 'Studying', 'OPP1985', 'LEAD1999'),
+  ('STD332', 'Hoàng Mỹ Linh', '0938285594', 'linhhm517@example.test', '2002-05-22', '2026-08-14 08:17:00', 'Studying', 'OPP2001', 'LEAD2015'),
+  ('STD333', 'Phạm Thị Anh', '0904315375', 'anhpt594@example.test', '1994-05-06', '2026-09-28 20:55:00', 'Studying', 'OPP2002', 'LEAD2016'),
+  ('STD334', 'Hoàng Gia Dũng', '0599987664', 'dunghg433@example.test', '1993-05-11', '2026-09-05 17:36:00', 'Studying', 'OPP2008', 'LEAD2022'),
+  ('STD335', 'Ngô Thanh Linh', '0307451934', 'linhnt694@example.test', '2009-01-08', '2026-09-27 08:00:00', 'Studying', 'OPP2020', 'LEAD2034'),
+  ('STD336', 'Vũ Thanh Ngọc', '0911075503', 'ngocvt560@example.test', '2006-06-05', '2026-08-26 17:16:00', 'Studying', 'OPP2031', 'LEAD2045'),
+  ('STD337', 'Huỳnh Mỹ Phong', '0898268311', 'phonghm20@example.test', '2007-05-11', '2026-09-14 09:44:00', 'Studying', 'OPP2034', 'LEAD2048'),
+  ('STD338', 'Nguyễn Anh Tú', '0911374681', 'tuna305@example.test', '1998-12-17', '2026-09-16 16:54:00', 'Studying', 'OPP2046', 'LEAD2060'),
+  ('STD339', 'Nguyễn Thị Mai', '0821583407', 'maint571@example.test', '2008-10-23', '2026-09-19 08:43:00', 'Studying', 'OPP2052', 'LEAD2066'),
+  ('STD340', 'Mai Gia Quân', '0969623149', 'quanmg785@example.test', '2001-03-25', '2026-09-21 11:51:00', 'Studying', 'OPP2064', 'LEAD2078'),
+  ('STD341', 'Lê Hải Yến', '0859054336', 'yenlh856@example.test', '1999-09-26', '2026-10-05 19:30:00', 'Studying', 'OPP2065', 'LEAD2079'),
+  ('STD342', 'Phan Gia Ly', '0817636669', 'lypg15@example.test', '1997-12-07', '2026-10-28 11:34:00', 'Studying', 'OPP2073', 'LEAD2087'),
+  ('STD343', 'Vũ Minh Phong', '0725358994', 'phongvm788@example.test', '2011-03-27', '2026-06-07 18:44:00', 'Studying', 'OPP2090', 'LEAD2104'),
+  ('STD344', 'Vũ Hải Duy', '0380952820', 'duyvh374@example.test', '1994-04-01', '2026-08-02 12:44:00', 'Studying', 'OPP2091', 'LEAD2105'),
+  ('STD345', 'Dương Hữu Minh', '0367924537', 'minhdh120@example.test', '1990-10-24', '2026-06-11 09:10:00', 'Studying', 'OPP2093', 'LEAD2107'),
+  ('STD346', 'Lê Mỹ Thảo', '0973641006', 'thaolm564@example.test', '1998-11-15', '2026-05-22 18:27:00', 'Studying', 'OPP2112', 'LEAD2126'),
+  ('STD347', 'Huỳnh Minh Tùng', '0509772607', 'tunghm467@example.test', '2005-06-16', '2026-06-10 19:03:00', 'Studying', 'OPP2113', 'LEAD2127'),
+  ('STD348', 'Cao Hữu Nghĩa', '0562715629', 'nghiach602@example.test', '2012-05-16', '2026-05-30 08:31:00', 'Studying', 'OPP2114', 'LEAD2128'),
+  ('STD349', 'Cao Ngọc Trang', '0825207709', 'trangcn85@example.test', '1999-09-20', '2026-06-09 08:36:00', 'Studying', 'OPP2123', 'LEAD2137'),
+  ('STD350', 'Ngô Anh Duy', '0967924844', 'duyna989@example.test', '2002-06-12', '2026-07-03 08:48:00', 'Studying', 'OPP2127', 'LEAD2141'),
+  ('STD351', 'Hoàng Nhật Nam', '0752356812', 'namhn391@example.test', '1997-05-19', '2026-07-25 20:49:00', 'Dropped', 'OPP2131', 'LEAD2145'),
+  ('STD352', 'Mai Anh Ngọc', '0986529866', 'ngocma312@example.test', '2011-12-05', '2026-07-12 08:05:00', 'Studying', 'OPP2136', 'LEAD2150'),
+  ('STD353', 'Vũ Hữu Huy', '0577245289', 'huyvh100@example.test', '1998-11-25', '2026-08-11 08:08:00', 'Studying', 'OPP2140', 'LEAD2154'),
+  ('STD354', 'Mai Hoài Hiếu', '0800660713', 'hieumh904@example.test', '2000-07-17', '2026-06-17 08:24:00', 'Studying', 'OPP2141', 'LEAD2155'),
+  ('STD355', 'Trần Nhật Hân', '0557840166', 'hantn439@example.test', '1992-05-26', '2026-06-28 08:30:00', 'Studying', 'OPP2150', 'LEAD2164'),
+  ('STD356', 'Đinh Khánh Chi', '0558916510', 'chidk869@example.test', '2008-02-04', '2026-07-15 08:44:00', 'Studying', 'OPP2152', 'LEAD2166'),
+  ('STD357', 'Chu Hải Hải', '0385593912', 'haich148@example.test', '1993-08-07', '2026-06-25 16:54:00', 'Studying', 'OPP2157', 'LEAD2171'),
+  ('STD358', 'Tô Quốc Minh', '0376116232', 'minhtq31@example.test', '2011-02-27', '2026-06-30 08:00:00', 'Studying', 'OPP2165', 'LEAD2179'),
+  ('STD359', 'Phan Hải Nghĩa', '0973848392', 'nghiaph537@example.test', '2011-11-13', '2026-06-29 16:46:00', 'Studying', 'OPP2168', 'LEAD2182'),
+  ('STD360', 'Dương Ngọc Giang', '0939857904', 'giangdn301@example.test', '2003-03-23', '2026-07-26 20:03:00', 'Studying', 'OPP2175', 'LEAD2189'),
+  ('STD361', 'Phan Thị Thắng', '0549615942', 'thangpt571@example.test', '2002-04-16', '2026-08-04 08:02:00', 'Studying', 'OPP2176', 'LEAD2190'),
+  ('STD362', 'Mai Thu Thư', '0817747766', 'thumt681@example.test', '1994-04-09', '2026-07-16 08:43:00', 'Completed', 'OPP2178', 'LEAD2192'),
+  ('STD363', 'Dương Quốc Thảo', '0581382332', 'thaodq117@example.test', '1994-12-19', '2026-07-18 08:00:00', 'Studying', 'OPP2185', 'LEAD2199'),
+  ('STD364', 'Lâm Quốc Duy', '0979579777', 'duylq318@example.test', '1997-12-12', '2026-09-08 08:41:00', 'Dropped', 'OPP2189', 'LEAD2203'),
+  ('STD365', 'Trần Minh Hà', '0327938285', 'hatm465@example.test', '1996-11-18', '2026-07-19 12:42:00', 'Studying', 'OPP2192', 'LEAD2206'),
+  ('STD366', 'Bùi Thu Khang', '0396373192', 'khangbt341@example.test', '2012-04-13', '2026-08-06 09:51:00', 'Studying', 'OPP2193', 'LEAD2207'),
+  ('STD367', 'Chu Anh Minh', '0812848569', 'minhca823@example.test', '2001-04-06', '2026-09-27 08:22:00', 'Studying', 'OPP2197', 'LEAD2211'),
+  ('STD368', 'Hà Anh Vy', '0583154062', 'vyha30@example.test', '2004-09-05', '2026-07-24 08:19:00', 'Completed', 'OPP2198', 'LEAD2212'),
+  ('STD369', 'Vũ Quốc Tú', '0310191246', 'tuvq435@example.test', '1990-01-19', '2026-07-16 20:30:00', 'Studying', 'OPP2203', 'LEAD2217'),
+  ('STD370', 'Võ Thị My', '0504993024', 'myvt818@example.test', '2000-12-04', '2026-09-06 08:12:00', 'Studying', 'OPP2207', 'LEAD2221'),
+  ('STD371', 'Võ Nhật Nghĩa', '0526343344', 'nghiavn853@example.test', '2008-03-07', '2026-10-03 16:13:00', 'Studying', 'OPP2211', 'LEAD2225'),
+  ('STD372', 'Trần Minh Trí', '0845221365', 'tritm433@example.test', '1998-02-24', '2026-08-15 17:22:00', 'Studying', 'OPP2213', 'LEAD2227'),
+  ('STD373', 'Đỗ Thị Dũng', '0775117606', 'dungdt967@example.test', '1990-05-06', '2026-09-19 08:11:00', 'Studying', 'OPP2221', 'LEAD2235'),
+  ('STD374', 'Cao Minh Hà', '0756825882', 'hacm943@example.test', '2005-10-19', '2026-09-16 15:51:00', 'Studying', 'OPP2228', 'LEAD2242'),
+  ('STD375', 'Trịnh Ngọc Tùng', '0394764915', 'tungtn823@example.test', '2010-05-05', '2026-09-18 15:23:00', 'Studying', 'OPP2229', 'LEAD2243'),
+  ('STD376', 'Lâm Kim Thắng', '0733366476', 'thanglk339@example.test', '2004-05-25', '2026-10-23 08:14:00', 'Studying', 'OPP2252', 'LEAD2266'),
+  ('STD377', 'Chu Minh Phúc', '0791789314', 'phuccm116@example.test', '1997-11-17', '2026-10-26 08:13:00', 'Studying', 'OPP2268', 'LEAD2282'),
+  ('STD378', 'Vũ Minh Linh', '0971472374', 'linhvm549@example.test', '1993-08-13', '2026-06-16 09:35:00', 'Studying', 'OPP2281', 'LEAD2295'),
+  ('STD379', 'Nguyễn Đức Ngân', '0938224134', 'ngannd188@example.test', '1991-11-04', '2026-08-05 08:45:00', 'Studying', 'OPP2282', 'LEAD2296'),
+  ('STD380', 'Võ Thu Sơn', '0508405110', 'sonvt507@example.test', '2011-09-18', '2026-06-02 19:07:00', 'Studying', 'OPP2286', 'LEAD2300'),
+  ('STD381', 'Hà Phương Anh', '0782131016', 'anhhp366@example.test', '1996-09-15', '2026-05-29 18:53:00', 'Studying', 'OPP2289', 'LEAD2303'),
+  ('STD382', 'Chu Thu Quỳnh', '0960989636', 'quynhct733@example.test', '1994-05-25', '2026-08-02 15:49:00', 'Studying', 'OPP2316', 'LEAD2330'),
+  ('STD383', 'Phan Hoài Bình', '0506136966', 'binhph762@example.test', '1999-09-18', '2026-07-06 08:10:00', 'Studying', 'OPP2319', 'LEAD2333'),
+  ('STD384', 'Hà Hải Phong', '0917333016', 'phonghh849@example.test', '2000-01-07', '2026-07-24 19:14:00', 'Dropped', 'OPP2335', 'LEAD2349'),
+  ('STD385', 'Vũ Khánh Hương', '0723917359', 'huongvk110@example.test', '1999-09-15', '2026-08-03 16:26:00', 'Studying', 'OPP2338', 'LEAD2352'),
+  ('STD386', 'Hoàng Đức Sơn', '0930140816', 'sonhd773@example.test', '1997-07-06', '2026-07-30 08:38:00', 'Studying', 'OPP2343', 'LEAD2357'),
+  ('STD387', 'Phạm Hoài Trí', '0954511383', 'triph801@example.test', '2010-01-12', '2026-08-10 16:09:00', 'Studying', 'OPP2349', 'LEAD2363'),
+  ('STD388', 'Phan Nhật Giang', '0556210589', 'giangpn912@example.test', '2000-01-02', '2026-07-16 08:44:00', 'Studying', 'OPP2355', 'LEAD2369'),
+  ('STD389', 'Phan Văn Duy', '0588012385', 'duypv81@example.test', '2003-04-11', '2026-09-28 08:01:00', 'Studying', 'OPP2369', 'LEAD2383'),
+  ('STD390', 'Bùi Minh My', '0997235449', 'mybm743@example.test', '2012-04-02', '2026-09-23 08:35:00', 'Studying', 'OPP2406', 'LEAD2420'),
+  ('STD391', 'Lâm Ngọc Tâm', '0550585652', 'tamln836@example.test', '2004-06-11', '2026-05-26 08:40:00', 'Studying', 'OPP2442', 'LEAD2456'),
+  ('STD392', 'Đỗ Khánh Anh', '0710469064', 'anhdk338@example.test', '2002-10-07', '2026-06-10 09:29:00', 'Studying', 'OPP2445', 'LEAD2459'),
+  ('STD393', 'Vũ Văn Thảo', '0304157658', 'thaovv955@example.test', '2012-05-22', '2026-06-12 08:26:00', 'Studying', 'OPP2451', 'LEAD2465'),
+  ('STD394', 'Nguyễn Bảo Khang', '0323699863', 'khangnb946@example.test', '2004-01-17', '2026-06-25 17:05:00', 'Studying', 'OPP2457', 'LEAD2471'),
+  ('STD395', 'Đỗ Phương Quỳnh', '0326730899', 'quynhdp240@example.test', '2006-05-22', '2026-06-10 18:49:00', 'Studying', 'OPP2460', 'LEAD2474'),
+  ('STD396', 'Nguyễn Văn Ngọc', '0877137522', 'ngocnv361@example.test', '2008-09-24', '2026-07-04 13:13:00', 'Studying', 'OPP2471', 'LEAD2485'),
+  ('STD397', 'Tô Đức Lan', '0801280549', 'lantd71@example.test', '1994-10-02', '2026-06-29 12:11:00', 'Studying', 'OPP2473', 'LEAD2487'),
+  ('STD398', 'Phạm Anh Hải', '0731675055', 'haipa928@example.test', '1991-02-05', '2026-06-18 10:40:00', 'Studying', 'OPP2501', 'LEAD2515'),
+  ('STD399', 'Đinh Khánh Minh', '0564895552', 'minhdk933@example.test', '2007-02-05', '2026-07-05 08:50:00', 'Studying', 'OPP2503', 'LEAD2517'),
+  ('STD400', 'Phạm Hoài Khoa', '0392133230', 'khoaph43@example.test', '1999-12-26', '2026-06-18 17:42:00', 'Studying', 'OPP2504', 'LEAD2518'),
+  ('STD401', 'Phạm Đức Quân', '0723134932', 'quanpd695@example.test', '2010-02-16', '2026-08-05 08:17:00', 'Studying', 'OPP2505', 'LEAD2519'),
+  ('STD402', 'Trịnh Hải Châu', '0888577135', 'chauth876@example.test', '1996-06-15', '2026-06-21 08:48:00', 'Completed', 'OPP2510', 'LEAD2524'),
+  ('STD403', 'Dương Quốc Hiếu', '0510555202', 'hieudq915@example.test', '2009-06-24', '2026-06-19 14:15:00', 'Studying', 'OPP2512', 'LEAD2526'),
+  ('STD404', 'Vũ Quốc Tùng', '0771249744', 'tungvq169@example.test', '2005-02-21', '2026-06-26 08:38:00', 'Studying', 'OPP2515', 'LEAD2529'),
+  ('STD405', 'Cao Hoài Ly', '0803988220', 'lych363@example.test', '1995-01-21', '2026-08-25 17:44:00', 'Studying', 'OPP2516', 'LEAD2530'),
+  ('STD406', 'Lý Anh Khôi', '0503324803', 'khoila486@example.test', '2002-12-03', '2026-08-03 16:46:00', 'Studying', 'OPP2518', 'LEAD2532'),
+  ('STD407', 'Phan Hữu Giang', '0828503794', 'giangph611@example.test', '2000-02-14', '2026-07-30 18:54:00', 'Studying', 'OPP2519', 'LEAD2533'),
+  ('STD408', 'Cao Gia Thắng', '0865991585', 'thangcg549@example.test', '2008-11-26', '2026-07-22 08:36:00', 'Studying', 'OPP2520', 'LEAD2534'),
+  ('STD409', 'Hà Thu Hải', '0734971725', 'haiht951@example.test', '1996-05-05', '2026-07-29 08:18:00', 'Studying', 'OPP2522', 'LEAD2536'),
+  ('STD410', 'Võ Thanh Ngọc', '0805262633', 'ngocvt371@example.test', '2012-07-16', '2026-09-10 08:38:00', 'Studying', 'OPP2523', 'LEAD2537'),
+  ('STD411', 'Đinh Kim Nhi', '0541810044', 'nhidk81@example.test', '2004-03-15', '2026-08-01 15:46:00', 'Studying', 'OPP2526', 'LEAD2540'),
+  ('STD412', 'Nguyễn Quốc Lan', '0368378435', 'lannq978@example.test', '1990-09-10', '2026-07-30 08:41:00', 'Studying', 'OPP2527', 'LEAD2541'),
+  ('STD413', 'Vũ Gia Chi', '0756485919', 'chivg152@example.test', '2005-04-11', '2026-08-27 08:47:00', 'Studying', 'OPP2539', 'LEAD2553'),
+  ('STD414', 'Vũ Đức Châu', '0359330131', 'chauvd917@example.test', '1996-03-28', '2026-07-20 08:07:00', 'Studying', 'OPP2541', 'LEAD2555'),
+  ('STD415', 'Chu Mỹ Nghĩa', '0905570693', 'nghiacm371@example.test', '1993-08-15', '2026-09-06 08:46:00', 'Studying', 'OPP2542', 'LEAD2556'),
+  ('STD416', 'Phan Thị Giang', '0964984288', 'giangpt771@example.test', '2011-07-24', '2026-09-08 08:25:00', 'Studying', 'OPP2559', 'LEAD2573'),
+  ('STD417', 'Lê Văn Nghĩa', '0351071991', 'nghialv68@example.test', '1992-02-22', '2026-08-30 08:40:00', 'Studying', 'OPP2564', 'LEAD2578'),
+  ('STD418', 'Ngô Quốc Vy', '0371328378', 'vynq878@example.test', '1992-04-11', '2026-08-26 14:09:00', 'Studying', 'OPP2566', 'LEAD2580'),
+  ('STD419', 'Hà Thị Quỳnh', '0749636804', 'quynhht339@example.test', '1999-01-10', '2026-10-08 08:37:00', 'Studying', 'OPP2570', 'LEAD2584'),
+  ('STD420', 'Lâm Gia Anh', '0597003336', 'anhlg681@example.test', '1993-01-27', '2026-08-25 08:26:00', 'Studying', 'OPP2573', 'LEAD2587'),
+  ('STD421', 'Vũ Bảo Yến', '0886441153', 'yenvb883@example.test', '2005-08-13', '2026-08-20 08:22:00', 'Studying', 'OPP2579', 'LEAD2593'),
+  ('STD422', 'Tô Bảo Bình', '0908984011', 'binhtb964@example.test', '2011-04-26', '2026-10-14 15:58:00', 'Studying', 'OPP2584', 'LEAD2598'),
+  ('STD423', 'Chu Thu Nam', '0977979652', 'namct313@example.test', '1997-05-03', '2026-10-06 14:33:00', 'Studying', 'OPP2594', 'LEAD2608'),
+  ('STD424', 'Hoàng Phương Dũng', '0896210183', 'dunghp318@example.test', '2012-02-05', '2026-09-29 08:04:00', 'Studying', 'OPP2596', 'LEAD2610'),
+  ('STD425', 'Phạm Mỹ Yến', '0393139301', 'yenpm595@example.test', '2009-11-18', '2026-09-20 08:23:00', 'Studying', 'OPP2603', 'LEAD2617'),
+  ('STD426', 'Huỳnh Mỹ Trang', '0968386040', 'tranghm791@example.test', '2001-11-15', '2026-09-26 08:45:00', 'Studying', 'OPP2607', 'LEAD2621'),
+  ('STD427', 'Võ Kim Yến', '0951116215', 'yenvk931@example.test', '2006-10-04', '2026-10-22 12:33:00', 'Studying', 'OPP2624', 'LEAD2638'),
+  ('STD428', 'Tô Phương Thảo', '0700901724', 'thaotp977@example.test', '2000-06-25', '2026-06-07 08:39:00', 'Studying', 'OPP2638', 'LEAD2652'),
+  ('STD429', 'Hoàng Thị Quân', '0873896073', 'quanht858@example.test', '1991-03-08', '2026-06-11 10:22:00', 'Studying', 'OPP2642', 'LEAD2656'),
+  ('STD430', 'Lê Anh Bình', '0794089062', 'binhla519@example.test', '1994-10-26', '2026-05-31 09:29:00', 'Studying', 'OPP2643', 'LEAD2657'),
+  ('STD431', 'Bùi Ngọc Linh', '0811033422', 'linhbn583@example.test', '1993-12-28', '2026-05-18 12:03:00', 'Studying', 'OPP2644', 'LEAD2658'),
+  ('STD432', 'Lê Anh Lan', '0517146657', 'lanla522@example.test', '2000-11-02', '2026-05-12 14:06:00', 'Studying', 'OPP2647', 'LEAD2661'),
+  ('STD433', 'Cao Thị Tú', '0736521178', 'tuct177@example.test', '2008-03-19', '2026-06-02 08:29:00', 'Studying', 'OPP2651', 'LEAD2665'),
+  ('STD434', 'Võ Thanh Trang', '0764764428', 'trangvt59@example.test', '1992-09-07', '2026-06-19 13:13:00', 'Studying', 'OPP2654', 'LEAD2668'),
+  ('STD435', 'Nguyễn Anh An', '0507225018', 'anna241@example.test', '1996-08-25', '2026-05-16 16:44:00', 'Studying', 'OPP2669', 'LEAD2683'),
+  ('STD436', 'Nguyễn Hữu Duy', '0814324507', 'duynh546@example.test', '2002-07-21', '2026-06-21 15:33:00', 'Studying', 'OPP2671', 'LEAD2685'),
+  ('STD437', 'Huỳnh Anh Trúc', '0858269194', 'trucha666@example.test', '2011-07-16', '2026-07-04 08:17:00', 'Studying', 'OPP2672', 'LEAD2686'),
+  ('STD438', 'Ngô Bảo My', '0789040946', 'mynb870@example.test', '2006-07-01', '2026-08-12 08:15:00', 'Studying', 'OPP2673', 'LEAD2687'),
+  ('STD439', 'Võ Thị Vy', '0352043901', 'vyvt759@example.test', '2004-01-11', '2026-06-30 08:18:00', 'Studying', 'OPP2682', 'LEAD2696'),
+  ('STD440', 'Lý Thanh Thảo', '0811991044', 'thaolt448@example.test', '1997-07-02', '2026-10-01 08:11:00', 'Studying', 'OPP2698', 'LEAD2712'),
+  ('STD441', 'Mai Nhật Dũng', '0858074276', 'dungmn529@example.test', '2001-02-08', '2026-07-16 17:17:00', 'Studying', 'OPP2699', 'LEAD2713'),
+  ('STD442', 'Mai Minh Ngân', '0857076310', 'nganmm544@example.test', '2007-06-22', '2026-08-14 08:47:00', 'Studying', 'OPP2700', 'LEAD2714'),
+  ('STD443', 'Trịnh Hoài Tâm', '0371957093', 'tamth904@example.test', '1998-06-02', '2026-07-26 08:50:00', 'Studying', 'OPP2711', 'LEAD2725'),
+  ('STD444', 'Trần Tuấn Giang', '0364572390', 'giangtt841@example.test', '2003-06-28', '2026-09-27 08:27:00', 'Studying', 'OPP2712', 'LEAD2726'),
+  ('STD445', 'Nguyễn Hoài Bình', '0563500585', 'binhnh750@example.test', '2007-02-09', '2026-07-15 08:12:00', 'Studying', 'OPP2717', 'LEAD2731'),
+  ('STD446', 'Đinh Minh Quân', '0393988332', 'quandm742@example.test', '1995-10-26', '2026-07-31 08:04:00', 'Studying', 'OPP2719', 'LEAD2733'),
+  ('STD447', 'Phan Kim Hiếu', '0794105089', 'hieupk654@example.test', '2005-05-27', '2026-07-24 20:23:00', 'Studying', 'OPP2720', 'LEAD2734'),
+  ('STD448', 'Lâm Nhật Hà', '0749742745', 'haln133@example.test', '2005-12-22', '2026-07-29 19:58:00', 'Studying', 'OPP2721', 'LEAD2735'),
+  ('STD449', 'Nguyễn Minh Ngọc', '0996929201', 'ngocnm628@example.test', '1992-10-23', '2026-07-28 08:40:00', 'Studying', 'OPP2723', 'LEAD2737'),
+  ('STD450', 'Vũ Khánh Sơn', '0987296860', 'sonvk230@example.test', '1991-04-12', '2026-08-13 18:15:00', 'Studying', 'OPP2724', 'LEAD2738'),
+  ('STD451', 'Lê Văn Minh', '0891300089', 'minhlv374@example.test', '1999-08-06', '2026-08-16 13:23:00', 'Studying', 'OPP2737', 'LEAD2751'),
+  ('STD452', 'Chu Phương Thắng', '0892608497', 'thangcp308@example.test', '2002-11-03', '2026-09-08 08:05:00', 'Studying', 'OPP2738', 'LEAD2752'),
+  ('STD453', 'Dương Thị Vy', '0340639614', 'vydt353@example.test', '2007-09-01', '2026-10-16 08:24:00', 'Studying', 'OPP2740', 'LEAD2754'),
+  ('STD454', 'Bùi Nhật Nhi', '0367625269', 'nhibn644@example.test', '1994-06-01', '2026-08-27 18:31:00', 'Studying', 'OPP2741', 'LEAD2755'),
+  ('STD455', 'Đỗ Tuấn Trang', '0324118615', 'trangdt149@example.test', '2002-02-26', '2026-09-03 10:46:00', 'Studying', 'OPP2742', 'LEAD2756'),
+  ('STD456', 'Võ Hữu Tú', '0876005707', 'tuvh62@example.test', '2006-12-01', '2026-10-08 08:11:00', 'Studying', 'OPP2748', 'LEAD2762'),
+  ('STD457', 'Lê Ngọc Sơn', '0819243449', 'sonln367@example.test', '2005-06-06', '2026-09-23 18:42:00', 'Studying', 'OPP2749', 'LEAD2763'),
+  ('STD458', 'Lê Hữu Anh', '0976114040', 'anhlh185@example.test', '2007-05-23', '2026-08-29 11:26:00', 'Studying', 'OPP2752', 'LEAD2766'),
+  ('STD459', 'Phan Tuấn Nhi', '0364802456', 'nhipt282@example.test', '2008-01-27', '2026-10-10 08:42:00', 'Studying', 'OPP2755', 'LEAD2769'),
+  ('STD460', 'Lý Thanh Duy', '0560128529', 'duylt477@example.test', '2011-12-25', '2026-09-28 08:50:00', 'Studying', 'OPP2761', 'LEAD2775'),
+  ('STD461', 'Lâm Ngọc Thảo', '0763370487', 'thaoln645@example.test', '1995-08-08', '2026-09-22 08:59:00', 'Studying', 'OPP2762', 'LEAD2776'),
+  ('STD462', 'Phạm Tuấn Sơn', '0825002857', 'sonpt301@example.test', '1996-11-21', '2026-09-23 08:41:00', 'Studying', 'OPP2763', 'LEAD2777'),
+  ('STD463', 'Trần Nhật Ngân', '0503952025', 'ngantn182@example.test', '2003-10-21', '2026-09-13 08:05:00', 'Studying', 'OPP2769', 'LEAD2783'),
+  ('STD464', 'Trần Anh Bình', '0551001264', 'binhta154@example.test', '1995-02-08', '2026-09-15 08:21:00', 'Studying', 'OPP2770', 'LEAD2784'),
+  ('STD465', 'Phan Anh Khoa', '0763961013', 'khoapa429@example.test', '1990-09-01', '2026-10-09 08:47:00', 'Studying', 'OPP2773', 'LEAD2787'),
+  ('STD466', 'Vũ Thị Long', '0525715676', 'longvt598@example.test', '2002-05-06', '2026-10-05 08:13:00', 'Studying', 'OPP2784', 'LEAD2798'),
+  ('STD467', 'Tô Hải Quỳnh', '0765626352', 'quynhth237@example.test', '1992-03-08', '2026-09-13 12:36:00', 'Studying', 'OPP2786', 'LEAD2800'),
+  ('STD468', 'Lâm Hữu Hiếu', '0377452457', 'hieulh174@example.test', '1992-08-21', '2026-10-13 19:52:00', 'Studying', 'OPP2791', 'LEAD2805'),
+  ('STD469', 'Ngô Thanh Sơn', '0516486342', 'sonnt447@example.test', '1993-06-08', '2026-10-23 08:57:00', 'Studying', 'OPP2793', 'LEAD2807'),
+  ('STD470', 'Trịnh Ngọc Hương', '0514120899', 'huongtn145@example.test', '2010-05-17', '2026-10-16 20:16:00', 'Studying', 'OPP2798', 'LEAD2812'),
+  ('STD471', 'Bùi Mỹ Ngọc', '0770238276', 'ngocbm224@example.test', '2001-07-02', '2026-10-24 19:08:00', 'Studying', 'OPP2806', 'LEAD2820'),
+  ('STD472', 'Đặng Khánh Bình', '0565845100', 'binhdk994@example.test', '1992-11-07', '2026-06-01 09:35:00', 'Studying', 'OPP2815', 'LEAD2829'),
+  ('STD473', 'Vũ Anh Hải', '0908836431', 'haiva189@example.test', '1998-06-16', '2026-06-09 08:32:00', 'Studying', 'OPP2821', 'LEAD2835'),
+  ('STD474', 'Huỳnh Gia Châu', '0554986837', 'chauhg317@example.test', '1998-11-21', '2026-06-21 13:42:00', 'Completed', 'OPP2825', 'LEAD2839'),
+  ('STD475', 'Nguyễn Mỹ Hương', '0864284884', 'huongnm607@example.test', '2008-05-05', '2026-06-11 08:27:00', 'Studying', 'OPP2830', 'LEAD2844'),
+  ('STD476', 'Bùi Văn Lan', '0794026998', 'lanbv120@example.test', '1998-02-20', '2026-07-20 08:43:00', 'Studying', 'OPP2834', 'LEAD2848'),
+  ('STD477', 'Võ Ngọc Minh', '0564543463', 'minhvn266@example.test', '2004-02-06', '2026-05-27 12:54:00', 'Studying', 'OPP2837', 'LEAD2851'),
+  ('STD478', 'Huỳnh Gia Nghĩa', '0881827937', 'nghiahg434@example.test', '1996-11-26', '2026-05-30 08:23:00', 'Studying', 'OPP2838', 'LEAD2852'),
+  ('STD479', 'Lê Hoài Thắng', '0764269569', 'thanglh320@example.test', '1990-03-22', '2026-05-16 13:06:00', 'Studying', 'OPP2839', 'LEAD2853'),
+  ('STD480', 'Dương Hữu Khang', '0833563468', 'khangdh442@example.test', '2004-06-12', '2026-05-25 11:48:00', 'Studying', 'OPP2841', 'LEAD2855'),
+  ('STD481', 'Trịnh Phương Minh', '0347347577', 'minhtp85@example.test', '2000-12-24', '2026-06-21 20:40:00', 'Studying', 'OPP2846', 'LEAD2860'),
+  ('STD482', 'Tô Anh Thắng', '0810841416', 'thangta251@example.test', '2008-02-08', '2026-07-04 08:01:00', 'Studying', 'OPP2847', 'LEAD2861'),
+  ('STD483', 'Ngô Phương Minh', '0552980447', 'minhnp76@example.test', '2007-03-19', '2026-07-01 19:34:00', 'Studying', 'OPP2848', 'LEAD2862'),
+  ('STD484', 'Trần Anh Anh', '0853332819', 'anhta531@example.test', '1992-03-27', '2026-06-28 08:20:00', 'Studying', 'OPP2850', 'LEAD2864'),
+  ('STD485', 'Ngô Quốc Nam', '0703301845', 'namnq425@example.test', '1990-09-12', '2026-06-18 10:56:00', 'Studying', 'OPP2851', 'LEAD2865'),
+  ('STD486', 'Phan Thị Trang', '0347733810', 'trangpt148@example.test', '2006-01-21', '2026-06-22 08:02:00', 'Studying', 'OPP2866', 'LEAD2880'),
+  ('STD487', 'Lý Gia Huy', '0805239345', 'huylg50@example.test', '1995-07-17', '2026-07-22 08:03:00', 'Studying', 'OPP2877', 'LEAD2891'),
+  ('STD488', 'Dương Bảo Phúc', '0943434344', 'phucdb744@example.test', '1995-11-09', '2026-07-17 18:49:00', 'Studying', 'OPP2882', 'LEAD2896'),
+  ('STD489', 'Võ Thanh Thảo', '0520700971', 'thaovt442@example.test', '2002-09-18', '2026-07-31 17:40:00', 'Studying', 'OPP2885', 'LEAD2899'),
+  ('STD490', 'Trần Gia Hà', '0963574681', 'hatg825@example.test', '2002-04-13', '2026-07-20 14:52:00', 'Studying', 'OPP2889', 'LEAD2903'),
+  ('STD491', 'Huỳnh Minh Trí', '0905897848', 'trihm606@example.test', '1992-07-18', '2026-08-07 08:40:00', 'Studying', 'OPP2893', 'LEAD2907'),
+  ('STD492', 'Hồ Hải Khang', '0843155219', 'khanghh506@example.test', '1997-11-02', '2026-07-29 12:35:00', 'Studying', 'OPP2899', 'LEAD2913'),
+  ('STD493', 'Cao Anh Trang', '0354755141', 'trangca320@example.test', '1990-12-02', '2026-08-08 08:44:00', 'Studying', 'OPP2903', 'LEAD2917'),
+  ('STD494', 'Bùi Nhật Nam', '0565746236', 'nambn548@example.test', '2000-05-11', '2026-07-25 08:25:00', 'Studying', 'OPP2907', 'LEAD2921'),
+  ('STD495', 'Lý Hữu Giang', '0802332778', 'gianglh614@example.test', '1994-10-01', '2026-08-12 20:14:00', 'Studying', 'OPP2908', 'LEAD2922'),
+  ('STD496', 'Đinh Đức Anh', '0833651665', 'anhdd187@example.test', '1993-03-04', '2026-08-10 08:16:00', 'Studying', 'OPP2910', 'LEAD2924'),
+  ('STD497', 'Vũ Mỹ Tùng', '0508857586', 'tungvm150@example.test', '1994-02-02', '2026-09-07 12:13:00', 'Studying', 'OPP2911', 'LEAD2925'),
+  ('STD498', 'Vũ Ngọc Thảo', '0753944670', 'thaovn273@example.test', '1999-01-21', '2026-08-03 15:25:00', 'Studying', 'OPP2913', 'LEAD2927'),
+  ('STD499', 'Phan Quốc Hương', '0543604062', 'huongpq120@example.test', '2000-06-15', '2026-08-26 08:44:00', 'Studying', 'OPP2915', 'LEAD2929'),
+  ('STD500', 'Hà Hoài Trí', '0782215352', 'trihh822@example.test', '1991-01-27', '2026-09-04 19:04:00', 'Studying', 'OPP2920', 'LEAD2934'),
+  ('STD501', 'Đặng Anh Linh', '0789256369', 'linhda697@example.test', '2001-12-26', '2026-10-05 10:55:00', 'Studying', 'OPP2923', 'LEAD2937'),
+  ('STD502', 'Hoàng Thị Hân', '0377821017', 'hanht301@example.test', '2000-11-24', '2026-08-16 08:16:00', 'Studying', 'OPP2925', 'LEAD2939'),
+  ('STD503', 'Lý Hải Vy', '0988435483', 'vylh692@example.test', '2010-06-20', '2026-08-27 08:20:00', 'Studying', 'OPP2932', 'LEAD2946'),
+  ('STD504', 'Võ Nhật Uyên', '0336945974', 'uyenvn603@example.test', '2009-07-06', '2026-08-30 09:04:00', 'Studying', 'OPP2933', 'LEAD2947'),
+  ('STD505', 'Trịnh Anh Bình', '0825293965', 'binhta738@example.test', '2007-06-19', '2026-08-19 19:32:00', 'Studying', 'OPP2940', 'LEAD2954'),
+  ('STD506', 'Huỳnh Mỹ Hiếu', '0362011123', 'hieuhm929@example.test', '1999-04-23', '2026-09-15 13:07:00', 'Studying', 'OPP2941', 'LEAD2955'),
+  ('STD507', 'Huỳnh Thị Khôi', '0896678241', 'khoiht693@example.test', '1999-03-04', '2026-10-25 14:10:00', 'Studying', 'OPP2947', 'LEAD2961'),
+  ('STD508', 'Dương Kim Lan', '0886392666', 'landk60@example.test', '2012-12-23', '2026-08-14 08:03:00', 'Studying', 'OPP2950', 'LEAD2964'),
+  ('STD509', 'Dương Nhật Bình', '0819989225', 'binhdn264@example.test', '1993-07-21', '2026-08-20 13:16:00', 'Studying', 'OPP2954', 'LEAD2968'),
+  ('STD510', 'Bùi Hoài Thắng', '0752922948', 'thangbh236@example.test', '1992-11-12', '2026-09-01 17:49:00', 'Studying', 'OPP2956', 'LEAD2970'),
+  ('STD511', 'Ngô Ngọc Tùng', '0983632203', 'tungnn407@example.test', '2000-06-19', '2026-09-09 13:14:00', 'Studying', 'OPP2957', 'LEAD2971'),
+  ('STD512', 'Cao Văn Minh', '0788689893', 'minhcv58@example.test', '1998-05-05', '2026-10-12 14:35:00', 'Studying', 'OPP2966', 'LEAD2980'),
+  ('STD513', 'Bùi Ngọc Minh', '0911407695', 'minhbn268@example.test', '2005-09-28', '2026-09-20 19:58:00', 'Studying', 'OPP2968', 'LEAD2982'),
+  ('STD514', 'Trịnh Mỹ Sơn', '0766579818', 'sontm359@example.test', '1999-09-25', '2026-09-13 08:36:00', 'Studying', 'OPP2969', 'LEAD2983'),
+  ('STD515', 'Lê Minh Hải', '0970102476', 'hailm836@example.test', '1999-11-22', '2026-10-13 12:37:00', 'Studying', 'OPP2972', 'LEAD2986'),
+  ('STD516', 'Phan Ngọc Giang', '0934797329', 'giangpn539@example.test', '2010-12-14', '2026-10-27 10:24:00', 'Studying', 'OPP2978', 'LEAD2992'),
+  ('STD517', 'Hoàng Bảo Trúc', '0528214534', 'truchb729@example.test', '2003-09-02', '2026-10-16 20:36:00', 'Studying', 'OPP2989', 'LEAD3003'),
+  ('STD518', 'Vũ Thu Hà', '0527131853', 'havt974@example.test', '2001-03-03', '2026-10-26 11:16:00', 'Studying', 'OPP2992', 'LEAD3006'),
+  ('STD519', 'Hoàng Anh Châu', '0374384606', 'chauha80@example.test', '2005-09-10', '2026-09-19 08:23:00', 'Studying', 'OPP3011', 'LEAD3025'),
+  ('STD520', 'Ngô Hữu Vy', '0758366198', 'vynh413@example.test', '2008-06-16', '2026-10-11 09:24:00', 'Studying', 'OPP3025', 'LEAD3039'),
+  ('STD521', 'Vũ Kim Nghĩa', '0578306178', 'nghiavk181@example.test', '1999-03-13', '2026-09-16 17:27:00', 'Studying', 'OPP3029', 'LEAD3043'),
+  ('STD522', 'Đặng Nhật Châu', '0883270101', 'chaudn104@example.test', '2005-06-06', '2026-09-16 08:38:00', 'Dropped', 'OPP3036', 'LEAD3050'),
+  ('STD523', 'Ngô Bảo Quỳnh', '0553815521', 'quynhnb265@example.test', '2001-07-10', '2026-10-25 13:57:00', 'Studying', 'OPP3037', 'LEAD3051'),
+  ('STD524', 'Dương Tuấn Nhi', '0947000232', 'nhidt12@example.test', '2007-03-09', '2026-10-24 18:56:00', 'Studying', 'OPP3042', 'LEAD3056'),
+  ('STD525', 'Phan Hoài Minh', '0799921236', 'minhph319@example.test', '1998-12-28', '2026-10-15 15:50:00', 'Studying', 'OPP3045', 'LEAD3059'),
+  ('STD526', 'Mai Khánh Thắng', '0531333412', 'thangmk226@example.test', '1996-05-20', '2026-10-07 14:45:00', 'Studying', 'OPP3061', 'LEAD3075'),
+  ('STD527', 'Hồ Bảo Thắng', '0876621431', 'thanghb399@example.test', '2002-04-24', '2026-09-19 08:37:00', 'Studying', 'OPP3065', 'LEAD3079'),
+  ('STD528', 'Tô Anh Châu', '0902039446', 'chauta103@example.test', '2003-11-28', '2026-10-07 11:30:00', 'Studying', 'OPP3089', 'LEAD3103'),
+  ('STD529', 'Đinh Bảo Châu', '0824395104', 'chaudb656@example.test', '2009-06-23', '2026-09-15 09:14:00', 'Studying', 'OPP3098', 'LEAD3112'),
+  ('STD530', 'Hoàng Bảo Quỳnh', '0586958050', 'quynhhb516@example.test', '2011-10-19', '2026-09-29 08:45:00', 'Studying', 'OPP3101', 'LEAD3115'),
+  ('STD531', 'Bùi Mỹ Quỳnh', '0511102699', 'quynhbm752@example.test', '2008-12-14', '2026-09-21 08:42:00', 'Studying', 'OPP3131', 'LEAD3145'),
+  ('STD532', 'Hoàng Thị Quân', '0884624663', 'quanht463@example.test', '1991-10-13', '2026-10-09 15:45:00', 'Studying', 'OPP3135', 'LEAD3149'),
+  ('STD533', 'Đặng Đức Linh', '0944570189', 'linhdd516@example.test', '2002-05-28', '2026-09-18 17:18:00', 'Studying', 'OPP3137', 'LEAD3151'),
+  ('STD534', 'Lê Gia Hân', '0513326413', 'hanlg389@example.test', '1990-01-24', '2026-09-19 11:46:00', 'Studying', 'OPP3140', 'LEAD3154'),
+  ('STD535', 'Lâm Minh Hoa', '0339275527', 'hoalm114@example.test', '2003-09-27', '2026-10-04 08:41:00', 'Studying', 'OPP3144', 'LEAD3158'),
+  ('STD536', 'Trịnh Thu Huy', '0931321817', 'huytt694@example.test', '1996-06-01', '2026-09-16 09:16:00', 'Studying', 'OPP3145', 'LEAD3159'),
+  ('STD537', 'Võ Kim Hà', '0712133166', 'havk140@example.test', '2000-12-01', '2026-09-21 09:37:00', 'Studying', 'OPP3146', 'LEAD3160'),
+  ('STD538', 'Lê Hoài Trí', '0719841660', 'trilh130@example.test', '1992-06-10', '2026-10-25 19:53:00', 'Studying', 'OPP3192', 'LEAD3206'),
+  ('STD539', 'Võ Mỹ Hoa', '0861266801', 'hoavm829@example.test', '2005-05-11', '2026-10-07 17:55:00', 'Studying', 'OPP3200', 'LEAD3214'),
+  ('STD540', 'Ngô Phương Duy', '0834352734', 'duynp652@example.test', '2008-02-15', '2026-09-24 08:41:00', 'Studying', 'OPP3219', 'LEAD3233'),
+  ('STD541', 'Đặng Phương Tú', '0520865399', 'tudp596@example.test', '1990-12-04', '2026-10-25 10:21:00', 'Studying', 'OPP3235', 'LEAD3249'),
+  ('STD542', 'Lý Khánh Hoa', '0921932702', 'hoalk995@example.test', '2000-05-20', '2026-10-13 11:34:00', 'Studying', 'OPP3237', 'LEAD3251'),
+  ('STD543', 'Nguyễn Mỹ Hiếu', '0862379351', 'hieunm717@example.test', '2011-09-15', '2026-10-01 08:29:00', 'Studying', 'OPP3253', 'LEAD3267'),
+  ('STD544', 'Tô Thanh Phúc', '0931250737', 'phuctt541@example.test', '2004-06-28', '2026-09-20 08:20:00', 'Studying', 'OPP3259', 'LEAD3273'),
+  ('STD545', 'Huỳnh Anh Mai', '0866743029', 'maiha67@example.test', '1998-12-19', '2026-10-08 08:32:00', 'Studying', 'OPP3265', 'LEAD3279'),
+  ('STD546', 'Dương Anh Trang', '0865143922', 'trangda164@example.test', '1995-05-04', '2026-10-01 08:11:00', 'Studying', 'OPP3267', 'LEAD3281'),
+  ('STD547', 'Trịnh Đức Huy', '0966907617', 'huytd639@example.test', '2000-07-07', '2026-10-09 08:38:00', 'Studying', 'OPP3294', 'LEAD3308'),
+  ('STD548', 'Đặng Gia Quân', '0834409224', 'quandg33@example.test', '1994-12-02', '2026-10-23 13:00:00', 'Studying', 'OPP3309', 'LEAD3323'),
+  ('STD549', 'Cao Khánh Long', '0355018822', 'longck908@example.test', '2001-04-10', '2026-10-14 08:35:00', 'Studying', 'OPP3311', 'LEAD3325'),
+  ('STD550', 'Nguyễn Phương Châu', '0924476567', 'chaunp407@example.test', '1992-11-26', '2026-10-24 08:47:00', 'Studying', 'OPP3314', 'LEAD3328'),
+  ('STD551', 'Mai Tuấn Quân', '0319202479', 'quanmt935@example.test', '2006-06-02', '2026-10-05 17:06:00', 'Studying', 'OPP3335', 'LEAD3349'),
+  ('STD552', 'Phạm Mỹ Hân', '0920274688', 'hanpm801@example.test', '1996-11-14', '2026-09-19 08:49:00', 'Studying', 'OPP3338', 'LEAD3352'),
+  ('STD553', 'Lâm Gia Linh', '0765736940', 'linhlg46@example.test', '2000-02-15', '2026-10-12 08:30:00', 'Studying', 'OPP3358', 'LEAD3372'),
+  ('STD554', 'Bùi Thu Duy', '0372151982', 'duybt367@example.test', '1997-03-01', '2026-10-12 08:07:00', 'Studying', 'OPP3372', 'LEAD3386'),
+  ('STD555', 'Hồ Phương Dũng', '0864669826', 'dunghp481@example.test', '2000-11-09', '2026-10-27 12:06:00', 'Studying', 'OPP3393', 'LEAD3407'),
+  ('STD556', 'Trịnh Gia Lan', '0378587421', 'lantg296@example.test', '1997-05-03', '2026-10-24 08:49:00', 'Studying', 'OPP3398', 'LEAD3412'),
+  ('STD557', 'Chu Mỹ Thắng', '0828669765', 'thangcm221@example.test', '1991-05-19', '2026-09-24 10:26:00', 'Studying', 'OPP3422', 'LEAD3436'),
+  ('STD558', 'Huỳnh Ngọc Ngọc', '0710726844', 'ngochn254@example.test', '1997-12-05', '2026-10-05 08:22:00', 'Studying', 'OPP3426', 'LEAD3440'),
+  ('STD559', 'Hà Phương Nghĩa', '0993256430', 'nghiahp779@example.test', '1992-11-13', '2026-09-26 08:37:00', 'Dropped', 'OPP3431', 'LEAD3445'),
+  ('STD560', 'Võ Phương Quỳnh', '0375543671', 'quynhvp25@example.test', '2003-01-21', '2026-10-19 08:11:00', 'Studying', 'OPP3449', 'LEAD3463'),
+  ('STD561', 'Phạm Bảo Huy', '0561855646', 'huypb637@example.test', '2011-04-06', '2026-10-14 08:00:00', 'Studying', 'OPP3462', 'LEAD3476'),
+  ('STD562', 'Phan Hải Thắng', '0948234183', 'thangph84@example.test', '1990-11-21', '2026-10-20 17:18:00', 'Studying', 'OPP3465', 'LEAD3479'),
+  ('STD563', 'Lâm Kim Ngọc', '0515714902', 'ngoclk329@example.test', '2012-03-26', '2026-10-13 08:40:00', 'Studying', 'OPP3478', 'LEAD3492'),
+  ('STD564', 'Cao Thu Linh', '0798647846', 'linhct572@example.test', '1992-08-12', '2026-09-30 08:27:00', 'Studying', 'OPP3490', 'LEAD3504'),
+  ('STD565', 'Đinh Gia Trúc', '0552837560', 'trucdg257@example.test', '1994-01-09', '2026-09-30 08:20:00', 'Dropped', 'OPP3497', 'LEAD3511'),
+  ('STD566', 'Dương Hải Tâm', '0788773093', 'tamdh425@example.test', '1994-06-25', '2026-09-19 11:03:00', 'Studying', 'OPP3507', 'LEAD3521'),
+  ('STD567', 'Vũ Thu Quỳnh', '0578540087', 'quynhvt390@example.test', '1992-02-10', '2026-10-22 08:26:00', 'Studying', 'OPP3532', 'LEAD3546'),
+  ('STD568', 'Ngô Khánh Nam', '0553021371', 'namnk684@example.test', '1994-02-14', '2026-09-28 16:52:00', 'Studying', 'OPP3586', 'LEAD3600'),
+  ('STD569', 'Đỗ Phương Anh', '0890085895', 'anhdp500@example.test', '2005-12-12', '2026-09-25 12:52:00', 'Studying', 'OPP3587', 'LEAD3601'),
+  ('STD570', 'Lê Kim Duy', '0510836283', 'duylk870@example.test', '2000-03-23', '2026-10-14 20:54:00', 'Studying', 'OPP3620', 'LEAD3634'),
+  ('STD571', 'Hoàng Kim Trí', '0868225704', 'trihk56@example.test', '2006-09-18', '2026-10-16 08:24:00', 'Studying', 'OPP3622', 'LEAD3636'),
+  ('STD572', 'Dương Ngọc Hải', '0775398873', 'haidn330@example.test', '1990-01-14', '2026-09-25 08:19:00', 'Studying', 'OPP3625', 'LEAD3639'),
+  ('STD573', 'Vũ Hoài Minh', '0368530760', 'minhvh211@example.test', '2009-04-14', '2026-09-29 13:58:00', 'Studying', 'OPP3628', 'LEAD3642'),
+  ('STD574', 'Hoàng Mỹ Nhi', '0838415394', 'nhihm655@example.test', '2011-10-12', '2026-10-02 10:33:00', 'Studying', 'OPP3631', 'LEAD3645'),
+  ('STD575', 'Lâm Khánh Sơn', '0306296299', 'sonlk236@example.test', '2007-05-13', '2026-09-24 15:42:00', 'Studying', 'OPP3655', 'LEAD3669'),
+  ('STD576', 'Lý Văn Tâm', '0950260421', 'tamlv345@example.test', '2005-09-13', '2026-10-10 09:57:00', 'Studying', 'OPP3658', 'LEAD3672'),
+  ('STD577', 'Phạm Mỹ Huy', '0355012141', 'huypm29@example.test', '2007-12-15', '2026-10-08 08:04:00', 'Studying', 'OPP3682', 'LEAD3696'),
+  ('STD578', 'Huỳnh Hải Tâm', '0864490056', 'tamhh127@example.test', '2010-08-13', '2026-10-15 08:15:00', 'Studying', 'OPP3701', 'LEAD3715'),
+  ('STD579', 'Mai Hải Nam', '0356742709', 'nammh440@example.test', '2004-10-10', '2026-10-13 20:25:00', 'Studying', 'OPP3704', 'LEAD3718'),
+  ('STD580', 'Dương Phương Chi', '0524138463', 'chidp953@example.test', '1994-12-12', '2026-09-14 08:09:00', 'Studying', 'OPP3715', 'LEAD3729'),
+  ('STD581', 'Phạm Nhật Linh', '0549238980', 'linhpn782@example.test', '2011-09-13', '2026-10-20 15:50:00', 'Studying', 'OPP3724', 'LEAD3738'),
+  ('STD582', 'Đinh Kim Tùng', '0354769736', 'tungdk347@example.test', '2007-11-26', '2026-10-14 19:59:00', 'Studying', 'OPP3736', 'LEAD3750'),
+  ('STD583', 'Vũ Hữu Phúc', '0362513382', 'phucvh889@example.test', '2010-04-21', '2026-09-15 11:53:00', 'Studying', 'OPP3759', 'LEAD3773'),
+  ('STD584', 'Tô Thị Quỳnh', '0550917580', 'quynhtt100@example.test', '2005-06-24', '2026-09-23 08:05:00', 'Studying', 'OPP3764', 'LEAD3778'),
+  ('STD585', 'Trần Ngọc Thắng', '0513349719', 'thangtn900@example.test', '2009-12-17', '2026-09-22 16:33:00', 'Studying', 'OPP3768', 'LEAD3782'),
+  ('STD586', 'Đinh Đức Hân', '0779682119', 'handd971@example.test', '2011-05-19', '2026-10-28 17:25:00', 'Studying', 'OPP3808', 'LEAD3822'),
+  ('STD587', 'Lâm Mỹ Uyên', '0884948904', 'uyenlm764@example.test', '1993-01-04', '2026-10-22 11:05:00', 'Studying', 'OPP3819', 'LEAD3833'),
+  ('STD588', 'Đỗ Phương Chi', '0805193377', 'chidp738@example.test', '1998-10-20', '2026-10-27 18:52:00', 'Studying', 'OPP3823', 'LEAD3837');
 
 -- ============================================================
 -- SUA DU LIEU DEMO - ODIN CRM (04/11/2026)
@@ -32458,7 +32458,7 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP003';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-21 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV004';
 update `SalesOrders` set `paid_amount` = 11000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD003';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD589', 'Bùi Quốc Bảo', '0912000006', 'quocbao@example.test', NULL, '2026-09-21 12:00:00', 'Studying', 'OPP006');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD589', 'Bùi Quốc Bảo', '0912000006', 'quocbao@example.test', NULL, '2026-09-21 12:00:00', 'Studying', 'OPP006', 'LEAD006');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP007';
 delete from `Students` where `opportunity_id` = 'OPP007';
 insert into `Quotations` (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`) values ('QUO983', '2026-10-10 12:00:00', '2026-10-24', 'Confirmed', '2026-10-11 10:00:00', NULL, 'EMP004', NULL, 'OPP012');
@@ -32466,61 +32466,61 @@ insert into `QuotationDetails` (`quotation_id`, `course_id`, `unit_price`, `quan
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD681', NULL, '2026-10-11 10:00:00', 6000000, 0, 6000000, 'InProgress', NULL, 'QUO983');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV831', '2026-10-11', '2026-10-14', 6000000, 'Paid', 'BankTransfer', '2026-10-11 12:00:00', 'ORD681', 1, 'EMP004', NULL);
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD681';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD590', 'Đoàn Gia Huy', '0912000017', 'giahuy@example.test', NULL, '2026-10-11 12:00:00', 'Studying', 'OPP012');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD590', 'Đoàn Gia Huy', '0912000017', 'giahuy@example.test', NULL, '2026-10-11 12:00:00', 'Studying', 'OPP012', 'LEAD017');
 insert into `Quotations` (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`) values ('QUO984', '2026-09-29 17:00:00', '2026-10-13', 'Confirmed', '2026-09-30 10:00:00', NULL, 'EMP005', NULL, 'OPP018');
 insert into `QuotationDetails` (`quotation_id`, `course_id`, `unit_price`, `quantity`, `VAT`, `line_total`) values ('QUO984', 'CRS002', '8500000.00', 1, '0.00', 8500000);
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD682', NULL, '2026-09-30 10:00:00', 8500000, 0, 8500000, 'InProgress', NULL, 'QUO984');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV832', '2026-09-30', '2026-10-03', 8500000, 'Paid', 'BankTransfer', '2026-09-30 12:00:00', 'ORD682', 1, 'EMP005', NULL);
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD682';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD591', 'Châu Mỹ Linh', '0912000023', 'mylinh@example.test', NULL, '2026-09-30 12:00:00', 'Studying', 'OPP018');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD591', 'Châu Mỹ Linh', '0912000023', 'mylinh@example.test', NULL, '2026-09-30 12:00:00', 'Studying', 'OPP018', 'LEAD023');
 insert into `Quotations` (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`) values ('QUO985', '2026-10-01 18:30:00', '2026-10-15', 'Confirmed', '2026-10-02 10:00:00', NULL, 'EMP007', NULL, 'OPP024');
 insert into `QuotationDetails` (`quotation_id`, `course_id`, `unit_price`, `quantity`, `VAT`, `line_total`) values ('QUO985', 'CRS003', '12000000.00', 1, '0.00', 12000000);
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD683', NULL, '2026-10-02 10:00:00', 12000000, 0, 12000000, 'InProgress', NULL, 'QUO985');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV833', '2026-10-02', '2026-10-05', 12000000, 'Paid', 'BankTransfer', '2026-10-02 12:00:00', 'ORD683', 1, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD683';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD592', 'Thân Ngọc Bích', '0912000029', 'ngocbich@example.test', NULL, '2026-10-02 12:00:00', 'Studying', 'OPP024');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD592', 'Thân Ngọc Bích', '0912000029', 'ngocbich@example.test', NULL, '2026-10-02 12:00:00', 'Studying', 'OPP024', 'LEAD029');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1246';
 delete from `Students` where `opportunity_id` = 'OPP1246';
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-06-23 15:58:00' where `quotation_id` = 'QUO036';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD684', NULL, '2026-06-23 15:58:00', 5500000, 0, 5500000, 'InProgress', NULL, 'QUO036');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV834', '2026-06-23', '2026-06-26', 5500000, 'Paid', 'BankTransfer', '2026-06-23 15:58:00', 'ORD684', 1, 'EMP009', NULL);
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD684';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD593', 'Hoàng Bảo Phương', '0349919350', 'phuonghoang@example.test', NULL, '2026-06-23 15:58:00', 'Studying', 'OPP130');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD593', 'Hoàng Bảo Phương', '0349919350', 'phuonghoang@example.test', NULL, '2026-06-23 15:58:00', 'Studying', 'OPP130', 'LEAD140');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-07-23 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV345';
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD273';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD594', 'Ngô Bảo Phong', '0574136086', 'phongnb534@example.test', NULL, '2026-07-23 12:00:00', 'Studying', 'OPP1386');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD594', 'Ngô Bảo Phong', '0574136086', 'phongnb534@example.test', NULL, '2026-07-23 12:00:00', 'Studying', 'OPP1386', 'LEAD1400');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1393';
 delete from `Students` where `opportunity_id` = 'OPP1393';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-14 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV352';
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD278';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD595', 'Hồ Hữu Giang', '0807284968', 'gianghh5@example.test', NULL, '2026-08-14 12:00:00', 'Studying', 'OPP1400');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD595', 'Hồ Hữu Giang', '0807284968', 'gianghh5@example.test', NULL, '2026-08-14 12:00:00', 'Studying', 'OPP1400', 'LEAD1414');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1440';
 delete from `Students` where `opportunity_id` = 'OPP1440';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-10 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV360';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV835', '2026-09-10', '2026-09-13', 3700000, 'Paid', 'BankTransfer', '2026-09-10 12:00:00', 'ORD285', 2, 'EMP010', NULL);
 update `SalesOrders` set `paid_amount` = 7500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD285';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD596', 'Huỳnh Ngọc Thư', '0825311311', 'thuhn588@example.test', NULL, '2026-09-10 12:00:00', 'Studying', 'OPP1442');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD596', 'Huỳnh Ngọc Thư', '0825311311', 'thuhn588@example.test', NULL, '2026-09-10 12:00:00', 'Studying', 'OPP1442', 'LEAD1456');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1450';
 delete from `Students` where `opportunity_id` = 'OPP1450';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1459';
 delete from `Students` where `opportunity_id` = 'OPP1459';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-07-10 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV368';
 update `SalesOrders` set `paid_amount` = 10800000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD292';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD597', 'Vũ Hữu Châu', '0940126308', 'chauvh140@example.test', NULL, '2026-07-10 12:00:00', 'Studying', 'OPP1490');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD597', 'Vũ Hữu Châu', '0940126308', 'chauvh140@example.test', NULL, '2026-07-10 12:00:00', 'Studying', 'OPP1490', 'LEAD1504');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1552';
 delete from `Students` where `opportunity_id` = 'OPP1552';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-07-09 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV382';
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD304';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD598', 'Lê Đức Trí', '0567021482', 'trild153@example.test', NULL, '2026-07-09 12:00:00', 'Studying', 'OPP1601');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD598', 'Lê Đức Trí', '0567021482', 'trild153@example.test', NULL, '2026-07-09 12:00:00', 'Studying', 'OPP1601', 'LEAD1615');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-07-02 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV056';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD044';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD599', 'Nguyễn Hà Vân', '0384170091', 'vannguyen1992@example.test', NULL, '2026-07-02 12:00:00', 'Studying', 'OPP162');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD599', 'Nguyễn Hà Vân', '0384170091', 'vannguyen1992@example.test', NULL, '2026-07-02 12:00:00', 'Studying', 'OPP162', 'LEAD172');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-06 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV387';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD309';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD600', 'Trần Nhật Hà', '0850032447', 'hatn951@example.test', NULL, '2026-08-06 12:00:00', 'Studying', 'OPP1638');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD600', 'Trần Nhật Hà', '0850032447', 'hatn951@example.test', NULL, '2026-08-06 12:00:00', 'Studying', 'OPP1638', 'LEAD1652');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV389';
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD311';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD601', 'Lâm Thị Trí', '0519097761', 'trilt277@example.test', NULL, '2026-08-28 12:00:00', 'Studying', 'OPP1659');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD601', 'Lâm Thị Trí', '0519097761', 'trilt277@example.test', NULL, '2026-08-28 12:00:00', 'Studying', 'OPP1659', 'LEAD1673');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1690';
 delete from `Students` where `opportunity_id` = 'OPP1690';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1709';
@@ -32528,10 +32528,10 @@ delete from `Students` where `opportunity_id` = 'OPP1709';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV401';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV836', '2026-10-29', '2026-11-01', 6000000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD321', 2, 'EMP012', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD321';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD602', 'Tô Quốc Trí', '0525844434', 'tritq320@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP1718');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD602', 'Tô Quốc Trí', '0525844434', 'tritq320@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP1718', 'LEAD1732');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-15 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV427';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD342';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD603', 'Hà Văn Trúc', '0331424715', 'truchv375@example.test', NULL, '2026-08-16 12:00:00', 'Studying', 'OPP1829');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD603', 'Hà Văn Trúc', '0331424715', 'truchv375@example.test', NULL, '2026-08-16 12:00:00', 'Studying', 'OPP1829', 'LEAD1843');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1851';
 delete from `Students` where `opportunity_id` = 'OPP1851';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP1860';
@@ -32546,27 +32546,27 @@ update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-29 10:00
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD685', NULL, '2026-10-29 10:00:00', 8500000, 0, 8500000, 'InProgress', NULL, 'QUO499');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV837', '2026-10-29', '2026-11-01', 8500000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD685', 1, 'EMP014', NULL);
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD685';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD604', 'Hoàng Minh Hải', '0332119427', 'haihm26@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP1895');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD604', 'Hoàng Minh Hải', '0332119427', 'haihm26@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP1895', 'LEAD1909');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-07-05 10:00:00' where `quotation_id` = 'QUO055';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD686', NULL, '2026-07-05 10:00:00', 7225000, 0, 7225000, 'InProgress', NULL, 'QUO055');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV838', '2026-07-05', '2026-07-08', 7225000, 'Paid', 'BankTransfer', '2026-07-05 12:00:00', 'ORD686', 1, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 7225000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD686';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD605', 'Nguyễn Thị Diệp', '0840075254', 'thidiepn19@example.test', NULL, '2026-07-05 12:00:00', 'Studying', 'OPP195');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD605', 'Nguyễn Thị Diệp', '0840075254', 'thidiepn19@example.test', NULL, '2026-07-05 12:00:00', 'Studying', 'OPP195', 'LEAD205');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-07-06 08:03:00' where `quotation_id` = 'QUO056';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD687', NULL, '2026-07-06 08:03:00', 12000000, 0, 12000000, 'InProgress', NULL, 'QUO056');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV839', '2026-07-06', '2026-07-09', 12000000, 'Paid', 'BankTransfer', '2026-07-06 08:03:00', 'ORD687', 1, 'EMP012', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD687';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD606', 'Lê Gia Anh', '0933838937', NULL, NULL, '2026-07-06 08:03:00', 'Studying', 'OPP198');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD606', 'Lê Gia Anh', '0933838937', NULL, NULL, '2026-07-06 08:03:00', 'Studying', 'OPP198', 'LEAD208');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2049';
 delete from `Students` where `opportunity_id` = 'OPP2049';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2054';
 delete from `Students` where `opportunity_id` = 'OPP2054';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-07-12 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV515';
 update `SalesOrders` set `paid_amount` = 4500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD410';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD607', 'Chu Quốc Sơn', '0940387682', 'soncq405@example.test', NULL, '2026-07-12 12:00:00', 'Studying', 'OPP2204');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD607', 'Chu Quốc Sơn', '0940387682', 'soncq405@example.test', NULL, '2026-07-12 12:00:00', 'Studying', 'OPP2204', 'LEAD2218');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-19 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV524';
 update `SalesOrders` set `paid_amount` = 5400000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD417';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD608', 'Huỳnh Thu An', '0769159588', 'anht144@example.test', NULL, '2026-09-19 12:00:00', 'Studying', 'OPP2233');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD608', 'Huỳnh Thu An', '0769159588', 'anht144@example.test', NULL, '2026-09-19 12:00:00', 'Studying', 'OPP2233', 'LEAD2247');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2236';
 delete from `Students` where `opportunity_id` = 'OPP2236';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2270';
@@ -32575,14 +32575,14 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP2382';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-23 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV549';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD436';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD609', 'Võ Tuấn Hà', '0910683955', 'havt64@example.test', NULL, '2026-10-23 12:00:00', 'Studying', 'OPP2423');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD609', 'Võ Tuấn Hà', '0910683955', 'havt64@example.test', NULL, '2026-10-23 12:00:00', 'Studying', 'OPP2423', 'LEAD2437');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2434';
 delete from `Students` where `opportunity_id` = 'OPP2434';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2438';
 delete from `Students` where `opportunity_id` = 'OPP2438';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-05-20 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV555';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD442';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD610', 'Mai Gia Long', '0834800604', 'longmg599@example.test', NULL, '2026-05-20 12:00:00', 'Studying', 'OPP2452');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD610', 'Mai Gia Long', '0834800604', 'longmg599@example.test', NULL, '2026-05-20 12:00:00', 'Studying', 'OPP2452', 'LEAD2466');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2544';
 delete from `Students` where `opportunity_id` = 'OPP2544';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2565';
@@ -32594,17 +32594,17 @@ delete from `Students` where `opportunity_id` = 'OPP259';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-09 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV649';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV840', '2026-10-10', '2026-10-13', 5000000, 'Paid', 'BankTransfer', '2026-10-10 12:00:00', 'ORD515', 2, 'EMP021', NULL);
 update `SalesOrders` set `paid_amount` = 7500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD515';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD611', 'Đặng Khánh Ngọc', '0319938009', 'ngocdk795@example.test', NULL, '2026-10-10 12:00:00', 'Studying', 'OPP2765');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD611', 'Đặng Khánh Ngọc', '0319938009', 'ngocdk795@example.test', NULL, '2026-10-10 12:00:00', 'Studying', 'OPP2765', 'LEAD2779');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2767';
 delete from `Students` where `opportunity_id` = 'OPP2767';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2794';
 delete from `Students` where `opportunity_id` = 'OPP2794';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-27 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV660';
 update `SalesOrders` set `paid_amount` = 10800000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD525';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD612', 'Tô Ngọc Linh', '0892038128', 'linhtn277@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP2795');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD612', 'Tô Ngọc Linh', '0892038128', 'linhtn277@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP2795', 'LEAD2809');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-05-12 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV663';
 update `SalesOrders` set `paid_amount` = 7650000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD528';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD613', 'Hồ Thanh Khang', '0771482203', 'khanght61@example.test', NULL, '2026-05-13 12:00:00', 'Studying', 'OPP2814');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD613', 'Hồ Thanh Khang', '0771482203', 'khanght61@example.test', NULL, '2026-05-13 12:00:00', 'Studying', 'OPP2814', 'LEAD2828');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2819';
 delete from `Students` where `opportunity_id` = 'OPP2819';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2906';
@@ -32614,17 +32614,17 @@ delete from `Students` where `opportunity_id` = 'OPP2935';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-18 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV714';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV841', '2026-08-18', '2026-08-21', 3850000, 'Paid', 'BankTransfer', '2026-08-18 12:00:00', 'ORD568', 2, 'EMP022', NULL);
 update `SalesOrders` set `paid_amount` = 7650000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD568';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD614', 'Võ Ngọc My', '0363724586', 'myvn945@example.test', NULL, '2026-08-18 12:00:00', 'Studying', 'OPP2949');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD614', 'Võ Ngọc My', '0363724586', 'myvn945@example.test', NULL, '2026-08-18 12:00:00', 'Studying', 'OPP2949', 'LEAD2963');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2983';
 delete from `Students` where `opportunity_id` = 'OPP2983';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV725';
 update `SalesOrders` set `paid_amount` = 5700000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD579';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD615', 'Phạm Bảo Mai', '0967601304', 'maipb8@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP2988');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD615', 'Phạm Bảo Mai', '0967601304', 'maipb8@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP2988', 'LEAD3002');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP2997';
 delete from `Students` where `opportunity_id` = 'OPP2997';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-26 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV729';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD583';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD616', 'Huỳnh Văn Mai', '0350162044', 'maihv525@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3002');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD616', 'Huỳnh Văn Mai', '0350162044', 'maihv525@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3002', 'LEAD3016');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3024';
 delete from `Students` where `opportunity_id` = 'OPP3024';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3034';
@@ -32633,56 +32633,56 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP3117';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-19 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV751';
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD603';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD617', 'Trần Gia Khang', '0361451335', 'khangtg328@example.test', NULL, '2026-09-19 12:00:00', 'Studying', 'OPP3142');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD617', 'Trần Gia Khang', '0361451335', 'khangtg328@example.test', NULL, '2026-09-19 12:00:00', 'Studying', 'OPP3142', 'LEAD3156');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3176';
 delete from `Students` where `opportunity_id` = 'OPP3176';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-27 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV756';
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD608';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD618', 'Phan Gia An', '0557918257', 'anpg104@example.test', NULL, '2026-10-27 12:00:00', 'Studying', 'OPP3177');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD618', 'Phan Gia An', '0557918257', 'anpg104@example.test', NULL, '2026-10-27 12:00:00', 'Studying', 'OPP3177', 'LEAD3191');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-27 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV757';
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD609';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD619', 'Lâm Thị Khoa', '0505763491', 'khoalt879@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3181');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD619', 'Lâm Thị Khoa', '0505763491', 'khoalt879@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3181', 'LEAD3195');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3214';
 delete from `Students` where `opportunity_id` = 'OPP3214';
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-08-14 10:00:00' where `quotation_id` = 'QUO110';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD688', NULL, '2026-08-14 10:00:00', 12000000, 0, 12000000, 'InProgress', NULL, 'QUO110');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV842', '2026-08-14', '2026-08-17', 12000000, 'Paid', 'BankTransfer', '2026-08-14 12:00:00', 'ORD688', 1, 'EMP010', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD688';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD620', 'Trần Thanh Châu', '0781378982', NULL, NULL, '2026-08-14 12:00:00', 'Studying', 'OPP323');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD620', 'Trần Thanh Châu', '0781378982', NULL, NULL, '2026-08-14 12:00:00', 'Studying', 'OPP323', 'LEAD333');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3262';
 delete from `Students` where `opportunity_id` = 'OPP3262';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-25 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV770';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV843', '2026-10-25', '2026-10-28', 5050000, 'Paid', 'BankTransfer', '2026-10-25 12:00:00', 'ORD622', 2, 'EMP032', NULL);
 update `SalesOrders` set `paid_amount` = 7650000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD622';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD621', 'Lâm Tuấn Khang', '0829957935', 'khanglt350@example.test', NULL, '2026-10-25 12:00:00', 'Studying', 'OPP3299');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD621', 'Lâm Tuấn Khang', '0829957935', 'khanglt350@example.test', NULL, '2026-10-25 12:00:00', 'Studying', 'OPP3299', 'LEAD3313');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-29 10:00:00' where `quotation_id` = 'QUO873';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD689', NULL, '2026-10-29 10:00:00', 6000000, 0, 6000000, 'InProgress', NULL, 'QUO873');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV844', '2026-10-29', '2026-11-01', 6000000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD689', 1, 'EMP032', NULL);
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD689';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD622', 'Chu Tuấn Quân', '0519725190', 'quanct271@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3318');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD622', 'Chu Tuấn Quân', '0519725190', 'quanct271@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3318', 'LEAD3332');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-08-12 08:34:00' where `quotation_id` = 'QUO112';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD690', NULL, '2026-08-12 08:34:00', 10200000, 0, 10200000, 'InProgress', NULL, 'QUO112');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV845', '2026-08-12', '2026-08-15', 10200000, 'Paid', 'BankTransfer', '2026-08-12 08:34:00', 'ORD690', 1, 'EMP009', NULL);
 update `SalesOrders` set `paid_amount` = 10200000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD690';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD623', 'Vũ Văn Thịnh', '0910772392', NULL, NULL, '2026-08-12 08:34:00', 'Studying', 'OPP334');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD623', 'Vũ Văn Thịnh', '0910772392', NULL, NULL, '2026-08-12 08:34:00', 'Studying', 'OPP334', 'LEAD344');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3356';
 delete from `Students` where `opportunity_id` = 'OPP3356';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-30 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV781';
 update `SalesOrders` set `paid_amount` = 7500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD633';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD624', 'Lý Hải Tú', '0321374428', 'tulh255@example.test', NULL, '2026-10-01 12:00:00', 'Studying', 'OPP3415');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD624', 'Lý Hải Tú', '0321374428', 'tulh255@example.test', NULL, '2026-10-01 12:00:00', 'Studying', 'OPP3415', 'LEAD3429');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3425';
 delete from `Students` where `opportunity_id` = 'OPP3425';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-26 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV787';
 update `SalesOrders` set `paid_amount` = 24000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD639';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD625', 'Trần Bảo Khang', '0871341083', 'khangtb554@example.test', NULL, '2026-10-27 12:00:00', 'Studying', 'OPP3454');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD625', 'Trần Bảo Khang', '0871341083', 'khangtb554@example.test', NULL, '2026-10-27 12:00:00', 'Studying', 'OPP3454', 'LEAD3468');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-08-18 10:25:00' where `quotation_id` = 'QUO116';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD691', NULL, '2026-08-18 10:25:00', 5500000, 0, 5500000, 'InProgress', NULL, 'QUO116');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV846', '2026-08-18', '2026-08-21', 5500000, 'Paid', 'BankTransfer', '2026-08-18 10:25:00', 'ORD691', 1, 'EMP016', NULL);
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD691';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD626', 'Lý Bảo Hương', '0937765647', 'huonglb@example.test', NULL, '2026-08-18 10:25:00', 'Studying', 'OPP347');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD626', 'Lý Bảo Hương', '0937765647', 'huonglb@example.test', NULL, '2026-08-18 10:25:00', 'Studying', 'OPP347', 'LEAD357');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-24 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV790';
 update `SalesOrders` set `paid_amount` = 5000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD642';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD627', 'Phan Gia Hiếu', '0587746079', 'hieupg818@example.test', NULL, '2026-10-24 12:00:00', 'Studying', 'OPP3474');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD627', 'Phan Gia Hiếu', '0587746079', 'hieupg818@example.test', NULL, '2026-10-24 12:00:00', 'Studying', 'OPP3474', 'LEAD3488');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3495';
 delete from `Students` where `opportunity_id` = 'OPP3495';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3521';
@@ -32691,16 +32691,16 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP3523';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV798';
 update `SalesOrders` set `paid_amount` = 4500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD650';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD628', 'Chu Ngọc Châu', '0991610533', 'chaucn326@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3528');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD628', 'Chu Ngọc Châu', '0991610533', 'chaucn326@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3528', 'LEAD3542');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-26 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV800';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV847', '2026-10-26', '2026-10-29', 5500000, 'Paid', 'BankTransfer', '2026-10-26 12:00:00', 'ORD652', 2, 'EMP036', NULL);
 update `SalesOrders` set `paid_amount` = 11000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD652';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD629', 'Hoàng Phương Nam', '0960278443', 'namhp146@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3547');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD629', 'Hoàng Phương Nam', '0960278443', 'namhp146@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3547', 'LEAD3561');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-29 10:00:00' where `quotation_id` = 'QUO921';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD692', NULL, '2026-10-29 10:00:00', 6000000, 0, 6000000, 'InProgress', NULL, 'QUO921');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV848', '2026-10-29', '2026-11-01', 6000000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD692', 1, 'EMP036', NULL);
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD692';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD630', 'Hồ Ngọc Hiếu', '0940759764', 'hieuhn152@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3548');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD630', 'Hồ Ngọc Hiếu', '0940759764', 'hieuhn152@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3548', 'LEAD3562');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3559';
 delete from `Students` where `opportunity_id` = 'OPP3559';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3578';
@@ -32711,32 +32711,32 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP3648';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV815';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD665';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD631', 'Vũ Bảo Chi', '0515991708', 'chivb24@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3677');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD631', 'Vũ Bảo Chi', '0515991708', 'chivb24@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP3677', 'LEAD3691');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP369';
 delete from `Students` where `opportunity_id` = 'OPP369';
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-29 10:00:00' where `quotation_id` = 'QUO964';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD693', NULL, '2026-10-29 10:00:00', 6000000, 0, 6000000, 'InProgress', NULL, 'QUO964');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV849', '2026-10-29', '2026-11-01', 6000000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD693', 1, 'EMP041', NULL);
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD693';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD632', 'Nguyễn Khánh Hương', '0904130204', 'huongnk125@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3741');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD632', 'Nguyễn Khánh Hương', '0904130204', 'huongnk125@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP3741', 'LEAD3755');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3781';
 delete from `Students` where `opportunity_id` = 'OPP3781';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-26 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV826';
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD676';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD633', 'Lý Minh Trang', '0973039072', 'tranglm162@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3807');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD633', 'Lý Minh Trang', '0973039072', 'tranglm162@example.test', NULL, '2026-10-26 12:00:00', 'Studying', 'OPP3807', 'LEAD3821');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP3825';
 delete from `Students` where `opportunity_id` = 'OPP3825';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-26 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV150';
 update `SalesOrders` set `paid_amount` = 7000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD110';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD634', 'Nguyễn Hà Linh', '0824148491', 'linhnh@example.test', NULL, '2026-08-26 12:00:00', 'Studying', 'OPP401');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD634', 'Nguyễn Hà Linh', '0824148491', 'linhnh@example.test', NULL, '2026-08-26 12:00:00', 'Studying', 'OPP401', 'LEAD411');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP413';
 delete from `Students` where `opportunity_id` = 'OPP413';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-07 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV158';
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD116';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD635', 'Mai Khánh Trâm', '0310400228', 'trammk@example.test', NULL, '2026-09-07 12:00:00', 'Studying', 'OPP441');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD635', 'Mai Khánh Trâm', '0310400228', 'trammk@example.test', NULL, '2026-09-07 12:00:00', 'Studying', 'OPP441', 'LEAD451');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-11 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV159';
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD117';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD636', 'Phan Gia Phong', '0951414245', NULL, NULL, '2026-09-11 12:00:00', 'Studying', 'OPP444');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD636', 'Phan Gia Phong', '0951414245', NULL, NULL, '2026-09-11 12:00:00', 'Studying', 'OPP444', 'LEAD454');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP477';
 delete from `Students` where `opportunity_id` = 'OPP477';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP494';
@@ -32751,60 +32751,60 @@ update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP
 delete from `Students` where `opportunity_id` = 'OPP573';
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-14 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV200';
 update `SalesOrders` set `paid_amount` = 7650000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD158';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD637', 'Trần Gia Tú', '0965355204', 'tutg@example.test', NULL, '2026-10-14 12:00:00', 'Studying', 'OPP574');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD637', 'Trần Gia Tú', '0965355204', 'tutg@example.test', NULL, '2026-10-14 12:00:00', 'Studying', 'OPP574', 'LEAD584');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-20 17:53:00' where `quotation_id` = 'QUO186';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD694', NULL, '2026-10-20 17:53:00', 8500000, 0, 8500000, 'InProgress', NULL, 'QUO186');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV850', '2026-10-20', '2026-10-23', 8500000, 'Paid', 'BankTransfer', '2026-10-20 17:53:00', 'ORD694', 1, 'EMP012', NULL);
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD694';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD638', 'Hà Bảo Quỳnh', '0375287543', NULL, NULL, '2026-10-20 17:53:00', 'Studying', 'OPP578');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD638', 'Hà Bảo Quỳnh', '0375287543', NULL, NULL, '2026-10-20 17:53:00', 'Studying', 'OPP578', 'LEAD588');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-18 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV204';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV851', '2026-10-18', '2026-10-21', 6950000, 'Paid', 'BankTransfer', '2026-10-18 12:00:00', 'ORD162', 2, 'EMP005', NULL);
 update `SalesOrders` set `paid_amount` = 10450000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD162';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD639', 'Hồ Thành Thịnh', '0745940917', 'thanhthinhh1996@example.test', NULL, '2026-10-18 12:00:00', 'Studying', 'OPP597');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD639', 'Hồ Thành Thịnh', '0745940917', 'thanhthinhh1996@example.test', NULL, '2026-10-18 12:00:00', 'Studying', 'OPP597', 'LEAD607');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-17 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV205';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV852', '2026-10-17', '2026-10-20', 6000000, 'Paid', 'BankTransfer', '2026-10-17 12:00:00', 'ORD163', 2, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD163';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD640', 'Nguyễn Hà Chi', '0772601337', 'chinh1998@example.test', NULL, '2026-10-17 12:00:00', 'Studying', 'OPP598');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD640', 'Nguyễn Hà Chi', '0772601337', 'chinh1998@example.test', NULL, '2026-10-17 12:00:00', 'Studying', 'OPP598', 'LEAD608');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-19 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV206';
 update `SalesOrders` set `paid_amount` = 11400000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD164';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD641', 'Trịnh Hữu Duy', '0359240333', 'duytrinh1998@example.test', NULL, '2026-10-19 12:00:00', 'Studying', 'OPP600');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD641', 'Trịnh Hữu Duy', '0359240333', 'duytrinh1998@example.test', NULL, '2026-10-19 12:00:00', 'Studying', 'OPP600', 'LEAD610');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-20 10:00:00' where `quotation_id` = 'QUO194';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD695', NULL, '2026-10-20 10:00:00', 12000000, 0, 12000000, 'InProgress', NULL, 'QUO194');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV853', '2026-10-20', '2026-10-23', 12000000, 'Paid', 'BankTransfer', '2026-10-20 12:00:00', 'ORD695', 1, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD695';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD642', 'Tô Diệu Ly', '0341024781', 'lyto1994@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP604');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD642', 'Tô Diệu Ly', '0341024781', 'lyto1994@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP604', 'LEAD614');
 insert into `Quotations` (`quotation_id`, `created_at`, `expiry_date`, `status`, `updated_at`, `notes`, `employee_id`, `voucher_id`, `opportunity_id`) values ('QUO986', '2026-10-19 11:55:00', '2026-11-02', 'Confirmed', '2026-10-20 10:00:00', NULL, 'EMP007', NULL, 'OPP605');
 insert into `QuotationDetails` (`quotation_id`, `course_id`, `unit_price`, `quantity`, `VAT`, `line_total`) values ('QUO986', 'CRS003', '12000000.00', 1, '0.00', 12000000);
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD696', NULL, '2026-10-20 10:00:00', 12000000, 0, 12000000, 'InProgress', NULL, 'QUO986');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV854', '2026-10-20', '2026-10-23', 12000000, 'Paid', 'BankTransfer', '2026-10-20 12:00:00', 'ORD696', 1, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD696';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD643', 'Nguyễn Đăng Dũng', '0341328801', 'dungnd2006@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP605');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD643', 'Nguyễn Đăng Dũng', '0341328801', 'dungnd2006@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP605', 'LEAD615');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-20 10:00:00' where `quotation_id` = 'QUO195';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD697', NULL, '2026-10-20 10:00:00', 6000000, 0, 6000000, 'InProgress', NULL, 'QUO195');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV855', '2026-10-20', '2026-10-23', 6000000, 'Paid', 'BankTransfer', '2026-10-20 12:00:00', 'ORD697', 1, 'EMP007', NULL);
 update `SalesOrders` set `paid_amount` = 6000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD697';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD644', 'Đào Trung Tuấn', '0389234817', 'trungtuand68@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP607');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD644', 'Đào Trung Tuấn', '0389234817', 'trungtuand68@example.test', NULL, '2026-10-20 12:00:00', 'Studying', 'OPP607', 'LEAD617');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-19 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV208';
 update `SalesOrders` set `paid_amount` = 5700000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD166';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD645', 'Nguyễn Minh Trang', '0357441378', 'minhtrangn2006@example.test', NULL, '2026-10-19 12:00:00', 'Studying', 'OPP609');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD645', 'Nguyễn Minh Trang', '0357441378', 'minhtrangn2006@example.test', NULL, '2026-10-19 12:00:00', 'Studying', 'OPP609', 'LEAD619');
 update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-19 10:00:00' where `quotation_id` = 'QUO197';
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD698', NULL, '2026-10-19 10:00:00', 8075000, 0, 8075000, 'InProgress', NULL, 'QUO197');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV856', '2026-10-19', '2026-10-22', 8075000, 'Paid', 'BankTransfer', '2026-10-19 12:00:00', 'ORD698', 1, 'EMP011', NULL);
 update `SalesOrders` set `paid_amount` = 8075000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD698';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD646', 'Đỗ Hoàng Khôi', '0981615641', NULL, NULL, '2026-10-19 12:00:00', 'Studying', 'OPP612');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD646', 'Đỗ Hoàng Khôi', '0981615641', NULL, NULL, '2026-10-19 12:00:00', 'Studying', 'OPP612', 'LEAD622');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-18 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV209';
 update `SalesOrders` set `paid_amount` = 8500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD167';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD647', 'Trịnh Đức Đăng', '0367701551', 'ducdangt@example.test', NULL, '2026-10-18 12:00:00', 'Studying', 'OPP624');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD647', 'Trịnh Đức Đăng', '0367701551', 'ducdangt@example.test', NULL, '2026-10-18 12:00:00', 'Studying', 'OPP624', 'LEAD635');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-08-06 12:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV246';
 update `SalesOrders` set `paid_amount` = 14450000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD195';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD648', 'Hoàng Gia Yến', '0893788317', 'yenhg637@example.test', NULL, '2026-08-06 12:00:00', 'Studying', 'OPP747');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD648', 'Hoàng Gia Yến', '0893788317', 'yenhg637@example.test', NULL, '2026-08-06 12:00:00', 'Studying', 'OPP747', 'LEAD761');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-09-03 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV250';
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV857', '2026-09-03', '2026-09-06', 3625000, 'Paid', 'BankTransfer', '2026-09-03 12:00:00', 'ORD199', 2, 'EMP004', NULL);
 update `SalesOrders` set `paid_amount` = 7225000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Installment' where `order_id` = 'ORD199';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD649', 'Mai Anh Huy', '0336840550', 'huyma563@example.test', NULL, '2026-09-03 12:00:00', 'Studying', 'OPP768');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD649', 'Mai Anh Huy', '0336840550', 'huyma563@example.test', NULL, '2026-09-03 12:00:00', 'Studying', 'OPP768', 'LEAD782');
 update `Invoices` set `status` = 'Paid', `payment_date` = '2026-10-28 10:00:00', `payment_method` = 'BankTransfer', `accountant_id` = NULL where `invoice_id` = 'INV257';
 update `SalesOrders` set `paid_amount` = 12000000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD206';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD650', 'Đỗ Nhật Hải', '0866956214', 'haidn777@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP798');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD650', 'Đỗ Nhật Hải', '0866956214', 'haidn777@example.test', NULL, '2026-10-28 12:00:00', 'Studying', 'OPP798', 'LEAD812');
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP942';
 delete from `Students` where `opportunity_id` = 'OPP942';
 update `Opportunities` set `status` = 'InProgress' where `opportunity_id` = 'OPP989';
@@ -32813,7 +32813,7 @@ update `Quotations` set `status` = 'Confirmed', `updated_at` = '2026-10-29 10:00
 insert into `SalesOrders` (`order_id`, `payment_type`, `created_at`, `total_amount`, `paid_amount`, `remaining_amount`, `status`, `notes`, `quotation_id`) values ('ORD699', NULL, '2026-10-29 10:00:00', 5500000, 0, 5500000, 'InProgress', NULL, 'QUO286');
 insert into `Invoices` (`invoice_id`, `issued_date`, `due_date`, `payment_amount`, `status`, `payment_method`, `payment_date`, `order_id`, `payment_installment`, `created_by_employee_id`, `accountant_id`) values ('INV858', '2026-10-29', '2026-11-01', 5500000, 'Paid', 'BankTransfer', '2026-10-29 12:00:00', 'ORD699', 1, 'EMP005', NULL);
 update `SalesOrders` set `paid_amount` = 5500000, `remaining_amount` = 0, `status` = 'Completed', `payment_type` = 'Full' where `order_id` = 'ORD699';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD651', 'Nguyễn Hữu Chi', '0799903964', 'chinh289@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP992');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD651', 'Nguyễn Hữu Chi', '0799903964', 'chinh289@example.test', NULL, '2026-10-29 12:00:00', 'Studying', 'OPP992', 'LEAD1006');
 
 -- ============================================================
 -- SUA DU LIEU DEMO - ODIN CRM (06/11/2026)
@@ -32822,124 +32822,124 @@ insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_bi
 --     ngay tro thanh hoc vien = ngay thanh toan hoa don dau tien.
 -- ============================================================
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2819';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD652', 'Tô Thu Hoa', '0548020648', 'hoatt313@example.test', NULL, '2026-06-08 08:26:00', 'Studying', 'OPP2819');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD652', 'Tô Thu Hoa', '0548020648', 'hoatt313@example.test', NULL, '2026-06-08 08:26:00', 'Studying', 'OPP2819', 'LEAD2833');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2906';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD653', 'Chu Hải Thắng', '0352391552', 'thangch961@example.test', NULL, '2026-07-24 09:41:00', 'Studying', 'OPP2906');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD653', 'Chu Hải Thắng', '0352391552', 'thangch961@example.test', NULL, '2026-07-24 09:41:00', 'Studying', 'OPP2906', 'LEAD2920');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2544';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD654', 'Dương Minh Long', '0734348252', 'longdm525@example.test', NULL, '2026-08-02 19:45:00', 'Studying', 'OPP2544');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD654', 'Dương Minh Long', '0734348252', 'longdm525@example.test', NULL, '2026-08-02 19:45:00', 'Studying', 'OPP2544', 'LEAD2558');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1393';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD655', 'Trịnh Khánh Hiếu', '0985718640', 'hieutk298@example.test', NULL, '2026-08-08 16:53:00', 'Studying', 'OPP1393');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD655', 'Trịnh Khánh Hiếu', '0985718640', 'hieutk298@example.test', NULL, '2026-08-08 16:53:00', 'Studying', 'OPP1393', 'LEAD1407');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2935';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD656', 'Mai Đức Giang', '0800558307', 'giangmd860@example.test', NULL, '2026-08-12 17:00:00', 'Studying', 'OPP2935');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD656', 'Mai Đức Giang', '0800558307', 'giangmd860@example.test', NULL, '2026-08-12 17:00:00', 'Studying', 'OPP2935', 'LEAD2949');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP358';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD657', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-20 12:30:00', 'Studying', 'OPP358');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD657', 'Nguyễn Mai Hạnh', '0374537063', NULL, NULL, '2026-08-20 12:30:00', 'Studying', 'OPP358', 'LEAD368');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP259';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD658', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-30 16:58:00', 'Studying', 'OPP259');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD658', 'Lê Duy Duy', '0354634254', 'duyld44@example.test', NULL, '2026-08-30 16:58:00', 'Studying', 'OPP259', 'LEAD269');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2382';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD659', 'Trịnh Mỹ Thảo', '0972931158', 'thaotm420@example.test', NULL, '2026-09-02 08:29:00', 'Studying', 'OPP2382');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD659', 'Trịnh Mỹ Thảo', '0972931158', 'thaotm420@example.test', NULL, '2026-09-02 08:29:00', 'Studying', 'OPP2382', 'LEAD2396');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP369';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD660', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-09-02 19:48:00', 'Studying', 'OPP369');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD660', 'Đinh Khánh Thảo', '0982472131', 'thaodk@example.test', NULL, '2026-09-02 19:48:00', 'Studying', 'OPP369', 'LEAD379');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP413';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD661', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-09-03 10:33:00', 'Studying', 'OPP413');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD661', 'Hà Tiến Hưng', '0751537961', 'hunght1991@example.test', NULL, '2026-09-03 10:33:00', 'Studying', 'OPP413', 'LEAD423');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1246';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD662', 'Trịnh Thanh Ngân', '0730778685', 'ngantt735@example.test', NULL, '2026-09-04 21:55:00', 'Studying', 'OPP1246');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD662', 'Trịnh Thanh Ngân', '0730778685', 'ngantt735@example.test', NULL, '2026-09-04 21:55:00', 'Studying', 'OPP1246', 'LEAD1260');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2565';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD663', 'Huỳnh Phương Khôi', '0567084703', 'khoihp380@example.test', NULL, '2026-09-05 20:52:00', 'Studying', 'OPP2565');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD663', 'Huỳnh Phương Khôi', '0567084703', 'khoihp380@example.test', NULL, '2026-09-05 20:52:00', 'Studying', 'OPP2565', 'LEAD2579');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1851';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD664', 'Phan Hải Lan', '0536084539', 'lanph313@example.test', NULL, '2026-09-09 08:05:00', 'Studying', 'OPP1851');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD664', 'Phan Hải Lan', '0536084539', 'lanph313@example.test', NULL, '2026-09-09 08:05:00', 'Studying', 'OPP1851', 'LEAD1865');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3648';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD665', 'Đỗ Đức Hoa', '0309677324', 'hoadd656@example.test', NULL, '2026-09-14 08:19:00', 'Studying', 'OPP3648');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD665', 'Đỗ Đức Hoa', '0309677324', 'hoadd656@example.test', NULL, '2026-09-14 08:19:00', 'Studying', 'OPP3648', 'LEAD3662');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1552';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD666', 'Đặng Bảo Vy', '0974767376', 'vydb569@example.test', NULL, '2026-09-15 12:21:00', 'Studying', 'OPP1552');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD666', 'Đặng Bảo Vy', '0974767376', 'vydb569@example.test', NULL, '2026-09-15 12:21:00', 'Studying', 'OPP1552', 'LEAD1566');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP003';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD667', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-17 11:00:00', 'Studying', 'OPP003');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD667', 'Lê Khanh Vy', '0912000003', 'khanhvy@example.test', NULL, '2026-09-17 11:00:00', 'Studying', 'OPP003', 'LEAD003');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP942';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD668', 'Nguyễn Minh Giang', '0878195378', 'giangnm801@example.test', NULL, '2026-09-20 08:20:00', 'Studying', 'OPP942');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD668', 'Nguyễn Minh Giang', '0878195378', 'giangnm801@example.test', NULL, '2026-09-20 08:20:00', 'Studying', 'OPP942', 'LEAD956');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3024';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD669', 'Phan Đức Mai', '0734173762', 'maipd749@example.test', NULL, '2026-09-22 13:06:00', 'Studying', 'OPP3024');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD669', 'Phan Đức Mai', '0734173762', 'maipd749@example.test', NULL, '2026-09-22 13:06:00', 'Studying', 'OPP3024', 'LEAD3038');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2054';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD670', 'Đỗ Thị Quỳnh', '0390184112', 'quynhdt800@example.test', NULL, '2026-09-23 15:49:00', 'Studying', 'OPP2054');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD670', 'Đỗ Thị Quỳnh', '0390184112', 'quynhdt800@example.test', NULL, '2026-09-23 15:49:00', 'Studying', 'OPP2054', 'LEAD2068');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1440';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD671', 'Bùi Kim Hiếu', '0889897005', 'hieubk580@example.test', NULL, '2026-09-24 08:36:00', 'Studying', 'OPP1440');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD671', 'Bùi Kim Hiếu', '0889897005', 'hieubk580@example.test', NULL, '2026-09-24 08:36:00', 'Studying', 'OPP1440', 'LEAD1454');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP007';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD672', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-24 10:00:00', 'Studying', 'OPP007');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD672', 'Đặng Ngọc Mai', '0912000007', 'ngocmai@example.test', NULL, '2026-09-24 10:00:00', 'Studying', 'OPP007', 'LEAD007');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2767';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD673', 'Vũ Anh Anh', '0504391622', 'anhva909@example.test', NULL, '2026-09-24 16:19:00', 'Studying', 'OPP2767');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD673', 'Vũ Anh Anh', '0504391622', 'anhva909@example.test', NULL, '2026-09-24 16:19:00', 'Studying', 'OPP2767', 'LEAD2781');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP494';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD674', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-25 18:50:00', 'Studying', 'OPP494');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD674', 'Mai Anh Tú', '0920206206', NULL, NULL, '2026-09-25 18:50:00', 'Studying', 'OPP494', 'LEAD504');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1709';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD675', 'Hà Tuấn Ngọc', '0847232186', 'ngocht702@example.test', NULL, '2026-09-26 08:10:00', 'Studying', 'OPP1709');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD675', 'Hà Tuấn Ngọc', '0847232186', 'ngocht702@example.test', NULL, '2026-09-26 08:10:00', 'Studying', 'OPP1709', 'LEAD1723');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3559';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD676', 'Hoàng Hữu Linh', '0955412940', 'linhhh861@example.test', NULL, '2026-09-28 08:09:00', 'Studying', 'OPP3559');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD676', 'Hoàng Hữu Linh', '0955412940', 'linhhh861@example.test', NULL, '2026-09-28 08:09:00', 'Studying', 'OPP3559', 'LEAD3573');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2236';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD677', 'Tô Thanh Nam', '0869880047', 'namtt156@example.test', NULL, '2026-09-28 17:17:00', 'Studying', 'OPP2236');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD677', 'Tô Thanh Nam', '0869880047', 'namtt156@example.test', NULL, '2026-09-28 17:17:00', 'Studying', 'OPP2236', 'LEAD2250');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1881';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD678', 'Nguyễn Quốc Khôi', '0559892202', 'khoinq809@example.test', NULL, '2026-10-01 09:32:00', 'Studying', 'OPP1881');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD678', 'Nguyễn Quốc Khôi', '0559892202', 'khoinq809@example.test', NULL, '2026-10-01 09:32:00', 'Studying', 'OPP1881', 'LEAD1895');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP513';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD679', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-10-01 11:50:00', 'Studying', 'OPP513');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD679', 'Trịnh Lan Châu', '0967287422', NULL, NULL, '2026-10-01 11:50:00', 'Studying', 'OPP513', 'LEAD523');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1874';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD680', 'Bùi Phương Mai', '0764123139', 'maibp318@example.test', NULL, '2026-10-02 08:28:00', 'Studying', 'OPP1874');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD680', 'Bùi Phương Mai', '0764123139', 'maibp318@example.test', NULL, '2026-10-02 08:28:00', 'Studying', 'OPP1874', 'LEAD1888');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP517';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD681', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-10-03 11:59:00', 'Studying', 'OPP517');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD681', 'Nguyễn Công Trung', '0847113194', 'trungnc@example.test', NULL, '2026-10-03 11:59:00', 'Studying', 'OPP517', 'LEAD527');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3425';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD682', 'Lý Nhật Tùng', '0519310617', 'tungln547@example.test', NULL, '2026-10-04 08:43:00', 'Studying', 'OPP3425');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD682', 'Lý Nhật Tùng', '0519310617', 'tungln547@example.test', NULL, '2026-10-04 08:43:00', 'Studying', 'OPP3425', 'LEAD3439');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3781';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD683', 'Nguyễn Hữu Khôi', '0538919978', 'khoinh797@example.test', NULL, '2026-10-05 08:01:00', 'Studying', 'OPP3781');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD683', 'Nguyễn Hữu Khôi', '0538919978', 'khoinh797@example.test', NULL, '2026-10-05 08:01:00', 'Studying', 'OPP3781', 'LEAD3795');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3262';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD684', 'Hoàng Bảo Sơn', '0590391185', 'sonhb731@example.test', NULL, '2026-10-06 08:18:00', 'Studying', 'OPP3262');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD684', 'Hoàng Bảo Sơn', '0590391185', 'sonhb731@example.test', NULL, '2026-10-06 08:18:00', 'Studying', 'OPP3262', 'LEAD3276');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3356';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD685', 'Nguyễn Quốc Trúc', '0941502462', 'trucnq1@example.test', NULL, '2026-10-06 08:26:00', 'Studying', 'OPP3356');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD685', 'Nguyễn Quốc Trúc', '0941502462', 'trucnq1@example.test', NULL, '2026-10-06 08:26:00', 'Studying', 'OPP3356', 'LEAD3370');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3034';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD686', 'Lê Ngọc Minh', '0869149519', 'minhln588@example.test', NULL, '2026-10-06 17:16:00', 'Studying', 'OPP3034');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD686', 'Lê Ngọc Minh', '0869149519', 'minhln588@example.test', NULL, '2026-10-06 17:16:00', 'Studying', 'OPP3034', 'LEAD3048');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2049';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD687', 'Đặng Thanh Phong', '0876094878', 'phongdt926@example.test', NULL, '2026-10-07 08:02:00', 'Studying', 'OPP2049');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD687', 'Đặng Thanh Phong', '0876094878', 'phongdt926@example.test', NULL, '2026-10-07 08:02:00', 'Studying', 'OPP2049', 'LEAD2063');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2585';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD688', 'Võ Mỹ Mai', '0593119387', 'maivm341@example.test', NULL, '2026-10-07 08:30:00', 'Studying', 'OPP2585');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD688', 'Võ Mỹ Mai', '0593119387', 'maivm341@example.test', NULL, '2026-10-07 08:30:00', 'Studying', 'OPP2585', 'LEAD2599');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1690';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD689', 'Hồ Nhật Giang', '0930079624', 'gianghn966@example.test', NULL, '2026-10-07 08:47:00', 'Studying', 'OPP1690');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD689', 'Hồ Nhật Giang', '0930079624', 'gianghn966@example.test', NULL, '2026-10-07 08:47:00', 'Studying', 'OPP1690', 'LEAD1704');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3495';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD690', 'Hồ Gia Hà', '0867997078', 'hahg103@example.test', NULL, '2026-10-08 08:04:00', 'Studying', 'OPP3495');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD690', 'Hồ Gia Hà', '0867997078', 'hahg103@example.test', NULL, '2026-10-08 08:04:00', 'Studying', 'OPP3495', 'LEAD3509');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3214';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD691', 'Dương Đức Bình', '0594653076', 'binhdd738@example.test', NULL, '2026-10-08 18:11:00', 'Studying', 'OPP3214');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD691', 'Dương Đức Bình', '0594653076', 'binhdd738@example.test', NULL, '2026-10-08 18:11:00', 'Studying', 'OPP3214', 'LEAD3228');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP573';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD692', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-10 11:20:00', 'Studying', 'OPP573');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD692', 'Đặng Thanh Nhung', '0933810651', NULL, NULL, '2026-10-10 11:20:00', 'Studying', 'OPP573', 'LEAD583');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP477';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD693', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-10 11:46:00', 'Studying', 'OPP477');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD693', 'Phạm Ngọc Trâm', '0774297756', NULL, NULL, '2026-10-10 11:46:00', 'Studying', 'OPP477', 'LEAD487');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1860';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD694', 'Hoàng Thanh Dũng', '0334590508', 'dunght813@example.test', NULL, '2026-10-11 10:09:00', 'Studying', 'OPP1860');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD694', 'Hoàng Thanh Dũng', '0334590508', 'dunght813@example.test', NULL, '2026-10-11 10:09:00', 'Studying', 'OPP1860', 'LEAD1874');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP560';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD695', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-12 12:41:00', 'Studying', 'OPP560');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD695', 'Lương Mai My', '0941965619', 'myluong@example.test', NULL, '2026-10-12 12:41:00', 'Studying', 'OPP560', 'LEAD570');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1876';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD696', 'Đinh Kim Uyên', '0785011934', 'uyendk355@example.test', NULL, '2026-10-12 14:11:00', 'Studying', 'OPP1876');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD696', 'Đinh Kim Uyên', '0785011934', 'uyendk355@example.test', NULL, '2026-10-12 14:11:00', 'Studying', 'OPP1876', 'LEAD1890');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2997';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD697', 'Hà Gia Khôi', '0885866808', 'khoihg419@example.test', NULL, '2026-10-15 08:32:00', 'Studying', 'OPP2997');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD697', 'Hà Gia Khôi', '0885866808', 'khoihg419@example.test', NULL, '2026-10-15 08:32:00', 'Studying', 'OPP2997', 'LEAD3011');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2794';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD698', 'Hồ Hoài My', '0812459724', 'myhh75@example.test', NULL, '2026-10-16 09:56:00', 'Studying', 'OPP2794');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD698', 'Hồ Hoài My', '0812459724', 'myhh75@example.test', NULL, '2026-10-16 09:56:00', 'Studying', 'OPP2794', 'LEAD2808');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3578';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD699', 'Hoàng Đức Anh', '0936899457', 'anhhd217@example.test', NULL, '2026-10-18 08:16:00', 'Studying', 'OPP3578');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD699', 'Hoàng Đức Anh', '0936899457', 'anhhd217@example.test', NULL, '2026-10-18 08:16:00', 'Studying', 'OPP3578', 'LEAD3592');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3521';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD700', 'Hoàng Minh Bình', '0705264662', 'binhhm471@example.test', NULL, '2026-10-18 09:21:00', 'Studying', 'OPP3521');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD700', 'Hoàng Minh Bình', '0705264662', 'binhhm471@example.test', NULL, '2026-10-18 09:21:00', 'Studying', 'OPP3521', 'LEAD3535');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3825';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD701', 'Hoàng Văn Yến', '0968134631', 'yenhv407@example.test', NULL, '2026-10-19 08:30:00', 'Studying', 'OPP3825');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD701', 'Hoàng Văn Yến', '0968134631', 'yenhv407@example.test', NULL, '2026-10-19 08:30:00', 'Studying', 'OPP3825', 'LEAD3839');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3176';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD702', 'Bùi Phương Trang', '0565082730', 'trangbp681@example.test', NULL, '2026-10-19 13:20:00', 'Studying', 'OPP3176');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD702', 'Bùi Phương Trang', '0565082730', 'trangbp681@example.test', NULL, '2026-10-19 13:20:00', 'Studying', 'OPP3176', 'LEAD3190');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2434';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD703', 'Đinh Đức Thư', '0895406430', 'thudd178@example.test', NULL, '2026-10-20 19:23:00', 'Studying', 'OPP2434');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD703', 'Đinh Đức Thư', '0895406430', 'thudd178@example.test', NULL, '2026-10-20 19:23:00', 'Studying', 'OPP2434', 'LEAD2448');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3523';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD704', 'Phan Gia Giang', '0915567205', 'giangpg265@example.test', NULL, '2026-10-22 09:02:00', 'Studying', 'OPP3523');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD704', 'Phan Gia Giang', '0915567205', 'giangpg265@example.test', NULL, '2026-10-22 09:02:00', 'Studying', 'OPP3523', 'LEAD3537');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1459';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD705', 'Đinh Thanh Ngọc', '0330972679', 'ngocdt849@example.test', NULL, '2026-10-24 08:11:00', 'Studying', 'OPP1459');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD705', 'Đinh Thanh Ngọc', '0330972679', 'ngocdt849@example.test', NULL, '2026-10-24 08:11:00', 'Studying', 'OPP1459', 'LEAD1473');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2270';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD706', 'Phan Mỹ Ngân', '0542620177', 'nganpm796@example.test', NULL, '2026-10-25 17:33:00', 'Studying', 'OPP2270');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD706', 'Phan Mỹ Ngân', '0542620177', 'nganpm796@example.test', NULL, '2026-10-25 17:33:00', 'Studying', 'OPP2270', 'LEAD2284');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP989';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD707', 'Lý Hữu Quân', '0399148230', 'quanlh449@example.test', NULL, '2026-10-25 19:06:00', 'Studying', 'OPP989');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD707', 'Lý Hữu Quân', '0399148230', 'quanlh449@example.test', NULL, '2026-10-25 19:06:00', 'Studying', 'OPP989', 'LEAD1003');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2438';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD708', 'Ngô Hữu Vy', '0522787732', 'vynh773@example.test', NULL, '2026-10-26 10:12:00', 'Studying', 'OPP2438');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD708', 'Ngô Hữu Vy', '0522787732', 'vynh773@example.test', NULL, '2026-10-26 10:12:00', 'Studying', 'OPP2438', 'LEAD2452');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP1450';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD709', 'Trịnh Hoài Trang', '0597279206', 'trangth902@example.test', NULL, '2026-10-28 08:15:00', 'Studying', 'OPP1450');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD709', 'Trịnh Hoài Trang', '0597279206', 'trangth902@example.test', NULL, '2026-10-28 08:15:00', 'Studying', 'OPP1450', 'LEAD1464');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP3117';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD710', 'Trần Quốc Trúc', '0968374043', 'tructq392@example.test', NULL, '2026-10-28 08:50:00', 'Studying', 'OPP3117');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD710', 'Trần Quốc Trúc', '0968374043', 'tructq392@example.test', NULL, '2026-10-28 08:50:00', 'Studying', 'OPP3117', 'LEAD3131');
 update `Opportunities` set `status` = 'Won' where `opportunity_id` = 'OPP2983';
-insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`) values ('STD711', 'Hồ Quốc Ly', '0575859073', 'lyhq105@example.test', NULL, '2026-10-28 11:20:00', 'Studying', 'OPP2983');
+insert into `Students` (`student_id`, `full_name`, `phone`, `email`, `date_of_birth`, `conversion_date`, `status`, `opportunity_id`, `lead_id`) values ('STD711', 'Hồ Quốc Ly', '0575859073', 'lyhq105@example.test', NULL, '2026-10-28 11:20:00', 'Studying', 'OPP2983', 'LEAD2997');
 
 COMMIT;
