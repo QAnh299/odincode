@@ -431,9 +431,9 @@ class LeadDistributionService
                 $add('e', $lead->email, $lead->lead_id);
             });
 
-        Student::query()->where($contactFilter)->with('opportunity:opportunity_id,lead_id')->get(['student_id', 'phone', 'email', 'opportunity_id'])
+        Student::query()->where($contactFilter)->get(['student_id', 'phone', 'email', 'lead_id'])
             ->each(function (Student $student) use ($add) {
-                if ($leadId = $student->opportunity?->lead_id) {
+                if ($leadId = $student->lead_id) {
                     $add('p', $student->phone, $leadId);
                     $add('e', $student->email, $leadId);
                 }

@@ -32,12 +32,11 @@ trait StudentTrail
         $student = Student::query()
             ->visibleTo(Auth::user()->employee)
             ->whereKey($studentId)
-            ->with('opportunity:opportunity_id,lead_id')
-            ->first();
+            ->first(['student_id', 'lead_id']);
 
         $leadId = Opportunity::query()->whereKey($opportunityId)->value('lead_id');
 
-        if ($student && $leadId && $student->opportunity?->lead_id === $leadId) {
+        if ($student && $leadId && $student->lead_id === $leadId) {
             $this->trailStudent = $student->student_id;
         }
     }

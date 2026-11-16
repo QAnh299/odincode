@@ -74,8 +74,7 @@ class Create extends Component
         $student = Student::query()
             ->visibleTo($this->me)
             ->where('student_id', $studentId)
-            ->with('opportunity:opportunity_id,lead_id')
-            ->first();
+            ->first(['student_id', 'lead_id']);
 
         if (! $student) {
             return;
@@ -84,13 +83,13 @@ class Create extends Component
         // Học viên hợp lệ: Quay lại về trang chi tiết học viên
         $this->fromStudent = $student->student_id;
 
-        if (! $student->opportunity?->lead_id) {
+        if (! $student->lead_id) {
             return;
         }
 
         // Kiểm tra thêm: salesperson phải có ít nhất một cơ hội với khách này
         $lead = app(OpportunityCreateService::class)
-            ->findForSalesperson($student->opportunity->lead_id, $this->me);
+            ->findForSalesperson($student->lead_id, $this->me);
 
         if ($lead) {
             $this->selectedLeadId = $lead->lead_id;
@@ -165,7 +164,7 @@ class Create extends Component
     protected function profileOf(Lead $lead): array
     {
         return [
-            'student' => $lead->opportunities->first(fn (Opportunity $opp) => $opp->student !== null)?->student,
+            'student' => $lead->student,
         ];
     }
 

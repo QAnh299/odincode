@@ -118,9 +118,13 @@ class Opportunity extends Model
         return $this->hasMany(OpportunityTransfer::class, 'opportunity_id', 'opportunity_id');
     }
 
+    /**
+     * Học viên của người đứng sau cơ hội này (qua lead_id).
+     * Trả về cùng một học viên cho mọi cơ hội của cùng một Lead.
+     */
     public function student()
     {
-        return $this->hasOne(Student::class, 'opportunity_id', 'opportunity_id');
+        return $this->hasOne(Student::class, 'lead_id', 'lead_id');
     }
 
     public function appointments()

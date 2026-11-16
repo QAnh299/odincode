@@ -170,4 +170,12 @@ class Lead extends Model
     {
         return $this->hasOne(Opportunity::class, 'lead_id', 'lead_id')->latestOfMany('conversion_date');
     }
+
+    /**
+     * Học viên của Lead (1 Lead = tối đa 1 học viên xuyên suốt mọi lần đăng ký).
+     */
+    public function student()
+    {
+        return $this->hasOne(Student::class, 'lead_id', 'lead_id');
+    }
 }

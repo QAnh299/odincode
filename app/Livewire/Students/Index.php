@@ -186,17 +186,17 @@ class Index extends Component
             )
             ->when(
                 $this->courses->contains('course_id', $this->course),
-                fn ($q) => $q->whereHas('opportunity.quotations', fn ($quo) => $quo
+                fn ($q) => $q->whereHas('lead.opportunities.quotations', fn ($quo) => $quo
                     ->whereHas('order', fn ($o) => $o->where('paid_amount', '>', 0))
                     ->whereHas('details', fn ($d) => $d->where('course_id', $this->course)))
             )
             ->when(
                 $this->canFilterTeam && $this->activeTeam,
-                fn ($q) => $q->whereHas('opportunity.employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id))
+                fn ($q) => $q->whereHas('lead.opportunities.employee', fn ($e) => $e->where('team_id', $this->activeTeam->team_id))
             )
             ->when(
                 $this->employeeOptions->contains('employee_id', $this->employee),
-                fn ($q) => $q->whereHas('opportunity', fn ($o) => $o->where('employee_id', $this->employee))
+                fn ($q) => $q->whereHas('lead.opportunities', fn ($o) => $o->where('employee_id', $this->employee))
             )
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
             ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to));
@@ -227,8 +227,9 @@ class Index extends Component
     {
         $students = $this->filtered()
             ->with([
-                'opportunity:opportunity_id,lead_id,employee_id',
-                'opportunity.employee:employee_id,full_name',
+                'lead:lead_id',
+                'lead.latestOpportunity' => fn ($q) => $q->select(['Opportunities.opportunity_id', 'Opportunities.lead_id', 'Opportunities.employee_id']),
+                'lead.latestOpportunity.employee:employee_id,full_name',
             ])
             ->orderByDesc('conversion_date')
             ->orderByDesc('student_id')

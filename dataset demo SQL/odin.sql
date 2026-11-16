@@ -169,11 +169,14 @@ CREATE TABLE `Students` (
   `conversion_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `status` VARCHAR(30) NOT NULL,
   `opportunity_id` VARCHAR(10) NOT NULL,
+  `lead_id` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`student_id`),
-  UNIQUE KEY `uq_students_opportunity` (`opportunity_id`),
+  UNIQUE KEY `uq_students_lead` (`lead_id`),
   CHECK (`status` IN ('Studying', 'Dropped', 'Completed')),
   CONSTRAINT `fk_students_opportunity_id` FOREIGN KEY (`opportunity_id`)
-    REFERENCES `Opportunities` (`opportunity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+    REFERENCES `Opportunities` (`opportunity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_students_lead_id` FOREIGN KEY (`lead_id`)
+    REFERENCES `Leads` (`lead_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Appointments` (

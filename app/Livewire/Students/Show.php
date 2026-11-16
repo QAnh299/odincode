@@ -58,14 +58,12 @@ class Show extends Component
         );
 
         $this->student = $student->load([
-            'opportunity.lead.branch:branch_id,branch_name,address',
-            'opportunity.employee.team:team_id,team_name',
-            'opportunity.stage:stage_id,stage_name',
+            'lead.branch:branch_id,branch_name,address',
         ]);
 
-        // Mặc định mở khóa học của lần đăng ký này
+        // Mặc định mở khóa học mới nhất
         $cards = $this->courseCards;
-        $this->selectedCard = ($cards->firstWhere('opportunity_id', $student->opportunity_id) ?? $cards->first())['key'] ?? '';
+        $this->selectedCard = $cards->first()['key'] ?? '';
     }
 
     #[Computed]
@@ -124,7 +122,7 @@ class Show extends Component
     #[Computed]
     public function opportunities(): Collection
     {
-        $leadId = $this->student->opportunity?->lead_id;
+        $leadId = $this->student->lead_id;
 
         if (! $leadId) {
             return collect();
@@ -137,7 +135,7 @@ class Show extends Component
                 'stage:stage_id,stage_name',
                 'employee:employee_id,full_name,team_id',
                 'employee.team:team_id,team_name',
-                'student:student_id,opportunity_id,status',
+                'student:student_id,lead_id,status',
                 'quotations' => fn ($q) => $q->orderByDesc('created_at'),
                 'quotations.details' => fn ($q) => $q->orderBy('course_id'),
                 'quotations.details.course',
@@ -273,7 +271,7 @@ class Show extends Component
      */
     public function appointmentPlace(): ?string
     {
-        $branch = $this->student->opportunity?->lead?->branch;
+        $branch = $this->student->lead?->branch;
 
         return $branch ? $branch->branch_name.' - '.$branch->address : null;
     }

@@ -58,7 +58,7 @@ class Show extends Component
             : [];
 
         return $this->lead->opportunities()
-            ->with(['employee:employee_id,full_name', 'stage:stage_id,stage_name', 'student:student_id,opportunity_id'])
+            ->with(['employee:employee_id,full_name', 'stage:stage_id,stage_name', 'student:student_id,lead_id'])
             ->orderByDesc('conversion_date')
             ->get()
             ->each(fn (Opportunity $opportunity) => $opportunity->url = in_array($opportunity->opportunity_id, $viewable, true)
