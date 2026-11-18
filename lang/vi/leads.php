@@ -249,7 +249,7 @@ return [
         'ranking_over'          => 'Có :count Lead vượt ngưỡng :max Lead/người khi chia đều: được chia lần lượt cho Top 2 hiệu suất còn chỗ, hết chỗ thì vẫn giao cho Top 2.',
         'criteria' => [
             'revenue'        => 'Doanh thu',
-            'close_rate'     => 'Tỷ lệ chốt đơn',
+            'close_rate'     => 'Tỷ lệ thắng',
             'avg_close_days' => 'TB thời gian xử lý',
         ],
         'days'                    => ':count ngày',
