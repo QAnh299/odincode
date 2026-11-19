@@ -199,14 +199,13 @@ class Distribute extends Component
     }
 
     /**
-     * Đội của Sale Leader đang đăng nhập.
+     * Đội do Sale Leader đang đăng nhập làm trưởng nhóm (cùng điều kiện với AssignOne::team):
+     * chỉ phân Lead đội mình đang giữ cho Salesperson trong đội mình; không làm trưởng nhóm đội nào thì không phân được.
      */
     #[Computed]
     public function team(): ?SalesTeam
     {
-        $employee = Auth::user()->employee;
-
-        return $employee?->ledTeam ?? $employee?->team;
+        return Auth::user()->employee?->ledTeam;
     }
 
     #[Computed]
