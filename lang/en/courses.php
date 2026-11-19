@@ -19,6 +19,19 @@ return [
     'empty'              => 'No courses found',
     'empty_sub'          => 'Try another keyword or remove some filters.',
 
+    // Sorting + view mode
+    'sort'               => 'Sort by',
+    'sorts' => [
+        'code'       => 'Course code',
+        'name'       => 'Course name (A–Z)',
+        'price_asc'  => 'Tuition: low to high',
+        'price_desc' => 'Tuition: high to low',
+        'newest'     => 'Recently created',
+    ],
+    'view_mode'          => 'View mode',
+    'view_grid'          => 'Cards',
+    'view_table'         => 'Table',
+
     'state' => [
         'all'      => 'All courses',
         'active'   => 'Offered',

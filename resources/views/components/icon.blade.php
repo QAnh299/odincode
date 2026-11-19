@@ -46,6 +46,9 @@
         'mail'        => '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
         'link'        => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
         'swap'        => '<path d="m7 4-4 4 4 4M3 8h18M17 20l4-4-4-4M21 16H3"/>',
+        'grid'        => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+        'list'        => '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+        'arrow-right' => '<path d="M5 12h14M12 5l7 7-7 7"/>',
 
         // Loại biểu đồ (trang báo cáo)
         'chart-bar'      => '<path d="M3 3v18h18"/><path d="M8 17v-5M13 17V7M18 17v-8"/>',

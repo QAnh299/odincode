@@ -11,7 +11,8 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Danh sách khóa học + tra cứu (tìm theo mã / tên, lọc trạng thái).
+ * Danh sách khóa học + tra cứu (tìm theo mã / tên, lọc trạng thái, sắp xếp),
+ * hiển thị dạng thẻ hoặc bảng.
  * Chỉ xem: không thêm, kích hoạt hay xóa khóa học.
  * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson.
  */
@@ -20,7 +21,12 @@ class Index extends Component
 {
     use WithPagination;
 
-    public const PER_PAGE = 10;
+    // 12 chia hết cho 2, 3, 4 cột → lưới thẻ không bị hụt hàng cuối
+    public const PER_PAGE = 12;
+
+    public const SORTS = ['code', 'name', 'price_asc', 'price_desc', 'newest'];
+
+    public const VIEWS = ['grid', 'table'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -28,9 +34,15 @@ class Index extends Component
     #[Url(except: '')]
     public string $state = '';
 
+    #[Url(except: 'code')]
+    public string $sort = 'code';
+
+    #[Url(except: 'grid')]
+    public string $view = 'grid';
+
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'state'], true)) {
+        if (in_array($property, ['search', 'state', 'sort'], true)) {
             $this->resetPage();
         }
     }
@@ -46,8 +58,16 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'state');
+        $this->reset('search', 'state', 'sort');
         $this->resetPage();
+    }
+
+    /**
+     * Đổi chế độ hiển thị (thẻ / bảng); giữ nguyên bộ lọc và trang hiện tại.
+     */
+    public function setView(string $view): void
+    {
+        $this->view = in_array($view, self::VIEWS, true) ? $view : 'grid';
     }
 
     /**
@@ -76,12 +96,20 @@ class Index extends Component
 
     public function hasFilters(): bool
     {
-        return $this->search !== '' || $this->state !== '';
+        return $this->search !== '' || $this->state !== '' || $this->sort !== 'code';
     }
 
     public function render()
     {
         $search = trim($this->search);
+
+        // Giá trị lạ từ URL thì quay về mặc định
+        if (! in_array($this->sort, self::SORTS, true)) {
+            $this->sort = 'code';
+        }
+        if (! in_array($this->view, self::VIEWS, true)) {
+            $this->view = 'grid';
+        }
 
         $courses = Course::query()
             ->when($search !== '', function ($q) use ($search) {
@@ -89,7 +117,11 @@ class Index extends Component
                 $q->where(fn ($q) => $q->where('course_id', 'like', $like)->orWhere('course_name', 'like', $like));
             })
             ->when(in_array($this->state, Course::STATES, true), fn ($q) => $q->state($this->state))
-            ->orderBy('course_id')
+            ->when($this->sort === 'name', fn ($q) => $q->orderBy('course_name'))
+            ->when($this->sort === 'price_asc', fn ($q) => $q->orderBy('unit_price'))
+            ->when($this->sort === 'price_desc', fn ($q) => $q->orderByDesc('unit_price'))
+            ->when($this->sort === 'newest', fn ($q) => $q->orderByDesc('created_at'))
+            ->orderBy('course_id') // mặc định, và để thứ tự ổn định khi trùng giá trị
             ->paginate(self::PER_PAGE);
 
         return view('livewire.courses.index', [

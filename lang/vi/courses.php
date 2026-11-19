@@ -19,6 +19,19 @@ return [
     'empty'              => 'Không tìm thấy khóa học nào',
     'empty_sub'          => 'Thử đổi từ khoá hoặc bỏ bớt bộ lọc.',
 
+    // Sắp xếp + chế độ hiển thị
+    'sort'               => 'Sắp xếp',
+    'sorts' => [
+        'code'       => 'Mã khóa học',
+        'name'       => 'Tên khóa học (A–Z)',
+        'price_asc'  => 'Học phí tăng dần',
+        'price_desc' => 'Học phí giảm dần',
+        'newest'     => 'Mới tạo gần đây',
+    ],
+    'view_mode'          => 'Chế độ hiển thị',
+    'view_grid'          => 'Thẻ',
+    'view_table'         => 'Bảng',
+
     'state' => [
         'all'      => 'Tất cả khóa học',
         'active'   => 'Đang cung cấp',
