@@ -1197,6 +1197,13 @@
     }
 }
 
+/* Chi tiết Lead: tiêu đề "Cơ hội" nằm trên bảng (thẻ vc-results không có padding) */
+.st-section.ld-results-title {
+    margin: 0;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
 /* ── Popup Thêm Lead: khách cũ trùng liên hệ (LeadDuplicateService) ──
    Thẻ gọn, viền nhấn trái theo tình huống. Không dùng overflow: hidden - trong lưới form của popup
    (bị co theo chiều cao màn hình), phần tử overflow khác visible bị ép chiều cao về 0 và mất nội dung. */

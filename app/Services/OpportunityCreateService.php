@@ -247,7 +247,7 @@ class OpportunityCreateService
 
     /**
      * Xác định các trường liên hệ cần cập nhật trên Lead.
-     * Chỉ cập nhật phone / email / source_url (CONTACT_FIELDS trừ full_name).
+     * Chỉ cập nhật phone / email / source_url (LeadDuplicateService::CONTACT_FIELDS), đã chuẩn hoá.
      * Kiểm tra bản ghi sau khi merge theo luật hiện có của Lead (LeadImportService::rules()).
      *
      * @param  array{phone?: string, email?: string, source_url?: string}  $contact
@@ -256,17 +256,22 @@ class OpportunityCreateService
      */
     public function resolveContactUpdate(Lead $lead, array $contact): array
     {
-        // Chỉ các trường được phép sửa từ form tạo cơ hội (không cho sửa full_name qua đây)
-        $allowed = array_diff(LeadDuplicateService::CONTACT_FIELDS, ['full_name']);
-
+        // Khách cũ chỉ sửa thông tin liên hệ (LeadDuplicateService::editableFields - họ tên gắn với hoá đơn cũ)
         $update = [];
 
-        foreach ($allowed as $field) {
+        foreach (LeadDuplicateService::CONTACT_FIELDS as $field) {
             if (! array_key_exists($field, $contact)) {
                 continue;
             }
 
-            $new = $contact[$field] === '' ? null : $contact[$field];
+            // Chuẩn hoá như khi thêm / sửa Lead: "0912 345 678" → "0912345678", email chữ thường
+            $new = trim((string) $contact[$field]);
+            $new = match (true) {
+                $new === ''        => null,
+                $field === 'phone' => $this->import->normalizePhone($new),
+                $field === 'email' => mb_strtolower($new),
+                default            => $new,
+            };
             $old = $lead->$field;
 
             // Bỏ qua nếu giá trị không thay đổi (dùng sameValue để so sánh email/URL đúng chuẩn)

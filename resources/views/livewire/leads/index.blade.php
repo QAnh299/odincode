@@ -411,11 +411,9 @@
                                             @endif
 
                                             {{-- Vì sao có trường không cập nhật được (cùng lời giải thích với bảng xem trước khi import) --}}
-                                            @if ($item['contacted'] && $item['changes'])
-                                                <p class="ld-imp__locked"><x-icon name="shield" />{{ __('leads.import_review.locked.contacted') }}</p>
-                                            @elseif ($duplicate['updatable'] && collect($item['changes'])->contains('editable', false))
+                                            @if ($duplicate['updatable'] && collect($item['changes'])->contains('editable', false))
                                                 <p class="ld-imp__locked">
-                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.($item['returning'] ? 'returning' : 'branch')) }}
+                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.($item['locked_reason'] ?? 'branch')) }}
                                                 </p>
                                             @endif
 
@@ -423,7 +421,15 @@
                                                 <p class="ld-error">{{ $message }}</p>
                                             @enderror
 
-                                            @if ($canUpdate)
+                                            @if ($canUpdate && $dupCase === \App\Services\LeadDuplicateService::REOPEN)
+                                                {{-- Khách cũ: thông tin đã chọn được cập nhật khi bấm "Đăng ký khoá mới" --}}
+                                                <div class="ld-upd__foot">
+                                                    <span class="ld-upd__note">
+                                                        {{ __('leads.duplicate.changes_count', ['count' => $chosen, 'total' => $editableCount]) }} ·
+                                                        {{ __('leads.duplicate.reopen_update_hint') }}
+                                                    </span>
+                                                </div>
+                                            @elseif ($canUpdate)
                                                 <div class="ld-upd__foot">
                                                     <span class="ld-upd__note">{{ __('leads.duplicate.changes_count', ['count' => $chosen, 'total' => $editableCount]) }}</span>
                                                     <button type="button" class="vc-btn vc-btn--primary ld-dup__btn" wire:click="updateExisting"
@@ -628,7 +634,7 @@
                                     @php
                                         $line = $row['line'];
                                         $action = $this->decisionFor($row);
-                                        $willUpdate = $action === 'update' || str_starts_with($action, \App\Services\LeadImportService::ACTION_SAME);
+                                        $willUpdate = in_array($action, ['update', 'reopen'], true) || str_starts_with($action, \App\Services\LeadImportService::ACTION_SAME);
                                         $open = $previewOpen === $line;
                                     @endphp
                                     <li class="ld-imp__row ld-imp__row--{{ $kindTone[$row['kind']] ?? 'info' }} {{ $action === 'skip' ? 'is-skip' : '' }}" wire:key="imp-{{ $line }}">
@@ -691,8 +697,8 @@
                                                                     <span role="columnheader">{{ __('leads.duplicate.col_new') }}</span>
                                                                 </div>
                                                                 @php
-                                                                    // Đã xác định cùng người (Lead đang chờ phân / đang tư vấn) → trường không cập nhật được hiện icon khoá
-                                                                    $sure = in_array($row['kind'], ['in_queue', 'in_progress'], true);
+                                                                    // Đã xác định cùng người (Lead đang chờ phân / đang tư vấn / khách cũ) → trường không cập nhật được hiện icon khoá
+                                                                    $sure = in_array($row['kind'], ['in_queue', 'in_progress', 'reopen'], true);
                                                                     $locked = $sure && collect($lead['changes'])->contains('editable', false);
                                                                 @endphp
                                                                 @foreach ($lead['changes'] as $field => $change)
@@ -714,11 +720,7 @@
                                                             @if ($locked)
                                                                 {{-- Vì sao có trường không cập nhật được --}}
                                                                 <p class="ld-imp__locked">
-                                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.match (true) {
-                                                                        $lead['contacted'] => 'contacted',
-                                                                        $lead['returning'] => 'returning',
-                                                                        default            => 'branch',
-                                                                    }) }}
+                                                                    <x-icon name="shield" />{{ __('leads.import_review.locked.'.($lead['locked_reason'] ?? 'branch')) }}
                                                                 </p>
                                                             @endif
                                                         @else

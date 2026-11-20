@@ -1,6 +1,7 @@
 {{--
     Popup chỉnh sửa thông tin Lead (trait App\Livewire\Leads\Concerns\EditsLead).
-    Chỉ hiện các trường được sửa ($this->leadEditableFields()); SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ.
+    Chỉ hiện các trường được sửa ($this->leadEditableFields(), luôn gồm SĐT, email, link nguồn); SĐT, Link nguồn
+    bắt buộc tuỳ kênh liên hệ.
     Tham số: $lead - Lead đang sửa; $branches - chi nhánh để chọn (khi được sửa chi nhánh).
 --}}
 @php
@@ -23,11 +24,13 @@
         </header>
 
         <div class="ld-modal__body ld-form">
-            <label class="vc-field">
-                <span class="vc-field__label">{{ __('leads.field.full_name') }}<span class="ld-req">*</span></span>
-                <input type="text" wire:model="leadForm.full_name" class="vc-control @error('full_name') is-invalid @enderror" autofocus>
-                @error('full_name')<span class="ld-error">{{ $message }}</span>@enderror
-            </label>
+            @if (in_array('full_name', $fields, true))
+                <label class="vc-field">
+                    <span class="vc-field__label">{{ __('leads.field.full_name') }}<span class="ld-req">*</span></span>
+                    <input type="text" wire:model="leadForm.full_name" class="vc-control @error('full_name') is-invalid @enderror" autofocus>
+                    @error('full_name')<span class="ld-error">{{ $message }}</span>@enderror
+                </label>
+            @endif
 
             @if (in_array('contact_method', $fields, true))
                 <label class="vc-field">

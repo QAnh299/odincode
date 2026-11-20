@@ -27,8 +27,10 @@ use RuntimeException;
  *   REOPEN       cùng người, không còn cơ hội InProgress           → đưa Lead cũ về 'New' để phân lại
  *   AMBIGUOUS    khớp liên hệ + họ tên với nhiều Lead              → Sale Admin chọn; import: báo lỗi
  *
- * Khi đưa Lead cũ về hàng chờ: chỉ bổ sung SĐT / email / link nguồn còn trống, không ghi đè thông tin cũ
- * (nguồn, chi nhánh, kênh liên hệ, họ tên gắn với các cơ hội / đơn hàng đã có); phần khác chỉ báo lại.
+ * Khi đưa Lead cũ về hàng chờ: cập nhật SĐT / email / link nguồn đã chọn, không ghi đè thông tin cũ
+ * (họ tên, nguồn, chi nhánh, kênh liên hệ gắn với các cơ hội / đơn hàng đã có); phần khác chỉ báo lại.
+ *
+ * Trường được sửa theo tình trạng Lead - editableFields(), dùng chung cho mọi chỗ sửa Lead.
  */
 class LeadDuplicateService
 {
@@ -39,11 +41,8 @@ class LeadDuplicateService
     public const REOPEN = 'reopen';
     public const AMBIGUOUS = 'ambiguous';
 
-    // Được bổ sung vào Lead cũ khi Lead cũ đang để trống
-    public const FILLABLE = ['phone', 'email', 'source_url'];
-
-    // Thông tin liên hệ (cùng danh sách với EditsLead::LEAD_CONTACT_FIELDS)
-    public const CONTACT_FIELDS = ['full_name', 'phone', 'email', 'source_url'];
+    // Thông tin liên hệ: còn sửa được với khách cũ (cần liên lạc được với khách)
+    public const CONTACT_FIELDS = ['phone', 'email', 'source_url'];
 
     // Đường dẫn Facebook không phải trang cá nhân (bài viết, nhóm, trang chức năng…)
     public const FACEBOOK_RESERVED = [
@@ -208,14 +207,15 @@ class LeadDuplicateService
     /* ── Đưa Lead cũ về hàng chờ ──────────────────────────────────────── */
 
     /**
-     * Đưa Lead cũ về 'New' để phân lại (khách đã từng đăng ký, không còn cơ hội đang tư vấn).
-     * Trả về ['lead' => Lead, 'filled' => [trường đã bổ sung], 'differences' => [trường => ['old', 'new']]].
+     * Đưa Lead cũ về 'New' để phân lại (khách đã từng đăng ký, không còn cơ hội đang tư vấn), đồng thời cập nhật
+     * các trường liên hệ $fields Sale Admin đã chọn (giới hạn trong CONTACT_FIELDS).
+     * Trả về ['lead' => Lead, 'filled' => [trường đã cập nhật], 'differences' => [trường => ['old', 'new']]].
      *
      * @throws RuntimeException  Lead không còn ở tình trạng đưa về hàng chờ được (VD vừa được phân / tạo cơ hội)
      */
-    public function reopen(Lead $lead, array $data): array
+    public function reopen(Lead $lead, array $data, array $fields = []): array
     {
-        return DB::transaction(function () use ($lead, $data) {
+        return DB::transaction(function () use ($lead, $data, $fields) {
             // Khoá dòng Lead rồi mới đọc lại cơ hội: tránh trùng lúc Lead vừa được phân / vừa tạo cơ hội
             $locked = Lead::query()->whereKey($lead->getKey())->lockForUpdate()->firstOrFail()->load($this->details());
 
@@ -224,7 +224,7 @@ class LeadDuplicateService
                 throw new RuntimeException($this->message($state, $locked));
             }
 
-            [$fill, $differences] = $this->compare($locked, $data);
+            [$fill, $differences] = $this->compare($locked, $data, array_intersect($fields, self::CONTACT_FIELDS));
             $locked->update($fill + ['status' => Lead::STATUS_NEW]);
 
             return ['lead' => $locked, 'filled' => array_keys($fill), 'differences' => $differences];
@@ -232,9 +232,10 @@ class LeadDuplicateService
     }
 
     /**
-     * So dữ liệu mới nhập với Lead cũ: [trường bổ sung được (Lead cũ đang trống), trường khác Lead cũ].
+     * So dữ liệu mới nhập với Lead cũ: [trường cập nhật (trong $fields, khác hoặc Lead cũ đang trống),
+     * trường khác Lead cũ nhưng giữ thông tin cũ].
      */
-    public function compare(Lead $lead, array $data): array
+    public function compare(Lead $lead, array $data, array $fields): array
     {
         $fill = [];
         $differences = [];
@@ -243,17 +244,13 @@ class LeadDuplicateService
             $new = $data[$field] ?? null;
             $old = $lead->$field;
 
-            if ($new === null || $new === '') {
+            if ($new === null || $new === '' || (! blank($old) && $this->sameValue($field, $old, $new))) {
                 continue;
             }
 
-            if (in_array($field, self::FILLABLE, true) && blank($old)) {
+            if (in_array($field, $fields, true)) {
                 $fill[$field] = $new;
-
-                continue;
-            }
-
-            if (! $this->sameValue($field, $old, $new)) {
+            } else {
                 $differences[$field] = ['old' => (string) $old, 'new' => $new];
             }
         }
@@ -304,31 +301,33 @@ class LeadDuplicateService
     }
 
     /**
-     * Trường được cập nhật từ bảng so sánh khi thêm Lead trùng (cùng người):
-     *   - chưa phân cho đội (chưa có cơ hội nào): mọi trường, kể cả chi nhánh;
-     *   - Salesperson đã tương tác (cơ hội đang mở có kết quả chăm sóc) hoặc không còn cơ hội đang mở: không cập nhật;
-     *   - khách cũ (có cơ hội đã kết thúc): chỉ thông tin liên hệ - nguồn, kênh, chi nhánh gắn với đơn hàng cũ;
-     *   - đội đang giữ / đã phân Salesperson nhưng chưa tương tác: mọi trường trừ chi nhánh (Lead đã thuộc đội
-     *     của chi nhánh này).
+     * Trường được cập nhật từ bảng so sánh khi thêm / import Lead trùng (cùng người): theo editableFields(), trừ:
+     *   - Salesperson đã tương tác (cơ hội đang mở có kết quả chăm sóc): không cập nhật từ file / form thêm Lead,
+     *     sửa bằng nút Sửa nếu cần;
+     *   - mọi cơ hội đã kết thúc, chưa về hàng chờ: thông tin liên hệ, cập nhật cùng lúc đưa về hàng chờ (reopen).
      */
     public function updatableFields(Lead $lead): array
     {
-        if (! $lead->opportunities()->exists()) {
-            return LeadImportService::COLUMNS;
-        }
-
-        $active = $lead->opportunities()->where('status', Opportunity::STATUS_IN_PROGRESS)->latest('conversion_date')->first();
-
-        // Đã tương tác, hoặc mọi cơ hội đã kết thúc mà Lead chưa về hàng chờ (dùng "Đăng ký khoá mới" thay vì cập nhật)
-        if ($active ? $active->careResults()->exists() : $lead->status !== Lead::STATUS_NEW) {
+        if ($this->contacted($lead)) {
             return [];
         }
 
-        if ($lead->isReturning()) {
-            return self::CONTACT_FIELDS;
-        }
+        $fields = $this->editableFields($lead);
 
-        return array_values(array_diff(LeadImportService::COLUMNS, ['branch_id']));
+        return $fields === [] && $this->stateOf($lead) === self::REOPEN ? self::CONTACT_FIELDS : $fields;
+    }
+
+    /**
+     * Vì sao có trường không cập nhật được trong bảng so sánh (khoá lang leads.import_review.locked.*).
+     */
+    public function lockReason(Lead $lead): string
+    {
+        return match (true) {
+            $this->contacted($lead)              => 'contacted',
+            $lead->isReturning()                 => 'returning',
+            $lead->status !== Lead::STATUS_NEW   => 'assigned',
+            default                              => 'branch',
+        };
     }
 
     /**
@@ -340,24 +339,39 @@ class LeadDuplicateService
     }
 
     /**
-     * Trường của Lead được sửa ở nút Sửa trang chi tiết Lead:
-     *   - chưa có cơ hội nào (chưa phân cho đội): mọi trường;
-     *   - đội đang giữ, chưa phân Salesperson (Lead 'Mới', không phải khách cũ): mọi trường trừ chi nhánh -
-     *     Lead đã thuộc đội của chi nhánh này;
-     *   - đã phân Salesperson / khách cũ đưa về hàng chờ: chỉ thông tin liên hệ (nguồn, kênh, chi nhánh gắn với
-     *     cơ hội / đơn hàng đã có).
+     * Trường của Lead được sửa theo tình trạng - quy tắc chung cho mọi chỗ sửa Lead (nút Sửa ở chi tiết Lead,
+     * chi tiết cơ hội, bảng so sánh khi thêm / import Lead trùng):
+     *
+     *   Tình trạng                                     Họ tên  Liên hệ  Nguồn, Kênh  Chi nhánh
+     *   1. Chưa phân cho đội                             ✓        ✓          ✓           ✓
+     *   2. Đội đang giữ, chưa phân Salesperson           ✓        ✓          ✓           -
+     *   3. Đã phân Salesperson                           ✓        ✓          -           -
+     *   4. Mọi cơ hội đã kết thúc, chưa về hàng chờ      -        -          -           -
+     *   5. Khách cũ đã về hàng chờ / có cơ hội mới       -        ✓          -           -
+     *
+     * Liên hệ = SĐT, email, link nguồn. Chi nhánh gắn với đội đã nhận Lead; nguồn, kênh gắn với báo cáo chuyển
+     * đổi; họ tên khách cũ gắn với hoá đơn / đơn hàng đã có.
      */
     public function editableFields(Lead $lead): array
     {
-        if (! $lead->opportunities()->exists()) {
+        $statuses = $lead->opportunities()->pluck('status');
+
+        if ($statuses->isEmpty()) {
             return LeadImportService::COLUMNS;
         }
 
-        if ($lead->status === Lead::STATUS_NEW && ! $lead->isReturning()) {
+        // Khách cũ: đã có cơ hội kết thúc (Won / Lost / Archived)
+        if ($statuses->contains(fn ($status) => $status !== Opportunity::STATUS_IN_PROGRESS)) {
+            $reopened = $lead->status === Lead::STATUS_NEW || $statuses->contains(Opportunity::STATUS_IN_PROGRESS);
+
+            return $reopened ? self::CONTACT_FIELDS : [];
+        }
+
+        if ($lead->status === Lead::STATUS_NEW) {
             return array_values(array_diff(LeadImportService::COLUMNS, ['branch_id']));
         }
 
-        return self::CONTACT_FIELDS;
+        return ['full_name', ...self::CONTACT_FIELDS];
     }
 
     /**

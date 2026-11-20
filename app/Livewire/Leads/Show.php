@@ -19,8 +19,8 @@ use Livewire\Component;
 /**
  * Chi tiết Lead: thông tin liên hệ (nguồn, chi nhánh, ngày tạo) và các cơ hội đã tạo từ Lead.
  * Giám đốc, Sale Admin, Sale Leader xem theo Lead::visibleTo() (cùng phạm vi với danh sách Lead).
- * Sale Admin chỉnh sửa khi Lead còn "Mới" (chưa phân: mọi trường; đội đang giữ: trừ chi nhánh; khách cũ: liên hệ) hoặc cơ hội
- * của Lead đang chăm sóc (họ tên, SĐT, email, link nguồn); cơ hội đã chốt / lưu trữ thì giữ nguyên thông tin.
+ * Sale Admin chỉnh sửa các trường theo tình trạng Lead (LeadDuplicateService::editableFields); mọi cơ hội đã kết thúc
+ * mà Lead chưa về hàng chờ thì không có nút Sửa.
  */
 #[Layout('layouts.app')]
 class Show extends Component
@@ -87,13 +87,9 @@ class Show extends Component
 
     protected function leadToEdit(): ?Lead
     {
-        return $this->routePrefix === Role::SALE_ADMIN && $this->lead->isEditable() ? $this->lead : null;
+        return $this->routePrefix === Role::SALE_ADMIN && $this->leadEditableFields() !== [] ? $this->lead : null;
     }
 
-    /**
-     * Cùng quy tắc với bảng so sánh khi thêm Lead trùng (LeadDuplicateService::editableFields): chưa phân cho đội
-     * sửa mọi trường; đội đang giữ sửa mọi trường trừ chi nhánh; còn lại chỉ thông tin liên hệ.
-     */
     public function leadEditableFields(): array
     {
         return app(LeadDuplicateService::class)->editableFields($this->lead);

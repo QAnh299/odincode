@@ -56,7 +56,7 @@
 
     {{-- ── Thông tin liên hệ ────────────────────────────────────────── --}}
     <section class="vc-card">
-        <h2 class="st-title">{{ __('leads.info') }}</h2>
+        <h2 class="st-section st-section--card">{{ __('leads.info') }}</h2>
         <dl class="st-info ld-info">
             <dt>{{ __('leads.phone') }}</dt><dd>{{ $lead->phone ?: '-' }}</dd>
             <dt>{{ __('leads.field.email') }}</dt><dd>{{ $lead->email ?: '-' }}</dd>
@@ -78,7 +78,7 @@
 
     {{-- ── Cơ hội tạo từ Lead ───────────────────────────────────────── --}}
     <section class="vc-card vc-results">
-        <h2 class="st-title st-title--bar">{{ __('leads.opportunities_title') }}</h2>
+        <h2 class="st-section ld-results-title">{{ __('leads.opportunities_title') }}</h2>
         @if ($opportunities->isEmpty())
             <p class="st-empty">{{ __('leads.no_opportunities') }}</p>
         @else

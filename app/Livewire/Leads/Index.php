@@ -322,8 +322,20 @@ class Index extends Component
             return;
         }
 
+        // Vừa bấm "Cùng người" (từ khớp liên hệ) mà có thông tin liên hệ khác → hiện bảng so sánh để chọn cập nhật,
+        // bấm "Đăng ký khoá mới" mới đưa về hàng chờ
+        if ($this->duplicate['case'] !== LeadDuplicateService::REOPEN) {
+            $described = $this->describeMatch($duplicates, ['case' => $state, 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
+
+            if ($this->updateFields) {
+                $this->duplicate = $described;
+
+                return;
+            }
+        }
+
         try {
-            $result = $duplicates->reopen($lead, $validated);
+            $result = $duplicates->reopen($lead, $validated, $this->updateFields);
         } catch (RuntimeException) {
             // Lead vừa đổi tình trạng (VD vừa được phân) → hiện lại tình trạng mới
             $lead = $duplicates->find($leadId);
@@ -428,10 +440,10 @@ class Index extends Component
     {
         $leads = $match['lead'] ? collect([$match['lead']]) : $match['leads'];
 
-        // Đã xác định cùng người (khớp liên hệ + họ tên, hoặc bấm "Cùng người") và Lead đang chờ phân / đang tư vấn
-        // → bảng so sánh cho chọn cập nhật (LeadDuplicateService::updatableFields); còn lại bảng chỉ để đối chiếu
+        // Đã xác định cùng người (khớp liên hệ + họ tên, hoặc bấm "Cùng người") → bảng so sánh cho chọn cập nhật
+        // (LeadDuplicateService::updatableFields; khách cũ cập nhật lúc đưa về hàng chờ); còn lại bảng chỉ để đối chiếu
         $updatable = $match['lead'] !== null
-            && in_array($match['case'], [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS], true);
+            && in_array($match['case'], [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS, LeadDuplicateService::REOPEN], true);
 
         $items = $leads->map(function (Lead $lead) use ($duplicates, $data, $updatable) {
             $active = $lead->opportunities->firstWhere('status', Opportunity::STATUS_IN_PROGRESS);
@@ -447,9 +459,8 @@ class Index extends Component
                 'state'     => $waitingTeam ? 'in_queue_team' : $state,
                 'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
                 'url'       => route($this->routePrefix.'.leads.show', $lead),
-                // Salesperson đã tương tác → không cập nhật từ đây (bảng chỉ để xem)
-                'contacted' => $updatable && $duplicates->contacted($lead),
-                'returning' => $lead->isReturning(),
+                // Vì sao có trường không cập nhật được (leads.import_review.locked.*)
+                'locked_reason' => $duplicates->lockReason($lead),
                 'changes'   => collect($duplicates->changes($lead, $data, $updatable))
                     ->map(fn ($change, $field) => $change + [
                         'label'    => $this->fieldLabel($field),

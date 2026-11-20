@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Validator;
 
 /**
  * Popup chỉnh sửa thông tin Lead, dùng ở chi tiết Lead (Sale Admin) và chi tiết cơ hội (Salesperson phụ trách).
+ * Trường được sửa theo tình trạng Lead (LeadDuplicateService::editableFields).
  * Kiểm tra như khi thêm Lead (LeadImportService); trường không được sửa giữ nguyên giá trị hiện tại.
  * Component dùng trait khai báo Lead được sửa, các trường được sửa và việc cần làm sau khi lưu.
  */
 trait EditsLead
 {
-    // Thông tin liên hệ: Salesperson sửa từ trang cơ hội, Sale Admin sửa mọi lúc
-    public const LEAD_CONTACT_FIELDS = ['full_name', 'phone', 'email', 'source_url'];
-
     public bool $editingLead = false;
 
     public array $leadForm = [];

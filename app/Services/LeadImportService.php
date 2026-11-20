@@ -445,8 +445,7 @@ class LeadImportService
             'state'     => $waitingTeam ? 'in_queue_team' : $state,
             'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
             // Lý do trường bị khoá khi cập nhật (hiện dưới bảng so sánh)
-            'returning' => $lead->isReturning(),
-            'contacted' => $this->duplicates->contacted($lead),
+            'locked_reason' => $this->duplicates->lockReason($lead),
             'changes' => collect($this->duplicates->changes($lead, $data, $updatable))
                 ->map(fn ($change, $field) => [
                     'label'    => $field === 'branch_id' ? __('leads.branch') : __('leads.field.'.$field),
@@ -562,7 +561,8 @@ class LeadImportService
 
         try {
             if ($state === LeadDuplicateService::REOPEN && $action !== self::ACTION_UPDATE) {
-                $result = $this->duplicates->reopen($lead, $data);
+                // Cập nhật luôn thông tin liên hệ khác Lead cũ (dấu ✓ trong bảng so sánh)
+                $result = $this->duplicates->reopen($lead, $data, LeadDuplicateService::CONTACT_FIELDS);
 
                 return $this->outcome('reopened', $lead->lead_id, array_merge(
                     [__('leads.duplicate.reopened', ['id' => $lead->lead_id, 'name' => $lead->full_name])],

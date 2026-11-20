@@ -60,14 +60,15 @@ class OpportunityCreateContactTest extends TestCase
     {
         $import = $this->createMock(LeadImportService::class);
 
-        // Lấy rules() từ class thật (không dùng __())
-        $realRules = (new class () extends LeadImportService {
+        // Lấy rules() và chuẩn hoá SĐT từ class thật (không dùng __())
+        $real = new class () extends LeadImportService {
             public function __construct()
             {
             }
-        })->rules();
+        };
 
-        $import->method('rules')->willReturn($realRules);
+        $import->method('rules')->willReturn($real->rules());
+        $import->method('normalizePhone')->willReturnCallback(fn (string $phone) => $real->normalizePhone($phone));
         $import->method('messages')->willReturn([]);
         $import->method('attributes')->willReturn([]);
 

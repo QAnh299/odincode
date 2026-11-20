@@ -16,6 +16,7 @@ use App\Models\Role;
 use App\Models\Stage;
 use App\Services\AppointmentService;
 use App\Services\LeadDistributionService;
+use App\Services\LeadDuplicateService;
 use App\Services\QuotationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -901,23 +902,34 @@ class Show extends Component
     // ── Sửa thông tin khách (Lead) ────────────────────────────────────
 
     /**
-     * Salesperson phụ trách sửa thông tin liên hệ của khách khi cơ hội đang chăm sóc (InProgress);
-     * cơ hội đã chốt / lưu trữ giữ nguyên thông tin - Lead::isEditable().
+     * Salesperson phụ trách sửa thông tin khách khi cơ hội đang chăm sóc (InProgress), kể cả khách cũ;
+     * cơ hội đã chốt / lưu trữ giữ nguyên thông tin.
      */
     protected function leadToEdit(): ?Lead
     {
-        $lead = $this->opportunity->lead;
-
         return $this->isOwner()
             && $this->opportunity->status === Opportunity::STATUS_IN_PROGRESS
-            && $lead?->isEditable()
-            ? $lead
+            && $this->leadEditableFields() !== []
+            ? $this->opportunity->lead
             : null;
     }
 
+    /**
+     * Theo tình trạng Lead (LeadDuplicateService::editableFields), tối đa họ tên + thông tin liên hệ:
+     * nguồn, kênh, chi nhánh do Sale Admin quản lý.
+     */
     public function leadEditableFields(): array
     {
-        return self::LEAD_CONTACT_FIELDS;
+        $lead = $this->opportunity->lead;
+
+        if (! $lead) {
+            return [];
+        }
+
+        return array_values(array_intersect(
+            app(LeadDuplicateService::class)->editableFields($lead),
+            ['full_name', ...LeadDuplicateService::CONTACT_FIELDS],
+        ));
     }
 
     protected function leadUpdated(Lead $lead): void
