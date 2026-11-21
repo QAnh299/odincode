@@ -95,6 +95,9 @@ return [
     'empty_stage'        => 'No opportunities',
     'no_value'           => 'No expected value',
     'conversion_date'    => 'Conversion date',
+    'stage_entered_date' => 'Stage entered date',
+    'all_sources'        => 'All sources',
+    'source'             => 'Source',
 
     // Detail
     'detail_title'       => 'Opportunity :code',

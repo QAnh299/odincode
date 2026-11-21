@@ -81,12 +81,16 @@ class Kanban extends Component
     // Số thẻ đang hiện của từng cột: [stage_id => số thẻ]
     public array $shown = [];
 
-    // Khoảng ngày chuyển đổi (Y-m-d) - có thể bị sửa từ client nên luôn kiểm tra qua validDate()
+    // Khoảng ngày vào stage hiện tại (Y-m-d) - có thể bị sửa từ client nên luôn kiểm tra qua validDate()
     #[Url(except: '')]
     public string $from = '';
 
     #[Url(except: '')]
     public string $to = '';
+
+    // Kênh nguồn khách (Facebook, Zalo, v.v.) - '' = Tất cả
+    #[Url(except: '')]
+    public string $source = '';
 
     // Đội (Giám đốc) - '' = Tất cả đội; luôn đọc qua activeTeam
     #[Url(except: '')]
@@ -112,18 +116,18 @@ class Kanban extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('from', 'to', 'team', 'employee', 'urgent', 'search', 'stageFilter', 'shown');
+        $this->reset('from', 'to', 'source', 'team', 'employee', 'urgent', 'search', 'stageFilter', 'shown');
     }
 
     public function hasFilters(): bool
     {
-        return $this->from !== '' || $this->to !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent || $this->search !== '' || $this->stageFilter !== '';
+        return $this->from !== '' || $this->to !== '' || $this->source !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent || $this->search !== '' || $this->stageFilter !== '';
     }
 
     // Đổi bộ lọc thì mỗi cột hiện lại từ đầu
     public function updated(string $property): void
     {
-        if (in_array($property, ['from', 'to', 'team', 'employee', 'search', 'stageFilter'], true)) {
+        if (in_array($property, ['from', 'to', 'source', 'team', 'employee', 'search', 'stageFilter'], true)) {
             $this->shown = [];
         }
     }
@@ -312,8 +316,15 @@ class Kanban extends Component
                 $this->employeeOptions->contains('employee_id', $this->employee),
                 fn ($q) => $q->where('employee_id', $this->employee)
             )
-            ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
-            ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
+            ->when($this->validDate($this->from), fn ($q) => $q->whereRaw(
+                'DATE(COALESCE((SELECT MAX(changed_at) FROM StagesHistory WHERE StagesHistory.opportunity_id = Opportunities.opportunity_id AND StagesHistory.to_stage_id = Opportunities.stage_id), conversion_date)) >= ?',
+                [$this->from]
+            ))
+            ->when($this->validDate($this->to), fn ($q) => $q->whereRaw(
+                'DATE(COALESCE((SELECT MAX(changed_at) FROM StagesHistory WHERE StagesHistory.opportunity_id = Opportunities.opportunity_id AND StagesHistory.to_stage_id = Opportunities.stage_id), conversion_date)) <= ?',
+                [$this->to]
+            ))
+            ->when($this->source !== '', fn ($q) => $q->whereRelation('lead', 'source_name', $this->source))
             ->when(trim($this->search) !== '', fn ($q) => $this->applySearch($q))
             ->when($this->activeView() === 'kanban', fn ($q) => $q->where('stage_id', '!=', Stage::ARCHIVED))
             ->when(
@@ -331,6 +342,7 @@ class Kanban extends Component
                 'careResults',
             ])
             ->withLastCare()
+            ->withStageEnteredAt()
             ->orderByDesc('conversion_date')
             ->get();
 

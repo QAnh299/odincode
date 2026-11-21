@@ -168,9 +168,20 @@ class Opportunity extends Model
 
     public function stageEnteredAt(): Carbon
     {
-        $changed = $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
+        // Dùng attribute đã load sẵn bằng scopeWithStageEnteredAt() nếu có (tránh N+1)
+        $changed = array_key_exists('stage_entered_at', $this->attributes)
+            ? $this->attributes['stage_entered_at']
+            : $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
 
         return Carbon::parse($changed ?? $this->conversion_date)->startOfMinute();
+    }
+
+    public function scopeWithStageEnteredAt(Builder $query): Builder
+    {
+        return $query->addSelect(['stage_entered_at' => StageHistory::query()
+            ->selectRaw('MAX(changed_at)')
+            ->whereColumn('StagesHistory.opportunity_id', 'Opportunities.opportunity_id')
+            ->whereColumn('StagesHistory.to_stage_id', 'Opportunities.stage_id')]);
     }
 
     public function scopeWithLastCare(Builder $query): Builder

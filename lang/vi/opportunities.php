@@ -95,6 +95,9 @@ return [
     'empty_stage'        => 'Chưa có Opportunity',
     'no_value'           => 'Chưa có giá trị dự kiến',
     'conversion_date'    => 'Ngày chuyển đổi',
+    'stage_entered_date' => 'Ngày vào stage',
+    'all_sources'        => 'Tất cả kênh nguồn',
+    'source'             => 'Kênh nguồn',
 
     // Chi tiết
     'detail_title'       => 'Opportunity :code',

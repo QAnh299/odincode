@@ -96,7 +96,7 @@
         @php $activePreset = $this->activePreset(); @endphp
         <div class="ok-filter" x-show="filtersOpen" x-cloak aria-label="{{ __('opportunities.filter_title') }}">
             <div class="vc-field">
-                <span class="vc-field__label">{{ __('opportunities.conversion_date') }}</span>
+                <span class="vc-field__label">{{ __('opportunities.stage_entered_date') }}</span>
                 <div class="ok-presets" role="group">
                     @foreach (['', ...\App\Livewire\Opportunities\Kanban::PRESETS] as $preset)
                         <button type="button" wire:click="applyPreset('{{ $preset }}')"
@@ -116,6 +116,16 @@
             <label class="vc-field">
                 <span class="vc-field__label">{{ __('opportunities.to') }}</span>
                 <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
+            </label>
+
+            <label class="vc-field ok-filter__select">
+                <span class="vc-field__label">{{ __('opportunities.source') }}</span>
+                <select wire:model.live="source" class="vc-control">
+                    <option value="">{{ __('opportunities.all_sources') }}</option>
+                    @foreach (\App\Models\Lead::SOURCES as $src)
+                        <option value="{{ $src }}">{{ $src }}</option>
+                    @endforeach
+                </select>
             </label>
 
             {{-- Đội (Giám đốc) → Salesperson (Sale Leader, Giám đốc) --}}
@@ -282,8 +292,8 @@
 
                                 <span class="ok-card__row">
                                     <span class="ok-card__info"><x-icon name="phone" />{{ $opp->lead?->phone ?: '-' }}</span>
-                                    <span class="ok-card__date" title="{{ __('opportunities.conversion_date') }}: {{ $opp->conversion_date?->format('d/m/Y') }}">
-                                        {{ $opp->conversion_date?->diffForHumans() }}
+                                    <span class="ok-card__date" title="{{ __('opportunities.stage') }}: {{ $opp->stageEnteredAt()->format('d/m/Y') }}">
+                                        {{ $opp->stageEnteredAt()->diffForHumans() }}
                                     </span>
                                 </span>
 
