@@ -162,7 +162,12 @@ class QuotationService
                 ]);
             }
 
-            return $quotation->fresh();
+            $fresh = $quotation->fresh();
+
+            // Giá trị dự kiến của cơ hội = tổng tiền báo giá vừa lưu
+            $opportunity->updateQuietly(['expected_value' => $fresh->totalAmount()]);
+
+            return $fresh;
         });
     }
 
