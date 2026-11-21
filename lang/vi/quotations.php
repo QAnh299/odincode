@@ -113,6 +113,11 @@ return [
         'course'           => 'khóa học',
         'pick_course'      => 'Chọn khóa học đang mở…',
         'all_courses_added' => 'Đã chọn hết các khóa học đang mở',
+        // Khóa khách đã có đơn hàng: chỉ cảnh báo, vẫn cho chọn
+        'purchased_tag'     => 'Khách đã mua',
+        'purchased_warning' => 'Khách đã mua khóa này (đơn :order). Kiểm tra lại nếu không phải học lại.',
+        'ordered_tag'       => 'Đang có đơn chưa thanh toán',
+        'ordered_warning'   => 'Khóa này đã có trong đơn :order chưa thanh toán. Kiểm tra để tránh lập trùng đơn.',
         'no_lines'         => 'Chưa có khóa học nào. Chọn khóa học ở ô phía trên để thêm vào báo giá.',
         'remove'           => 'Bỏ khóa học',
         'quantity'         => 'số lượng',

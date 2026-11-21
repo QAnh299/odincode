@@ -57,7 +57,7 @@
                             @disabled($this->availableCourses->isEmpty())>
                             <option value="">{{ $this->availableCourses->isEmpty() ? __('quotations.form.all_courses_added') : __('quotations.form.pick_course') }}</option>
                             @foreach ($this->availableCourses as $course)
-                                <option value="{{ $course->course_id }}" wire:key="pick-{{ $course->course_id }}">{{ $course->course_name }} · {{ $course->displayPrice() }}</option>
+                                <option value="{{ $course->course_id }}" wire:key="pick-{{ $course->course_id }}">{{ $course->course_name }} · {{ $course->displayPrice() }}@isset($this->purchasedCourses[$course->course_id]) · {{ __($this->purchasedCourses[$course->course_id]['paid'] ? 'quotations.form.purchased_tag' : 'quotations.form.ordered_tag') }}@endisset</option>
                             @endforeach
                         </select>
                         <span class="qt-form-pick__spin" wire:loading.delay wire:target="pickCourse">
@@ -87,6 +87,15 @@
                                                 <span class="qt-stack">
                                                     <span class="qt-stack__main">{{ $row['course']->course_name }}</span>
                                                     <span class="qt-stack__sub">{{ $row['course']->course_id }}</span>
+                                                    @php
+                                                        $purchase = $this->purchasedCourses[$row['course']->course_id] ?? null;
+                                                    @endphp
+                                                    @if ($purchase)
+                                                        <span class="qt-purchased" role="note">
+                                                            <x-icon name="alert" />
+                                                            {{ __($purchase['paid'] ? 'quotations.form.purchased_warning' : 'quotations.form.ordered_warning', ['order' => $purchase['order']]) }}
+                                                        </span>
+                                                    @endif
                                                 </span>
                                             </td>
                                             <td data-label="{{ __('quotations.detail.unit_price') }}" class="text-lg-end">{{ $money($row['course']->unit_price) }}</td>

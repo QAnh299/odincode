@@ -173,6 +173,43 @@ class Form extends Component
     }
 
     /**
+     * Khóa học khách đã có đơn hàng, xét mọi cơ hội của cùng Lead: đơn đã thanh toán ít nhất một phần (đã mua) hoặc
+     * đơn đã xác nhận nhưng chưa thanh toán (dễ lập trùng). Chỉ để cảnh báo Salesperson, vẫn cho chọn (khách có thể
+     * học lại khóa cũ). Một khóa có nhiều đơn: ưu tiên đơn đã thanh toán, cùng loại thì lấy đơn mới nhất.
+     *
+     * @return array<string, array{order: string, paid: bool}>
+     */
+    #[Computed]
+    public function purchasedCourses(): array
+    {
+        $leadId = $this->opportunity->lead_id;
+
+        if (! $leadId) {
+            return [];
+        }
+
+        $result = [];
+
+        // Mã đơn dạng ORD + số, quá 999 thì dài thêm: so độ dài trước để ORD1000 đứng sau ORD999
+        DB::table('QuotationDetails as d')
+            ->join('Quotations as q', 'q.quotation_id', '=', 'd.quotation_id')
+            ->join('Opportunities as op', 'op.opportunity_id', '=', 'q.opportunity_id')
+            ->join('SalesOrders as o', 'o.quotation_id', '=', 'q.quotation_id')
+            ->where('op.lead_id', $leadId)
+            ->orderByRaw('LENGTH(o.order_id), o.order_id')
+            ->get(['d.course_id', 'o.order_id', 'o.paid_amount'])
+            ->each(function ($row) use (&$result) {
+                $paid = (float) $row->paid_amount > 0;
+
+                if (! isset($result[$row->course_id]) || $paid || ! $result[$row->course_id]['paid']) {
+                    $result[$row->course_id] = ['order' => $row->order_id, 'paid' => $paid];
+                }
+            });
+
+        return $result;
+    }
+
+    /**
      * Khóa học còn chọn được ở ô "Thêm khóa học" (chưa có trong báo giá).
      */
     #[Computed]

@@ -708,6 +708,23 @@ select.qt-control {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+/* Cảnh báo khóa học khách đã mua (form báo giá) */
+.qt-purchased {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+    color: var(--qt-warning);
+}
+
+.qt .qt-purchased .odin-icon {
+    flex-shrink: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.1rem;
+}
+
 /* Hạn còn lại của báo giá Nháp */
 .qt-expiry {
     display: inline-flex;
