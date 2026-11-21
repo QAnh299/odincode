@@ -8,6 +8,7 @@ use App\Services\CareReminders;
 use App\Services\InvoiceNotices;
 use App\Services\LeadAssignmentNotices;
 use App\Services\QuotationReminders;
+use App\Services\TeamAppointmentAlerts;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
@@ -17,7 +18,8 @@ use Livewire\Component;
  * Chuông thông báo trên topbar. Thông báo suy ra từ dữ liệu (odin.sql không có bảng thông báo):
  *   - Salesperson: hóa đơn vừa thanh toán / quá hạn (InvoiceNotices) + nhắc lịch hẹn (AppointmentReminders)
  *     + cơ hội chưa liên hệ lần nào / tới lúc liên hệ lại (CareReminders) + báo giá sắp / quá hạn (QuotationReminders)
- *   - Sale Leader: Lead Sale Admin vừa phân cho đội (LeadAssignmentNotices)
+ *   - Sale Leader: Lead Sale Admin vừa phân cho đội (LeadAssignmentNotices) + lịch hẹn của Salesperson trong đội
+ *     quá giờ chưa cập nhật kết quả (TeamAppointmentAlerts - chỉ xem, xử lý xong thì xóa, không lưu lịch sử)
  *   - Kế toán: hóa đơn tiền mặt chờ duyệt, chuyển khoản lệch, hóa đơn vừa thanh toán (InvoiceNotices)
  * Thông báo chia theo nhóm (tab Tất cả + từng nhóm của vai trò, mỗi tab đếm số chưa đọc); vai trò chỉ có
  * một nhóm thì không hiện tab. "Đánh dấu tất cả đã đọc" áp dụng cho tab đang mở.
@@ -147,7 +149,8 @@ class NotificationBell extends Component
                 'paid'     => ['icon' => 'check-circle', 'footer' => ['url' => route('accountant.invoices'), 'label' => __('topbar.notify_footer.invoice')]],
             ],
             Role::SALE_LEADER => [
-                'lead' => ['icon' => 'users', 'footer' => null],
+                'lead'        => ['icon' => 'users', 'footer' => null],
+                'appointment' => ['icon' => 'calendar', 'footer' => ['url' => route('sale_leader.opportunities', ['urgent' => 1]), 'label' => __('topbar.notify_footer.team_appointment')]],
             ],
             default => [],
         };
@@ -169,7 +172,8 @@ class NotificationBell extends Component
                     ->concat($tag(CareReminders::for($employee), 'care'))
                     ->concat($tag(QuotationReminders::for($employee), 'quotation'))
                     ->sortBy('at')),
-            Role::SALE_LEADER => $tag(LeadAssignmentNotices::for($employee), 'lead'),
+            Role::SALE_LEADER => $tag(TeamAppointmentAlerts::for($employee), 'appointment')
+                ->concat($tag(LeadAssignmentNotices::for($employee), 'lead')),
             // Kế toán: nhóm theo loại thông báo hóa đơn (quá hạn thanh toán chỉ có ở Salesperson)
             Role::ACCOUNTANT  => InvoiceNotices::for($employee)->map(fn (array $item) => $item + ['group' => $item['kind'] ?? 'paid']),
             default           => collect(),
@@ -198,6 +202,7 @@ class NotificationBell extends Component
                 'subtitle' => __('invoices.notice.header', ['count' => InvoiceNotices::cashQueueCount(auth()->user()->employee)]),
                 'footer'   => $groupFooter ?? ['url' => route('accountant.invoices', ['cash_pending' => 1]), 'label' => __('invoices.notice.view_queue')],
             ],
+            Role::SALE_LEADER => ['subtitle' => null, 'footer' => $groupFooter],
             default => ['subtitle' => null, 'footer' => null],
         };
     }
@@ -217,6 +222,11 @@ class NotificationBell extends Component
         $liveUrls = $live->pluck('url')->flip();
 
         foreach ($live as $item) {
+            // Thông báo chỉ để theo dõi (VD lịch hẹn quá giờ của đội gửi Leader): xử lý xong thì xóa hẳn, không lưu lịch sử
+            if (($item['history'] ?? true) === false) {
+                continue;
+            }
+
             $history[$item['key']] = [
                 'title'   => $item['title'],
                 'time'    => $item['time'] ?? null,

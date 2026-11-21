@@ -28,6 +28,7 @@ return [
         'care'      => 'View opportunities to follow up',
         'quotation' => 'View all quotations',
         'invoice'   => 'View all invoices',
+        'team_appointment' => "View the team's opportunities needing action",
     ],
     'profile'          => 'My profile',
     'change_password'  => 'Change password',

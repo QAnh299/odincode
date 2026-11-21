@@ -91,6 +91,8 @@ return [
     'reminder_title'     => ':types appointment with :name',
     'overdue_title'      => 'Update the :types appointment result with :name',
     'overdue_time'       => 'Past appointment time :time',
+    'leader_overdue_title' => ':employee has not updated the :types appointment result with :name',
+    'leader_overdue_time'  => 'Appointment time :time (:ago)',
     'reminder_header'    => 'Appointments today & tomorrow - remind your customers',
     'view_all'           => 'View all appointments',
 ];

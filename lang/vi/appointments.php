@@ -93,6 +93,8 @@ return [
     'reminder_title'     => 'Lịch hẹn :types với :name',
     'overdue_title'      => 'Cập nhật kết quả lịch hẹn :types với :name',
     'overdue_time'       => 'Đã qua giờ hẹn :time',
+    'leader_overdue_title' => ':employee chưa cập nhật kết quả lịch hẹn :types với :name',
+    'leader_overdue_time'  => 'Giờ hẹn :time (:ago)',
     'reminder_header'    => 'Lịch hẹn hôm nay & ngày mai - nhớ nhắc khách',
     'view_all'           => 'Xem tất cả lịch hẹn',
 ];

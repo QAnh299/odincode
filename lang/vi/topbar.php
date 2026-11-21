@@ -28,6 +28,7 @@ return [
         'care'      => 'Xem cơ hội cần chăm sóc',
         'quotation' => 'Xem tất cả báo giá',
         'invoice'   => 'Xem tất cả hóa đơn',
+        'team_appointment' => 'Xem cơ hội cần xử lý của đội',
     ],
     'profile'          => 'Thông tin tài khoản',
     'change_password'  => 'Đổi mật khẩu',
