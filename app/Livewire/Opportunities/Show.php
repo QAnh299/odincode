@@ -1153,6 +1153,17 @@ class Show extends Component
     }
 
     #[Computed]
+    public function visitedStageIds(): array
+    {
+        return $this->opportunity->stagesHistory()
+            ->get(['from_stage_id', 'to_stage_id'])
+            ->flatMap(fn ($h) => [$h->from_stage_id, $h->to_stage_id])
+            ->filter()
+            ->unique()
+            ->all();
+    }
+
+    #[Computed]
     public function careResults(): Collection
     {
         return $this->opportunity->careResults()

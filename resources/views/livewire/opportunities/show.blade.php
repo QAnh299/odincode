@@ -79,12 +79,13 @@
 
         {{-- Thanh giai đoạn kiểu Odoo: stage đã qua / hiện tại / chưa tới --}}
         <ol class="od-stages" aria-label="{{ __('opportunities.stage') }}">
+            @php $visitedStageIds = $this->visitedStageIds; @endphp
             @foreach ($this->stages as $stage)
                 @php
                     $state = match (true) {
-                        $stage->stage_id === $opp->stage_id => 'current',
-                        $stage->sort_order < $currentOrder  => 'done',
-                        default                              => 'todo',
+                        $stage->stage_id === $opp->stage_id              => 'current',
+                        in_array($stage->stage_id, $visitedStageIds, true) => 'done',
+                        default                                            => 'todo',
                     };
                 @endphp
                 <li class="od-stages__item is-{{ $state }}" title="{{ $stage->description }}"
