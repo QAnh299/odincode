@@ -61,10 +61,65 @@
             @php $results = $this->results; @endphp
 
             @if (trim($search) === '')
-                <div class="ok-create__idle">
-                    <x-icon name="search" />
-                    <p class="ok-create__idle-hint">{{ $C('search_placeholder') }}</p>
-                </div>
+                @php $defaults = $this->defaultCandidates; @endphp
+                @if ($defaults && $defaults->isNotEmpty())
+                    <p class="ok-create__count">{{ $C('result_count', ['count' => $defaults->total()]) }}</p>
+                    <div class="vc-table-wrap">
+                        <table class="vc-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ $C('col_customer') }}</th>
+                                    <th>{{ $C('col_phone') }}</th>
+                                    <th>{{ $C('col_status') }}</th>
+                                    <th>{{ $C('col_action') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($defaults as $row)
+                                    @php
+                                        $rowState = $row['check']['state'];
+                                        $b        = $row['check']['blocks'][0] ?? null;
+                                    @endphp
+                                    <tr wire:key="default-{{ $row['lead_id'] }}">
+                                        <td><span class="ok-create__name">{{ $row['full_name'] }}</span></td>
+                                        <td class="text-nowrap">{{ $row['phone'] ?? '-' }}</td>
+                                        <td>
+                                            @if ($rowState === 'blocked')
+                                                <span class="ok-create__badge ok-create__badge--blocked">
+                                                    @if ($b && $b['type'] === 'own_in_progress')
+                                                        {{ $C('status_own_in_progress') }}
+                                                    @elseif ($b && $b['type'] === 'other_in_progress')
+                                                        {{ $C('status_other_in_progress', ['name' => $b['owner_name']]) }}
+                                                    @else
+                                                        {{ $C('status_in_queue') }}
+                                                    @endif
+                                                </span>
+                                            @elseif ($rowState === 'warning')
+                                                <span class="ok-create__badge ok-create__badge--warning">{{ $C('status_warning') }}</span>
+                                            @else
+                                                <span class="ok-create__badge ok-create__badge--ok">{{ $C('status_ok') }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button" class="vc-btn vc-btn--ghost ok-create__btn-sm"
+                                                wire:click="selectLead('{{ $row['lead_id'] }}')">
+                                                {{ $C('btn_select') }}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @if ($defaults->hasPages())
+                        <div class="vc-pagination">{{ $defaults->links() }}</div>
+                    @endif
+                @else
+                    <div class="ok-create__idle">
+                        <x-icon name="search" />
+                        <p class="ok-create__idle-hint">{{ $C('search_placeholder') }}</p>
+                    </div>
+                @endif
             @elseif ($results->isEmpty())
                 <div class="ok-create__idle">
                     <p class="ok-create__empty">{{ $C('no_results') }}</p>

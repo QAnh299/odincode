@@ -170,7 +170,7 @@ class Opportunity extends Model
     {
         $changed = $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
 
-        return $changed ? Carbon::parse($changed)->startOfMinute() : $this->conversion_date;
+        return Carbon::parse($changed ?? $this->conversion_date)->startOfMinute();
     }
 
     public function scopeWithLastCare(Builder $query): Builder

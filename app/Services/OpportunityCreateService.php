@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\Opportunity;
 use App\Models\Stage;
 use App\Models\Student;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -76,6 +77,29 @@ class OpportunityCreateService
         }
 
         return $query->orderBy('full_name')->get();
+    }
+
+    /**
+     * Danh sách khách phân trang (không lọc tìm kiếm) — dùng cho màn hình mặc định trước khi tìm.
+     */
+    public function candidatesPaginated(Employee $salesperson, int $perPage = 10): LengthAwarePaginator
+    {
+        $viaStudent = Opportunity::query()
+            ->where('employee_id', $salesperson->employee_id)
+            ->whereHas('student')
+            ->select('lead_id');
+
+        $viaOldOpp = Opportunity::query()
+            ->where('employee_id', $salesperson->employee_id)
+            ->whereIn('status', [Opportunity::STATUS_LOST, Opportunity::STATUS_ARCHIVED])
+            ->whereDoesntHave('student')
+            ->select('lead_id');
+
+        return Lead::query()
+            ->whereIn('lead_id', $viaStudent->union($viaOldOpp))
+            ->with($this->leadDetails())
+            ->orderBy('full_name')
+            ->paginate($perPage, pageName: 'defaultPage');
     }
 
     /**

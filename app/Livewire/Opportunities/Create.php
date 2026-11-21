@@ -16,6 +16,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 use RuntimeException;
 
 /**
@@ -30,6 +31,7 @@ use RuntimeException;
 #[Layout('layouts.app')]
 class Create extends Component
 {
+    use WithPagination;
     // Ô tìm kiếm khách
     #[Url(except: '')]
     public string $search = '';
@@ -133,6 +135,27 @@ class Create extends Component
     }
 
     /**
+     * Danh sách mặc định khi chưa tìm kiếm — toàn bộ khách trong phạm vi, phân trang 10 dòng.
+     */
+    #[Computed]
+    public function defaultCandidates()
+    {
+        if (trim($this->search) !== '') {
+            return null;
+        }
+
+        $service = app(OpportunityCreateService::class);
+
+        return $service->candidatesPaginated($this->me)
+            ->through(fn (Lead $lead) => [
+                'lead_id'   => $lead->lead_id,
+                'full_name' => $lead->full_name,
+                'phone'     => $lead->phone,
+                'check'     => $service->check($lead, $this->me),
+            ]);
+    }
+
+    /**
      * Khách đang được chọn cùng kết quả kiểm tra, null nếu chưa chọn.
      */
     #[Computed]
@@ -190,7 +213,8 @@ class Create extends Component
 
         $this->selectedLeadId = null;
         $this->resetContact();
-        unset($this->results, $this->selected);
+        $this->resetPage('defaultPage');
+        unset($this->results, $this->selected, $this->defaultCandidates);
     }
 
     /**
