@@ -37,8 +37,10 @@ class QuotationService
     /**
      * HĐ2: lý do không lập được báo giá trên cơ hội (khóa lang quotations.form.blocked.*), null = được lập.
      * Chỉ Salesperson phụ trách cơ hội; cơ hội đã Chốt, hoặc khách vừa đồng ý đăng ký ở Data chưa tương tác /
-     * Data đã xử lý (Opportunity::agreedToRegister - lưu báo giá mới chuyển sang Chốt); InProgress hoặc Won,
+     * Data đã xử lý (Opportunity::agreedToRegister - lưu báo giá mới chuyển sang Chốt); chỉ khi cơ hội InProgress,
      * và không còn báo giá Nháp (một cơ hội có một hoặc nhiều báo giá, nhưng mỗi lúc chỉ một báo giá Nháp).
+     * Cơ hội đã Won không lập thêm báo giá: khách đăng ký thêm khóa thì Salesperson tạo cơ hội mới
+     * (OpportunityCreateService) - mỗi lần đăng ký là một cơ hội, một kết quả Won riêng.
      */
     public function blockerFor(Opportunity $opportunity, ?Employee $employee): ?string
     {
@@ -46,7 +48,8 @@ class QuotationService
             $employee?->role_name !== Role::SALESPERSON,
             $opportunity->employee_id !== $employee->employee_id => 'not_owner',
             $opportunity->stage_id !== Stage::CLOSED && ! $opportunity->agreedToRegister() => 'not_closed',
-            ! in_array($opportunity->status, [Opportunity::STATUS_IN_PROGRESS, Opportunity::STATUS_WON], true) => 'closed_status',
+            $opportunity->status === Opportunity::STATUS_WON => 'won',
+            $opportunity->status !== Opportunity::STATUS_IN_PROGRESS => 'closed_status',
             $opportunity->quotations()->where('status', Quotation::STATUS_DRAFT)->exists() => 'has_draft',
             default => null,
         };

@@ -105,6 +105,7 @@ return [
         'blocked' => [
             'not_owner'     => 'Only the salesperson in charge of this opportunity can create a quotation.',
             'not_closed'    => 'The opportunity is not at the Closed stage yet.',
+            'won'           => 'The opportunity is already won. For an additional course, create a new opportunity.',
             'closed_status' => 'The opportunity is Lost or Archived, so no quotation can be created.',
             'has_draft'     => 'The opportunity already has a draft quotation. Edit, confirm or reject it first.',
         ],

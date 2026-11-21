@@ -105,6 +105,7 @@ return [
         'blocked' => [
             'not_owner'     => 'Chỉ Salesperson đang phụ trách cơ hội mới được lập báo giá.',
             'not_closed'    => 'Cơ hội chưa ở giai đoạn Chốt.',
+            'won'           => 'Cơ hội đã chốt thành công. Khách đăng ký thêm khóa học thì tạo cơ hội mới.',
             'closed_status' => 'Cơ hội đã Thất bại hoặc đã Lưu trữ nên không lập được báo giá.',
             'has_draft'     => 'Cơ hội đang có một báo giá Nháp. Hãy sửa, xác nhận hoặc từ chối báo giá đó trước.',
         ],

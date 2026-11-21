@@ -463,7 +463,7 @@ class Show extends Component
 
     /**
      * Nút "Tạo báo giá" ở stage Chốt: salesperson phụ trách, đủ điều kiện HĐ2
-     * (Chốt; InProgress hoặc Won; không còn báo giá Nháp) - QuotationService::blockerFor().
+     * (Chốt; InProgress; không còn báo giá Nháp) - QuotationService::blockerFor().
      */
     public function canStartQuotation(): bool
     {
