@@ -95,6 +95,9 @@ class Show extends Component
 
     public string $transferReason = '';
 
+    // Đang hỏi xác nhận chuyển dù người nhận vượt ngưỡng 50 (đổi người nhận / Quay lại thì bỏ)
+    public bool $confirmingOver = false;
+
     // Popup chuyển thành công: ['from' => tên cũ, 'to' => tên mới, 'moved' => số lịch hẹn đang chờ đã chuyển]
     public ?array $reassigned = null;
 
@@ -1027,11 +1030,44 @@ class Show extends Component
 
     public function cancelReassign(): void
     {
-        $this->reset('reassigning', 'newOwner', 'transferReason');
+        $this->reset('reassigning', 'newOwner', 'transferReason', 'confirmingOver');
         $this->resetValidation(['newOwner', 'transferReason']);
     }
 
-    public function reassign(): void
+    public function updatedNewOwner(): void
+    {
+        $this->confirmingOver = false;
+    }
+
+    /**
+     * Hộp xác nhận vượt ngưỡng → "Quay lại" để chọn người khác.
+     */
+    public function cancelOverConfirm(): void
+    {
+        $this->confirmingOver = false;
+    }
+
+    /**
+     * Người nhận đang chọn sẽ vượt ngưỡng 50 sau khi nhận cơ hội này (giống hộp xác nhận phân Lead; 50 chỉ là cảnh báo):
+     * ['name', 'load' => đang quản lý, 'after' => sau khi chuyển, 'over' => số vượt], null nếu không vượt.
+     */
+    #[Computed]
+    public function reassignOver(): ?array
+    {
+        if ($this->newOwner === '') {
+            return null;
+        }
+
+        $option = $this->reassignOptions->firstWhere('employee_id', $this->newOwner);
+        $max = LeadDistributionService::MAX_PER_SALESPERSON;
+        $load = $this->reassignLoad[$this->newOwner] ?? 0;
+
+        return $option && $load + 1 > $max
+            ? ['name' => $option->full_name, 'load' => $load, 'after' => $load + 1, 'over' => $load + 1 - $max]
+            : null;
+    }
+
+    public function reassign(bool $confirmed = false): void
     {
         $options = $this->reassignOptions;
         abort_unless($options->isNotEmpty(), 403);
@@ -1049,6 +1085,13 @@ class Show extends Component
                 'transferReason.max'      => __('opportunities.reassign_reason_max'),
             ],
         );
+
+        // Người nhận vượt ngưỡng 50 → hỏi xác nhận trước (ngưỡng chỉ là cảnh báo, "Vẫn chuyển" thì ghi luôn)
+        if (! $confirmed && $this->reassignOver) {
+            $this->confirmingOver = true;
+
+            return;
+        }
 
         $from = $this->opportunity->employee?->full_name;
 
@@ -1091,7 +1134,7 @@ class Show extends Component
             'moved'  => $moved['appointments'],
             'quotes' => $moved['quotations'],
         ];
-        unset($this->reassignOptions, $this->reassignLoad, $this->appointments, $this->careResults, $this->transfers, $this->quotations);
+        unset($this->reassignOptions, $this->reassignLoad, $this->reassignOver, $this->appointments, $this->careResults, $this->transfers, $this->quotations);
     }
 
     /**

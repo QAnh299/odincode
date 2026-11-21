@@ -567,14 +567,46 @@
                             placeholder="{{ __('opportunities.reassign_reason_placeholder') }}"></textarea>
                         @error('transferReason') <span class="ld-error">{{ $message }}</span> @enderror
                     </label>
+
+                    {{-- Xác nhận chuyển dù người nhận vượt ngưỡng 50 (như popup phân công Lead) --}}
+                    @php $over = $this->reassignOver; @endphp
+                    @if ($confirmingOver && $over)
+                        <div class="ld-notice ld-notice--warning ld-notice--inline ld-dist__confirm" role="alertdialog"
+                            aria-labelledby="od-reassign-over-title" x-data x-init="$el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })">
+                            <x-icon name="alert" />
+                            <div class="ld-notice__text">
+                                <strong id="od-reassign-over-title">{{ __('opportunities.reassign_over_title', ['max' => $max]) }}</strong>
+                                <ul>
+                                    <li>{!! __('opportunities.reassign_over_row', [
+                                        'name'  => '<b>'.e($over['name']).'</b>',
+                                        'load'  => $over['load'],
+                                        'after' => $over['after'],
+                                        'over'  => '<b>'.$over['over'].'</b>',
+                                    ]) !!}</li>
+                                </ul>
+                                <span>{{ __('opportunities.reassign_over_question') }}</span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <footer class="ld-modal__foot">
-                    <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
-                    <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
-                        wire:confirm="{{ __('opportunities.reassign_confirm') }}">
-                        <x-icon name="check" />{{ __('opportunities.reassign_save') }}
-                    </button>
+                <footer class="ld-modal__foot ld-dist__foot">
+                    @if ($confirmingOver && $over)
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelOverConfirm">
+                            <x-icon name="arrow-left" />{{ __('leads.distribute.back') }}
+                        </button>
+                        <button type="button" class="vc-btn vc-btn--warning" wire:click="reassign(true)"
+                            wire:loading.attr="disabled" wire:target="reassign">
+                            <x-icon name="check" />{{ __('opportunities.reassign_over_submit') }}
+                        </button>
+                    @else
+                        <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
+                        {{-- Người nhận vượt ngưỡng thì bỏ hộp hỏi chung - server hiện hộp xác nhận vượt ngưỡng ở trên --}}
+                        <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
+                            @unless ($over) wire:confirm="{{ __('opportunities.reassign_confirm') }}" @endunless>
+                            <x-icon name="check" />{{ __('opportunities.reassign_save') }}
+                        </button>
+                    @endif
                 </footer>
             </form>
         </div>
