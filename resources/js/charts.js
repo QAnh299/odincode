@@ -514,6 +514,26 @@ function scatterConfig(spec) {
     };
 }
 
+function withLinks(config, spec) {
+    if (!spec.links) {
+        return config;
+    }
+    const linkAt = (chart, event) => {
+        const [el] = chart.getElementsAtEventForMode(event, "nearest", { intersect: true }, false);
+        return el ? spec.links[el.datasetIndex]?.[el.index] || null : null;
+    };
+    config.options.onHover = (event, elements, chart) => {
+        chart.canvas.style.cursor = linkAt(chart, event) ? "pointer" : "default";
+    };
+    config.options.onClick = (event, elements, chart) => {
+        const url = linkAt(chart, event);
+        if (url) {
+            window.location.assign(url);
+        }
+    };
+    return config;
+}
+
 document.addEventListener("alpine:init", () => {
     window.Alpine.data("odinChart", (spec) => {
         // Giữ instance ngoài dữ liệu reactive của Alpine (proxy làm hỏng Chart.js)
@@ -521,7 +541,7 @@ document.addEventListener("alpine:init", () => {
 
         return {
             init() {
-                chart = new Chart(this.$refs.canvas, buildConfig(spec));
+                chart = new Chart(this.$refs.canvas, withLinks(buildConfig(spec), spec));
             },
             destroy() {
                 chart?.destroy();

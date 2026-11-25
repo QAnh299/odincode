@@ -404,10 +404,16 @@ class Revenue extends Component
                 'trend' => ['type' => 'bar', 'unit' => 'money', 'labels' => $labels, 'series' => [
                     ['label' => $metric('revenue'), 'color' => self::COLORS['revenue'], 'data' => array_map(fn ($k) => $revenue[$k] ?? 0, $keys)],
                     ['label' => $metric('collected'), 'color' => self::COLORS['collected'], 'data' => array_map(fn ($k) => ($collected[$k]['transfer'] ?? 0) + ($collected[$k]['cash'] ?? 0), $keys)],
+                ], 'links' => [
+                    array_map(fn ($k) => $this->ordersUrl($this->periodBounds($k)), $keys),
+                    array_map(fn ($k) => $this->paidInvoicesUrl($this->periodBounds($k)), $keys),
                 ]],
                 'methods' => ['type' => 'stacked', 'unit' => 'money', 'labels' => $labels, 'series' => [
                     ['label' => __('invoices.method.BankTransfer'), 'color' => self::COLORS['transfer'], 'data' => array_map(fn ($k) => $collected[$k]['transfer'] ?? 0, $keys)],
                     ['label' => __('invoices.method.Cash'), 'color' => self::COLORS['cash'], 'data' => array_map(fn ($k) => $collected[$k]['cash'] ?? 0, $keys)],
+                ], 'links' => [
+                    array_map(fn ($k) => $this->paidInvoicesUrl($this->periodBounds($k), Invoice::METHOD_BANK_TRANSFER), $keys),
+                    array_map(fn ($k) => $this->paidInvoicesUrl($this->periodBounds($k), Invoice::METHOD_CASH), $keys),
                 ]],
             ],
         ];
@@ -499,11 +505,13 @@ class Revenue extends Component
                 'methods' => ['type' => 'doughnut', 'unit' => 'money',
                     'labels' => [__('invoices.method.BankTransfer'), __('invoices.method.Cash')],
                     'series' => [['label' => __('reports.revenue.metric.collected'), 'data' => [$c['transfer'], $c['cash']],
-                        'colors' => [self::COLORS['transfer'], self::COLORS['cash']]]]],
+                        'colors' => [self::COLORS['transfer'], self::COLORS['cash']]]],
+                    'links' => [[$this->paidInvoicesUrl($this->filterBounds(), Invoice::METHOD_BANK_TRANSFER), $this->paidInvoicesUrl($this->filterBounds(), Invoice::METHOD_CASH)]]],
                 'types' => ['type' => 'doughnut', 'unit' => 'money',
                     'labels' => array_map(fn ($k) => __('reports.revenue.payment_type.'.$k), $typeKeys),
                     'series' => [['label' => __('reports.revenue.metric.revenue'), 'data' => array_map(fn ($k) => $types[$k]['revenue'], $typeKeys),
-                        'colors' => array_map(fn ($k) => self::COLORS[$k], $typeKeys)]]],
+                        'colors' => array_map(fn ($k) => self::COLORS[$k], $typeKeys)]],
+                    'links' => [array_map(fn ($k) => $this->ordersUrl($this->filterBounds(), ['payment' => [$k]]), $typeKeys)]],
             ],
         ];
     }
@@ -529,7 +537,8 @@ class Revenue extends Component
             'chart'    => ['type' => 'bar', 'unit' => 'money', 'labels' => array_map(fn ($k) => __('reports.revenue.aging.'.$k), $keys),
                 // Mỗi cột một màu theo mức trễ (Chart.js nhận mảng màu cho backgroundColor)
                 'series' => [['label' => __('reports.revenue.debt.amount'), 'data' => array_map(fn ($k) => $aging[$k]['amount'], $keys),
-                    'color' => array_map(fn ($k) => self::COLORS[$k], $keys)]]],
+                    'color' => array_map(fn ($k) => self::COLORS[$k], $keys)]],
+                'links' => [array_map(fn ($k) => $this->agingUrl($k), $keys)]],
             'mix'      => $this->debtMix(),
         ];
     }
@@ -547,7 +556,8 @@ class Revenue extends Component
                 'label' => __('reports.revenue.kpi.'.$key).' · '.number_format(RevenueReport::pct($d[$key], $d['remaining']) ?? 0, 1, ',', '.').'%',
                 'color' => $parts[$key],
                 'data'  => [$d[$key]],
-            ], array_keys($parts))];
+            ], array_keys($parts)),
+            'links' => array_map(fn ($key) => [$this->kpiUrl($key)], array_keys($parts))];
     }
 
     /* ── Tab 4: Cơ cấu doanh thu ──────────────────────────────────────── */
@@ -713,6 +723,56 @@ class Revenue extends Component
             'employee' => $this->canFilterEmployee ? $this->employeeScope : null]);
 
         return route($this->routePrefix.'.'.$page, $params + $scope);
+    }
+
+    protected function filterBounds(): array
+    {
+        $f = $this->filterValues();
+
+        return [$f['from'], $f['to']];
+    }
+
+    protected function periodBounds(string $key): array
+    {
+        if ($this->period === 'month') {
+            $start = CarbonImmutable::createFromFormat('!Y-m', $key, config('app.timezone'));
+            [$from, $to] = [$start->toDateString(), $start->endOfMonth()->toDateString()];
+        } else {
+            [$year, $week] = array_map('intval', explode('-', $key));
+            $start = CarbonImmutable::now(config('app.timezone'))->setISODate($year, $week)->startOfWeek();
+            [$from, $to] = [$start->toDateString(), $start->endOfWeek()->toDateString()];
+        }
+        [$min, $max] = $this->filterBounds();
+
+        return [$min && $min > $from ? $min : $from, $max && $max < $to ? $max : $to];
+    }
+
+    protected function ordersUrl(array $bounds, array $params = []): string
+    {
+        return $this->listUrl('orders', $params + array_filter(['created_from' => $bounds[0], 'created_to' => $bounds[1]]));
+    }
+
+    protected function paidInvoicesUrl(array $bounds, ?string $method = null): string
+    {
+        return $this->listUrl('invoices', ['status' => [Invoice::STATUS_PAID]]
+            + ($method ? ['method' => [$method]] : [])
+            + array_filter(['paid_from' => $bounds[0], 'paid_to' => $bounds[1]]));
+    }
+
+    protected function agingUrl(string $bucket): string
+    {
+        if ($bucket === 'not_due') {
+            return $this->listUrl('invoices', ['deadline' => 'valid']);
+        }
+        $keys = array_keys(RevenueReport::AGING);
+        $limits = array_values(RevenueReport::AGING);
+        $i = array_search($bucket, $keys, true);
+
+        return $this->listUrl('invoices', array_filter([
+            'deadline' => 'overdue',
+            'due_from' => $limits[$i] === PHP_INT_MAX ? null : today()->subDays($limits[$i])->toDateString(),
+            'due_to'   => $limits[$i - 1] > 0 ? today()->subDays($limits[$i - 1] + 1)->toDateString() : null,
+        ]));
     }
 
     /**
