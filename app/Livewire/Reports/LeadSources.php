@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ReportDrill;
 use App\Livewire\Reports\Concerns\ReportExport;
 use App\Models\Branch;
 use App\Models\Lead;
@@ -29,6 +30,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class LeadSources extends Component
 {
+    use ReportDrill;
     use ReportExport;
 
     // Bảng màu phân loại (thứ tự cố định) - dùng chung các trang báo cáo (LeadConversion::PALETTE)
@@ -344,6 +346,7 @@ class LeadSources extends Component
                 'type' => 'doughnut', 'unit' => 'count', 'legend' => 'top', 'dataLabels' => 'percent', 'cutout' => '55%',
                 'labels' => $labels,
                 'series' => [['label' => __('reports.metric.leads'), 'data' => array_column($rows, 'leads'), 'colors' => $colors]],
+                'drills' => [array_map(fn ($s) => ['kind' => 'leads', 'source' => $s], $labels)],
             ],
             'win_rate' => [
                 'type' => 'bar_h', 'unit' => 'percent', 'dataLabels' => 'end',
@@ -354,6 +357,7 @@ class LeadSources extends Component
                     'data'   => array_column($byRate, 'win_rate'),
                     'colors' => array_map(fn ($r) => self::RATE_COLORS[$r['win_rate'] >= $avg ? 'above' : 'below'], $byRate),
                 ]],
+                'drills' => [array_map(fn ($r) => ['kind' => 'won', 'source' => $r['dim']], $byRate)],
             ],
             'revenue' => [
                 'type' => 'bar_h', 'unit' => 'money', 'dataLabels' => 'end', 'divisor' => $divisor, 'suffix' => $suffix,
@@ -364,6 +368,7 @@ class LeadSources extends Component
                     'colors'      => array_map(fn ($r) => $this->sourceColor($r['dim']), $byRevenue),
                     'valueLabels' => array_map(fn ($r) => number_format($r['revenue'] / $divisor, $divisor > 1 ? 2 : 0, ',', '.').$suffix, $byRevenue),
                 ]],
+                'drills' => [array_map(fn ($r) => ['kind' => 'revenue', 'source' => $r['dim']], $byRevenue)],
             ],
             'monthly' => [
                 'type' => 'stacked', 'unit' => 'count', 'legend' => 'top',
@@ -373,6 +378,7 @@ class LeadSources extends Component
                     'color' => $this->sourceColor($s),
                     'data'  => array_map(fn ($m) => $cells[$s][$m] ?? 0, $this->months),
                 ], $labels),
+                'drills' => array_map(fn ($s) => array_map(fn ($m) => ['kind' => 'leads', 'source' => $s, 'month' => $m], $this->months), $labels),
             ],
             'outcome' => [
                 'type' => 'stacked_h', 'unit' => 'percent', 'max' => 100, 'legend' => 'top', 'dataLabels' => 'inside',
@@ -385,6 +391,7 @@ class LeadSources extends Component
                     'counts'      => array_column($rows, $key),
                     'valueLabels' => array_map(fn ($r) => $r['leads'] ? round($r[$key] * 100 / $r['leads']).'%' : '', $rows),
                 ], array_keys(self::OUTCOMES)),
+                'drills' => array_map(fn ($key) => array_map(fn ($s) => ['kind' => $key, 'source' => $s], $labels), array_keys(self::OUTCOMES)),
             ],
         ];
     }
@@ -479,6 +486,66 @@ class LeadSources extends Component
         $line = implode(' ', $points);
 
         return ['line' => $line, 'area' => "0,$h $line $w,$h"];
+    }
+
+    /* ── Bấm số liệu → danh sách Lead (trait ReportDrill) ─────────────── */
+
+    // Thẻ KPI → loại danh sách
+    public const KPI_DRILLS = [
+        'leads' => 'leads', 'conversion_rate' => 'converted', 'win_rate' => 'won', 'revenue' => 'revenue', 'revenue_per_lead' => 'revenue',
+    ];
+
+    protected function drillKinds(): array
+    {
+        $columns = ['customer' => 'text', 'created' => 'date', 'source' => 'text', 'method' => 'text', 'branch' => 'text',
+            'employee' => 'text', 'outcome' => 'text', 'revenue' => 'money'];
+
+        return array_fill_keys(['leads', 'converted', 'won', 'in_progress', 'failed', 'no_opportunity', 'revenue'], $columns);
+    }
+
+    /**
+     * Lead theo bộ lọc đang xem, thu hẹp theo nguồn / tháng / kết quả của số vừa bấm.
+     */
+    protected function drillList(string $kind, array $params): array
+    {
+        $f = $this->filterValues();
+        $source = $this->drillText($params, 'source');
+        $month = $this->drillMonth($params);
+
+        $rows = array_filter($this->report()->leads($f), fn ($r) => ($source === null || $r['source'] === $source)
+            && ($month === null || str_starts_with((string) $r['created'], $month))
+            && match ($kind) {
+                'converted'      => $r['status'] === Lead::STATUS_CONVERTED,
+                'won'            => $r['outcome'] === 'won',
+                'in_progress'    => $r['outcome'] === 'open',
+                'failed'         => in_array($r['outcome'], ['lost', 'archived'], true),
+                'no_opportunity' => $r['outcome'] === 'new',
+                'revenue'        => $r['revenue'] > 0,
+                default          => true,
+            });
+        $outcomes = ['won' => 'won', 'open' => 'in_progress', 'lost' => 'failed', 'archived' => 'failed', 'new' => 'no_opportunity'];
+
+        $rows = array_map(fn ($r) => [
+            '_lead'    => $r['id'],
+            'customer' => $r['name'],
+            'created'  => $r['created'],
+            'source'   => $r['source'],
+            'method'   => $this->label('method', $r['method']),
+            'branch'   => $this->label('branch', $r['branch']),
+            'employee' => $r['owner'],
+            'outcome'  => __('reports.lead_sources.outcome.'.$outcomes[$r['outcome']]),
+            'revenue'  => $r['revenue'],
+        ], array_values($rows));
+        if ($kind === 'revenue') {
+            usort($rows, fn ($a, $b) => $b['revenue'] <=> $a['revenue']);
+        }
+
+        return [$rows, [
+            $source ?? ($f['sources'] ? implode(', ', $f['sources']) : null),
+            $month ? $this->label('month', $month) : $this->drillPeriodLabel($f['from'], $f['to']),
+            $f['branch'] ? $this->label('branch', $f['branch']) : null,
+            $f['method'] ? $this->label('method', $f['method']) : null,
+        ]];
     }
 
     /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */

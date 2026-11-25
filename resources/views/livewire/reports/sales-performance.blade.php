@@ -144,7 +144,9 @@
     {{-- ── Thẻ KPI ─────────────────────────────────────────────────────── --}}
     <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
         @foreach ($kpis as [$key, $icon, $value, $hint, $change, $rate])
-            <div class="rp-stat">
+            @php $drillArgs = ['kind' => ['close_rate' => 'closed', 'close_days' => 'won', 'pipeline' => 'open'][$key] ?? $key]; @endphp
+            <div class="rp-stat dr-card" role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
+                x-on:click="$dispatch('report-drill', {{ Js::from($drillArgs) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($drillArgs) }})">
                 <div class="rp-stat__head">
                     <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
                     <span>{{ $sp('kpi.'.$key) }}</span>
@@ -197,6 +199,9 @@
         </div>
 
     @endif
+
+    {{-- Popup danh sách của số liệu vừa bấm --}}
+    @include('livewire.reports.partials.report-drill')
 
     {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)

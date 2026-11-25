@@ -534,6 +534,34 @@ function withLinks(config, spec) {
     return config;
 }
 
+/**
+ * Bấm vào phần tử biểu đồ → mở danh sách bản ghi: spec.drills[dãy][điểm] = tham số của ReportDrill::drillHtml (null = không bấm được).
+ * Biểu đồ cột chỉ có 1 dãy: bấm cả hàng / cột (cột ngắn khó bấm trúng).
+ */
+function withDrills(config, spec, open) {
+    if (!spec.drills) {
+        return config;
+    }
+    const drillAt = (chart, event) => {
+        let [el] = chart.getElementsAtEventForMode(event, "nearest", { intersect: true }, false);
+        if (!el && config.type === "bar" && chart.data.datasets.length === 1) {
+            const axis = config.options.indexAxis;
+            [el] = chart.getElementsAtEventForMode(event, "index", { intersect: false, axis }, false);
+        }
+        return el ? spec.drills[el.datasetIndex]?.[el.index] || null : null;
+    };
+    config.options.onHover = (event, elements, chart) => {
+        chart.canvas.style.cursor = drillAt(chart, event) ? "pointer" : "default";
+    };
+    config.options.onClick = (event, elements, chart) => {
+        const params = drillAt(chart, event);
+        if (params) {
+            open(params);
+        }
+    };
+    return config;
+}
+
 document.addEventListener("alpine:init", () => {
     window.Alpine.data("odinChart", (spec) => {
         // Giữ instance ngoài dữ liệu reactive của Alpine (proxy làm hỏng Chart.js)
@@ -541,7 +569,11 @@ document.addEventListener("alpine:init", () => {
 
         return {
             init() {
-                chart = new Chart(this.$refs.canvas, withLinks(buildConfig(spec), spec));
+                chart = new Chart(this.$refs.canvas, withDrills(
+                    withLinks(buildConfig(spec), spec),
+                    spec,
+                    (params) => this.$dispatch("report-drill", params),
+                ));
             },
             destroy() {
                 chart?.destroy();

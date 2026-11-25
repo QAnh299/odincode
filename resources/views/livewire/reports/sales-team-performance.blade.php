@@ -134,7 +134,8 @@
         {{-- Thẻ KPI (giống báo cáo Chất lượng nguồn Lead): tên → số lớn + xu hướng 6 tháng → so với tháng trước → chú thích --}}
         <div class="ls-kpis tp-kpis--4">
             @foreach ($this->kpis as $k)
-                <div class="ls-kpi {{ $k['alert'] ? 'tp-kpi--alert' : '' }}" wire:key="kpi-{{ $k['key'] }}">
+                <div class="ls-kpi dr-card {{ $k['alert'] ? 'tp-kpi--alert' : '' }}" wire:key="kpi-{{ $k['key'] }}" role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
+                x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]]) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]]) }})">
                     <div class="ls-kpi__head">
                         <span class="ls-kpi__icon"><x-icon :name="$k['icon']" /></span>
                         <span>{{ $tk('kpi.'.$k['key']) }}</span>
@@ -216,6 +217,7 @@
                             </ul>
                         </div>
                     @endif
+                </section>
             </div>
 
             <div class="tp-row tp-row--wide-left">
@@ -283,7 +285,7 @@
                                         <td class="tp-col-goal">
                                             <div class="tp-goal">
                                                 <span>
-                                                    <strong>{{ $this->shortMoney($row['revenue']) }}</strong>
+                                                    <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'team' => $row['id']]) }})"><strong>{{ $this->shortMoney($row['revenue']) }}</strong></button>
                                                     @if ($goal)
                                                         <span class="tp-muted">/ {{ $this->shortMoney($goal) }}</span>
                                                     @endif
@@ -299,17 +301,17 @@
                                             @endif
                                         </td>
                                         <td class="is-num">
-                                            <strong>{{ $num($row['students']) }}</strong>@if ($studentGoal)<span class="tp-muted"> / {{ $num($studentGoal) }}</span>@endif
+                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'students', 'team' => $row['id']]) }})"><strong>{{ $num($row['students']) }}</strong></button>@if ($studentGoal)<span class="tp-muted"> / {{ $num($studentGoal) }}</span>@endif
                                             <span class="tp-sub">{{ $studentGoal ? $tk('attain', ['rate' => $pct($row['attain']['students'])]) : $sp('no_target') }}</span>
                                         </td>
                                         <td class="is-num">
-                                            <strong>{{ $pct($row['close_rate']) }}</strong>
+                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'closed', 'team' => $row['id']]) }})"><strong>{{ $pct($row['close_rate']) }}</strong></button>
                                             <span class="tp-sub">{{ $sp('won_lost', ['won' => $num($row['won']), 'lost' => $num($row['lost'])]) }}</span>
                                         </td>
-                                        <td class="is-num"><strong>{{ $days($row['avg_close_days']) }}</strong></td>
+                                        <td class="is-num"><button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'won', 'team' => $row['id']]) }})"><strong>{{ $days($row['avg_close_days']) }}</strong></button></td>
                                         <td class="is-num">
                                             @if ($row['flagged'])
-                                                <span class="tp-pill tp-pill--warn">{{ $row['flagged'] }}</span>
+                                                <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'team' => $row['id']]) }})"><span class="tp-pill tp-pill--warn">{{ $row['flagged'] }}</span></button>
                                             @else
                                                 <span class="rp-ok">✓</span>
                                             @endif
@@ -318,6 +320,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
                 </section>
             @endif
         @endif
@@ -411,6 +414,9 @@
             @include('livewire.reports.partials.sp-alerts', ['alertTitle' => $tk('alerts')])
         @endif
     @endif
+
+    {{-- Popup danh sách của số liệu vừa bấm --}}
+    @include('livewire.reports.partials.report-drill')
 
     {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)

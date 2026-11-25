@@ -50,7 +50,7 @@
                         @foreach (\App\Livewire\Reports\SalesPerformance::COLUMN_GROUPS as $cols)
                             @foreach (array_keys($cols) as $i => $key)
                                 <td class="rp-num {{ $row['compare'][$key] ? 'rp-cmp--'.$row['compare'][$key] : '' }} {{ $key === $sortKey ? 'is-sorted' : '' }} {{ $i === 0 ? 'rp-group-start' : '' }}">
-                                    {{ $formats[$key]($row[$key]) }}
+                                    <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => \App\Livewire\Reports\SalesPerformance::COLUMN_DRILLS[$key], 'employees' => [$row['id']]]) }})">{{ $formats[$key]($row[$key]) }}</button>
                                     @if ($key === 'revenue' && $row['share'] !== null && $row['revenue'] > 0)
                                         <span class="rp-sub">{{ $sp('share', ['rate' => $pct($row['share'])]) }}</span>
                                     @elseif ($key === 'close_rate' && $row['won'] + $row['lost'] > 0)
@@ -73,7 +73,7 @@
                         <th scope="row" class="rp-pin rp-pin--2">{{ $sp('total') }}</th>
                         @foreach (\App\Livewire\Reports\SalesPerformance::COLUMN_GROUPS as $cols)
                             @foreach (array_keys($cols) as $i => $key)
-                                <td class="rp-num {{ $i === 0 ? 'rp-group-start' : '' }}">{{ $formats[$key]($empTotals[$key]) }}</td>
+                                <td class="rp-num {{ $i === 0 ? 'rp-group-start' : '' }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => \App\Livewire\Reports\SalesPerformance::COLUMN_DRILLS[$key], 'team' => $this->employeeTeamOptions->contains('team_id', $employeeTeam) ? $employeeTeam : '']) }})">{{ $formats[$key]($empTotals[$key]) }}</button></td>
                             @endforeach
                         @endforeach
                     </tr>

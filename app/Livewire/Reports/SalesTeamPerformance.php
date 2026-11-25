@@ -404,6 +404,9 @@ class SalesTeamPerformance extends SalesPerformance
         return 'T'.(int) substr($month, 5, 2);
     }
 
+    // Thẻ KPI → loại danh sách
+    public const KPI_DRILLS = ['assigned' => 'assigned', 'uncontacted' => 'uncontacted', 'response' => 'response', 'contact_rate' => 'contacted'];
+
     /**
      * Thẻ KPI: [key, icon, value, unit, delta [hướng, chữ, hậu tố], spark, color, hint, alert].
      */
@@ -553,7 +556,12 @@ class SalesTeamPerformance extends SalesPerformance
             ];
         }
 
-        return ['type' => 'stacked_h', 'unit' => 'count', 'labels' => $labels, 'series' => $series,
+        // Không tách theo đội (đang lọc 1 nhân viên): bộ lọc của trang đã đủ
+        $drills = array_map(fn ($s) => array_map(
+            fn ($r) => ['kind' => $s[0]] + (isset($r['id']) ? ['team' => $r['id']] : []), $rows
+        ), array_values(self::STATUS_SERIES));
+
+        return ['type' => 'stacked_h', 'drills' => $drills, 'unit' => 'count', 'labels' => $labels, 'series' => $series,
             'legend' => 'top', 'htmlLegend' => true, 'fontSize' => 13, 'dataLabels' => 'inside', 'boldCategories' => true,
             'barMax' => count($rows) > self::STATUS_COMPACT_TEAMS ? 26 : 40, 'barPercent' => 0.8];
     }
@@ -576,6 +584,7 @@ class SalesTeamPerformance extends SalesPerformance
             'unit'       => $money ? 'money' : 'count',
             'labels'     => array_column($teams, 'name'),
             'series'     => [['label' => __('reports.sales_team.share.'.$metric), 'data' => array_column($teams, $metric), 'colors' => $colors]],
+            'drills'     => [array_map(fn ($t) => ['kind' => $metric, 'team' => $t['id']], $teams)],
             'htmlLegend' => true,
             'dataLabels' => 'percent',
             'cutout'     => '62%',
@@ -612,7 +621,7 @@ class SalesTeamPerformance extends SalesPerformance
             ];
         }
 
-        return ['type' => 'stacked', 'unit' => 'money', 'labels' => array_map(fn ($m) => $this->monthLabel($m), $months),
+        return ['type' => 'stacked', 'unit' => 'money', 'drills' => $this->teamDrills('revenue', $months, $this->seriesTeams), 'labels' => array_map(fn ($m) => $this->monthLabel($m), $months),
             'series' => $series, 'legend' => 'top', 'htmlLegend' => true, 'fontSize' => 13, 'divisor' => $divisor, 'suffix' => $suffix,
             'tickDecimals' => $divisor === 1e9 ? 1 : 0, 'maxTicks' => 8, 'barMax' => 72, 'barPercent' => 0.85];
     }
@@ -628,7 +637,7 @@ class SalesTeamPerformance extends SalesPerformance
         $series = $this->teamSeries($months, fn () => $this->teamMonthly, 'close_rate', null)
             ?: [['label' => __('reports.sales_performance.metric.close_rate'), 'color' => self::PALETTE[0], 'data' => array_column($trend, 'close_rate')]];
 
-        return ['type' => 'line', 'unit' => 'percent', 'labels' => array_map(fn ($m) => $this->shortMonth($m), $months),
+        return ['type' => 'line', 'unit' => 'percent', 'drills' => $this->teamDrills('closed', $months, $this->seriesTeams), 'labels' => array_map(fn ($m) => $this->shortMonth($m), $months),
             'series' => $series, 'legend' => 'top', 'htmlLegend' => true, 'fontSize' => 13, 'endLabels' => true, 'spanGaps' => true, 'fit' => true,
             'straight' => true, 'maxTicks' => 11];
     }
@@ -680,10 +689,12 @@ class SalesTeamPerformance extends SalesPerformance
             if (count($people) > self::EMP_SHARE_MAX && $i === self::EMP_SHARE_MAX - 1) {
                 $rest = array_slice($people, $i);
                 $slices[] = ['name' => __('reports.sales_team.emp.other_people', ['count' => count($rest)]),
-                    'color' => self::EMP_OTHER_COLOR, 'value' => array_sum(array_column($rest, $metric))];
+                    'color' => self::EMP_OTHER_COLOR, 'value' => array_sum(array_column($rest, $metric)),
+                    'employees' => array_column($rest, 'id')];
                 break;
             }
-            $slices[] = ['name' => $person['name'], 'color' => self::PALETTE[$i % count(self::PALETTE)], 'value' => $person[$metric]];
+            $slices[] = ['name' => $person['name'], 'color' => self::PALETTE[$i % count(self::PALETTE)], 'value' => $person[$metric],
+                'employees' => [$person['id']]];
         }
 
         $money = $metric === 'revenue';
@@ -694,6 +705,7 @@ class SalesTeamPerformance extends SalesPerformance
             'labels'     => array_column($slices, 'name'),
             'series'     => [['label' => __('reports.sales_team.share.'.$metric), 'data' => array_column($slices, 'value'),
                 'colors' => array_column($slices, 'color')]],
+            'drills'     => [array_map(fn ($s) => ['kind' => $metric, 'employees' => $s['employees']], $slices)],
             'htmlLegend' => true,
             'dataLabels' => 'percent',
             'cutout'     => '62%',
@@ -745,6 +757,7 @@ class SalesTeamPerformance extends SalesPerformance
                 'colors'      => array_map($color, $people),
                 'valueLabels' => array_map($label, array_column($people, $metric)),
             ]],
+            'drills'     => [array_map(fn ($r) => ['kind' => self::COLUMN_DRILLS[$metric] ?? $metric, 'employees' => [$r['id']]], $people)],
             'dataLabels' => 'end',
             'fontSize'   => 13,
             'barMax'     => 22,

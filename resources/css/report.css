@@ -1254,6 +1254,78 @@
     text-decoration: none;
 }
 
+/* ── Bấm số liệu → popup danh sách (report-drill) ── */
+.dr-card {
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+}
+
+.dr-card:hover,
+.dr-card:focus-visible {
+    border-color: var(--vc-primary);
+    transform: translateY(-1px);
+}
+
+.dr-cell {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+.dr-cell:hover,
+.dr-cell:focus-visible {
+    color: var(--vc-primary);
+    text-decoration: underline;
+}
+
+.ld-modal__dialog.dr {
+    width: min(1180px, 100%);
+}
+
+.dr__content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.dr__body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.dr__table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.dr__table tfoot td {
+    position: sticky;
+    bottom: 0;
+    background: var(--vc-surface);
+    box-shadow: inset 0 1px 0 var(--vc-border);
+}
+
+.dr__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--vc-border);
+    color: var(--vc-muted);
+    font-size: 0.85rem;
+}
+
+.dr__foot span {
+    margin-right: auto;
+}
+
 /* ── Báo cáo doanh thu & thanh toán: thẻ bấm được, việc cần xử lý, nhận định, tỷ lệ thu theo tháng, sắp xếp ── */
 a.rv-stat-link {
     color: inherit;

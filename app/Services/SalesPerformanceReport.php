@@ -6,6 +6,7 @@ use App\Models\CareActivity;
 use App\Models\Opportunity;
 use App\Models\Stage;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -254,10 +255,14 @@ class SalesPerformanceReport
      */
     public function uncontacted(array $filters, int $hours = self::UNCONTACTED_HOURS): int
     {
+        return $this->uncontactedQuery($filters, $hours)->count();
+    }
+
+    protected function uncontactedQuery(array $filters, int $hours = self::UNCONTACTED_HOURS): Builder
+    {
         return $this->current($filters)
             ->where('o.conversion_date', '<=', now()->subHours($hours))
-            ->whereNotExists(fn ($q) => $q->from('CareResults as cr')->whereColumn('cr.opportunity_id', 'o.opportunity_id'))
-            ->count();
+            ->whereNotExists(fn ($q) => $q->from('CareResults as cr')->whereColumn('cr.opportunity_id', 'o.opportunity_id'));
     }
 
     /**
@@ -272,6 +277,22 @@ class SalesPerformanceReport
      * @return array<string, array> employee_id → [loại => số Cơ hội, 'flagged' => ...]
      */
     public function alerts(array $filters): array
+    {
+        $query = DB::query()->fromSub($this->alertFlags($filters), 'f')->select('f.employee_id')->groupBy('f.employee_id')
+            ->selectRaw('SUM(f.'.implode(' OR f.', self::ALERTS).') AS flagged');
+        foreach (self::ALERTS as $alert) {
+            $query->selectRaw("SUM(f.$alert) AS $alert");
+        }
+
+        return $query->get()
+            ->mapWithKeys(fn ($r) => [(string) $r->employee_id => array_map('intval', array_diff_key((array) $r, ['employee_id' => 1]))])
+            ->all();
+    }
+
+    /**
+     * Mỗi Cơ hội đang xử lý 1 dòng: opportunity_id, employee_id + cờ 0 / 1 của từng việc trong ALERTS.
+     */
+    protected function alertFlags(array $filters): Builder
     {
         $now = now();
 
@@ -298,12 +319,12 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(*) AS quotes')
             ->groupBy('opportunity_id');
 
-        $flags = $this->current($filters)
+        return $this->current($filters)
             ->leftJoinSub($care, 'c', 'c.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($history, 'h', 'h.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($appointments, 'a', 'a.opportunity_id', '=', 'o.opportunity_id')
             ->leftJoinSub($quotes, 'q', 'q.opportunity_id', '=', 'o.opportunity_id')
-            ->select('o.employee_id')
+            ->select('o.employee_id', 'o.opportunity_id')
             ->selectRaw('COALESCE(a.overdue, 0) > 0 AS overdue_appointment')
             ->selectRaw('(o.stage_id = ? AND COALESCE(q.quotes, 0) = 0) AS needs_quotation', [Stage::CLOSED])
             ->selectRaw(
@@ -320,16 +341,97 @@ class SalesPerformanceReport
                     COALESCE(a.last_appt, o.conversion_date)) < ?) AS stale',
                 [Stage::CLOSED, $now->copy()->subDays(self::STALE_DAYS)]
             );
+    }
 
-        $query = DB::query()->fromSub($flags, 'f')->select('f.employee_id')->groupBy('f.employee_id')
-            ->selectRaw('SUM(f.'.implode(' OR f.', self::ALERTS).') AS flagged');
-        foreach (self::ALERTS as $alert) {
-            $query->selectRaw("SUM(f.$alert) AS $alert");
-        }
+    // Danh sách theo ngày giao Lead → điều kiện trên facts() (cùng điều kiện với aggregate())
+    public const RECORDS_ASSIGNED = [
+        'assigned'         => '1 = 1',
+        'status_won'       => "o.status = 'Won'",
+        'status_progress'  => "o.status <> 'Won' AND o.contacts > 0 AND o.contacts_ok > 0",
+        'status_unreached' => "o.status <> 'Won' AND o.contacts > 0 AND o.contacts_ok = 0",
+        'status_new'       => "o.status <> 'Won' AND o.contacts = 0",
+        'contacted'        => 'o.contacts > 0',
+        'response'         => 'o.response_hours IS NOT NULL',
+    ];
 
-        return $query->get()
-            ->mapWithKeys(fn ($r) => [(string) $r->employee_id => array_map('intval', array_diff_key((array) $r, ['employee_id' => 1]))])
-            ->all();
+    // Danh sách theo ngày đóng → trạng thái Cơ hội
+    public const RECORDS_CLOSED = ['closed' => ['Won', 'Lost'], 'won' => ['Won'], 'lost' => ['Lost']];
+
+    /**
+     * Bản ghi tạo nên 1 số liệu (mới nhất trước), cùng nguồn và thời điểm tính với aggregate() / pipeline() / alerts().
+     *
+     * @param  array  $filters  như aggregate(), thêm only_team, only_employees
+     */
+    public function records(string $kind, array $filters): array
+    {
+        $rows = match (true) {
+            isset(self::RECORDS_ASSIGNED[$kind]) => $this->withCustomer(
+                $this->scoped($this->facts(), $filters)->whereRaw('('.self::RECORDS_ASSIGNED[$kind].')')
+            )->addSelect('o.conversion_date as at', 'x.status', 'o.contacts', 'o.response_hours')->get(),
+            isset(self::RECORDS_CLOSED[$kind]) => $this->withCustomer(
+                $this->scoped($this->facts('closed_at')->whereIn('f.status', self::RECORDS_CLOSED[$kind]), $filters)
+            )->addSelect('o.event_at as at', 'o.conversion_date as assigned_at', 'x.status', 'o.close_days')->get(),
+            $kind === 'revenue' => $this->withCustomer($this->scoped(
+                DB::table('SalesOrders as so')
+                    ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
+                    ->join('Opportunities as op', 'op.opportunity_id', '=', 'q.opportunity_id')
+                    ->select('op.employee_id', 'op.opportunity_id', 'so.order_id', 'so.created_at as event_at', 'so.total_amount', 'so.paid_amount'),
+                $filters
+            ))->addSelect('o.event_at as at', 'o.order_id', 'o.total_amount', 'o.paid_amount')->get(),
+            $kind === 'students' => $this->withCustomer($this->scoped(
+                DB::table('Students as st')
+                    ->join('Opportunities as op', 'op.opportunity_id', '=', 'st.opportunity_id')
+                    ->select('op.employee_id', 'op.opportunity_id', 'st.student_id', 'st.full_name as student_name', 'st.conversion_date as event_at'),
+                $filters
+            ))->addSelect('o.event_at as at', 'o.student_id', 'o.student_name')->get(),
+            $kind === 'care' => $this->careRecords($filters),
+            $kind === 'appts' => $this->appointmentRecords($filters),
+            $kind === 'activity' => $this->careRecords($filters)->concat($this->appointmentRecords($filters)),
+            $kind === 'open' => $this->openRecords($this->current($filters)),
+            $kind === 'uncontacted' => $this->openRecords($this->uncontactedQuery($filters)),
+            $kind === 'flagged' || in_array($kind, self::ALERTS, true) => $this->openRecords($this->current($filters)
+                ->joinSub($this->alertFlags($filters), 'f', 'f.opportunity_id', '=', 'o.opportunity_id')
+                ->whereRaw($kind === 'flagged' ? '(f.'.implode(' OR f.', self::ALERTS).')' : "f.$kind = 1")),
+            default => collect(),
+        };
+
+        return $rows->map(fn ($r) => (array) $r)->sortByDesc('at')->values()->all();
+    }
+
+    protected function careRecords(array $filters): Collection
+    {
+        $care = DB::table('CareResults')->select('employee_id', 'opportunity_id', 'performed_at as event_at', 'result');
+
+        return $this->withCustomer($this->scoped($care, $filters))
+            ->selectRaw("o.event_at AS at, 'care' AS activity, o.result AS result")->get();
+    }
+
+    protected function appointmentRecords(array $filters): Collection
+    {
+        $appointments = DB::table('Appointments')->whereIn('status', ['Success', 'Failed'])
+            ->select('employee_id', 'opportunity_id', 'scheduled_time as event_at', 'status', 'appointment_type');
+
+        return $this->withCustomer($this->scoped($appointments, $filters))
+            ->selectRaw('o.event_at AS at, o.appointment_type AS activity, o.status AS result')->get();
+    }
+
+    protected function openRecords(Builder $query): Collection
+    {
+        return $this->withCustomer($query)->addSelect('o.conversion_date as at', 'x.status', 'x.expected_value')->get();
+    }
+
+    /**
+     * Gắn khách hàng, đội, stage hiện tại vào truy vấn đã có o (opportunity_id) và e (Employees).
+     */
+    protected function withCustomer(Builder $query): Builder
+    {
+        return $query
+            ->join('Opportunities as x', 'x.opportunity_id', '=', 'o.opportunity_id')
+            ->join('Leads as l', 'l.lead_id', '=', 'x.lead_id')
+            ->join('Stages as sg', 'sg.stage_id', '=', 'x.stage_id')
+            ->leftJoin('SalesTeams as t', 't.team_id', '=', 'e.team_id')
+            ->select('x.opportunity_id', 'l.lead_id', 'l.full_name as customer', 'l.source_name as source',
+                'e.full_name as employee', 't.team_name as team', 'sg.stage_name as stage');
     }
 
     /**
@@ -342,7 +444,10 @@ class SalesPerformanceReport
             ->where('o.status', Opportunity::STATUS_IN_PROGRESS)
             ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
-            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
+            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee))
+            // Thu hẹp thêm khi mở danh sách của 1 số liệu (luôn nằm trong phạm vi bộ lọc ở trên)
+            ->when($filters['only_team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
+            ->when($filters['only_employees'] ?? null, fn ($q, $ids) => $q->whereIn('o.employee_id', $ids));
     }
 
     /**
@@ -357,7 +462,10 @@ class SalesPerformanceReport
             ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('o.event_at', '<=', $to))
             ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
-            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee));
+            ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee))
+            // Thu hẹp thêm khi mở danh sách của 1 số liệu (luôn nằm trong phạm vi bộ lọc ở trên)
+            ->when($filters['only_team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
+            ->when($filters['only_employees'] ?? null, fn ($q, $ids) => $q->whereIn('o.employee_id', $ids));
     }
 
     /**

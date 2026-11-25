@@ -29,13 +29,13 @@
                             @foreach (\App\Services\SalesPerformanceReport::ALERTS as $alert)
                                 <td class="rp-num">
                                     @if ($row['alerts'][$alert])
-                                        <span class="rp-flag rp-flag--{{ $alert }}">{{ $row['alerts'][$alert] }}</span>
+                                        <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $alert, 'employees' => [$row['id']]]) }})"><span class="rp-flag rp-flag--{{ $alert }}">{{ $row['alerts'][$alert] }}</span></button>
                                     @else
                                         <span class="rp-sub">0</span>
                                     @endif
                                 </td>
                             @endforeach
-                            <td class="rp-num"><strong>{{ $row['alerts']['flagged'] }}</strong></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'employees' => [$row['id']]]) }})"><strong>{{ $row['alerts']['flagged'] }}</strong></button></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -44,9 +44,9 @@
                         <tr>
                             <th scope="row" class="rp-pin">{{ $sp('total') }}</th>
                             @foreach (\App\Services\SalesPerformanceReport::ALERTS as $alert)
-                                <td class="rp-num">{{ array_sum(array_map(fn ($r) => $r['alerts'][$alert], $alertRows)) }}</td>
+                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $alert]) }})">{{ array_sum(array_map(fn ($r) => $r['alerts'][$alert], $alertRows)) }}</button></td>
                             @endforeach
-                            <td class="rp-num"><strong>{{ $flaggedTotal }}</strong></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged']) }})"><strong>{{ $flaggedTotal }}</strong></button></td>
                         </tr>
                     </tfoot>
                 @endif

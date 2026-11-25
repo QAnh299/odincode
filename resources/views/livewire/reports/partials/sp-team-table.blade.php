@@ -29,7 +29,7 @@
                                 <td>
                                     <div class="rp-goal {{ $rate !== null && $rate >= 100 ? 'is-done' : '' }}">
                                         <div class="rp-goal__top">
-                                            <strong>{{ $fmt($row[$metric]) }}</strong>
+                                            <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $metric, 'team' => $row['id']]) }})"><strong>{{ $fmt($row[$metric]) }}</strong></button>
                                             @if ($rate !== null)
                                                 <span class="rp-goal__pct">{{ $pct($rate) }}</span>
                                             @endif
@@ -44,17 +44,17 @@
                                 </td>
                             @endforeach
                             <td class="rp-num">
-                                {{ $pct($row['close_rate']) }}
+                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'closed', 'team' => $row['id']]) }})">{{ $pct($row['close_rate']) }}</button>
                                 <span class="rp-sub">{{ $sp('won_lost', ['won' => $row['won'], 'lost' => $row['lost']]) }}</span>
                             </td>
-                            <td class="rp-num">{{ $money($row['avg_order']) }}</td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'team' => $row['id']]) }})">{{ $money($row['avg_order']) }}</button></td>
                             <td class="rp-num">
-                                {{ $num($row['open']) }}
+                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'open', 'team' => $row['id']]) }})">{{ $num($row['open']) }}</button>
                                 <span class="rp-sub">{{ $money($row['open_value']) }}</span>
                             </td>
                             <td class="rp-num">
                                 @if ($row['flagged'])
-                                    <span class="rp-flag">{{ $row['flagged'] }}</span>
+                                    <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'team' => $row['id']]) }})"><span class="rp-flag">{{ $row['flagged'] }}</span></button>
                                 @else
                                     <span class="rp-ok">✓</span>
                                 @endif

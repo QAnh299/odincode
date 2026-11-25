@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Reports;
 
+use App\Livewire\Reports\Concerns\ReportDrill;
 use App\Livewire\Reports\Concerns\ReportExport;
 use App\Models\Employee;
 use App\Models\Role;
@@ -33,6 +34,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class SalesPerformance extends Component
 {
+    use ReportDrill;
     use ReportExport;
 
     // Màu cố định theo chỉ số / nhóm
@@ -546,7 +548,8 @@ class SalesPerformance extends Component
         if ($this->employee === '' && array_sum(array_column($trend, 'target')) > 0) {
             $revenueSeries[] = ['label' => $label('target'), 'color' => self::COLORS['target'], 'data' => array_column($trend, 'target')];
         }
-        $charts['trend_revenue'] = ['type' => 'bar', 'unit' => 'money', 'labels' => $months, 'series' => $revenueSeries];
+        $charts['trend_revenue'] = ['type' => 'bar', 'unit' => 'money', 'labels' => $months, 'series' => $revenueSeries,
+            'drills' => [$this->monthDrills('revenue', array_column($trend, 'month'))]];
 
         // Tỷ lệ thắng 6 tháng: mỗi đội 1 đường khi có 2..MAX_TREND_TEAMS đội (nhiều hơn thì rối) - còn lại 1 đường chung
         $teams = $this->employee === '' ? $this->scopeTeams : collect();
@@ -560,9 +563,105 @@ class SalesPerformance extends Component
         } else {
             $series = [['label' => $label('close_rate'), 'color' => self::COLORS['revenue'], 'data' => array_column($trend, 'close_rate')]];
         }
-        $charts['trend_close'] = ['type' => 'line', 'unit' => 'percent', 'labels' => $months, 'series' => $series];
+        $charts['trend_close'] = ['type' => 'line', 'unit' => 'percent', 'labels' => $months, 'series' => $series,
+            'drills' => $this->teamDrills('closed', array_column($trend, 'month'), count($series) > 1 ? $teams : collect())];
 
         return $charts;
+    }
+
+    /* ── Bấm số liệu → danh sách (trait ReportDrill) ──────────────────── */
+
+    // Cột bảng salesperson → loại danh sách
+    public const COLUMN_DRILLS = [
+        'revenue' => 'revenue', 'won' => 'won', 'close_rate' => 'closed', 'avg_order' => 'revenue', 'open' => 'open',
+        'activity' => 'activity', 'reach_rate' => 'care', 'show_rate' => 'appts', 'avg_response_hours' => 'response',
+    ];
+
+    // Ảnh chụp hiện tại: không theo kỳ
+    public const CURRENT_DRILLS = ['open', 'uncontacted', 'flagged', ...SalesPerformanceReport::ALERTS];
+
+    protected function drillKinds(): array
+    {
+        $who = ['customer' => 'text', 'employee' => 'text', 'team' => 'text'];
+        $assigned = $who + ['source' => 'text', 'assigned_at' => 'date', 'stage' => 'text', 'status' => 'text', 'contacts' => 'int', 'response_hours' => 'decimal'];
+        $closed = $who + ['assigned_at' => 'date', 'closed_at' => 'date', 'status' => 'text', 'close_days' => 'decimal'];
+        $activity = $who + ['performed_at' => 'date', 'activity' => 'text', 'result' => 'text', 'stage' => 'text'];
+        $open = $who + ['source' => 'text', 'assigned_at' => 'date', 'stage' => 'text', 'expected_value' => 'money'];
+
+        return array_fill_keys(array_keys(SalesPerformanceReport::RECORDS_ASSIGNED), $assigned)
+            + array_fill_keys(array_keys(SalesPerformanceReport::RECORDS_CLOSED), $closed)
+            + ['revenue' => ['order_id' => 'text'] + $who + ['ordered_at' => 'date', 'total_amount' => 'money', 'paid_amount' => 'money']]
+            + ['students' => ['student_id' => 'text', 'student_name' => 'text', 'employee' => 'text', 'team' => 'text', 'enrolled_at' => 'date']]
+            + array_fill_keys(['activity', 'care', 'appts'], $activity)
+            + array_fill_keys(self::CURRENT_DRILLS, $open);
+    }
+
+    /**
+     * Tham số của số vừa bấm chỉ thu hẹp thêm (đội, nhân viên, tháng) trong phạm vi vai trò và bộ lọc của trang.
+     */
+    protected function drillList(string $kind, array $params): array
+    {
+        $filters = $this->filterValues($this->activeMonth);
+        $month = $this->drillMonth($params);
+        if ($month !== null) {
+            $filters = $this->monthsFilter([$month], $filters);
+        }
+        $team = $this->drillText($params, 'team');
+        $ids = array_values(array_filter((array) ($params['employees'] ?? []), 'is_string'));
+
+        $rows = $this->report()->records($kind, $filters + ['only_team' => $team, 'only_employees' => $ids]);
+        $person = count($ids) === 1 ? $rows[0]['employee'] ?? null : null;
+
+        $rows = array_map(fn ($r) => [
+            '_lead'        => $r['lead_id'],
+            '_opportunity' => $r['opportunity_id'],
+            '_order'       => $r['order_id'] ?? null,
+            '_student'     => $r['student_id'] ?? null,
+            'assigned_at'  => $r['assigned_at'] ?? $r['at'],
+            'closed_at'    => $r['at'],
+            'performed_at' => $r['at'],
+            'ordered_at'   => $r['at'],
+            'enrolled_at'  => $r['at'],
+            'status'       => isset($r['status']) ? __('opportunities.status_name.'.$r['status']) : null,
+            'activity'     => match ($r['activity'] ?? null) {
+                null    => null,
+                'care'  => __('reports.drill.care'),
+                default => __('opportunities.appointment_type_name.'.$r['activity']),
+            },
+            'result'       => match ($r['activity'] ?? null) {
+                null    => null,
+                'care'  => __('opportunities.care_result.'.$r['result']),
+                default => __('reports.drill.appointment_result.'.$r['result']),
+            },
+        ] + $r, $rows);
+
+        return [$rows, [
+            $this->scopeTeams->firstWhere('team_id', $team)?->team_name,
+            count($ids) > 1 ? __('reports.sales_team.emp.other_people', ['count' => count($ids)]) : $person,
+            match (true) {
+                in_array($kind, self::CURRENT_DRILLS, true) => __('reports.drill.now'),
+                $month !== null => $this->monthLabel($month),
+                default => $this->drillPeriodLabel($filters['from'], $filters['to']),
+            },
+        ]];
+    }
+
+    /**
+     * Tham số danh sách cho 1 dãy biểu đồ theo tháng.
+     */
+    protected function monthDrills(string $kind, array $months, ?string $team = null): array
+    {
+        return array_map(fn ($m) => ['kind' => $kind, 'month' => $m] + ($team === null ? [] : ['team' => $team]), $months);
+    }
+
+    /**
+     * Biểu đồ theo tháng: mỗi đội 1 dãy, không tách đội thì 1 dãy chung.
+     */
+    protected function teamDrills(string $kind, array $months, Collection $teams): array
+    {
+        return $teams->isEmpty()
+            ? [$this->monthDrills($kind, $months)]
+            : $teams->values()->map(fn ($t) => $this->monthDrills($kind, $months, $t->team_id))->all();
     }
 
     /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
