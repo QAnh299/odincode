@@ -12,14 +12,12 @@ class Invoice extends Model
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái hóa đơn (CHECK trong odin.sql: Unpaid, Paid, Overdue). Unpaid hiển thị "Chờ thanh toán"
     public const STATUS_UNPAID = 'Unpaid';
     public const STATUS_PAID = 'Paid';
     public const STATUS_OVERDUE = 'Overdue';
 
     public const STATUSES = [self::STATUS_UNPAID, self::STATUS_PAID, self::STATUS_OVERDUE];
 
-    // Phương thức thanh toán (CHECK trong odin.sql: BankTransfer, Cash; cột cho phép NULL)
     public const METHOD_BANK_TRANSFER = 'BankTransfer';
     public const METHOD_CASH = 'Cash';
 
@@ -71,27 +69,16 @@ class Invoice extends Model
         return $this->belongsTo(Employee::class, 'accountant_id', 'employee_id');
     }
 
-    /**
-     * Hóa đơn mà nhân viên được phép xem: theo báo giá của đơn hàng (Quotation::visibleTo).
-     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của đội mình, Salesperson xem của chính mình.
-     */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return $query->whereHas('order.quotation', fn ($q) => $q->visibleTo($employee));
     }
 
-    /**
-     * Số ngày tới hạn thanh toán (hôm nay = 0, đã qua thì âm). Chỉ là nhãn tính ra, không đổi dữ liệu.
-     */
     public function daysUntilDue(): int
     {
         return (int) today()->diffInDays($this->due_date, false);
     }
 
-    /**
-     * Ảnh QR chuyển khoản theo chuẩn VietQR (HĐ27): tài khoản nhận cấu hình ở services.vietqr,
-     * đúng số tiền, nội dung = mã hóa đơn (để hệ thống so khớp giao dịch ở HĐ29).
-     */
     public function qrUrl(): string
     {
         $config = config('services.vietqr');
@@ -104,10 +91,6 @@ class Invoice extends Model
             ]);
     }
 
-    /**
-     * Hóa đơn chưa thanh toán đã trễ hạn: trạng thái Overdue, hoặc Unpaid mà hạn đã qua
-     * (nhãn tính ra, không đổi dữ liệu; chưa có bước nào chuyển Unpaid → Overdue).
-     */
     public function isLate(): bool
     {
         return $this->status !== self::STATUS_PAID

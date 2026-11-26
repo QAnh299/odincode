@@ -5,11 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Invoice;
 use Illuminate\Console\Command;
 
-/**
- * Chuyển hóa đơn Chờ thanh toán đã qua hạn sang Quá hạn (chốt 28/10/2026). Hóa đơn Quá hạn không nhận thanh toán;
- * Salesperson gia hạn (sửa hạn từ hôm nay trở đi) để mở lại chính hóa đơn đó – xem InvoiceService::update().
- * Lên lịch hằng ngày trong routes/console.php.
- */
 class MarkOverdueInvoices extends Command
 {
     protected $signature = 'invoices:mark-overdue';

@@ -5,7 +5,6 @@
 
     $stats = $this->stats;
 
-    // Thẻ thống kê bấm được để lọc: Tổng, Chờ phân (đội / Salesperson theo vai trò), Đã phân, Khách cũ quay lại
     $cards = ['', $this->pendingKey, LeadIndex::ASSIGNED, LeadIndex::RETURNING];
     $activeCard = $this->activeCard();
 
@@ -13,12 +12,10 @@
 @endphp
 
 <div class="vc ld">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/lead.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css'])
     @endassets
 
-    {{-- ── Tiêu đề + nút thao tác ───────────────────────────────────── --}}
     <header class="vc-head ldl-head">
         <div>
             <h1 class="visually-hidden">{{ __('leads.title') }}</h1>
@@ -29,7 +26,6 @@
 
         @if ($this->canManage)
             <div class="ld-actions">
-                {{-- Thêm / Import Lead: chỉ Sale Admin --}}
                 @if ($this->canCreate)
                     <button type="button" class="vc-btn vc-btn--ghost" wire:click="openImport">
                         <x-icon name="download" />{{ __('leads.import') }}
@@ -46,7 +42,6 @@
         @endif
     </header>
 
-    {{-- ── Thông báo lỗi / cảnh báo; thành công hiện bằng toast ──────── --}}
     @include('livewire.leads.partials.toast')
 
     @if ($notice && $notice['type'] !== 'success')
@@ -59,7 +54,6 @@
         </div>
     @endif
 
-    {{-- ── Thống kê theo bộ lọc (bấm thẻ để lọc, bấm lại để bỏ lọc) ──── --}}
     <div class="ldl-stats">
         @foreach ($cards as $key)
             <button type="button" wire:click="filterCard('{{ $key }}')" wire:key="card-{{ $key ?: 'all' }}"
@@ -71,7 +65,6 @@
         @endforeach
     </div>
 
-    {{-- ── Bộ lọc ───────────────────────────────────────────────────── --}}
     <section class="ldl-filters {{ $this->canFilterBranch ? 'ldl-filters--branch' : '' }}" aria-label="{{ __('leads.filters') }}">
         <label class="ldl-search">
             <span class="visually-hidden">{{ __('leads.search') }}</span>
@@ -113,7 +106,6 @@
             </select>
         @endif
 
-        {{-- Khoảng ngày tạo: bấm 2 ngày trên lịch --}}
         <x-date-range from="from" to="to" class="ldl-range" />
 
         @if ($this->hasFilters())
@@ -123,7 +115,6 @@
         @endif
     </section>
 
-    {{-- ── Danh sách ────────────────────────────────────────────────── --}}
     <section class="ldl-card">
         <span class="ldl-loading" wire:loading.delay wire:target="{{ $loadingTargets }}">
             <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ __('leads.loading') }}
@@ -159,12 +150,12 @@
                         @foreach ($leads as $lead)
                             @php
                                 $latest = $lead->latestOpportunity;
-                                // Khách cũ được đưa về hàng chờ: Lead 'Mới' mà cơ hội gần nhất đã kết thúc → chưa ai phụ trách
+
                                 $returning = $lead->status === Lead::STATUS_NEW && $latest && $latest->status !== \App\Models\Opportunity::STATUS_IN_PROGRESS;
                                 $owner = $returning ? null : $latest?->employee;
                                 $url = route($this->routePrefix.'.leads.show', $lead);
                                 $assignable = $this->canManage && $this->canAssign($lead);
-                                // Chấm trạng thái: chờ phân (cam), đang được chăm sóc (xanh lá), đã chuyển đổi (xanh dương)
+
                                 $tone = match (true) {
                                     $lead->status === Lead::STATUS_CONVERTED => 'converted',
                                     ! $owner || ($owner->ledTeam && $latest->stage_id === \App\Models\Stage::UNTOUCHED) => 'waiting',
@@ -201,7 +192,6 @@
                                 <td data-label="{{ __('leads.col_owner') }}">
                                     @if ($owner)
                                         {{ $owner->full_name }}
-                                        {{-- Trưởng nhóm đang giữ ở stage đầu = Lead của đội chờ phân cho Salesperson --}}
                                         @if ($owner->ledTeam && $latest->stage_id === \App\Models\Stage::UNTOUCHED)
                                             <span class="ldl-sub">{{ __('leads.pending_team', ['team' => $owner->ledTeam->team_name]) }}</span>
                                         @endif
@@ -260,14 +250,11 @@
         @endif
     </section>
 
-    {{-- ── Popup Phân bổ Lead (Sale Admin → đội, Sale Leader → Salesperson) ── --}}
     @if ($this->canManage)
         <livewire:leads.distribute :auto-open="request()->boolean('distribute')" />
-        {{-- Phân một Lead cụ thể (nút ở cột Thao tác) --}}
         <livewire:leads.assign-one />
     @endif
 
-    {{-- ── Popup Thêm Lead ──────────────────────────────────────────── --}}
     @if ($modal === 'create' && $this->canCreate)
         <div class="ld-modal" wire:key="modal-create" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
@@ -283,17 +270,16 @@
 
                 <div class="ld-modal__body ld-form">
                     @php
-                        // SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ (không phụ thuộc Nguồn Lead)
+
                         $method = $form['contact_method'] ?? '';
                     @endphp
 
-                    {{-- Khách cũ khớp liên hệ (LeadDuplicateService): chọn cùng người / người học khác --}}
                     @if ($duplicate)
                         @php
                             $dupCase = $duplicate['case'];
-                            // Hỏi "cùng người hay người khác" khi chưa xác định được Lead cùng người
+
                             $askSame = in_array($dupCase, [\App\Services\LeadDuplicateService::OTHER_PERSON, \App\Services\LeadDuplicateService::AMBIGUOUS], true);
-                            // Tông màu: chặn (đang chờ / đang tư vấn) = cam, đưa về hàng chờ = xanh lá, cần chọn = xanh dương
+
                             $dupTone = match ($dupCase) {
                                 \App\Services\LeadDuplicateService::REOPEN => 'ok',
                                 \App\Services\LeadDuplicateService::IN_QUEUE, \App\Services\LeadDuplicateService::IN_PROGRESS => 'warn',
@@ -301,11 +287,11 @@
                             };
                             $dupIcon = ['ok' => 'refresh', 'warn' => 'alert', 'info' => 'users'][$dupTone];
                             $stateTone = ['in_queue' => 'warn', 'in_queue_team' => 'warn', 'in_progress' => 'info', 'reopen' => 'ok'];
-                            // Một Lead: nhãn trạng thái lên hàng tiêu đề; nhiều Lead: nhãn nằm trong từng dòng
+
                             $single = count($duplicate['leads']) === 1 ? $duplicate['leads'][0] : null;
                             $statePill = fn (array $item) => '<span class="ld-dup__state ld-dup__state--'.($stateTone[$item['state']] ?? 'info').'">'
                                 .'<span class="ld-dup__dot"></span>'
-                                // Có người phụ trách (đang tư vấn) → "Đang tư vấn bởi …"
+
                                 .e($item['owner'] ? __('leads.duplicate.state_by.'.$item['state'], ['name' => $item['owner']]) : __('leads.duplicate.state.'.$item['state']))
                                 .'</span>';
                         @endphp
@@ -319,7 +305,6 @@
                                 @endif
                             </header>
 
-                            {{-- Đang chờ phân / đang tư vấn: nhãn trạng thái đã đủ ý nên không lặp lại câu thông báo --}}
                             @unless (in_array($dupCase, [\App\Services\LeadDuplicateService::IN_QUEUE, \App\Services\LeadDuplicateService::IN_PROGRESS], true))
                                 <p class="ld-dup__message">{{ $duplicate['message'] }}</p>
                             @endunless
@@ -327,7 +312,7 @@
                             <ul class="ld-dup__list" role="list">
                                 @foreach ($duplicate['leads'] as $item)
                                     @php
-                                        // Bảng cho chọn cập nhật: đã xác định cùng người + còn trường được cập nhật; còn lại chỉ để đối chiếu
+
                                         $editableCount = collect($item['changes'])->where('editable', true)->count();
                                         $canUpdate = $duplicate['updatable'] && $editableCount > 0;
                                         $chosen = $canUpdate ? count(array_intersect($updateFields, array_keys(array_filter($item['changes'], fn ($c) => $c['editable'])))) : 0;
@@ -368,7 +353,6 @@
                                             @endif
                                         </div>
 
-                                        {{-- So sánh thông tin vừa nhập với Lead này --}}
                                         <div class="ld-upd {{ $canUpdate ? 'is-updatable' : '' }}">
                                             <div class="ld-upd__head">
                                                 <p class="ld-upd__title">
@@ -410,7 +394,6 @@
                                                 <p class="ld-upd__same"><x-icon name="check-circle" />{{ __('leads.duplicate.compare_same') }}</p>
                                             @endif
 
-                                            {{-- Vì sao có trường không cập nhật được (cùng lời giải thích với bảng xem trước khi import) --}}
                                             @if ($duplicate['updatable'] && collect($item['changes'])->contains('editable', false))
                                                 <p class="ld-imp__locked">
                                                     <x-icon name="shield" />{{ __('leads.import_review.locked.'.($item['locked_reason'] ?? 'branch')) }}
@@ -422,7 +405,6 @@
                                             @enderror
 
                                             @if ($canUpdate && $dupCase === \App\Services\LeadDuplicateService::REOPEN)
-                                                {{-- Khách cũ: thông tin đã chọn được cập nhật khi bấm "Đăng ký khoá mới" --}}
                                                 <div class="ld-upd__foot">
                                                     <span class="ld-upd__note">
                                                         {{ __('leads.duplicate.changes_count', ['count' => $chosen, 'total' => $editableCount]) }} ·
@@ -443,7 +425,6 @@
                                 @endforeach
                             </ul>
 
-                            {{-- Đã bấm "Cùng người" thì không hỏi "người học khác" nữa --}}
                             @unless ($duplicate['confirmed'])
                                 <footer class="ld-dup__other">
                                     <div class="ld-dup__other-text">
@@ -519,7 +500,6 @@
                         @error('branch_id')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
-                    {{-- Bắt buộc khi liên hệ qua Facebook: Salesperson cần link trang cá nhân/bài viết để nhắn tin --}}
                     <label class="vc-field ld-form__wide">
                         <span class="vc-field__label">
                             {{ __('leads.field.source_url') }}@if (in_array($method, Lead::METHODS_LINK_REQUIRED, true))<span class="ld-req">*</span>@endif
@@ -534,7 +514,6 @@
 
                 <footer class="ld-modal__foot">
                     <button type="button" class="vc-btn vc-btn--ghost" wire:click="closeModal">{{ __('leads.cancel') }}</button>
-                    {{-- Đang hiện khách cũ trùng: chọn ở khung phía trên; sửa dữ liệu rồi bấm Lưu để kiểm tra lại --}}
                     <button type="submit" class="vc-btn {{ $duplicate ? 'vc-btn--ghost' : 'vc-btn--primary' }}" wire:loading.attr="disabled" wire:target="saveLead">
                         <span wire:loading.remove wire:target="saveLead"><x-icon name="check" /></span>
                         <span class="spinner-border spinner-border-sm" wire:loading wire:target="saveLead" aria-hidden="true"></span>
@@ -545,13 +524,11 @@
         </div>
     @endif
 
-    {{-- ── Popup Import Excel: tải file → xem lại từng dòng → xác nhận ── --}}
     @if ($modal === 'import' && $this->canCreate)
         @php $preview = ! $importResult ? $this->preview : null; @endphp
         <div class="ld-modal" wire:key="modal-import" x-data x-on:keydown.escape.window="$wire.closeModal()">
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <div class="ld-modal__dialog {{ $preview ? 'ld-modal__dialog--wide ld-imp' : '' }}" role="dialog" aria-modal="true" aria-labelledby="ld-import-title">
-                {{-- Tiêu đề căn giữa theo icon (giống popup Thêm Lead) --}}
                 <header class="ld-modal__head ld-modal__head--center">
                     <span class="ld-modal__icon"><x-icon name="upload" /></span>
                     <div>
@@ -567,7 +544,6 @@
 
                 <div class="ld-modal__body">
                     @if ($importResult)
-                        {{-- Kết quả import --}}
                         @php
                             $tone = $importResult['failed'] === 0 && $importResult['skipped'] === 0 ? 'success' : ($importResult['success'] === 0 ? 'danger' : 'warning');
                         @endphp
@@ -586,7 +562,6 @@
                             <p class="ld-error">{{ $importError }}</p>
                         @endif
                     @elseif ($preview)
-                        {{-- Bảng xem trước: chọn cách xử lý từng dòng --}}
                         @php
                             $kindTone = [
                                 'new' => 'ok', 'invalid' => 'danger', 'file_dup' => 'warn', 'file_family' => 'info',
@@ -674,7 +649,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- So sánh với Lead cũ (chỉ để xem; cập nhật theo cách xử lý đã chọn) --}}
                                         @if ($open)
                                             <div class="ld-imp__detail">
                                                 @foreach ($row['leads'] as $lead)
@@ -697,7 +671,7 @@
                                                                     <span role="columnheader">{{ __('leads.duplicate.col_new') }}</span>
                                                                 </div>
                                                                 @php
-                                                                    // Đã xác định cùng người (Lead đang chờ phân / đang tư vấn / khách cũ) → trường không cập nhật được hiện icon khoá
+
                                                                     $sure = in_array($row['kind'], ['in_queue', 'in_progress', 'reopen'], true);
                                                                     $locked = $sure && collect($lead['changes'])->contains('editable', false);
                                                                 @endphp
@@ -718,7 +692,6 @@
                                                                 @endforeach
                                                             </div>
                                                             @if ($locked)
-                                                                {{-- Vì sao có trường không cập nhật được --}}
                                                                 <p class="ld-imp__locked">
                                                                     <x-icon name="shield" />{{ __('leads.import_review.locked.'.($lead['locked_reason'] ?? 'branch')) }}
                                                                 </p>

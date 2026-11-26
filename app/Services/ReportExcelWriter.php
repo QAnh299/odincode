@@ -10,14 +10,6 @@ use OpenSpout\Writer\AutoFilter;
 use OpenSpout\Writer\XLSX\Entity\SheetView;
 use OpenSpout\Writer\XLSX\Writer;
 
-/**
- * Ghi báo cáo dạng danh sách ra file .xlsx: mỗi sheet đúng 1 bảng, dòng 1 là tiêu đề cột
- * (cố định khi cuộn, có bộ lọc), sau đó là dữ liệu và dòng tổng (nếu có).
- *
- * Sheet: ['name', 'columns' => [[tiêu đề, kiểu], ...], 'rows' => [[giá trị, ...], ...], 'total' => ?[giá trị, ...]]
- * Kiểu cột: text | int | money | decimal | percent (giá trị 0-100, ghi ra dạng %) | datetime (timestamp)
- * Giá trị null ghi thành ô trống.
- */
 class ReportExcelWriter
 {
     public const FORMATS = [
@@ -32,9 +24,6 @@ class ReportExcelWriter
 
     public const MAX_WIDTH = 48;
 
-    /**
-     * Ghi các sheet ra file tạm, trả về đường dẫn file.
-     */
     public function write(array $sheets): string
     {
         $path = tempnam(sys_get_temp_dir(), 'report').'.xlsx';
@@ -58,7 +47,6 @@ class ReportExcelWriter
                 $writer->addRow($this->dataRow($sheet['columns'], $sheet['total'], true));
             }
 
-            // Bộ lọc chỉ phủ phần dữ liệu (không gồm dòng tổng) để sắp xếp không kéo dòng tổng theo
             $current->setSheetView((new SheetView())->setFreezeRow(2));
             if ($sheet['rows']) {
                 $current->setAutoFilter(new AutoFilter(0, 1, count($sheet['columns']) - 1, count($sheet['rows']) + 1));
@@ -102,9 +90,6 @@ class ReportExcelWriter
         };
     }
 
-    /**
-     * Độ rộng từng cột (1-based) theo nội dung dài nhất của cột.
-     */
     protected function widths(array $sheet): array
     {
         $widths = [];

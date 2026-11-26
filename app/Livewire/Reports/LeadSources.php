@@ -16,27 +16,14 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Dashboard & Báo cáo → Phân tích chất lượng nguồn Lead (Giám đốc, Sale Admin).
- *
- * Trả lời 1 câu hỏi: nguồn nào mang về Lead tốt (chốt được, ra doanh thu)?
- *   - Bộ lọc: khoảng ngày + kỳ nhanh (tháng / quý / 6 tháng / năm), chi nhánh, kênh liên hệ, nguồn (chọn nhiều)
- *   - 5 thẻ KPI có so sánh với kỳ liền trước cùng độ dài + đường xu hướng theo tháng
- *   - Biểu đồ: cơ cấu Lead, tỷ lệ chốt (vạch trung bình), doanh thu, Lead mới theo tháng, kết quả xử lý
- *   - Bảng tổng hợp: tô màu xanh / đỏ theo mức chênh so với trung bình + đánh giá nguồn
- * Tỷ lệ chốt = Lead chốt thành công (có Cơ hội Won) / Lead, tính theo ngày tạo Lead - xem App\Services\LeadSourceReport.
- * Xuất Excel: popup chọn kỳ, tiêu chí, sheet, cột và xem trước (trait ReportExport) - Giám đốc, Sale Admin.
- */
 #[Layout('layouts.app')]
 class LeadSources extends Component
 {
     use ReportDrill;
     use ReportExport;
 
-    // Bảng màu phân loại (thứ tự cố định) - dùng chung các trang báo cáo (LeadConversion::PALETTE)
     public const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
-    // Màu cố định theo nguồn - biểu đồ và bảng dùng chung để người xem nhận ra nguồn qua màu
     public const SOURCE_COLORS = [
         'Zalo'         => '#2a78d6',
         'Facebook'     => '#eb6834',
@@ -48,7 +35,6 @@ class LeadSources extends Component
 
     public const OTHER_COLOR = '#9ca3af';
 
-    // Kết quả xử lý Lead (mỗi Lead đúng 1 nhóm) → [màu nền, màu chữ trên thanh]
     public const OUTCOMES = [
         'won'            => ['#1f9d55', '#ffffff'],
         'in_progress'    => ['#8fb8ec', '#1f2937'],
@@ -56,18 +42,13 @@ class LeadSources extends Component
         'no_opportunity' => ['#d9dde3', '#1f2937'],
     ];
 
-    // Tỷ lệ chốt theo nguồn: từ trung bình trở lên tô đậm, dưới trung bình tô nhạt
     public const RATE_COLORS = ['above' => '#2a78d6', 'below' => '#a9c8ef'];
 
-    // Thẻ KPI: màu đường xu hướng khi tăng (giảm luôn đỏ)
     public const TREND_COLORS = ['count' => '#2a78d6', 'rate' => '#1baf7a', 'down' => '#e34948'];
 
-    // Nguồn ít hơn số Lead này chưa đủ để đánh giá / chọn "cao nhất" (tỷ lệ chưa đáng tin)
     public const MIN_LEADS = 10;
 
     public const PRESETS = ['month', 'quarter', '6m', 'year'];
-
-    /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
     #[Url(except: '')]
     public string $from = '';
@@ -81,7 +62,6 @@ class LeadSources extends Component
     #[Url(except: '')]
     public string $method = '';
 
-    // Nguồn được chọn (rỗng = tất cả)
     #[Url(except: [])]
     public array $sources = [];
 
@@ -95,9 +75,6 @@ class LeadSources extends Component
         return $this->from !== '' || $this->to !== '' || $this->branch !== '' || $this->method !== '' || $this->sources !== [];
     }
 
-    /**
-     * Kỳ nhanh: đặt Từ ngày / Đến ngày theo kỳ chứa ngày hôm nay.
-     */
     public function preset(string $key): void
     {
         if ($range = $this->presetRange($key)) {
@@ -119,9 +96,6 @@ class LeadSources extends Component
         return $range ? [$range[0]->toDateString(), $range[1]->toDateString()] : null;
     }
 
-    /**
-     * Kỳ nhanh trùng với khoảng ngày đang chọn (để tô nút), null nếu là khoảng tự chọn.
-     */
     public function activePreset(): ?string
     {
         foreach (self::PRESETS as $key) {
@@ -133,21 +107,12 @@ class LeadSources extends Component
         return null;
     }
 
-    /* ── Số liệu ──────────────────────────────────────────────────────── */
-
     #[Computed]
     public function totals(): array
     {
         return $this->report()->totals($this->filterValues());
     }
 
-    /**
-     * Kỳ đang xem và kỳ liền trước để so sánh.
-     *   - Khoảng trọn tháng (kỳ nhanh): lùi đúng số tháng đó; khoảng tự chọn: lùi đúng số ngày.
-     *   - Kỳ chưa kết thúc chỉ tính đến hôm nay và kỳ trước cũng cắt cùng độ dài
-     *     (vd. 01-08/11 so với 01-08/10), tránh so một kỳ dở dang với một kỳ đủ.
-     *   - Không chọn "Từ ngày": tính từ Lead sớm nhất và không so sánh.
-     */
     #[Computed]
     public function period(): array
     {
@@ -186,9 +151,6 @@ class LeadSources extends Component
         return ['from' => $from, 'to' => $end, 'previous' => $previous, 'compare' => $compare];
     }
 
-    /**
-     * Tổng của kỳ liền trước (cùng chi nhánh / kênh / nguồn), null nếu không so sánh.
-     */
     #[Computed]
     public function previousTotals(): ?array
     {
@@ -201,9 +163,6 @@ class LeadSources extends Component
             + $this->filterValues());
     }
 
-    /**
-     * Chỉ số theo nguồn có Lead trong phạm vi lọc, nhiều Lead trước.
-     */
     #[Computed]
     public function bySource(): array
     {
@@ -213,13 +172,9 @@ class LeadSources extends Component
         return $rows;
     }
 
-    /**
-     * Các tháng của kỳ đang xem ('Y-m'), tối đa 36 tháng gần nhất.
-     */
     #[Computed]
     public function months(): array
     {
-        // Bỏ các tháng trước Lead đầu tiên của hệ thống (vd. "Năm nay" khi dữ liệu bắt đầu từ T5)
         $months = [];
         $first = Lead::query()->min('created_at');
         $cursor = $this->period['from']->startOfMonth();
@@ -235,9 +190,6 @@ class LeadSources extends Component
         return array_slice($months, -36);
     }
 
-    /**
-     * Chỉ số theo tháng tạo Lead (đủ các tháng của kỳ, tháng chưa có Lead ghi 0).
-     */
     #[Computed]
     public function byMonth(): array
     {
@@ -246,9 +198,6 @@ class LeadSources extends Component
         return array_map(fn ($m) => $rows[$m] ?? $this->report()->derive(['dim' => $m]), $this->months);
     }
 
-    /**
-     * 5 thẻ KPI: giá trị, mức thay đổi so với kỳ trước, đường xu hướng theo tháng, chú thích.
-     */
     #[Computed]
     public function kpis(): array
     {
@@ -256,7 +205,6 @@ class LeadSources extends Component
         $p = $this->previousTotals;
         $ls = fn ($key, $replace = []) => __('reports.lead_sources.kpi.'.$key, $replace);
 
-        // Tăng / giảm: tỷ lệ tính bằng điểm %, số lượng & tiền tính bằng % thay đổi
         $delta = function (string $metric, bool $rate) use ($t, $p) {
             if (! $p || ! $p['leads']) {
                 return null;
@@ -306,9 +254,6 @@ class LeadSources extends Component
         }, $cards);
     }
 
-    /**
-     * Cấu hình các biểu đồ (odinChart - resources/js/charts.js).
-     */
     #[Computed]
     public function charts(): array
     {
@@ -322,11 +267,9 @@ class LeadSources extends Component
             return $rows;
         };
 
-        // Tỷ lệ chốt: vạch đứt = trung bình chung
         $byRate = $sorted('win_rate');
         $avg = $t['win_rate'];
 
-        // Doanh thu: trục và nhãn rút gọn theo đơn vị của giá trị lớn nhất
         $byRevenue = $sorted('revenue');
         $max = max(array_column($rows, 'revenue') ?: [0]);
         [$divisor, $suffix] = match (true) {
@@ -335,13 +278,12 @@ class LeadSources extends Component
             default     => [1, ' ₫'],
         };
 
-        // Lead mới theo tháng: mỗi nguồn 1 dãy cột chồng
         $cells = [];
         foreach ($this->report()->aggregate($this->filterValues(), 'month', 'source') as $r) {
             $cells[$r['group']][$r['dim']] = $r['leads'];
         }
 
-        return [
+        return $this->drillCharts([
             'share' => [
                 'type' => 'doughnut', 'unit' => 'count', 'legend' => 'top', 'dataLabels' => 'percent', 'cutout' => '55%',
                 'labels' => $labels,
@@ -393,12 +335,9 @@ class LeadSources extends Component
                 ], array_keys(self::OUTCOMES)),
                 'drills' => array_map(fn ($key) => array_map(fn ($s) => ['kind' => $key, 'source' => $s], $labels), array_keys(self::OUTCOMES)),
             ],
-        ];
+        ]);
     }
 
-    /**
-     * Dòng bảng tổng hợp: tỷ trọng, độ dài thanh số Lead, màu so với trung bình, đánh giá nguồn.
-     */
     #[Computed]
     public function tableRows(): array
     {
@@ -418,10 +357,6 @@ class LeadSources extends Component
         ], $this->bySource);
     }
 
-    /**
-     * Đánh giá nguồn theo trung bình của 2 tỷ số: tỷ lệ chốt và doanh thu / Lead so với mức chung.
-     *   ≥ 1,5 lần → mở rộng · ≥ 0,95 → duy trì · ≥ 0,6 → tối ưu · thấp hơn → xem xét cắt giảm.
-     */
     protected function rating(array $row, array $total): string
     {
         if ($row['leads'] < self::MIN_LEADS) {
@@ -448,9 +383,6 @@ class LeadSources extends Component
         };
     }
 
-    /**
-     * Màu nền ô so với trung bình: xanh = tốt hơn, đỏ = kém hơn, càng chênh càng đậm.
-     */
     protected function heat(float $value, float $average): string
     {
         if ($average <= 0) {
@@ -464,9 +396,6 @@ class LeadSources extends Component
         return "background: rgba($rgb, $alpha)";
     }
 
-    /**
-     * Đường xu hướng nhỏ (SVG 120×36): điểm của đường và vùng tô bên dưới; cần từ 2 điểm.
-     */
     protected function sparkline(array $values): ?array
     {
         if (count($values) < 2) {
@@ -488,12 +417,36 @@ class LeadSources extends Component
         return ['line' => $line, 'area' => "0,$h $line $w,$h"];
     }
 
-    /* ── Bấm số liệu → danh sách Lead (trait ReportDrill) ─────────────── */
-
-    // Thẻ KPI → loại danh sách
     public const KPI_DRILLS = [
         'leads' => 'leads', 'conversion_rate' => 'converted', 'win_rate' => 'won', 'revenue' => 'revenue', 'revenue_per_lead' => 'revenue',
     ];
+
+    protected function drillUrl(string $kind, array $params): ?string
+    {
+        if (! in_array($kind, ['leads', 'converted', 'won'], true)) {
+            return null;
+        }
+
+        $f = $this->filterValues();
+        $source = $this->drillText($params, 'source');
+        if ($source === null && $f['sources'] !== null && count($f['sources']) < count(Lead::SOURCES)) {
+            if (count($f['sources']) > 1) {
+                return null;
+            }
+            $source = $f['sources'][0];
+        }
+        $month = $this->drillMonth($params);
+        [$from, $to] = $month ? $this->drillMonthRange($month, $f['from'], $f['to']) : [$f['from'], $f['to']];
+
+        return $this->listUrlFor('leads', [
+            'status' => $kind === 'leads' ? null : Lead::STATUS_CONVERTED,
+            'source' => $source,
+            'method' => $f['method'],
+            'branch' => $f['branch'],
+            'from'   => $from,
+            'to'     => $to,
+        ]);
+    }
 
     protected function drillKinds(): array
     {
@@ -503,9 +456,6 @@ class LeadSources extends Component
         return array_fill_keys(['leads', 'converted', 'won', 'in_progress', 'failed', 'no_opportunity', 'revenue'], $columns);
     }
 
-    /**
-     * Lead theo bộ lọc đang xem, thu hẹp theo nguồn / tháng / kết quả của số vừa bấm.
-     */
     protected function drillList(string $kind, array $params): array
     {
         $f = $this->filterValues();
@@ -548,30 +498,22 @@ class LeadSources extends Component
         ]];
     }
 
-    /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
-
-    // Chỉ 1 sheet: báo cáo theo nguồn Lead
     public const EXPORT_SHEETS = ['summary'];
 
     public const EXPORT_LOCKED = ['summary' => 'source'];
 
-    // Chỉ số của sheet theo nguồn → kiểu cột
     public const EXPORT_METRICS = [
         'leads' => 'int', 'converted' => 'int', 'conversion_rate' => 'percent', 'won' => 'int', 'lost' => 'int',
         'win_rate' => 'percent', 'close_rate' => 'percent', 'revenue' => 'money', 'paid' => 'money',
         'revenue_per_lead' => 'money', 'revenue_share' => 'percent',
     ];
 
-    // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportBranch = '';
 
     public string $exportMethod = '';
 
     public string $exportSource = '';
 
-    /**
-     * Xuất Excel: Giám đốc, Sale Admin.
-     */
     #[Computed]
     public function canExport(): bool
     {
@@ -585,9 +527,6 @@ class LeadSources extends Component
         ];
     }
 
-    /**
-     * Tiêu đề cột chỉ số dùng chung nhóm "metric".
-     */
     public function exportLabel(string $key, array $replace = []): string
     {
         [$sheet, $column] = array_pad(explode('.', $key, 2), 2, null);
@@ -633,9 +572,6 @@ class LeadSources extends Component
         ];
     }
 
-    /**
-     * Số liệu Lead tạo trong kỳ theo tiêu chí, nhóm theo nguồn.
-     */
     protected function exportData(array $period, array $filters, array $sheets): array
     {
         $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters;
@@ -646,9 +582,6 @@ class LeadSources extends Component
         ];
     }
 
-    /**
-     * Dòng tổng cộng rồi từng nguồn (kèm ghi chú đánh giá nguồn).
-     */
     protected function exportRows(string $sheet, array $data): array
     {
         $total = $data['total'];
@@ -675,9 +608,6 @@ class LeadSources extends Component
         return 'bao-cao-chat-luong-nguon-lead';
     }
 
-    /**
-     * Năm chọn được trong popup xuất: từ năm có Lead sớm nhất đến năm hiện tại.
-     */
     public function exportYears(): array
     {
         $first = Lead::query()->min('created_at');
@@ -686,9 +616,6 @@ class LeadSources extends Component
         return range($current, $first ? min($current, (int) CarbonImmutable::parse($first)->year) : $current);
     }
 
-    /**
-     * Ghi chú cho nguồn nổi bật (khi có từ 2 nguồn): chuyển đổi cao / thấp nhất, doanh thu cao nhất.
-     */
     protected function sourceNotes(array $rows): array
     {
         $rows = array_values(array_filter($rows, fn ($r) => $r['leads'] > 0));
@@ -697,7 +624,6 @@ class LeadSources extends Component
         }
 
         $pick = function (string $metric, bool $max) use ($rows) {
-            // Bằng nhau thì nguồn nhiều Lead hơn được chọn (tỷ lệ đáng tin hơn)
             usort($rows, fn ($a, $b) => ($max ? $b[$metric] <=> $a[$metric] : $a[$metric] <=> $b[$metric]) ?: $b['leads'] <=> $a['leads']);
 
             return $rows[0]['dim'];
@@ -720,33 +646,23 @@ class LeadSources extends Component
         return $rows;
     }
 
-    /* ── Danh mục cho bộ lọc ──────────────────────────────────────────── */
-
     #[Computed]
     public function branches(): Collection
     {
         return Branch::query()->orderBy('branch_id')->get(['branch_id', 'branch_name']);
     }
 
-    /**
-     * Toàn bộ nguồn (không theo bộ lọc) - cho ô chọn nguồn khi xuất Excel.
-     */
     #[Computed]
     public function allSources(): array
     {
         return Lead::SOURCES;
     }
 
-    /* ── Hỗ trợ ───────────────────────────────────────────────────────── */
-
     protected function report(): LeadSourceReport
     {
         return app(LeadSourceReport::class);
     }
 
-    /**
-     * Bộ lọc đã kiểm tra (giá trị không hợp lệ bị bỏ qua).
-     */
     protected function filterValues(): array
     {
         return [
@@ -773,9 +689,6 @@ class LeadSources extends Component
         return number_format((float) $value, $decimals, ',', '.').'%';
     }
 
-    /**
-     * Tiền rút gọn → [số, đơn vị]: 3,49 tỷ · 2,72 tr · 950.000 (kèm ₫ khi $currency).
-     */
     public function shortMoney(float|int $value, bool $currency = false): array
     {
         $value = (float) $value;
@@ -790,9 +703,6 @@ class LeadSources extends Component
         return [number_format($value, 0, ',', '.'), $currency ? '₫' : ''];
     }
 
-    /**
-     * Nhãn tháng trên biểu đồ: T5 (cùng năm) hoặc T5/26 (kỳ trải qua nhiều năm).
-     */
     protected function monthLabel(string $month): string
     {
         [$year, $m] = explode('-', $month);
@@ -806,9 +716,6 @@ class LeadSources extends Component
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) && strtotime($value) !== false;
     }
 
-    /**
-     * Nhãn hiển thị của 1 giá trị theo chiều phân tích.
-     */
     public function label(string $dimension, string $value): string
     {
         return match ($dimension) {

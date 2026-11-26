@@ -1,4 +1,3 @@
-{{-- Thông báo nhỏ góc trên bên phải, tự ẩn sau 4 giây. Mở bằng sự kiện lead-toast từ Livewire. --}}
 <div class="ld-toast" role="status" wire:ignore style="display: none"
     x-data="{ text: '', show: false, timer: null, run: 0, duration: 4000 }"
     x-show="show"
@@ -9,7 +8,6 @@
     <button type="button" class="ld-toast__close" x-on:click="show = false" aria-label="{{ __('leads.close') }}">
         <x-icon name="x" />
     </button>
-    {{-- Thanh đếm ngược: tạo lại phần tử để chạy lại từ đầu khi có thông báo mới --}}
     <template x-for="key in [run]" :key="key">
         <span class="ld-toast__bar" x-bind:style="{ animationDuration: duration + 'ms' }"></span>
     </template>

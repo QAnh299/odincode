@@ -1,6 +1,3 @@
-{{-- Popup xuất báo cáo dùng chung (trait App\Livewire\Reports\Concerns\ReportExport). Cần lead.css (.ld-modal) + report.css (.lx).
-     3 cột: bộ lọc (năm, tháng, tiêu chí của component) · xem trước sheet đang chọn (đúng bố cục file, phóng to / thu nhỏ) · cột hiển thị.
-     Đưa ra <body> (@teleport) để lớp mờ phủ toàn trang; gốc mang class "vc" để giữ biến màu. --}}
 @php
     $X = fn ($key, $replace = []) => $this->exportLabel($key, $replace);
     $U = fn ($key, $replace = []) => __('reports.export_ui.'.$key, $replace);
@@ -10,7 +7,7 @@
     $locked = $this::EXPORT_LOCKED[$tab];
     $columnsOn = count(array_filter(array_keys($catalog[$tab]), fn ($c) => $this->exportColumnOn($tab, $c)));
     $sheetsOn = count(array_filter($this::EXPORT_SHEETS, fn ($s) => $this->exportSheetOn($s)));
-    // Báo cáo chỉ có 1 sheet: không hiện tab sheet / ô bật tắt sheet
+
     $multiSheet = count($this::EXPORT_SHEETS) > 1;
     $pv = $exportOpen ? $this->exportPreview : null;
 @endphp
@@ -28,7 +25,6 @@
             </header>
 
             <div class="lx__body">
-                {{-- ── Bộ lọc ───────────────────────────────────────────── --}}
                 <aside class="lx__pane lx__filters">
                     <h3 class="lx__pane-title">{{ $U('filters') }}</h3>
                     <label class="vc-field">
@@ -40,7 +36,6 @@
                         </select>
                         @error('exportYear') <span class="ld-error">{{ $message }}</span> @enderror
                     </label>
-                    {{-- Kỳ: cả năm / quý / tháng của năm đã chọn (năm nay thì đến quý / tháng hiện tại) --}}
                     <label class="vc-field">
                         <span class="vc-field__label">{{ $U('period') }}</span>
                         <select wire:model.live="exportPick" class="vc-control">
@@ -58,7 +53,6 @@
                         </select>
                         @error('exportType') <span class="ld-error">{{ $message }}</span> @enderror
                     </label>
-                    {{-- Tiêu chí riêng của popup ('' = tất cả; độc lập với bộ lọc trên màn hình) --}}
                     @foreach ($this->exportFilterFields() as $field)
                         <label class="vc-field" wire:key="xf-{{ $field['model'] }}">
                             <span class="vc-field__label">{{ $field['label'] }}</span>
@@ -72,7 +66,6 @@
                     @endforeach
                 </aside>
 
-                {{-- ── Xem trước ────────────────────────────────────────── --}}
                 <section class="lx__pane lx__preview" x-data="{ zoom: 100 }">
                     <div class="lx__toolbar">
                         <h3 class="lx__pane-title">{{ $U('preview') }}</h3>
@@ -187,7 +180,6 @@
                     </div>
                 </section>
 
-                {{-- ── Cột hiển thị (sheet đang xem) ───────────────────── --}}
                 <aside class="lx__pane lx__columns">
                     <div class="lx__toolbar">
                         <h3 class="lx__pane-title">{{ $U('columns') }}</h3>

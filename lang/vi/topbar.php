@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Menu ngang phía trên (components/topbar.blade.php)
 return [
     'notifications'    => 'Thông báo',
     'no_notifications' => 'Chưa có thông báo nào',
@@ -12,7 +11,7 @@ return [
     'notify_done'      => 'Đã xử lý',
     'mark_tab_read'    => 'Đánh dấu đã đọc',
     'no_notifications_tab' => 'Không có thông báo nào trong mục này',
-    // Tab nhóm thông báo
+
     'notify_tab' => [
         'all'         => 'Tất cả',
         'care'        => 'Liên hệ',

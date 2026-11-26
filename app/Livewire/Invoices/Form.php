@@ -13,20 +13,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-/**
- * Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26) và sửa hóa đơn Chờ thanh toán (HĐ36). Chỉ Salesperson.
- * Sửa (chốt 28/10/2026): hạn thanh toán, phương thức, số tiền (Trả góp), hình thức của đơn (chỉ hóa đơn đầu tiên và
- * duy nhất); có giao dịch chuyển khoản lệch thì chỉ sửa hạn.
- * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
- *
- *   - HĐ19 – HĐ20: khách phải có SĐT và email (để gửi email hóa đơn ở HĐ34); thiếu email thì SP bổ sung ngay tại đây.
- *     CSDL không có cột giới tính / ngày sinh của khách nên chưa kiểm tra được hai thông tin này.
- *   - HĐ21 – HĐ22: đơn chưa xác định hình thức → SP chọn Toàn bộ / Trả góp (một lần); đã có thì không hỏi lại.
- *   - HĐ23 – HĐ25: Toàn bộ → số tiền = phần còn lại (khóa); Trả góp → 0 < số tiền ≤ còn lại − đang chờ.
- *   - HĐ26: lưu Chờ thanh toán; chuyển khoản → trang chi tiết hiện QR; tiền mặt → vào hàng đợi của kế toán.
- *
- * Nhận MÃ từ URL rồi tự tìm bản ghi (hai route dùng chung component, xem Quotations\Form).
- */
 #[Layout('layouts.app')]
 class Form extends Component
 {
@@ -44,7 +30,6 @@ class Form extends Component
 
     public string $method = '';
 
-    // HĐ20: bổ sung email khách khi thiếu
     public string $customerEmail = '';
 
     public function mount(?string $order = null, ?string $invoice = null): void
@@ -70,9 +55,6 @@ class Form extends Component
         $this->fillFullAmount();
     }
 
-    /**
-     * Chọn hình thức (HĐ22): Toàn bộ → tự điền số tiền = phần còn lại (khóa); Trả góp → để trống cho SP nhập.
-     */
     public function updatedPaymentType(): void
     {
         unset($this->type, $this->limits);
@@ -81,10 +63,6 @@ class Form extends Component
         $this->fillFullAmount();
     }
 
-    /**
-     * Đơn / lựa chọn là Toàn bộ thì số tiền luôn bằng số tối đa (còn lại − đang chờ); Trả góp chưa nhập số tiền
-     * thì mặc định bằng số tối đa, SP sửa lại số tiền của kỳ này.
-     */
     private function fillFullAmount(): void
     {
         if ($this->type === SalesOrder::PAYMENT_FULL || ($this->type === SalesOrder::PAYMENT_INSTALLMENT && $this->amount === '')) {
@@ -92,12 +70,9 @@ class Form extends Component
         }
     }
 
-    // ── Dữ liệu hiển thị ───────────────────────────────────────────────
-
     #[Computed]
     public function order(): SalesOrder
     {
-        // Nạp sẵn mọi thứ khung phiếu cần (khóa học, voucher, khách + chi nhánh, nhân viên) – tránh N+1
         return SalesOrder::query()->with([
             'quotation.details' => fn ($q) => $q->orderBy('course_id'),
             'quotation.details.course',
@@ -108,19 +83,12 @@ class Form extends Component
         ])->findOrFail($this->orderId);
     }
 
-    /**
-     * Lý do không tạo được (HĐ18 – HĐ19); trang sửa không xét (đã có hóa đơn).
-     */
     #[Computed]
     public function blocked(): ?string
     {
         return $this->invoiceId ? null : app(InvoiceService::class)->blockerFor($this->order, $this->viewer());
     }
 
-    /**
-     * HĐ21: có hiện hộp chọn hình thức không: tạo mới khi đơn chưa có hình thức; sửa khi đây là hóa đơn đầu tiên
-     * và duy nhất của đơn (và chưa có giao dịch lệch).
-     */
     #[Computed]
     public function needsType(): bool
     {
@@ -131,36 +99,24 @@ class Form extends Component
             : $service->needsPaymentType($this->order);
     }
 
-    /**
-     * Hóa đơn đang sửa (null khi tạo mới).
-     */
     #[Computed]
     public function editing(): ?Invoice
     {
         return $this->invoiceId ? Invoice::query()->with('createdBy')->find($this->invoiceId) : null;
     }
 
-    /**
-     * Hóa đơn đang sửa đã Quá hạn: lưu với hạn mới (từ hôm nay) sẽ mở lại về Chờ thanh toán.
-     */
     #[Computed]
     public function isOverdue(): bool
     {
         return $this->editing?->status === Invoice::STATUS_OVERDUE;
     }
 
-    /**
-     * Đã có giao dịch chuyển khoản lệch số tiền: chỉ sửa được hạn thanh toán.
-     */
     #[Computed]
     public function transferLocked(): bool
     {
         return $this->invoiceId !== null && app(InvoiceService::class)->isTransferLocked($this->editing);
     }
 
-    /**
-     * Hình thức đang áp dụng: chọn trên form (hóa đơn đầu) hoặc của đơn.
-     */
     #[Computed]
     public function type(): ?string
     {
@@ -169,11 +125,6 @@ class Form extends Component
         return in_array($type, SalesOrder::PAYMENT_TYPES, true) ? $type : null;
     }
 
-    /**
-     * HĐ23: số còn lại, đang chờ (trừ chính hóa đơn khi sửa) và số tiền tối đa.
-     *
-     * @return array{remaining: float, pending: float, max: float}
-     */
     #[Computed]
     public function limits(): array
     {
@@ -194,11 +145,6 @@ class Form extends Component
             : (int) $this->order->invoices->max('payment_installment') + 1;
     }
 
-    // ── Thao tác ───────────────────────────────────────────────────────
-
-    /**
-     * HĐ20: SP bổ sung email khách (ghi vào hồ sơ Lead) rồi kiểm tra lại HĐ19.
-     */
     public function saveCustomerEmail(): void
     {
         $lead = $this->order->quotation?->opportunity?->lead;
@@ -211,9 +157,6 @@ class Form extends Component
         unset($this->order, $this->blocked);
     }
 
-    /**
-     * HĐ24 → HĐ25 → HĐ26: kiểm tra rồi lưu hóa đơn Chờ thanh toán, mở trang chi tiết (QR hoặc chờ kế toán).
-     */
     public function save(InvoiceService $service)
     {
         abort_if($this->blocked !== null, 403);
@@ -221,7 +164,7 @@ class Form extends Component
         $limits = $this->limits;
         $isFull = $this->type === SalesOrder::PAYMENT_FULL;
         $locked = $this->transferLocked;
-        // Gia hạn hóa đơn Quá hạn: hạn mới từ hôm nay trở đi
+
         $minDue = $this->isOverdue ? max($this->issuedDate(), today()->toDateString()) : $this->issuedDate();
 
         $this->validate([
@@ -269,9 +212,6 @@ class Form extends Component
         return view('livewire.invoices.form')->title($title);
     }
 
-    /**
-     * Ngày lập: tạo mới = hôm nay; sửa = ngày lập của hóa đơn (hạn không được trước ngày này – CHECK trong odin.sql).
-     */
     public function issuedDate(): string
     {
         return $this->invoiceId

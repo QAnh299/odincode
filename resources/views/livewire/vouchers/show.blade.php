@@ -5,14 +5,12 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
 
-    // Tiến độ thời gian hiệu lực
     $totalDays = max(1, $voucher->start_date->diffInDays($voucher->end_date));
     $elapsed = $voucher->start_date->diffInDays(today(), false);
     $progress = (int) round(min(100, max(0, $elapsed / $totalDays * 100)));
     $daysLeft = (int) today()->diffInDays($voucher->end_date, false);
     $daysToStart = (int) today()->diffInDays($voucher->start_date, false);
 
-    // Thông tin thời gian (chỉ để tham khảo, không phải trạng thái voucher)
     $inPeriod = $daysToStart <= 0 && $daysLeft >= 0;
     $timeNote = match (true) {
         $daysToStart > 0 => __('vouchers.starts_in', ['days' => $daysToStart]),
@@ -26,12 +24,10 @@
 @endphp
 
 <div class="vc">
-    {{-- CSS riêng của trang voucher: resources/css/voucher.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/voucher.css')
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
         <a href="{{ route($this->routePrefix.'.vouchers') }}" class="odin-back">
             <x-icon name="arrow-left" />{{ __('vouchers.back') }}
@@ -43,7 +39,6 @@
         </span>
     </nav>
 
-    {{-- ── Thẻ voucher ──────────────────────────────────────────────── --}}
     <section class="vc-ticket vc-tone--{{ $state }}">
         <div class="vc-ticket__value">
             <span class="vc-ticket__type">
@@ -100,7 +95,6 @@
         </div>
     </section>
 
-    {{-- ── Số liệu áp dụng ──────────────────────────────────────────── --}}
     @php
         $subtotal = $quotations->sum('subtotal');
         $discount = $quotations->sum('discount');
@@ -128,7 +122,6 @@
         </div>
     </div>
 
-    {{-- ── Báo giá đã áp dụng ───────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <header class="vc-section-head">
             <div>

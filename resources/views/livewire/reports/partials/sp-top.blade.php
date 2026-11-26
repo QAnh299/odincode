@@ -1,5 +1,3 @@
-{{-- Thanh công cụ trên bảng hiệu quả: $model = thuộc tính Livewire số dòng (teamTop / employeeTop), $shown / $total = số dòng đang hiện / tổng;
-     tuỳ chọn $teamModel + $teamOptions = ô chọn đội (chỉ hiện khi có đội để chọn). Ô Top chỉ hiện khi bảng có nhiều hơn 5 dòng. --}}
 @php
     $teamOptions = $teamOptions ?? collect();
 @endphp

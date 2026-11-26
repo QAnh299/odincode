@@ -7,20 +7,10 @@ use App\Models\Role;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/**
- * Thông báo Lead mới cho Sale Leader (hiển thị ở chuông thông báo trên topbar):
- * mỗi lần Sale Admin phân Lead cho đội = 1 thông báo (các Cơ hội tạo cùng lúc có chung conversion_date),
- * kèm số Lead của lần đó còn chờ phân cho Salesperson. Phân hết thì thông báo tự biến mất.
- * Không có bảng thông báo trong odin.sql nên suy ra trực tiếp từ Cơ hội trưởng nhóm đang giữ.
- */
 class LeadAssignmentNotices
 {
-    // Số lần phân gần nhất hiển thị
     public const LIMIT = 10;
 
-    /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon, count: int}>
-     */
     public static function for(?Employee $employee): Collection
     {
         $team = $employee?->role_name === Role::SALE_LEADER ? $employee->ledTeam : null;

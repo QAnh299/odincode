@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Student pages: list (livewire/students/index) and detail (livewire/students/show)
 return [
     'title'              => 'Students',
     'subtitle'           => 'Customers who have paid the full tuition of their registered course',
@@ -20,7 +19,6 @@ return [
         'Dropped'   => 'Dropped',
     ],
 
-    // Lookup
     'lookup'             => 'Student lookup',
     'search'             => 'Search',
     'search_placeholder' => 'Search by code, name, phone or email…',
@@ -34,13 +32,20 @@ return [
     'resigned'           => 'resigned',
     'from'               => 'From',
     'to'                 => 'To',
+    'lead_filter' => [
+        'label'   => 'Lead filter',
+        'source'  => 'Source :value',
+        'method'  => 'Channel :value',
+        'branch'  => 'Branch :value',
+        'created' => 'Lead created :from → :to',
+        'clear'   => 'Clear lead filter',
+    ],
     'reset'              => 'Clear filters',
     'loading'            => 'Loading…',
     'result_count'       => ':count student(s) found',
     'empty'              => 'No students found',
     'empty_sub'          => 'Try another keyword or remove some filters.',
 
-    // Columns / fields
     'code'               => 'Student code',
     'student'            => 'Student',
     'full_name'          => 'Full name',
@@ -54,7 +59,6 @@ return [
     'actions'            => 'Actions',
     'view'               => 'View details',
 
-    // Detail
     'back_to'            => 'Back to :code',
     'back'               => 'Back to list',
     'edit'               => 'Edit',
@@ -74,7 +78,7 @@ return [
         'Lost'       => 'Lost',
         'Archived'   => 'Archived',
     ],
-    // Chi tiết: đầu trang, thẻ khóa học, tham chiếu
+
     'stat_courses'       => 'Courses',
     'stat_total'         => 'Total tuition',
     'remaining'          => 'Remaining',
@@ -108,7 +112,6 @@ return [
     'method'             => 'Method',
     'payment_date'       => 'Paid on',
 
-    // Edit
     'edit_title'         => 'Edit student information',
     'save'               => 'Save changes',
     'saved'              => 'Student information updated.',

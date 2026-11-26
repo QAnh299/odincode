@@ -5,14 +5,12 @@
 
     $counts = $this->counts;
 
-    // Thẻ thống kê: [key trạng thái, icon]
     $cards = [
         ['', 'users'],
         [Employee::STATE_WORKING, 'check-circle'],
         [Employee::STATE_RESIGNED, 'pause'],
     ];
 
-    // Màu thẻ / nhãn theo trạng thái nhân viên (dùng lại tone của voucher)
     $tone = fn (string $state) => match ($state) {
         Employee::STATE_WORKING  => 'active',
         Employee::STATE_RESIGNED => 'inactive',
@@ -21,12 +19,10 @@
 @endphp
 
 <div class="vc em">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/employee.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/employee.css'])
     @endassets
 
-    {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
     <header class="vc-head">
         <div>
             <h1 class="visually-hidden">{{ __('employees.title') }}</h1>
@@ -41,7 +37,6 @@
         </div>
     </header>
 
-    {{-- ── Thống kê nhanh (bấm để lọc theo trạng thái) ─────────────── --}}
     <div class="vc-summary">
         @foreach ($cards as [$key, $icon])
             <button type="button" wire:click="filterState('{{ $key }}')"
@@ -56,7 +51,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tra cứu: tìm kiếm + bộ lọc ───────────────────────────────── --}}
     <section class="vc-card vc-filters" aria-label="{{ __('employees.lookup') }}">
         <div class="vc-search">
             <x-icon name="search" />
@@ -130,7 +124,6 @@
         </div>
     </section>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <div class="vc-results__bar">
             <span>
@@ -176,7 +169,6 @@
                                 $url = route($this->routePrefix.'.employees.show', $employee);
                                 $employeeState = $employee->state();
                             @endphp
-                            {{-- Bấm cả dòng hoặc nút "Xem chi tiết" đều mở trang chi tiết (giống danh sách voucher) --}}
                             <tr wire:key="employee-{{ $employee->employee_id }}" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('employees.employee') }}">
                                     <a href="{{ $url }}" class="em-person" onclick="event.stopPropagation()">
@@ -188,7 +180,6 @@
                                     </a>
                                 </td>
                                 <td data-label="{{ __('employees.role') }}">
-                                    {{-- Chỉ hiện vai trò (chức danh thường trùng tên vai trò nên không hiện thêm) --}}
                                     <span class="em-role">{{ $employee->role_name ? __('roles.'.$employee->role_name) : '-' }}</span>
                                 </td>
                                 @if ($this->canFilterScope)
@@ -203,7 +194,6 @@
                                     </td>
                                 @endif
                                 <td data-label="{{ __('employees.contact') }}">
-                                    {{-- Ưu tiên số điện thoại; không có số thì mới hiện email --}}
                                     <span class="em-contact">{{ $employee->phone ?: ($employee->email ?: '-') }}</span>
                                 </td>
                                 <td data-label="{{ __('employees.hire_date') }}">

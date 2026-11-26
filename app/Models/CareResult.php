@@ -11,8 +11,6 @@ class CareResult extends Model
     use HasFactory;
     use HasStringId;
 
-    // Kết quả liên hệ: Thành công (gọi được cho khách), Thất bại (khách từ chối),
-    // Không liên lạc được (không nghe máy, thuê bao)
     public const RESULT_SUCCESS = 'Success';
     public const RESULT_FAILED = 'Failed';
     public const RESULT_UNREACHABLE = 'Unreachable';
@@ -29,7 +27,6 @@ class CareResult extends Model
 
     public $timestamps = false;
 
-    // Kết quả chăm sóc đầu tiên đưa Lead ra khỏi "chờ phân cho Salesperson" → thẻ thống kê danh sách Lead phải tính lại
     protected static function booted(): void
     {
         static::saved(fn () => Lead::touchStats());

@@ -1,7 +1,3 @@
-/* ── Trang Danh sách lịch hẹn của Salesperson (livewire/appointments/index) ──────
-   Nạp cùng voucher.css (bảng, biến màu), lead.css (popup, thông báo) và opportunity.css (nút thành công / nguy hiểm);
-   phần riêng tiền tố .ap-. */
-
 .ap {
     --ap-blue: #1d4ed8;
     --ap-green: #15803d;
@@ -9,7 +5,6 @@
     --ap-amber: #b45309;
 }
 
-/* ── Thẻ thống kê ──────────────────────────────────────────────────── */
 
 .ap-stats {
     display: grid;
@@ -63,7 +58,6 @@
 .ap-stat--success { --tone: var(--ap-green); }
 .ap-stat--failed { --tone: var(--ap-red); }
 
-/* ── Tìm kiếm + lọc ────────────────────────────────────────────────── */
 
 .ap-toolbar {
     display: grid;
@@ -131,7 +125,6 @@
     margin-bottom: 1rem;
 }
 
-/* ── Bảng ──────────────────────────────────────────────────────────── */
 
 .ap-list {
     position: relative;
@@ -202,12 +195,10 @@
     color: var(--vc-ink);
 }
 
-/* Lịch hẹn hôm nay chưa có kết quả: nhấn nhẹ */
 .vc-table tbody tr.ap-row--today {
     background: color-mix(in srgb, var(--vc-primary) 4%, #fff);
 }
 
-/* Nhãn trạng thái dạng viên thuốc */
 .ap-badge {
     display: inline-block;
     padding: 0.2rem 0.6rem;
@@ -225,7 +216,6 @@
 .ap-badge--Failed { --tone: var(--ap-red); --tone-bg: #fee2e2; }
 .ap-badge--Cancelled { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-/* Nút thao tác: 3 ô cố định (Đổi lịch - Kết quả - Hủy) để các dòng thẳng cột */
 .ap-actions {
     display: inline-grid;
     grid-template-columns: repeat(3, 32px);
@@ -270,7 +260,6 @@
     pointer-events: none;
 }
 
-/* ── Chân bảng: đếm + phân trang ───────────────────────────────────── */
 
 .ap-foot {
     display: flex;
@@ -324,7 +313,6 @@
     cursor: not-allowed;
 }
 
-/* ── Popup thao tác ────────────────────────────────────────────────── */
 
 .ap-dialog {
     width: min(560px, 100%);
@@ -339,7 +327,6 @@
     gap: 1rem;
 }
 
-/* Tóm tắt lịch hẹn */
 .ap-brief {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -369,7 +356,6 @@
     font-size: 0.78rem;
 }
 
-/* Chọn kết quả: Khách đã đến / Khách không đến */
 .ap-outcome {
     margin: 0;
     padding: 0;
@@ -469,7 +455,6 @@
     margin-left: auto;
 }
 
-/* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 991.98px) {
     .ap-stats {

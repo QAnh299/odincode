@@ -6,10 +6,6 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Lịch sử chuyển stage của Opportunity - bảng `StagesHistory` trong odin.sql.
- * Mỗi dòng là một lần chuyển từ from_stage_id sang to_stage_id; ghi qua Opportunity::moveToStage().
- */
 class StageHistory extends Model
 {
     use HasFactory;

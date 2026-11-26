@@ -1,6 +1,3 @@
-/* ── Trang đăng nhập Odin CRM ─────────────────────────────────────────
-   Màu lấy từ logo ODIN: vàng gold + xanh lá đậm                      */
-
 :root {
     --odin-gold: #fcda43;
     --odin-gold-deep: #f5c518;
@@ -26,7 +23,6 @@ body.auth-body {
     overflow: hidden;
 }
 
-/* Hoạ tiết ở bốn góc: cùng một ảnh, lật theo từng góc */
 .auth-corner {
     position: absolute;
     width: clamp(100px, 15vw, 220px);
@@ -40,7 +36,6 @@ body.auth-body {
 .auth-corner--bl { bottom: 0; left: 0; transform: scaleY(-1); }
 .auth-corner--br { bottom: 0; right: 0; transform: scale(-1); }
 
-/* ── Chọn ngôn ngữ ───────────────────────────────────────────────────── */
 .auth-lang {
     position: absolute;
     top: 1.25rem;
@@ -59,7 +54,6 @@ body.auth-body {
     box-shadow: 0 2px 8px rgba(0, 53, 10, 0.12);
 }
 
-/* ── Khung chính ─────────────────────────────────────────────────────── */
 .auth-main {
     flex: 1;
     display: flex;
@@ -94,7 +88,6 @@ body.auth-body {
     to { opacity: 1; transform: none; }
 }
 
-/* ── Cột trái: thương hiệu ───────────────────────────────────────────── */
 .auth-brand {
     position: relative;
     isolation: isolate;
@@ -112,7 +105,6 @@ body.auth-body {
     .auth-brand { display: flex; }
 }
 
-/* Hoạ tiết vòng tròn mờ ở hai góc */
 .auth-brand::before,
 .auth-brand::after {
     content: "";
@@ -141,7 +133,6 @@ body.auth-body {
     background: radial-gradient(circle, rgba(252, 218, 67, 0.16), transparent 70%);
 }
 
-/* Khối giữa: logo + khẩu hiệu, căn giữa cả ngang lẫn dọc trong ô xanh */
 .brand-center {
     flex: 1;
     display: flex;
@@ -160,7 +151,6 @@ body.auth-body {
     user-select: none;
 }
 
-/* Đường kẻ mờ dần hai đầu, chấm vàng ở giữa */
 .brand-divider {
     position: relative;
     display: block;
@@ -248,7 +238,6 @@ body.auth-body {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ── Cột phải: form ──────────────────────────────────────────────────── */
 .auth-panel {
     display: flex;
     flex-direction: column;
@@ -262,7 +251,6 @@ body.auth-body {
     .auth-panel { padding: 3rem 3.5rem; }
 }
 
-/* Cột trái đã có logo, chỉ hiện ở màn hình nhỏ */
 .panel-logo {
     height: 72px;
     width: auto;
@@ -301,7 +289,6 @@ body.auth-body {
     color: var(--odin-ink);
 }
 
-/* Hàng "Ghi nhớ tài khoản" + "Quên mật khẩu?" */
 .auth-links {
     display: flex;
     align-items: center;
@@ -380,7 +367,6 @@ body.auth-body {
     text-decoration: none;
 }
 
-/* Ghi chú dưới nút */
 .auth-note {
     margin: 1.75rem 0 0;
     padding: 0.8rem 1rem;
@@ -439,7 +425,6 @@ body.auth-body {
     box-shadow: 0 0 0 4px rgba(0, 94, 18, 0.1);
 }
 
-/* Bỏ nền xanh mặc định khi trình duyệt tự điền */
 .input-wrap .form-control:-webkit-autofill,
 .input-wrap .form-control:-webkit-autofill:hover,
 .input-wrap .form-control:-webkit-autofill:focus {
@@ -523,7 +508,6 @@ body.auth-body {
     75% { transform: translateX(4px); }
 }
 
-/* Nút chính màu xanh lá */
 .btn-odin {
     height: 50px;
     border: 0;

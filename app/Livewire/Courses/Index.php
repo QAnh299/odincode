@@ -10,18 +10,11 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách khóa học + tra cứu (tìm theo mã / tên, lọc trạng thái, sắp xếp),
- * hiển thị dạng thẻ hoặc bảng.
- * Chỉ xem: không thêm, kích hoạt hay xóa khóa học.
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson.
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
     use WithPagination;
 
-    // 12 chia hết cho 2, 3, 4 cột → lưới thẻ không bị hụt hàng cuối
     public const PER_PAGE = 12;
 
     public const SORTS = ['code', 'name', 'price_asc', 'price_desc', 'newest'];
@@ -47,9 +40,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Bấm vào thẻ thống kê: lọc theo trạng thái, bấm lại thì bỏ lọc.
-     */
     public function filterState(string $state): void
     {
         $this->state = $this->state === $state ? '' : $state;
@@ -62,26 +52,17 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Đổi chế độ hiển thị (thẻ / bảng); giữ nguyên bộ lọc và trang hiện tại.
-     */
     public function setView(string $view): void
     {
         $this->view = in_array($view, self::VIEWS, true) ? $view : 'grid';
     }
 
-    /**
-     * Prefix route theo vai trò, VD: 'director' → route 'director.courses.show'.
-     */
     #[Computed]
     public function routePrefix(): string
     {
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Số khóa học theo từng trạng thái (cho các thẻ thống kê).
-     */
     #[Computed]
     public function counts(): array
     {
@@ -103,7 +84,6 @@ class Index extends Component
     {
         $search = trim($this->search);
 
-        // Giá trị lạ từ URL thì quay về mặc định
         if (! in_array($this->sort, self::SORTS, true)) {
             $this->sort = 'code';
         }
@@ -121,7 +101,7 @@ class Index extends Component
             ->when($this->sort === 'price_asc', fn ($q) => $q->orderBy('unit_price'))
             ->when($this->sort === 'price_desc', fn ($q) => $q->orderByDesc('unit_price'))
             ->when($this->sort === 'newest', fn ($q) => $q->orderByDesc('created_at'))
-            ->orderBy('course_id') // mặc định, và để thứ tự ổn định khi trùng giá trị
+            ->orderBy('course_id')
             ->paginate(self::PER_PAGE);
 
         return view('livewire.courses.index', [

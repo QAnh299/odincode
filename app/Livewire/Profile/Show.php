@@ -9,16 +9,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/**
- * Trang thông tin tài khoản cá nhân - dùng chung cho mọi vai trò.
- * Mỗi người chỉ xem được tài khoản của chính mình; chỉ được tự sửa email và số điện thoại.
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
     public bool $editing = false;
 
-    // Hiện thông báo "đã lưu" sau khi cập nhật
     public bool $saved = false;
 
     public string $email = '';

@@ -9,7 +9,6 @@
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/student.css'])
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
         <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('leads.back') }}</a>
         <span class="vc-crumb__path">
@@ -21,7 +20,6 @@
 
     @include('livewire.leads.partials.toast')
 
-    {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
     <section class="vc-card st-head">
         <div class="st-head__main">
             <span class="st-avatar">{{ mb_strtoupper(mb_substr(trim(\Illuminate\Support\Str::afterLast($lead->full_name, ' ')), 0, 1)) }}</span>
@@ -54,7 +52,6 @@
         <livewire:leads.assign-one />
     @endif
 
-    {{-- ── Thông tin liên hệ ────────────────────────────────────────── --}}
     <section class="vc-card">
         <h2 class="st-section st-section--card">{{ __('leads.info') }}</h2>
         <dl class="st-info ld-info">
@@ -76,7 +73,6 @@
         </dl>
     </section>
 
-    {{-- ── Cơ hội tạo từ Lead ───────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <h2 class="st-section ld-results-title">{{ __('leads.opportunities_title') }}</h2>
         @if ($opportunities->isEmpty())

@@ -9,12 +9,6 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/**
- * Chi tiết một nhân viên (chỉ xem): thông tin cá nhân, công việc; riêng Sale Leader / Salesperson
- * có thêm đội kinh doanh (Giám đốc, Sale Admin, Kế toán không thuộc đội nào).
- * Sale Leader chỉ xem được nhân viên trong đội của mình.
- * Kết quả kinh doanh xem ở trang chi tiết đội (SalesTeams\Show) hoặc trang báo cáo.
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
@@ -36,27 +30,18 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Có trang Đội kinh doanh (Giám đốc, Sale Admin).
-     */
     #[Computed]
     public function canViewTeams(): bool
     {
         return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
-    /**
-     * Nhân viên kinh doanh (Sale Leader, Salesperson) thì hiện khối kết quả kinh doanh.
-     */
     #[Computed]
     public function isSales(): bool
     {
         return $this->employee->hasRole(Role::SALE_LEADER, Role::SALESPERSON);
     }
 
-    /**
-     * Thành viên cùng đội (đang làm việc, trừ chính nhân viên này).
-     */
     #[Computed]
     public function teammates()
     {
@@ -73,10 +58,6 @@ class Show extends Component
             ->get();
     }
 
-    /**
-     * Mã các thành viên cùng đội mà người đang đăng nhập được mở chi tiết
-     * (VD: Sale Leader không mở được trang của chính mình) → chỉ những người này mới có link.
-     */
     #[Computed]
     public function linkableIds(): array
     {

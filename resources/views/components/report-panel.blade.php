@@ -1,7 +1,5 @@
 @props(['id', 'title', 'sub' => null, 'filter' => null, 'spec' => null, 'height' => 300, 'wide' => false])
 
-{{-- Khung báo cáo: thanh tiêu đề + nút thu gọn, ô lọc riêng ($filter: model, label, options, value), rồi biểu đồ ($spec, odinChart) hoặc nội dung bên trong.
-     $filter['model'] là thuộc tính Livewire của trang chứa khung. --}}
 <section {{ $attributes->class(['rp-panel', 'rp-card--wide' => $wide]) }} wire:key="{{ $id }}" x-data="{ open: true }">
     <header class="rp-panel__head">
         <h3 class="rp-panel__title">{{ $title }}</h3>

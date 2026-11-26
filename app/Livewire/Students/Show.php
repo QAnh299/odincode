@@ -15,20 +15,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/**
- * Chi tiết học viên: đầu trang (tổng học phí / đã thu / còn lại), dải thẻ các khóa học khách đã đăng ký
- * hoặc đang được tư vấn (cuộn ngang, gom theo mọi cơ hội cùng Lead), chi tiết khóa đang chọn
- * (tab Thanh toán / Lịch sử chăm sóc / Lịch hẹn), thông tin học viên và nguồn gốc.
- * Các mã cơ hội / đơn / báo giá / hóa đơn / khóa học / Lead dẫn sang trang chi tiết nếu vai trò có trang đó.
- * Xem theo Student::visibleTo(); Chỉnh sửa (họ tên, SĐT, email, ngày sinh, trạng thái) chỉ dành cho
- * Sale Leader (học viên của đội) và Salesperson (học viên từ cơ hội mình phụ trách).
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
     public Student $student;
 
-    // Popup chỉnh sửa
     public bool $editing = false;
 
     public string $fullName = '';
@@ -43,7 +34,6 @@ class Show extends Component
 
     public ?string $notice = null;
 
-    // Thẻ khóa học đang chọn ("{opportunity_id}|{course_id}") và tab đang xem của khóa đó
     public string $selectedCard = '';
 
     public string $courseTab = 'payment';
@@ -61,7 +51,6 @@ class Show extends Component
             'lead.branch:branch_id,branch_name,address',
         ]);
 
-        // Mặc định mở khóa học mới nhất
         $cards = $this->courseCards;
         $this->selectedCard = $cards->first()['key'] ?? '';
     }
@@ -72,35 +61,20 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Chỉnh sửa: Sale Leader, Salesperson (phạm vi đã giới hạn bởi visibleTo khi mở trang).
-     */
     #[Computed]
     public function canEdit(): bool
     {
         return in_array($this->routePrefix, [Role::SALE_LEADER, Role::SALESPERSON], true);
     }
 
-    /**
-     * Salesperson đang xem trang này được tạo cơ hội mới cho khách:
-     *   - Vai trò phải là Salesperson.
-     *   - Đã từng có ít nhất một cơ hội với khách (đảm bảo bởi visibleTo khi load trang).
-     * Điều kiện thứ hai được đảm bảo vì Student::visibleTo lọc theo Opportunity::visibleTo,
-     * và Opportunity::visibleTo với Salesperson chỉ trả về cơ hội của chính mình.
-     */
     #[Computed]
     public function canCreateOpportunity(): bool
     {
         return $this->routePrefix === Role::SALESPERSON;
     }
 
-    // Trang chi tiết nối tiếp breadcrumb "Quản lý học viên › mã học viên › ..." (trait Concerns\StudentTrail)
     public const TRAIL_PAGES = ['opportunities', 'quotations', 'orders', 'invoices'];
 
-    /**
-     * Link sang trang chi tiết "{vai trò}.{tên}.show" nếu vai trò hiện tại có trang đó, ngược lại null.
-     * Cơ hội / báo giá / đơn hàng / hóa đơn mang theo ?student= để trang đó hiện breadcrumb từ học viên này.
-     */
     public function detailUrl(string $name, mixed $model): ?string
     {
         $route = $this->routePrefix.'.'.$name.'.show';
@@ -114,11 +88,6 @@ class Show extends Component
             : $model);
     }
 
-    // ── Khóa học ──────────────────────────────────────────────────────
-
-    /**
-     * Các cơ hội của khách (cùng Lead) trong phạm vi được xem, mới nhất lên đầu.
-     */
     #[Computed]
     public function opportunities(): Collection
     {
@@ -145,11 +114,6 @@ class Show extends Component
             ->get();
     }
 
-    /**
-     * Thẻ khóa học: mỗi dòng khóa học trong báo giá của từng cơ hội (báo giá đã có đơn, chưa có thì báo giá mới nhất).
-     * Cơ hội chưa có báo giá vẫn có một thẻ "Chưa có khoá học" để xem lịch sử chăm sóc.
-     * Tổng tiền / đã thu của đơn nhiều khóa chia theo tỷ lệ thành tiền từng dòng.
-     */
     #[Computed]
     public function courseCards(): Collection
     {
@@ -195,9 +159,6 @@ class Show extends Component
         })->values();
     }
 
-    /**
-     * Số liệu đầu trang: số khóa học, tổng học phí, đã thanh toán, còn lại (theo các thẻ có khóa học).
-     */
     #[Computed]
     public function totals(): array
     {
@@ -214,9 +175,6 @@ class Show extends Component
         return $this->courseCards->firstWhere('key', $this->selectedCard) ?? $this->courseCards->first();
     }
 
-    /**
-     * Đơn hàng của khóa đang chọn kèm các đợt hoá đơn.
-     */
     #[Computed]
     public function selectedOrder(): ?SalesOrder
     {
@@ -241,9 +199,6 @@ class Show extends Component
         $this->courseTab = in_array($tab, self::COURSE_TABS, true) ? $tab : 'payment';
     }
 
-    /**
-     * Lịch sử chăm sóc của cơ hội chứa khóa đang chọn, mới nhất lên đầu.
-     */
     #[Computed]
     public function openCares(): Collection
     {
@@ -255,9 +210,6 @@ class Show extends Component
             : collect();
     }
 
-    /**
-     * Lịch hẹn của cơ hội chứa khóa đang chọn, gom theo mã (mới nhất lên đầu).
-     */
     #[Computed]
     public function openAppointments(): Collection
     {
@@ -266,17 +218,12 @@ class Show extends Component
             : collect();
     }
 
-    /**
-     * Địa điểm lịch hẹn: cơ sở của khách - "Tên cơ sở - Địa chỉ".
-     */
     public function appointmentPlace(): ?string
     {
         $branch = $this->student->lead?->branch;
 
         return $branch ? $branch->branch_name.' - '.$branch->address : null;
     }
-
-    // ── Chỉnh sửa ─────────────────────────────────────────────────────
 
     public function startEdit(): void
     {
@@ -330,7 +277,6 @@ class Show extends Component
             'status'        => $this->status,
         ]);
 
-        // Trạng thái học viên hiện trên thẻ khóa học
         unset($this->opportunities, $this->courseCards, $this->selected);
 
         $this->editing = false;

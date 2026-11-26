@@ -1,6 +1,3 @@
-{{-- Popup xuất báo cáo chuyển đổi Lead (Giám đốc, Sale Admin). Cần lead.css (.ld-modal).
-     3 cột: bộ lọc (năm, tháng, tiêu chí) · xem trước sheet đang chọn (đúng bố cục file, phóng to / thu nhỏ) · cột hiển thị.
-     Đưa ra <body> (@teleport) để lớp mờ phủ toàn trang; gốc mang class "vc" để giữ biến màu. --}}
 @php
     $X = fn ($key, $replace = []) => $this->exportLabel($key, $replace);
     $P = fn ($key, $replace = []) => __('reports.export_period.'.$key, $replace);
@@ -25,7 +22,6 @@
             </header>
 
             <div class="lx__body">
-                {{-- ── Bộ lọc ───────────────────────────────────────────── --}}
                 <aside class="lx__pane lx__filters">
                     <h3 class="lx__pane-title">{{ $X('filters') }}</h3>
                     <label class="vc-field">
@@ -47,7 +43,6 @@
                         </select>
                         @error('exportType') <span class="ld-error">{{ $message }}</span> @enderror
                     </label>
-                    {{-- Tiêu chí: chi nhánh → đội → salesperson, nguồn Lead ('' = tất cả; độc lập với bộ lọc trên màn hình) --}}
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('reports.branch') }}</span>
                         <select wire:model.live="exportBranch" class="vc-control">
@@ -91,7 +86,6 @@
                     </label>
                 </aside>
 
-                {{-- ── Xem trước ────────────────────────────────────────── --}}
                 <section class="lx__pane lx__preview" x-data="{ zoom: 100 }">
                     <div class="lx__toolbar">
                         <h3 class="lx__pane-title">{{ $X('preview') }}</h3>
@@ -198,7 +192,6 @@
                     </div>
                 </section>
 
-                {{-- ── Cột hiển thị (sheet đang xem) ───────────────────── --}}
                 <aside class="lx__pane lx__columns">
                     <div class="lx__toolbar">
                         <h3 class="lx__pane-title">{{ $X('columns') }}</h3>

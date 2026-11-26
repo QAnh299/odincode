@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// ── Ngôn ngữ ─────────────────────────────────────────────────────────
 Route::get('/lang/{locale}', function (string $locale) {
     if (in_array($locale, ['vi', 'en'])) {
         session(['locale' => $locale]);
@@ -16,7 +15,6 @@ Route::get('/lang/{locale}', function (string $locale) {
     return redirect()->back();
 })->name('lang.switch');
 
-// ── Root: chuyển tới trang home đúng vai trò ─────────────────────────
 Route::get('/', function () {
     if (! Auth::check()) {
         return redirect()->route('login');
@@ -28,7 +26,6 @@ Route::get('/', function () {
     return redirect()->route($route);
 })->name('home');
 
-// ── Auth ──────────────────────────────────────────────────────────────
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 Route::post('/logout', function (Request $request) {
@@ -39,11 +36,9 @@ Route::post('/logout', function (Request $request) {
     return redirect()->route('login');
 })->name('logout')->middleware('auth');
 
-// ── Thông tin tài khoản cá nhân (dùng chung mọi vai trò) ─────────────
 Route::get('/profile', Profile::class)->name('profile')->middleware('auth');
 Route::get('/profile/password', ChangePassword::class)->name('profile.password')->middleware('auth');
 
-// ── Route theo vai trò (mỗi vai trò một file trong routes/web/) ──────
 Route::middleware(['auth', 'role:director'])->prefix('director')->name('director.')
     ->group(base_path('routes/web/director.php'));
 

@@ -4,7 +4,6 @@
     $role = auth()->user()?->role_name;
     $items = config('sidebar.items');
 
-    // Link của 1 mục: route name = "{vai trò}.{route}", chưa có route thì '#'
     $link = function (string $key) use ($items, $role) {
         $routeName = "$role.{$items[$key]['route']}";
 
@@ -15,7 +14,6 @@
         ];
     };
 
-    // Dựng menu theo config/sidebar.php: 'key' là mục thường, 'key' => [...] là mục có menu con
     $menu = [];
     foreach (config("sidebar.roles.$role", []) as $k => $v) {
         $key = is_int($k) ? $v : $k;
@@ -30,7 +28,6 @@
         $menu[] = $entry;
     }
 
-    // Icon nét mảnh (24x24, stroke) cho từng mục menu
     $icons = [
         'dashboard' => '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
         'lead'      => '<path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>',
@@ -50,7 +47,6 @@
     <div class="odin-sidebar__inner">
         <div class="odin-sidebar__brand">
             <a href="{{ route('home') }}" class="odin-sidebar__logo">
-                {{-- Logo nền trong suốt, chữ trắng; khi thu gọn chỉ hiện phần biểu tượng --}}
                 <img class="odin-sidebar__logo-full" src="{{ asset('images/logoodin-sidebar.png') }}"
                     alt="{{ config('app.name') }}">
                 <img class="odin-sidebar__logo-mark" src="{{ asset('images/logoodin-mark.png') }}" alt="">
@@ -63,7 +59,6 @@
             <ul class="odin-menu">
                 @foreach ($menu as $entry)
                     @if ($entry['children'])
-                        {{-- Mục lớn có menu con: bấm để mở/đóng, xử lý trong resources/js/sidebar.js --}}
                         <li class="odin-menu__group {{ $entry['active'] ? 'is-open' : '' }}">
                             <button type="button"
                                 class="odin-menu__link odin-menu__toggle {{ $entry['active'] ? 'has-active' : '' }}"
@@ -113,7 +108,6 @@
         </nav>
 
         <div class="odin-sidebar__footer">
-            {{-- Đăng xuất: mở popup xác nhận (components/logout-modal.blade.php) --}}
             <button type="button" class="odin-menu__link odin-sidebar__action odin-sidebar__logout"
                 data-bs-toggle="modal" data-bs-target="#logoutModal" title="{{ __('auth.logout') }}">
                 <svg class="odin-menu__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"

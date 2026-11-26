@@ -9,16 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Process;
 use ZipArchive;
 
-/**
- * NFR06 – Phục hồi dữ liệu từ bản sao lưu do spatie/laravel-backup tạo (backup:run).
- *
- * Mặc định khôi phục vào CSDL thử nghiệm "odin_restore_test" (không đụng CSDL đang chạy),
- * sau đó so sánh số dòng từng bảng với CSDL gốc và ghi nhận thời gian phục hồi (RTO).
- *
- *   php artisan backup:restore                         # bản mới nhất → odin_restore_test
- *   php artisan backup:restore --file=2026-11-12-01-30-00.zip
- *   php artisan backup:restore --database=odin --with-files --force   # khôi phục thật
- */
 class RestoreBackup extends Command
 {
     protected $signature = 'backup:restore
@@ -46,7 +36,6 @@ class RestoreBackup extends Command
             return self::FAILURE;
         }
 
-        // 1. Chọn bản sao lưu
         $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
         $folder = config('backup.backup.name');
         $zips = collect($disk->files($folder))->filter(fn ($f) => str_ends_with($f, '.zip'))->sort()->values();
@@ -69,7 +58,6 @@ class RestoreBackup extends Command
 
         $this->info('Bản sao lưu: '.$disk->path($zipPath).' (tạo lúc '.date('d/m/Y H:i:s', $disk->lastModified($zipPath)).')');
 
-        // 2. Giải nén
         $tmp = storage_path('app/restore-temp/'.uniqid());
         File::ensureDirectoryExists($tmp);
         $zip = new ZipArchive();
@@ -96,7 +84,6 @@ class RestoreBackup extends Command
             return self::FAILURE;
         }
 
-        // 3. Tạo lại CSDL đích và nạp dump
         DB::statement("DROP DATABASE IF EXISTS `{$target}`");
         DB::statement("CREATE DATABASE `{$target}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
@@ -120,7 +107,6 @@ class RestoreBackup extends Command
             return self::FAILURE;
         }
 
-        // 4. Khôi phục file tải lên
         $restoredFiles = 0;
         if ($this->option('with-files') && File::isDirectory("{$tmp}/public")) {
             File::copyDirectory("{$tmp}/public", storage_path('app/public'));
@@ -130,7 +116,6 @@ class RestoreBackup extends Command
         File::deleteDirectory($tmp);
         $seconds = round(microtime(true) - $started, 2);
 
-        // 5. Đối chiếu số dòng từng bảng với CSDL gốc
         $source = $connection['database'];
         $rows = [];
         $mismatch = 0;

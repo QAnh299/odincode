@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Left sidebar menu labels (config/sidebar.php)
 return [
     'main'       => 'Main menu',
     'open'       => 'Open menu',
@@ -20,7 +19,6 @@ return [
     'courses'    => 'Courses',
     'vouchers'   => 'Vouchers',
 
-    // Submenus
     'employee_list' => 'Employees',
     'sales_teams'   => 'Sales teams',
     'lead_list'     => 'Leads',

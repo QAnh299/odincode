@@ -7,36 +7,12 @@ use App\Models\SalesOrder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Số liệu cho báo cáo Phân tích doanh thu & thanh toán.
- *
- * Định nghĩa (thống nhất với báo cáo Hiệu quả Sales và Chất lượng nguồn Lead):
- *   - Doanh thu  = SalesOrders.total_amount, tính theo NGÀY TẠO ĐƠN (đơn tạo trong kỳ).
- *   - Thực thu   = Invoices.payment_amount của hóa đơn Đã thanh toán, tính theo NGÀY THANH TOÁN (tiền vào trong kỳ).
- *                  Không dùng SalesOrders.paid_amount để vẽ theo kỳ: đó là số cộng dồn của đơn, không cho biết tiền vào lúc nào.
- *   - Công nợ    = remaining_amount của đơn Đang xử lý TẠI THỜI ĐIỂM XEM (không theo bộ lọc ngày), chia thành:
- *                  quá hạn (hóa đơn chưa thanh toán đã qua hạn hoặc trạng thái Overdue), đã lập hóa đơn chờ thu (chưa tới hạn),
- *                  chưa lập hóa đơn (= còn lại − tổng hóa đơn chưa thanh toán, không âm).
- *   - Tuổi nợ tính theo due_date so với hôm nay. Hóa đơn qua hạn được lệnh invoices:mark-overdue chuyển sang Overdue
- *     lúc 00:15 hằng ngày; vẫn xét theo due_date để hóa đơn vừa qua hạn trong ngày cũng được tính là quá hạn.
- *
- * Gán đơn cho người phụ trách Cơ hội (SalesOrders → Quotations → Opportunities.employee_id), đội = đội hiện tại của
- * người đó, chi nhánh = chi nhánh của khách (Leads.branch_id). Mọi truy vấn cộng tổng bằng SQL.
- *
- * Bộ lọc $f: from, to (Y-m-d | null), branch, team, employee (null = tất cả; '__none__' = không thấy gì).
- */
 class RevenueReport
 {
-    // Nhóm tuổi nợ của hóa đơn chưa thanh toán: số ngày trễ hạn tối đa của nhóm
     public const AGING = ['not_due' => 0, 'd7' => 7, 'd30' => 30, 'more' => PHP_INT_MAX];
 
     public const NONE = '__none__';
 
-    /* ── Truy vấn gốc ─────────────────────────────────────────────────── */
-
-    /**
-     * Đơn hàng kèm báo giá, cơ hội, khách, người phụ trách – áp phạm vi chi nhánh / đội / nhân viên (không lọc ngày).
-     */
     public function orders(array $f): Builder
     {
         return $this->scope(
@@ -49,17 +25,11 @@ class RevenueReport
         );
     }
 
-    /**
-     * Đơn tạo trong kỳ (doanh thu).
-     */
     public function ordersInPeriod(array $f): Builder
     {
         return $this->between($this->orders($f), 'so.created_at', $f);
     }
 
-    /**
-     * Hóa đơn đã thanh toán trong kỳ (thực thu).
-     */
     public function paymentsInPeriod(array $f): Builder
     {
         return $this->between(
@@ -69,13 +39,6 @@ class RevenueReport
         );
     }
 
-    /* ── Tổng quan ────────────────────────────────────────────────────── */
-
-    /**
-     * Doanh thu của kỳ: số đơn, doanh thu, giảm giá voucher (= tạm tính − tổng đơn), đơn đã thu đủ.
-     *
-     * @return array{orders: int, revenue: float, discount: float, completed: int}
-     */
     public function revenueTotals(array $f): array
     {
         $row = $this->ordersInPeriod($f)
@@ -87,11 +50,6 @@ class RevenueReport
         return ['orders' => (int) $row->orders, 'revenue' => (float) $row->revenue, 'discount' => (float) $row->discount, 'completed' => (int) $row->completed];
     }
 
-    /**
-     * Thực thu của kỳ: số hóa đơn, số tiền, theo phương thức, số hóa đơn thanh toán đúng hạn.
-     *
-     * @return array{invoices: int, collected: float, transfer: float, cash: float, transfer_count: int, cash_count: int, on_time: int}
-     */
     public function collectionTotals(array $f): array
     {
         $row = $this->paymentsInPeriod($f)
@@ -111,9 +69,6 @@ class RevenueReport
         ];
     }
 
-    /**
-     * Doanh thu theo kỳ: [khóa kỳ => doanh thu]. $period: month | week.
-     */
     public function revenueByPeriod(array $f, string $period): array
     {
         $key = $this->periodSql('so.created_at', $period);
@@ -122,9 +77,6 @@ class RevenueReport
             ->pluck('v', 'k')->map(fn ($v) => (float) $v)->all();
     }
 
-    /**
-     * Thực thu theo kỳ: [khóa kỳ => ['transfer' => ..., 'cash' => ...]].
-     */
     public function collectionsByPeriod(array $f, string $period): array
     {
         $key = $this->periodSql('i.payment_date', $period);
@@ -137,9 +89,6 @@ class RevenueReport
             ->mapWithKeys(fn ($r) => [$r->k => ['transfer' => (float) $r->transfer, 'cash' => (float) $r->cash]])->all();
     }
 
-    /**
-     * Khoảng thời gian có dữ liệu trong phạm vi (để chọn nhóm theo tháng / tuần khi không lọc ngày): [min, max] timestamp.
-     */
     public function dataSpan(array $f): ?array
     {
         $o = $this->ordersInPeriod($f)->selectRaw('MIN(so.created_at) AS a, MAX(so.created_at) AS b')->first();
@@ -149,9 +98,6 @@ class RevenueReport
         return $times ? [min(array_map('strtotime', $times)), max(array_map('strtotime', $times))] : null;
     }
 
-    /**
-     * Chỉ tiêu doanh thu (TeamSalesTargets loại Revenue) của các tháng $months cho các đội $teams (null = mọi đội).
-     */
     public function revenueTarget(array $months, ?array $teams): float
     {
         if (! $months || $teams === []) {
@@ -161,16 +107,13 @@ class RevenueReport
         return (float) DB::table('TeamSalesTargets as t')
             ->join('SalesTargets as st', 'st.target_id', '=', 't.target_id')
             ->where('st.target_type', 'Revenue')
-            // Bỏ chỉ tiêu đã huỷ (cùng cách tính với báo cáo Hiệu quả Sales)
+
             ->where('t.status', '<>', 'Cancelled')
             ->whereIn(DB::raw("DATE_FORMAT(t.target_month, '%Y-%m')"), $months)
             ->when($teams !== null, fn ($q) => $q->whereIn('t.team_id', $teams))
             ->sum('t.target_value');
     }
 
-    /**
-     * Chỉ tiêu doanh thu theo từng tháng: [Y-m => chỉ tiêu] (cùng điều kiện với revenueTarget).
-     */
     public function revenueTargetByMonth(array $months, ?array $teams): array
     {
         if (! $months || $teams === []) {
@@ -189,9 +132,6 @@ class RevenueReport
             ->pluck('v', 'k')->map(fn ($v) => (float) $v)->all();
     }
 
-    /**
-     * Doanh thu theo từng tháng của $months (theo ngày tạo đơn, bỏ qua bộ lọc ngày): [Y-m => doanh thu].
-     */
     public function revenueByMonth(array $f, array $months): array
     {
         if (! $months) {
@@ -205,9 +145,6 @@ class RevenueReport
             ->pluck('v', 'k')->map(fn ($v) => (float) $v)->all();
     }
 
-    /**
-     * Doanh thu của các tháng $months (theo ngày tạo đơn, bỏ qua bộ lọc ngày) – so với chỉ tiêu tháng.
-     */
     public function revenueInMonths(array $f, array $months): float
     {
         if (! $months) {
@@ -217,11 +154,6 @@ class RevenueReport
         return (float) $this->orders($f)->whereIn(DB::raw("DATE_FORMAT(so.created_at, '%Y-%m')"), $months)->sum('so.total_amount');
     }
 
-    /* ── Thanh toán ───────────────────────────────────────────────────── */
-
-    /**
-     * Cơ cấu hình thức thanh toán của đơn tạo trong kỳ: [Full|Installment|none => ['orders', 'revenue']].
-     */
     public function paymentTypeMix(array $f): array
     {
         return $this->ordersInPeriod($f)
@@ -230,9 +162,6 @@ class RevenueReport
             ->mapWithKeys(fn ($r) => [$r->k => ['orders' => (int) $r->orders, 'revenue' => (float) $r->revenue]])->all();
     }
 
-    /**
-     * Số ngày từ tạo đơn tới khi thu đủ, cho các đơn Hoàn tất có lần thanh toán cuối trong kỳ: danh sách số ngày.
-     */
     public function daysToCollect(array $f): array
     {
         $last = DB::table('Invoices')->selectRaw('order_id, MAX(payment_date) AS paid_at')
@@ -246,9 +175,6 @@ class RevenueReport
         )->selectRaw('GREATEST(0, DATEDIFF(lp.paid_at, so.created_at)) AS d')->pluck('d')->map(fn ($d) => (int) $d)->all();
     }
 
-    /**
-     * Thanh toán đúng hạn / trễ hạn theo phương thức (hóa đơn thanh toán trong kỳ).
-     */
     public function punctualityByMethod(array $f): array
     {
         return $this->paymentsInPeriod($f)
@@ -259,9 +185,6 @@ class RevenueReport
             ->all();
     }
 
-    /**
-     * Hóa đơn tiền mặt đang chờ kế toán duyệt (Chờ thanh toán + Tiền mặt): [count, amount].
-     */
     public function cashQueue(array $f): array
     {
         $row = $this->orders($f)->join('Invoices as i', 'i.order_id', '=', 'so.order_id')
@@ -271,16 +194,6 @@ class RevenueReport
         return ['count' => (int) $row->c, 'amount' => (float) $row->a];
     }
 
-    /* ── Công nợ (tại thời điểm xem) ──────────────────────────────────── */
-
-    /**
-     * Hóa đơn chưa thanh toán của các đơn còn nợ, đã phân bổ vào phần còn lại của đơn ('counted').
-     * Mỗi đơn: hóa đơn Unpaid chiếm phần còn lại trước, rồi Overdue (mới nhất trước), không vượt remaining_amount.
-     * Từ 28/10/2026 SP gia hạn hóa đơn Overdue thay vì lập hóa đơn thay thế; phép phân bổ này vẫn giữ để dữ liệu cũ
-     * (hóa đơn Overdue đã có hóa đơn thay thế, counted = 0) không bị tính trùng vào công nợ.
-     *
-     * @return array<string, array{remaining: float, invoices: list<array>}> theo order_id
-     */
     protected function openInvoices(array $f): array
     {
         $today = today()->toDateString();
@@ -298,7 +211,7 @@ class RevenueReport
             $o ??= ['remaining' => (float) $r->remaining_amount, 'left' => (float) $r->remaining_amount, 'invoices' => []];
             $counted = min((float) $r->payment_amount, $o['left']);
             $o['left'] -= $counted;
-            // Trễ: hạn trước hôm nay, hoặc trạng thái Overdue (tính ít nhất 1 ngày)
+
             $late = $r->status === Invoice::STATUS_OVERDUE ? max(1, (int) $r->diff) : max(0, (int) $r->diff);
             $o['invoices'][] = ['invoice_id' => $r->invoice_id, 'counted' => $counted, 'late' => $late];
             unset($o);
@@ -307,12 +220,6 @@ class RevenueReport
         return $orders;
     }
 
-    /**
-     * Tổng hợp công nợ: còn lại của đơn Đang xử lý, chia quá hạn / chờ thu / chưa lập hóa đơn (tổng 3 phần = còn lại);
-     * tuổi nợ theo hạn hóa đơn.
-     *
-     * @return array{orders: int, remaining: float, overdue: float, pending: float, uninvoiced: float, aging: array<string, array{count: int, amount: float}>}
-     */
     public function debt(array $f): array
     {
         $orders = $this->orders($f)->where('so.status', SalesOrder::STATUS_IN_PROGRESS)->where('so.remaining_amount', '>', 0)
@@ -343,10 +250,6 @@ class RevenueReport
         ];
     }
 
-    /**
-     * Đơn còn nợ: mã, khách, người phụ trách, tổng / đã thu / còn lại, hóa đơn chưa thanh toán, số ngày trễ lớn nhất.
-     * Sắp: có quá hạn trước (trễ nhiều nhất), rồi còn lại cao nhất.
-     */
     public function debtOrders(array $f, ?int $limit = null): array
     {
         $open = $this->openInvoices($f);
@@ -381,10 +284,6 @@ class RevenueReport
         return ($limit ? $rows->take($limit) : $rows)->all();
     }
 
-    /**
-     * Hóa đơn chưa thanh toán đã trễ hạn (hạn trước hôm nay hoặc trạng thái Overdue), trễ nhiều nhất trước.
-     * Bỏ hóa đơn Overdue đã có hóa đơn thay thế cho toàn bộ khoản nợ (xem openInvoices).
-     */
     public function overdueInvoices(array $f, ?int $limit = null): array
     {
         $today = today()->toDateString();
@@ -415,12 +314,6 @@ class RevenueReport
             ->get()->map(fn ($r) => (array) $r)->all();
     }
 
-    /* ── Cơ cấu doanh thu ─────────────────────────────────────────────── */
-
-    /**
-     * Doanh thu theo khóa học: phần giảm voucher chia theo tỷ lệ thành tiền từng dòng
-     * (dòng × tổng đơn / tạm tính) để cộng các khóa đúng bằng tổng doanh thu. [['name', 'quantity', 'revenue'], ...].
-     */
     public function byCourse(array $f): array
     {
         $subtotal = '(SELECT SUM(x.line_total) FROM QuotationDetails x WHERE x.quotation_id = so.quotation_id)';
@@ -435,9 +328,6 @@ class RevenueReport
             ->all();
     }
 
-    /**
-     * Doanh thu + thực thu theo một chiều: branch | team | employee. [['id', 'name', 'orders', 'revenue', 'collected'], ...].
-     */
     public function byDimension(array $f, string $dimension): array
     {
         [$id, $name, $join] = match ($dimension) {
@@ -468,12 +358,6 @@ class RevenueReport
         return $rows;
     }
 
-    /* ── Việc cần xử lý (tại thời điểm xem) ───────────────────────────── */
-
-    /**
-     * Hóa đơn chuyển khoản đang có cảnh báo giao dịch (lệch số tiền / chuyển vào hóa đơn Quá hạn) – TransferAlerts.
-     * Cảnh báo lưu trong cache nên chỉ dùng để nhắc việc, không cộng vào thực thu.
-     */
     public function transferQueue(array $f): array
     {
         $alerts = TransferAlerts::all();
@@ -494,9 +378,6 @@ class RevenueReport
             })->all();
     }
 
-    /**
-     * Hóa đơn tiền mặt chờ kế toán duyệt đã lập từ $days ngày trước trở về trước (cũ nhất trước).
-     */
     public function staleCash(array $f, int $days): array
     {
         return $this->orders($f)->join('Invoices as i', 'i.order_id', '=', 'so.order_id')
@@ -506,9 +387,6 @@ class RevenueReport
             ->orderBy('i.issued_date')->get()->map(fn ($r) => (array) $r)->all();
     }
 
-    /**
-     * Đơn Đang xử lý còn nợ nhưng không có hóa đơn nào đang chờ, tạo từ $days ngày trước – SP cần lập hóa đơn kỳ tiếp.
-     */
     public function staleUninvoiced(array $f, int $days): array
     {
         $before = now()->subDays($days);
@@ -519,14 +397,6 @@ class RevenueReport
         ));
     }
 
-    /* ── Tỷ lệ thu theo tháng tạo đơn ─────────────────────────────────── */
-
-    /**
-     * Mỗi tháng tạo đơn (đơn tạo trong kỳ): doanh thu và % đã thu sau mỗi mốc ngày $horizons kể từ ngày tạo đơn.
-     * Mốc chỉ tính trên các đơn đã đủ tuổi (tạo cách hôm nay ít nhất N ngày); tháng chưa có đơn đủ tuổi → null.
-     *
-     * @return list<array{month: string, orders: int, revenue: float, rates: array<int, ?float>, now: ?float}>
-     */
     public function collectionCohort(array $f, array $horizons): array
     {
         $paidWithin = fn (int $n) => "(SELECT COALESCE(SUM(x.payment_amount), 0) FROM Invoices x WHERE x.order_id = so.order_id
@@ -563,13 +433,6 @@ class RevenueReport
         ], array_values($months));
     }
 
-    /* ── Theo nhân viên phụ trách ─────────────────────────────────────── */
-
-    /**
-     * Mỗi Salesperson có số liệu: doanh thu, thực thu, % đúng hạn (trong kỳ); công nợ, hóa đơn quá hạn (tại thời điểm xem).
-     *
-     * @return list<array{id: string, name: string, orders: int, revenue: float, collected: float, paid_invoices: int, on_time: ?float, debt: float, overdue_count: int, overdue_amount: float}>
-     */
     public function collectionByEmployee(array $f, array $now): array
     {
         $rows = [];
@@ -602,8 +465,6 @@ class RevenueReport
 
         return array_values(array_map(fn ($r) => $r + ['on_time' => self::pct($r['on_time_count'], $r['paid_invoices'])], $rows));
     }
-
-    /* ── Danh sách cho xuất Excel ─────────────────────────────────────── */
 
     public function orderList(array $f): array
     {
@@ -641,8 +502,6 @@ class RevenueReport
             ->orderBy('i.payment_date')->get()->map(fn ($r) => (array) $r)->all();
     }
 
-    /* ── Tiện ích ─────────────────────────────────────────────────────── */
-
     public static function pct(float $part, float $total): ?float
     {
         return $total > 0 ? round($part * 100 / $total, 1) : null;
@@ -659,9 +518,6 @@ class RevenueReport
         return $n % 2 ? (float) $values[intdiv($n, 2)] : ($values[$n / 2 - 1] + $values[$n / 2]) / 2;
     }
 
-    /**
-     * Khóa kỳ trong SQL, cùng định dạng date('Y-m') / date('o-W') của PHP.
-     */
     protected function periodSql(string $column, string $period): string
     {
         return $period === 'week' ? "DATE_FORMAT($column, '%x-%v')" : "DATE_FORMAT($column, '%Y-%m')";
@@ -693,7 +549,7 @@ class RevenueReport
         }
 
         return $q->when($f['branch'] ?? null, fn ($q, $v) => $q->where('l.branch_id', $v))
-            // Hàng đợi việc của Kế toán: các cơ sở kế toán phụ trách (Revenue::workScope)
+
             ->when($f['branches'] ?? null, fn ($q, $v) => $q->whereIn('l.branch_id', $v))
             ->when($f['team'] ?? null, fn ($q, $v) => $q->where('e.team_id', $v))
             ->when($f['employee'] ?? null, fn ($q, $v) => $q->where('op.employee_id', $v));

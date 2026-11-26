@@ -1,21 +1,15 @@
-/* ── Trang danh sách Lead (livewire/leads/index) ──────────────────────
-   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .ld-. */
-
-/* Màu theo trạng thái Lead: thẻ thống kê + nhãn trong bảng */
 .ld-st--all { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
 .ld-st--New,
 .ld-st--Unassigned { --tone: #1d4ed8; --tone-bg: #dbeafe; }
 .ld-st--PendingSales { --tone: #6d28d9; --tone-bg: #ede9fe; }
 .ld-st--Converted { --tone: #15803d; --tone-bg: #dcfce7; }
 
-/* Nút Thêm / Import / Phân chia ở góc phải tiêu đề */
 .ld-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
 }
 
-/* Thẻ thống kê: 4 thẻ, Sale Leader 3 thẻ (không có Chưa phân cho đội) */
 .ld-summary {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -24,7 +18,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Bộ lọc: hàng 1 = tìm kiếm + trạng thái + nguồn + kênh; hàng 2 = chi nhánh + ngày + xoá lọc */
 .ld-filters {
     display: grid;
     grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
@@ -53,7 +46,6 @@
     white-space: nowrap;
 }
 
-/* Kênh liên hệ */
 .ld-method {
     display: inline-block;
     padding: 0.15rem 0.55rem;
@@ -68,7 +60,6 @@
 .ld-method--Facebook { background: #e0e7ff; color: #4338ca; }
 .ld-method--Phone { background: #fef3c7; color: #92400e; }
 
-/* ── Thông báo sau khi thêm / import ──────────────────────────────── */
 
 .ld-notice {
     --tone: #15803d;
@@ -127,7 +118,6 @@
     height: 16px;
 }
 
-/* Toast góc trên bên phải: nằm dưới topbar, trên cả popup */
 .ld-toast {
     position: fixed;
     top: 80px;
@@ -218,7 +208,6 @@
     .ld-toast { transition: none; }
 }
 
-/* ── Popup (Thêm Lead, Import Excel) ─────────────────────────────── */
 
 .ld-modal {
     position: fixed;
@@ -324,7 +313,6 @@
     border-top: 1px solid var(--vc-border);
 }
 
-/* Form Thêm Lead: 2 cột */
 .ld-form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -362,7 +350,6 @@
     font-size: 0.8rem;
 }
 
-/* Import: các bước */
 .ld-steps {
     display: grid;
     gap: 1.1rem;
@@ -405,7 +392,6 @@
     font-size: 0.85rem;
 }
 
-/* Ô chọn file */
 .ld-drop {
     position: relative;
     display: flex;
@@ -456,7 +442,6 @@
     font-size: 0.8rem;
 }
 
-/* Kết quả import */
 .ld-result {
     --tone: #15803d;
     --tone-bg: #f0fdf4;
@@ -547,7 +532,6 @@
     }
 }
 
-/* ── Popup Phân bổ Lead ───────────────────────────────────────────── */
 .ld-modal__dialog--wide {
     width: min(920px, 100%);
 }
@@ -583,7 +567,6 @@
     margin: 0;
 }
 
-/* Thiết lập */
 .ld-dist__panel {
     padding: 1rem 1.1rem;
     border: 1px solid var(--vc-border);
@@ -602,7 +585,6 @@
     grid-template-columns: minmax(0, 320px);
 }
 
-/* Trạng thái rỗng */
 .ld-dist__state {
     display: flex;
     flex-direction: column;
@@ -635,7 +617,6 @@
     height: 1.4rem;
 }
 
-/* Chỉ số nhanh */
 .ld-dist__stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -722,7 +703,6 @@
     transition: width 0.25s ease;
 }
 
-/* Lead dư → tiêu chí hiệu suất */
 .ld-dist__ranking {
     display: flex;
     flex-wrap: wrap;
@@ -758,7 +738,6 @@
     font-weight: 500;
 }
 
-/* Danh sách */
 .ld-dist__list-head {
     display: flex;
     align-items: center;
@@ -928,7 +907,6 @@
     font-size: 0.78rem;
 }
 
-/* Chỉ số hiệu suất tháng trước (tham khảo): icon + giá trị, dẫn đầu nhóm thì tô nổi */
 .ld-dist__kpis {
     display: flex;
     flex-wrap: wrap;
@@ -970,7 +948,6 @@
     top: -0.3em;
 }
 
-/* Thanh tải x/50 (đậm = đang quản lý, nhạt = sắp nhận) */
 .ld-dist__load {
     --tone: var(--d-ok);
 }
@@ -1020,7 +997,6 @@
         color-mix(in srgb, var(--tone) 55%, #fff) 4px, color-mix(in srgb, var(--tone) 55%, #fff) 8px);
 }
 
-/* Cột phải */
 .ld-dist__action {
     display: flex;
     flex-direction: column;
@@ -1112,7 +1088,6 @@
     font-weight: 600;
 }
 
-/* Chân popup */
 .ld-dist__foot {
     align-items: center;
 }
@@ -1181,7 +1156,6 @@
     }
 }
 
-/* Chi tiết Lead: thông tin liên hệ trải ngang trang, hai cặp nhãn - giá trị mỗi hàng */
 .st-info.ld-info {
     grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
     column-gap: 1.5rem;
@@ -1197,16 +1171,12 @@
     }
 }
 
-/* Chi tiết Lead: tiêu đề "Cơ hội" nằm trên bảng (thẻ vc-results không có padding) */
 .st-section.ld-results-title {
     margin: 0;
     padding: 0.9rem 1.25rem;
     border-bottom: 1px solid var(--vc-border);
 }
 
-/* ── Popup Thêm Lead: khách cũ trùng liên hệ (LeadDuplicateService) ──
-   Thẻ gọn, viền nhấn trái theo tình huống. Không dùng overflow: hidden - trong lưới form của popup
-   (bị co theo chiều cao màn hình), phần tử overflow khác visible bị ép chiều cao về 0 và mất nội dung. */
 
 .ld-dup {
     --dup-tone: #2563eb;
@@ -1413,7 +1383,6 @@
     }
 }
 
-/* Popup phân chia: số khách cũ đội / người này từng phụ trách */
 .ld-dist__returning {
     color: #1d4ed8;
     font-weight: 600;
@@ -1424,7 +1393,6 @@
     height: 14px;
 }
 
-/* ── Popup Phân Lead cho một Lead cụ thể (Leads\AssignOne) ────────── */
 
 .ld-pick {
     display: grid;
@@ -1600,13 +1568,11 @@
     border: 5px solid var(--vc-primary);
 }
 
-/* Nút Phân Lead ở cột Thao tác */
 .ld-assign-btn {
     margin-right: 0.25rem;
     color: var(--vc-primary);
 }
 
-/* Popup phân chia: khối gợi ý khách cũ / người thân */
 .ld-suggest {
     align-items: flex-start;
 }
@@ -1621,7 +1587,6 @@
     opacity: 0.85;
 }
 
-/* Popup phân chia: Salesperson vượt ngưỡng 50 (chỉ cảnh báo) */
 .ld-dist__over {
     display: inline-flex;
     align-items: center;
@@ -1661,7 +1626,6 @@
     background: #b45309;
 }
 
-/* ── Popup Phân Lead: người thân dùng chung SĐT / email (chọn để phân chung) ── */
 
 .ld-fam {
     border: 1px solid #fcd34d;
@@ -1772,7 +1736,6 @@
     outline-offset: 2px;
 }
 
-/* Ô tick */
 .ld-fam__check {
     display: grid;
     flex: none;
@@ -1878,7 +1841,6 @@
     }
 }
 
-/* ── Popup Thêm Lead: cập nhật thông tin vào Lead cũ (cùng người) ── */
 
 .ld-upd {
     margin: 0 1rem 0.85rem;
@@ -2073,7 +2035,6 @@
 }
 
 
-/* Popup Thêm Lead: mỗi Lead trùng kèm bảng so sánh ngay bên dưới */
 .ld-dup__entry + .ld-dup__entry {
     border-top: 1px dashed var(--vc-border);
     padding-top: 0.35rem;
@@ -2102,12 +2063,10 @@
     border-top: 1px solid var(--vc-border);
 }
 
-/* Bảng chỉ để đối chiếu (chưa xác định cùng người / không cập nhật được): bỏ gạch giá trị cũ */
 .ld-upd:not(.is-updatable) .ld-upd__old {
     text-decoration: none;
 }
 
-/* ── Popup Import: kết quả 4 ô + bảng xem trước (chọn cách xử lý từng dòng) ── */
 
 .ld-result__stats--4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2406,7 +2365,6 @@
 }
 
 
-/* Import - bảng so sánh: lý do trường bị khoá */
 .ld-imp__locked {
     display: flex;
     gap: 0.4rem;
@@ -2424,8 +2382,6 @@
     margin-top: 0.1rem;
 }
 
-/* ══ Danh sách Lead - bố cục mới (tiền tố .ldl-) ═════════════════════
-   Thẻ thống kê số lớn, bộ lọc một hàng, thanh chọn nhiều, bảng có ô chọn. */
 
 .ld {
     --ldl-wait: #c2410c;
@@ -2442,7 +2398,6 @@
     margin-bottom: 1rem;
 }
 
-/* ── Thẻ thống kê ──────────────────────────────────────────────────── */
 
 .ldl-stats {
     display: grid;
@@ -2498,7 +2453,6 @@
 .ldl-stat--Assigned { --tone: var(--ldl-active); }
 .ldl-stat--Returning { --tone: var(--ldl-blue); }
 
-/* ── Bộ lọc một hàng ───────────────────────────────────────────────── */
 
 .ldl-filters {
     display: grid;
@@ -2584,7 +2538,6 @@ select.ldl-control {
     color: var(--vc-primary);
 }
 
-/* ── Bảng ──────────────────────────────────────────────────────────── */
 
 .ldl-card {
     position: relative;
@@ -2751,7 +2704,6 @@ select.ldl-control {
     color: var(--vc-primary);
 }
 
-/* ── Chân bảng + phân trang ────────────────────────────────────────── */
 
 .ldl-foot {
     display: flex;
@@ -2805,7 +2757,6 @@ select.ldl-control {
     cursor: not-allowed;
 }
 
-/* ── Màn hình hẹp ──────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .ldl-filters,

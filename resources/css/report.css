@@ -1,12 +1,8 @@
-/* ── Trang báo cáo (livewire/reports/*) ───────────────────────────────
-   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .rp-. */
-
 .rp {
     --tone: var(--vc-primary);
     --tone-bg: var(--vc-tint);
 }
 
-/* Bộ lọc chung: ngày, ngày, chi nhánh, kênh, xoá lọc */
 .rp-filters {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
@@ -14,7 +10,6 @@
     align-items: end;
 }
 
-/* Tiêu đề 2 phần của trang */
 .rp-section {
     margin: 1.75rem 0 0.15rem;
     font-size: 1.15rem;
@@ -27,7 +22,6 @@
     font-size: 0.88rem;
 }
 
-/* ── Thẻ KPI ───────────────────────────────────────────────────────── */
 
 .rp-kpis {
     display: grid;
@@ -43,7 +37,6 @@
     border-color: var(--vc-border);
 }
 
-/* Chữ dài thì xuống dòng (không cắt "…"); icon neo trên cùng để các thẻ cùng hàng thẳng nhau */
 .rp-kpi {
     align-items: flex-start;
 }
@@ -65,7 +58,6 @@
     line-height: 1.35;
 }
 
-/* ── Thẻ biểu đồ ───────────────────────────────────────────────────── */
 
 .rp-grid {
     display: grid;
@@ -102,7 +94,6 @@
     border-radius: 14px;
 }
 
-/* ── Bảng số liệu ──────────────────────────────────────────────────── */
 
 .rp-table {
     width: 100%;
@@ -139,7 +130,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Thanh tỷ lệ nhỏ phía sau số % */
 .rp-bar {
     display: inline-block;
     min-width: 72px;
@@ -148,16 +138,13 @@
     background: linear-gradient(to right, var(--vc-tint) var(--w), transparent var(--w));
 }
 
-/* Gợi ý nhỏ dưới ô nhập */
 .rp-hint {
     margin: 0 0 0.4rem;
     color: var(--vc-muted);
     font-size: 0.78rem;
 }
 
-/* ── Hiệu quả nhân viên Sales ──────────────────────────────────────── */
 
-/* Dòng phụ nhỏ trong ô bảng: tên đội dưới tên nhân viên, % dưới số lượng */
 .rp-sub {
     display: block;
     color: var(--vc-muted);
@@ -165,7 +152,6 @@
     font-weight: 400;
 }
 
-/* Tỷ lệ chuyển giữa 2 stage liền nhau, dưới biểu đồ phễu */
 .rp-steps {
     margin: 0.9rem 0 0;
     padding: 0;
@@ -185,7 +171,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* So với tháng trước, dưới thẻ KPI */
 .rp-delta {
     margin-top: 0.1rem;
     color: var(--vc-muted);
@@ -202,7 +187,6 @@
     color: #dc2626;
 }
 
-/* Hạng: top 3 có nền màu */
 .rp-rank {
     display: inline-grid;
     place-items: center;
@@ -229,7 +213,6 @@
     color: #9a3412;
 }
 
-/* So với trung bình đội: xanh = tốt hơn, đỏ = kém hơn */
 .rp-cmp--up {
     color: #15803d;
     font-weight: 600;
@@ -245,7 +228,6 @@
     white-space: nowrap;
 }
 
-/* Cột đang dùng để xếp hạng */
 .rp-table .is-sorted {
     background: var(--vc-tint);
 }
@@ -263,12 +245,10 @@
     color: var(--vc-primary);
 }
 
-/* Salesperson chưa có số liệu trong tháng */
 .rp-row--idle {
     color: var(--vc-muted);
 }
 
-/* Bảng dài: cuộn trong khung, tiêu đề và dòng tổng dính trên / dưới */
 .rp-scroll {
     max-height: 460px;
     overflow: auto;
@@ -288,7 +268,6 @@
     box-shadow: inset 0 1px 0 var(--vc-border);
 }
 
-/* Cột hạng + tên đứng yên khi cuộn ngang (.rp-pin--2 = cột thứ 2, ngay sau cột hạng) */
 .rp-table .rp-pin {
     position: sticky;
     left: 0;
@@ -321,7 +300,6 @@
     z-index: 3;
 }
 
-/* Ô chỉ tiêu của team: số thực tế + % đạt, thanh tiến độ, chỉ tiêu */
 .rp-goal {
     min-width: 150px;
 }
@@ -363,7 +341,6 @@
     background: #16a34a;
 }
 
-/* Ô chọn Top 5 / 10 / Tất cả phía trên bảng */
 .rp-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -404,14 +381,12 @@
     font-size: 0.82rem;
 }
 
-/* Đã đạt chỉ tiêu */
 .rp-bar--done {
     background: #dcfce7;
     color: #15803d;
     font-weight: 600;
 }
 
-/* Cách tính */
 .rp-method summary {
     font-weight: 700;
     cursor: pointer;
@@ -428,14 +403,11 @@
     margin-top: 0.35rem;
 }
 
-/* ── Hiệu quả chuyển đổi Lead ──────────────────────────────────────── */
 
-/* Hàng thẻ KPI chia đều theo số thẻ (--n); màn hình nhỏ dùng số cột ở phần cuối file */
 .rp-kpis--fit {
     grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
 }
 
-/* Thẻ KPI dạng dọc: icon + tên → số lớn → chú thích neo đáy (thẻ cùng hàng cao bằng nhau) */
 .rp-stat {
     display: flex;
     flex-direction: column;
@@ -483,7 +455,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Số tiền dài: cỡ chữ co theo bề rộng, nếu vẫn thiếu chỗ thì xuống dòng chứ không tràn ra ngoài thẻ */
 .rp-stat__value--fit {
     font-size: clamp(1.15rem, 1.6vw, 1.5rem);
     white-space: normal;
@@ -499,14 +470,12 @@
     line-height: 1.4;
 }
 
-/* Góc phải tiêu đề: trạng thái tải + nút xuất Excel */
 .rp-head__actions {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-/* Bộ lọc nhiều ô: tự xuống dòng */
 .rp-filters--wide {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
@@ -542,12 +511,10 @@
     color: var(--vc-primary);
 }
 
-/* Thẻ chiếm cả hàng trong .rp-grid */
 .rp-card--wide {
     grid-column: 1 / -1;
 }
 
-/* Tiêu đề thẻ có ô chọn bên phải */
 .rp-card__head {
     display: flex;
     flex-wrap: wrap;
@@ -566,7 +533,6 @@
     background: var(--vc-tint);
 }
 
-/* Bản đồ nhiệt & cohort: nền đậm dần theo --a (0-100%) */
 .rp-heat {
     border-collapse: separate;
     border-spacing: 3px;
@@ -613,7 +579,6 @@
     background: color-mix(in srgb, var(--vc-primary) calc(var(--a, 0%) * 0.4), transparent);
 }
 
-/* ── Màn hình nhỏ ──────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .rp-kpis {
@@ -644,7 +609,6 @@
     }
 }
 
-/* ===== Báo cáo doanh thu & thanh toán (rv-*) ===== */
 .rv-target {
     display: flex;
     flex-direction: column;
@@ -710,15 +674,12 @@
     white-space: nowrap;
 }
 
-/* Popup đưa ra <body> bằng @teleport (popup xuất báo cáo chuyển đổi Lead), gốc mang class .vc để giữ biến màu:
-   bỏ khung rộng tối đa / căn giữa / hiệu ứng của trang để lớp mờ phủ toàn màn hình */
 .vc.rp-portal {
     max-width: none;
     margin: 0;
     animation: none;
 }
 
-/* Popup chọn thời gian xuất Excel */
 .rp-export-modal {
     width: min(520px, 100%);
 }
@@ -765,7 +726,6 @@
     }
 }
 
-/* ── Popup xuất báo cáo chuyển đổi Lead: bộ lọc · xem trước · cột hiển thị ─ */
 
 .lx {
     width: min(1440px, 100%);
@@ -852,7 +812,6 @@
     color: var(--vc-primary);
 }
 
-/* Tab sheet */
 .lx__tabs {
     display: flex;
     flex-wrap: wrap;
@@ -890,7 +849,6 @@
     font-weight: 400;
 }
 
-/* Vùng xem trước: nền xám, tờ giấy trắng ở giữa */
 .lx__preview {
     gap: 0.85rem;
     overflow: hidden;
@@ -1017,7 +975,6 @@
     font-style: italic;
 }
 
-/* Đơn vị tính (góc phải trên bảng) và ghi chú dưới bảng */
 .lx-paper__unit {
     margin-top: 0.4rem;
     font-style: italic;
@@ -1038,7 +995,6 @@
     font-weight: 700;
 }
 
-/* Cột hiển thị */
 .lx__count {
     color: var(--vc-muted);
     font-size: 0.75rem;
@@ -1131,7 +1087,6 @@
     }
 }
 
-/* Nút nhanh chọn cột: Mặc định · Chọn tất cả */
 .lx__quick {
     display: flex;
     align-items: center;
@@ -1159,9 +1114,7 @@
     pointer-events: none;
 }
 
-/* ===== Hiệu quả Sales Team / Salesperson (sales-performance) ===== */
 
-/* Thanh % đạt chỉ tiêu trong thẻ KPI */
 .rp-stat .rp-goal {
     min-width: 0;
 }
@@ -1170,7 +1123,6 @@
     margin-top: 0;
 }
 
-/* Bảng salesperson: tiêu đề 2 tầng theo nhóm chỉ số (Kết quả · Pipeline · Chăm sóc) */
 .rp-table--grouped thead tr:first-child th {
     box-sizing: border-box;
     height: 2.2rem;
@@ -1209,7 +1161,6 @@
     border-left: 1px solid var(--vc-border);
 }
 
-/* Số việc cần xử lý */
 .rp-flag {
     display: inline-grid;
     place-items: center;
@@ -1254,7 +1205,6 @@
     text-decoration: none;
 }
 
-/* ── Bấm số liệu → popup danh sách (report-drill) ── */
 .dr-card {
     cursor: pointer;
     transition: border-color 0.15s, transform 0.15s;
@@ -1264,6 +1214,15 @@
 .dr-card:focus-visible {
     border-color: var(--vc-primary);
     transform: translateY(-1px);
+}
+
+.dr-svg {
+    cursor: pointer;
+}
+
+.dr-svg:hover polygon,
+.dr-svg:focus-visible polygon {
+    opacity: 0.85;
 }
 
 .dr-cell {
@@ -1326,7 +1285,6 @@
     margin-right: auto;
 }
 
-/* ── Báo cáo doanh thu & thanh toán: thẻ bấm được, việc cần xử lý, nhận định, tỷ lệ thu theo tháng, sắp xếp ── */
 a.rv-stat-link {
     color: inherit;
     text-decoration: none;
@@ -1411,7 +1369,6 @@ a.rv-stat-link:focus-visible {
     font-weight: 600;
 }
 
-/* Nhận định: dùng .rp-kpis / .rp-stat như hàng chỉ số; giá trị là tên nên cỡ chữ nhỏ hơn số liệu, tối đa 2 dòng */
 .rv-insights {
     margin-top: -0.25rem;
 }
@@ -1427,7 +1384,6 @@ a.rv-stat-link:focus-visible {
     line-height: 1.3;
 }
 
-/* Thẻ chỉ tiêu: 3 số liệu cùng hàng + nguồn chỉ tiêu */
 .rv-target__stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1463,7 +1419,6 @@ a.rv-stat-link:focus-visible {
     }
 }
 
-/* Ô tỷ lệ thu: nền xanh đậm dần theo % đã thu (--a từ 0 đến 1) */
 .rv-cohort__cell {
     background: rgba(27, 175, 122, calc(var(--a, 0) * 0.45));
 }
@@ -1482,7 +1437,6 @@ a.rv-stat-link:focus-visible {
     font-weight: 700;
 }
 
-/* ── Giao diện khung báo cáo vuông góc: chỉ trang chuyển đổi Lead (.rp--lc) ── */
 
 .rp--lc .rp-stat,
 .rp--lc .vc-card {
@@ -1575,7 +1529,6 @@ a.rv-stat-link:focus-visible {
     font-size: 0.84rem;
 }
 
-/* Phễu chuyển đổi */
 .rp-funnel {
     display: block;
     width: 100%;
@@ -1600,8 +1553,6 @@ a.rv-stat-link:focus-visible {
     font-size: 13px;
 }
 
-/* Màu nhấn trang chuyển đổi Lead: cùng bảng màu biểu đồ, mỗi thẻ / khung 1 màu theo thứ tự.
-   Nút chính vẫn theo màu giao diện (--vc-primary). */
 .rp--lc {
     --rp-accent: #2a78d6;
 }
@@ -1667,10 +1618,8 @@ a.rv-stat-link:focus-visible {
     background: color-mix(in srgb, var(--rp-accent) calc(var(--a, 0%) * 0.4), transparent);
 }
 
-/* Bảng chỉ số ngắn: cột đầu là nhãn, các cột số chia đều để thẳng hàng */
 .rp-table--fixed {
     table-layout: fixed;
-    /* Màn hẹp: giữ đủ chỗ cho số (ô không xuống dòng), khung .table-responsive cuộn ngang thay vì chữ đè cột */
     min-width: 620px;
 }
 
@@ -1683,14 +1632,11 @@ a.rv-stat-link:focus-visible {
     width: 18%;
 }
 
-/* Bảng 4 cột đặt dưới bảng 5 cột: 3 cột đầu thẳng với 3 cột đầu bảng trên, cột cuối chiếm chỗ 2 cột (số căn phải nên thẳng cột cuối) */
 .rp-table--fixed.rp-table--span-last th:last-child {
     width: 36%;
 }
 
-/* ══ Phân tích chất lượng nguồn Lead (.ls) ═══════════════════════════ */
 
-/* Bộ lọc: ngày · kỳ nhanh · chi nhánh · kênh · nguồn · đặt lại */
 .ls-filters {
     display: grid;
     grid-template-columns: repeat(2, minmax(130px, 1fr)) repeat(4, minmax(140px, 1fr)) auto;
@@ -1698,7 +1644,6 @@ a.rv-stat-link:focus-visible {
     align-items: end;
 }
 
-/* Ô chọn nhiều nguồn */
 .ls-pick {
     position: relative;
 }
@@ -1762,7 +1707,6 @@ a.rv-stat-link:focus-visible {
     cursor: default;
 }
 
-/* Chấm màu nguồn */
 .ls-dot {
     display: inline-block;
     flex-shrink: 0;
@@ -1778,7 +1722,6 @@ a.rv-stat-link:focus-visible {
     margin-right: 0;
 }
 
-/* Thẻ KPI: tên → số lớn + đường xu hướng → mức thay đổi → chú thích */
 .ls-kpis {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1882,7 +1825,6 @@ a.rv-stat-link:focus-visible {
     line-height: 1.4;
 }
 
-/* Hàng biểu đồ */
 .ls-row {
     display: grid;
     gap: 1.25rem;
@@ -1902,7 +1844,6 @@ a.rv-stat-link:focus-visible {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
 }
 
-/* Bảng tổng hợp */
 .ls-table thead th {
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -2013,7 +1954,6 @@ a.rv-stat-link:focus-visible {
     }
 }
 
-/* ── Hiệu quả nhân viên Sale (.tp - tab Đội kinh doanh / Nhân viên kinh doanh) ── */
 
 .tp {
     --st-blue: #2a78d6;
@@ -2025,7 +1965,6 @@ a.rv-stat-link:focus-visible {
     --st-red: #d92d20;
 }
 
-/* Thẻ trắng dùng chung (bộ lọc, biểu đồ, bảng) */
 .tp-card,
 .tp .rp-card {
     margin-bottom: 0;
@@ -2047,7 +1986,6 @@ a.rv-stat-link:focus-visible {
     font-size: 0.9rem;
 }
 
-/* ── Bộ lọc ── */
 
 .tp-select {
     width: 100%;
@@ -2068,7 +2006,6 @@ a.rv-stat-link:focus-visible {
     box-shadow: 0 0 0 3px rgba(42, 120, 214, 0.15);
 }
 
-/* ── Hàng biểu đồ ── */
 .tp-row {
     display: grid;
     gap: 1.25rem;
@@ -2087,7 +2024,6 @@ a.rv-stat-link:focus-visible {
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 
-/* ── Bảng xếp hạng đội ── */
 .tp-rank {
     margin-bottom: 1.25rem;
 }
@@ -2155,7 +2091,6 @@ a.rv-stat-link:focus-visible {
     cursor: pointer;
 }
 
-/* Số phụ dưới số chính (thành viên, % đạt học viên, chốt / thất bại) */
 .tp-sub {
     display: block;
     margin-top: 0.15rem;
@@ -2169,7 +2104,6 @@ a.rv-stat-link:focus-visible {
     font-weight: 400;
 }
 
-/* Hạng: top 3 vàng / bạc / đồng, còn lại số xám */
 .tp-col-rank {
     width: 64px;
 }
@@ -2200,7 +2134,6 @@ a.rv-stat-link:focus-visible {
     color: #9a4a17;
 }
 
-/* Đội: chấm màu + tên, số thành viên bên dưới */
 .tp-team {
     display: flex;
     align-items: center;
@@ -2220,7 +2153,6 @@ a.rv-stat-link:focus-visible {
     padding-left: calc(10px + 0.5rem);
 }
 
-/* Doanh số / chỉ tiêu: số liệu + chip % đạt cùng hàng, thanh tiến độ bên dưới */
 .tp-col-goal {
     width: 34%;
     min-width: 260px;
@@ -2282,7 +2214,6 @@ a.rv-stat-link:focus-visible {
     background: #dc2626;
 }
 
-/* Cần xử lý */
 .tp-pill {
     display: inline-block;
     min-width: 2rem;
@@ -2297,7 +2228,6 @@ a.rv-stat-link:focus-visible {
     color: #b45309;
 }
 
-/* Tab Nhân viên kinh doanh: bảng cũ dùng .vc-card */
 .tp .vc-card.rp-card + .rp-section,
 .tp .rp-section:first-of-type {
     margin-top: 0.5rem;
@@ -2310,7 +2240,6 @@ a.rv-stat-link:focus-visible {
     }
 }
 
-/* Chú thích biểu đồ bằng HTML (chart-card, spec.htmlLegend): canh trái ngay dưới tiêu đề */
 .rp-legend-list {
     display: flex;
     flex-wrap: wrap;
@@ -2339,7 +2268,6 @@ a.rv-stat-link:focus-visible {
     border-top: 2px solid var(--c);
 }
 
-/* Cơ cấu theo đội: biểu đồ tròn + chú thích có số liệu, dropdown chọn chỉ số */
 .tp-share__head {
     display: flex;
     align-items: flex-start;
@@ -2366,7 +2294,6 @@ a.rv-stat-link:focus-visible {
     width: 100%;
 }
 
-/* Chú thích nhỏ dưới hình tròn: màu → tên đội, xuống dòng khi nhiều đội */
 .tp-share__legend {
     display: flex;
     flex-wrap: wrap;
@@ -2393,7 +2320,6 @@ a.rv-stat-link:focus-visible {
     background: var(--c);
 }
 
-/* Thẻ KPI cảnh báo (Lead chưa liên hệ > 24h): số và icon màu đỏ */
 .tp-kpi--alert .ls-kpi__icon {
     background: #fee2e2;
     color: #dc2626;
@@ -2404,7 +2330,6 @@ a.rv-stat-link:focus-visible {
     color: #dc2626;
 }
 
-/* 4 thẻ KPI một hàng */
 .ls-kpis.tp-kpis--4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -2421,7 +2346,6 @@ a.rv-stat-link:focus-visible {
     }
 }
 
-/* Bộ lọc (dùng .ls-filters của Chất lượng nguồn Lead): 2 ô ngày + --n ô chọn + nút Xoá lọc */
 .ls-filters.tp-filters {
     grid-template-columns: repeat(2, minmax(130px, 1fr)) repeat(var(--n, 3), minmax(140px, 1fr)) auto;
 }
@@ -2432,12 +2356,10 @@ a.rv-stat-link:focus-visible {
     }
 }
 
-/* Tab Nhân viên: chú thích màu đội dưới biểu đồ top nhân viên */
 .tp-emp-legend {
     margin-top: 0.75rem;
 }
 
-/* Khoảng cách từ 2 biểu đồ đến tiêu đề bảng xếp hạng nhân viên */
 .tp .tp-emp-charts + .rp-section {
     margin-top: 1.75rem;
 }

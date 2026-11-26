@@ -12,16 +12,13 @@ class Voucher extends Model
     use HasFactory;
     use HasStringId;
 
-    // Giá trị discount_type trong bảng Vouchers
     public const TYPE_PERCENTAGE = 'percentage';
     public const TYPE_FIXED = 'fixed';
 
-    // Trạng thái voucher (cột status): Hoạt động hoặc Không hoạt động
     public const STATUS_ACTIVE = 'Active';
 
-    // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang vouchers.state.*)
-    public const STATE_ACTIVE = 'active';     // status = 'Active'
-    public const STATE_INACTIVE = 'inactive'; // status khác 'Active'
+    public const STATE_ACTIVE = 'active';
+    public const STATE_INACTIVE = 'inactive';
 
     public const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
 
@@ -55,9 +52,6 @@ class Voucher extends Model
         return $this->hasMany(Quotation::class, 'voucher_id', 'voucher_id');
     }
 
-    /**
-     * Lọc theo trạng thái (một trong self::STATES).
-     */
     public function scopeState(Builder $query, string $state): Builder
     {
         return match ($state) {
@@ -77,9 +71,6 @@ class Voucher extends Model
         return $this->discount_type === self::TYPE_PERCENTAGE;
     }
 
-    /**
-     * Giá trị giảm hiển thị: "10%" hoặc "1.000.000 ₫".
-     */
     public function displayValue(): string
     {
         return $this->isPercentage()
@@ -87,9 +78,6 @@ class Voucher extends Model
             : number_format((float) $this->value, 0, ',', '.').' ₫';
     }
 
-    /**
-     * Số tiền được giảm khi áp dụng cho một khoản tiền (fixed không vượt quá khoản tiền).
-     */
     public function discountFor(float $amount): float
     {
         return $this->isPercentage()

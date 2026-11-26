@@ -19,13 +19,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách đội kinh doanh + tra cứu (tìm theo mã / tên đội / trưởng nhóm, sắp xếp).
- * Giám đốc: chỉ xem. Sale Admin: thêm Tạo đội và Chỉnh sửa đội (popup). Tạo đội: chọn chi nhánh trước,
- * rồi chọn trưởng nhóm + Salesperson của chi nhánh đó; Chỉnh sửa đội: đổi trưởng nhóm, gắn / gỡ Salesperson. Mỗi nhân viên chỉ thuộc một đội (Employees.team_id),
- * và một đội chỉ thuộc một chi nhánh: mọi nhân viên trong đội phải cùng chi nhánh (SalesTeam::branchId).
- * Sale Admin còn đặt KPI hằng tháng cho từng đội (popup KPI ở cột Thao tác - ManagesTeamKpi).
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -42,18 +35,13 @@ class Index extends Component
     #[Url(except: 'name')]
     public string $sort = 'name';
 
-    // Popup đang mở: '' | 'create' | 'edit' | 'kpi'
     public string $modal = '';
 
-    // Đội đang sửa (popup edit, kpi)
     #[Locked]
     public ?string $teamId = null;
 
-    // Dữ liệu popup: team_name, established_date, team_leader_id, members (mã Salesperson của đội),
-    // branch_id (chỉ popup Tạo đội: chi nhánh của đội mới)
     public array $form = [];
 
-    // Thông báo sau khi lưu: ['type' => success|danger, 'text' => ...]
     public ?array $notice = null;
 
     public function updated(string $property): void
@@ -63,9 +51,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Popup Tạo đội: đổi chi nhánh thì bỏ trưởng nhóm và thành viên đã chọn (thuộc chi nhánh cũ).
-     */
     public function updatedForm(mixed $value, string $key): void
     {
         if ($this->modal === 'create' && $key === 'branch_id') {
@@ -88,18 +73,12 @@ class Index extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Tạo / sửa đội (kèm trưởng nhóm, thành viên) - chỉ Sale Admin.
-     */
     #[Computed]
     public function canManage(): bool
     {
         return $this->routePrefix === Role::SALE_ADMIN;
     }
 
-    /**
-     * Số liệu tổng quan: số đội, nhân viên kinh doanh đang thuộc đội, nhân viên kinh doanh chưa có đội.
-     */
     #[Computed]
     public function summary(): array
     {
@@ -119,29 +98,18 @@ class Index extends Component
         return $this->search !== '' || $this->sort !== 'name';
     }
 
-    /* ── Popup ────────────────────────────────────────────────────────── */
-
-    /**
-     * Đội đang sửa (popup edit); null khi tạo mới.
-     */
     #[Computed]
     public function editingTeam(): ?SalesTeam
     {
         return $this->teamId ? SalesTeam::with('leader')->find($this->teamId) : null;
     }
 
-    /**
-     * Chi nhánh đang hoạt động (ô chọn chi nhánh ở popup Tạo đội).
-     */
     #[Computed]
     public function branches(): Collection
     {
         return Branch::query()->where('status', 'Active')->orderBy('branch_name')->get(['branch_id', 'branch_name']);
     }
 
-    /**
-     * Chi nhánh đã chọn ở popup Tạo đội (phải có trong danh sách chi nhánh); null nếu chưa chọn.
-     */
     #[Computed]
     public function createBranchId(): ?string
     {
@@ -150,9 +118,6 @@ class Index extends Component
         return $this->modal === 'create' && $this->branches->contains('branch_id', $id) ? $id : null;
     }
 
-    /**
-     * Mã các Salesperson đang được đánh dấu trong popup (Tạo đội / Chỉnh sửa đội).
-     */
     private function selectedMemberIds(): array
     {
         return in_array($this->modal, ['create', 'edit'], true)
@@ -160,21 +125,12 @@ class Index extends Component
             : [];
     }
 
-    /**
-     * Chi nhánh của các thành viên đang được đánh dấu (null nếu chưa chọn ai).
-     */
     #[Computed]
     public function membersBranchId(): ?string
     {
         return $this->memberOptions->whereIn('employee_id', $this->selectedMemberIds())->first()?->branch_id;
     }
 
-    /**
-     * Chi nhánh của đội theo lựa chọn hiện tại trong popup:
-     *   - Tạo đội: chi nhánh đã chọn ở ô Chi nhánh.
-     *   - Chỉnh sửa đội: chi nhánh của trưởng nhóm đang chọn, chưa chọn trưởng nhóm thì theo thành viên đang chọn;
-     *     null = chưa xác định (chọn chi nhánh nào cũng được).
-     */
     #[Computed]
     public function anchorBranchId(): ?string
     {
@@ -193,12 +149,6 @@ class Index extends Component
         return $this->anchorBranchId ? Branch::find($this->anchorBranchId) : null;
     }
 
-    /**
-     * Ứng viên trưởng nhóm: Sale Leader đang làm việc, chưa làm trưởng nhóm đội khác
-     * (trưởng nhóm hiện tại của đội đang sửa vẫn được giữ trong danh sách), và cùng chi nhánh:
-     *   - Tạo đội: chi nhánh đã chọn (chưa chọn chi nhánh thì chưa có ứng viên).
-     *   - Chỉnh sửa đội: chi nhánh của các thành viên đang được chọn (nếu có).
-     */
     #[Computed]
     public function leaderOptions(): Collection
     {
@@ -218,11 +168,6 @@ class Index extends Component
             ->get();
     }
 
-    /**
-     * Salesperson đang làm việc cho mục Thành viên (popup Tạo đội / Chỉnh sửa đội):
-     * thành viên của đội trước, rồi người chưa có đội, cuối cùng người đang ở đội khác (không chọn được).
-     * Người khác chi nhánh với đội cũng không chọn được (xem canPickMember).
-     */
     #[Computed]
     public function memberOptions(): Collection
     {
@@ -246,11 +191,6 @@ class Index extends Component
             ->values();
     }
 
-    /**
-     * Salesperson hiện trong danh sách chọn: chỉ người cùng chi nhánh với đội
-     * (Tạo đội: chưa chọn chi nhánh thì chưa hiện ai; Chỉnh sửa đội: chi nhánh chưa xác định thì hiện tất cả).
-     * Người đang ở đội khác vẫn hiện nhưng bị khoá.
-     */
     #[Computed]
     public function branchMemberOptions(): Collection
     {
@@ -263,10 +203,6 @@ class Index extends Component
             : $this->memberOptions->where('branch_id', $this->anchorBranchId)->values();
     }
 
-    /**
-     * Salesperson có được chọn làm thành viên không: đang thuộc đội này hoặc chưa có đội,
-     * và cùng chi nhánh với đội (nếu chi nhánh của đội đã xác định).
-     */
     public function canPickMember(Employee $employee): bool
     {
         return ($employee->team_id === null || $employee->team_id === $this->teamId)
@@ -326,9 +262,6 @@ class Index extends Component
         $this->notice = null;
     }
 
-    /**
-     * Lưu popup đang mở: Tạo đội, Chỉnh sửa đội (tên, ngày thành lập, trưởng nhóm, thành viên) hoặc KPI đội.
-     */
     public function save(): void
     {
         $this->authorizeManage();
@@ -397,8 +330,6 @@ class Index extends Component
         ])->title(__('employees.teams.title'));
     }
 
-    /* ── Nội bộ ───────────────────────────────────────────────────────── */
-
     private function authorizeManage(): void
     {
         abort_unless($this->canManage, 403);
@@ -413,18 +344,12 @@ class Index extends Component
         $this->notice = null;
     }
 
-    /**
-     * Bỏ cache các danh sách chọn (phụ thuộc loại popup và lựa chọn trong form).
-     */
     private function forgetOptions(): void
     {
         unset($this->createBranchId, $this->memberOptions, $this->branchMemberOptions, $this->membersBranchId,
             $this->leaderOptions, $this->anchorBranchId, $this->anchorBranch);
     }
 
-    /**
-     * Kiểm tra dữ liệu popup (luôn kiểm tra lại phía server).
-     */
     private function validateForm(): array
     {
         $data = array_map(fn ($value) => is_string($value) ? trim($value) : $value, $this->form);
@@ -457,7 +382,6 @@ class Index extends Component
             'team_leader_id'   => __('employees.team_leader'),
             'branch_id'        => __('employees.branch'),
         ])->after(function ($validator) use ($data) {
-            // Trưởng nhóm + thành viên được chọn phải cùng một chi nhánh
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
@@ -475,10 +399,6 @@ class Index extends Component
         })->validate();
     }
 
-    /**
-     * Thành viên Salesperson của đội = đúng danh sách đã chọn: người bỏ chọn được gỡ khỏi đội,
-     * người mới (chưa có đội) được gắn vào đội. Trưởng nhóm và người đã nghỉ việc không bị đụng tới.
-     */
     private function syncMembers(SalesTeam $team, array $memberIds): void
     {
         $salespeople = fn () => Employee::query()
@@ -490,17 +410,12 @@ class Index extends Component
             ->update(['team_id' => null]);
 
         if ($memberIds) {
-            // Chỉ nhận người chưa có đội (kiểm tra lại lúc ghi, tránh giành nhân viên của đội khác)
             $salespeople()->whereIn('employee_id', $memberIds)
                 ->where(fn ($q) => $q->whereNull('team_id')->orWhere('team_id', $team->team_id))
                 ->update(['team_id' => $team->team_id]);
         }
     }
 
-    /**
-     * Gắn trưởng nhóm cho đội: trưởng nhóm mới chuyển vào đội này;
-     * trưởng nhóm cũ (nếu đổi người) được gỡ khỏi đội để có thể nhận đội khác.
-     */
     private function assignLeader(SalesTeam $team, ?string $leaderId): void
     {
         $oldLeaderId = $team->team_leader_id;

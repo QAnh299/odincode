@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Forgot password (form on the login page + temporary password email)
 return [
     'title'                  => 'Forgot password',
     'subtitle'               => 'Enter the email linked to your account to receive a temporary password',

@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-// Trang hóa đơn: danh sách (livewire/invoices/index)
 return [
     'title'              => 'Quản lý hóa đơn',
     'subtitle'           => 'Tra cứu hóa đơn của các đơn hàng: số tiền, hạn thanh toán, phương thức và tình trạng thanh toán.',
 
-    // Tìm kiếm
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã hóa đơn, khách hàng, SĐT, email, mã đơn hàng, báo giá, nhân viên, kế toán, khóa học, số tiền…',
     'search_hint'        => 'Nhiều từ khóa · "cụm chính xác" · -loại trừ',
@@ -21,13 +19,11 @@ return [
         'Tìm trong: mã hóa đơn, trạng thái, phương thức, hình thức, mã đơn hàng / báo giá / cơ hội, tên/SĐT/email khách, nhân viên lập, kế toán, khóa học, số tiền',
     ],
 
-    // Thẻ thống kê + tổng tiền
     'all'                => 'Tất cả',
     'collected'          => 'Đã thu',
     'outstanding'        => 'Chờ thu',
     'totals_label'       => 'Tổng tiền theo bộ lọc hiện tại',
 
-    // Bộ lọc
     'filters'            => 'Bộ lọc',
     'close'              => 'Đóng',
     'active_filters'     => 'Đang lọc',
@@ -81,34 +77,29 @@ return [
         'customer'    => 'Tên khách hàng (A → Z)',
     ],
 
-    // Trạng thái hóa đơn (Invoice::STATUSES)
     'status' => [
         'Unpaid'  => 'Chờ thanh toán',
         'Paid'    => 'Đã thanh toán',
         'Overdue' => 'Quá hạn',
     ],
 
-    // Phương thức thanh toán (Invoice::METHODS; none = chưa chọn)
     'method' => [
         'BankTransfer' => 'Chuyển khoản',
         'Cash'         => 'Tiền mặt',
         'none'         => 'Chưa chọn',
     ],
 
-    // Hình thức thanh toán của đơn hàng (SalesOrder::PAYMENT_TYPES)
     'payment_type' => [
         'Full'        => 'Toàn bộ',
         'Installment' => 'Trả góp',
     ],
 
-    // Tình trạng hạn (chỉ hóa đơn chưa thanh toán)
     'deadline' => [
         'valid'   => 'Còn hạn',
         'soon'    => 'Sắp đến hạn (≤ 3 ngày)',
         'overdue' => 'Quá hạn',
     ],
 
-    // Nhãn nhóm trên chip bộ lọc đang áp dụng
     'chip' => [
         'search'       => 'Từ khóa',
         'statuses'     => 'Trạng thái',
@@ -126,7 +117,6 @@ return [
         'to'           => 'đến :value',
     ],
 
-    // Cột bảng
     'code'               => 'Mã hóa đơn',
     'installment'        => 'Kỳ :number',
     'customer'           => 'Khách hàng',
@@ -138,7 +128,6 @@ return [
     'days_left'          => 'còn :days ngày',
     'days_late'          => 'trễ :days ngày',
 
-    // ── Tạo / sửa hóa đơn (livewire/invoices/form) ──
     'form' => [
         'create_title'     => 'Tạo hóa đơn cho đơn :code',
         'edit_title'       => 'Sửa hóa đơn :code',
@@ -146,7 +135,7 @@ return [
         'back_quotation'   => 'Quay lại báo giá',
         'back_invoice'     => 'Quay lại hóa đơn',
         'blocked_title'    => 'Không thể tạo hóa đơn',
-        // HĐ18 – HĐ19 không đạt
+
         'blocked' => [
             'not_owner'       => 'Chỉ Salesperson lập báo giá của đơn này mới được tạo hóa đơn.',
             'completed'       => 'Đơn hàng đã thanh toán đủ (Hoàn tất).',
@@ -180,7 +169,6 @@ return [
         'overdue_reopen'   => 'Hóa đơn đã quá hạn. Chọn hạn thanh toán mới từ hôm nay trở đi và lưu để mở lại hóa đơn (giữ nguyên mã hóa đơn và mã QR).',
     ],
 
-    // ── Chi tiết hóa đơn (livewire/invoices/show) ──
     'detail' => [
         'title'            => 'Hóa đơn :code',
         'back'             => 'Quay lại danh sách',
@@ -236,7 +224,6 @@ return [
         'view_quotation'   => 'Xem báo giá :code',
     ],
 
-    // ── Thông báo ở chuông (App\Services\InvoiceNotices) ──
     'notice' => [
         'header'            => 'Hóa đơn tiền mặt chờ duyệt: :count',
         'cash_pending'      => 'Hóa đơn tiền mặt :code · :name · :amount chờ xác nhận',
@@ -259,8 +246,6 @@ return [
         'overdue_time'      => 'Hạn :date · liên hệ khách và gia hạn hóa đơn',
     ],
 
-    // ── Email hóa đơn gửi khách (HĐ34) ──
-    // ── PDF hóa đơn đính kèm email (resources/views/pdf/invoice.blade.php) ──
     'pdf' => [
         'title'              => 'Hóa đơn thanh toán',
         'paid_stamp'         => 'Đã thanh toán',
@@ -295,7 +280,7 @@ return [
         'completed'     => 'Đơn hàng đã được thanh toán đủ. Cảm ơn bạn đã đăng ký học tại ODIN!',
         'contact'       => 'Mọi thắc mắc xin liên hệ nhân viên tư vấn :name.',
     ],
-    // ── Khung phiếu hóa đơn (components/invoice-receipt) ──
+
     'receipt' => [
         'title'          => 'HÓA ĐƠN THANH TOÁN',
         'date_format'    => 'dddd, D [tháng] MM, YYYY',

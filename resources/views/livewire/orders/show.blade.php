@@ -16,7 +16,6 @@
     $percent = $order->progressPercent();
     $invoicedTotal = (float) $invoices->sum('payment_amount');
 
-    // Khóa học + tổng tiền theo báo giá đã xác nhận; tổng / đã thanh toán / còn lại là giá trị ĐÃ LƯU trong SalesOrders
     $subtotal = (float) ($quotation?->details?->sum('line_total') ?? 0);
     $voucher = $quotation?->voucher;
     $discount = $voucher ? $voucher->discountFor($subtotal) : 0;
@@ -31,7 +30,6 @@
 @endphp
 
 <div class="qt qt-detail od-detail">
-    {{-- Khung trang chi tiết (quotation.css) + nhãn đơn, tổng quan thanh toán (order.css) + nhãn hóa đơn (invoice.css) --}}
     @assets
         @vite(['resources/css/quotation.css', 'resources/css/order.css', 'resources/css/invoice.css'])
     @endassets
@@ -67,7 +65,6 @@
         </p>
     @endif
 
-    {{-- ── Tổng quan thanh toán: tổng / đã thanh toán / còn lại / đã lập hóa đơn + tiến độ ── --}}
     <section class="qt-card od-sum" aria-label="{{ __('orders.detail.payment') }}">
         <div class="od-sum__head">
             <h2 class="qt-section-title">{{ __('orders.detail.payment') }}</h2>
@@ -106,7 +103,6 @@
     </section>
 
     <div class="qt-detail-grid">
-        {{-- ── Cột trái: khóa học + tổng tiền, các kỳ hóa đơn ── --}}
         <div class="qt-detail-main">
             <section class="qt-card qt-results">
                 <div class="qt-section-head">
@@ -221,7 +217,6 @@
             </section>
         </div>
 
-        {{-- ── Cột phải: khách hàng, thông tin đơn ── --}}
         <aside class="qt-detail-side">
             <section class="qt-card qt-panel-card">
                 <h2 class="qt-section-title">{{ __('orders.detail.customer') }}</h2>

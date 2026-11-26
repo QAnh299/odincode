@@ -11,23 +11,17 @@ use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/**
- * Đổi mật khẩu cho tài khoản đang đăng nhập - dùng chung cho mọi vai trò.
- */
 #[Layout('layouts.app')]
 class ChangePassword extends Component
 {
-    // Số lần nhập sai mật khẩu hiện tại tối đa trong 1 phút
     public const MAX_ATTEMPTS = 5;
 
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
 
-    // Hiện thông báo thành công sau khi đổi
     public bool $changed = false;
 
-    // Đang dùng mật khẩu tạm (quên mật khẩu): bắt buộc đổi, không cần nhập mật khẩu hiện tại
     public bool $forced = false;
 
     public function mount(): void
@@ -73,7 +67,6 @@ class ChangePassword extends Component
 
         $user = Auth::user();
 
-        // Người dùng vừa đăng nhập bằng mật khẩu tạm nên bỏ qua bước kiểm tra mật khẩu hiện tại
         if (! $this->forced) {
             $limiter = $this->limiter();
             $key = 'change-password:'.$user->account_id;
@@ -92,14 +85,11 @@ class ChangePassword extends Component
             $limiter->clear($key);
         }
 
-        // Cột password có cast 'hashed' nên gán mật khẩu thô, model tự băm
         $user->update(['password' => $this->password]);
-        // Đã đặt mật khẩu mới → gỡ cờ bắt buộc đổi, mở lại các trang khác
+
         $user->setMustChangePassword(false);
         $this->forced = false;
 
-        // Đăng xuất các thiết bị dùng API (token Sanctum) sau khi đổi mật khẩu.
-        // Bảng personal_access_tokens tạo bằng migration, có thể chưa có nếu chỉ import odin.sql.
         if (Schema::hasTable('personal_access_tokens')) {
             $user->tokens()->delete();
         }
@@ -109,9 +99,6 @@ class ChangePassword extends Component
         $this->changed = true;
     }
 
-    /**
-     * Đếm số lần nhập sai bằng cache file - không phụ thuộc bảng `cache` trong DB.
-     */
     private function limiter(): RateLimiter
     {
         return new RateLimiter(Cache::store('file'));

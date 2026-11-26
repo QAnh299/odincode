@@ -8,22 +8,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
-/**
- * Lịch hẹn. Một lịch hẹn (cùng mã) có thể gồm cả test và tư vấn: mỗi loại một dòng,
- * khoá chính ghép (appointment_id, appointment_type). Địa điểm là cơ sở của khách (Leads.branch_id).
- */
 class Appointment extends Model
 {
     use HasCompositeKey;
     use HasFactory;
     use HasStringId;
 
-    // Loại lịch hẹn
     public const TYPE_TEST = 'Test';
     public const TYPE_CONSULTATION = 'Consultation';
     public const TYPES = [self::TYPE_TEST, self::TYPE_CONSULTATION];
 
-    // Trạng thái: Success = khách đã đến, Failed = khách không đến
     public const STATUS_SCHEDULED = 'Scheduled';
     public const STATUS_SUCCESS = 'Success';
     public const STATUS_FAILED = 'Failed';
@@ -31,7 +25,6 @@ class Appointment extends Model
 
     protected $table = 'Appointments';
 
-    // Khoá chính ghép (appointment_id, appointment_type)
     protected $primaryKey = 'appointment_id';
 
     protected array $compositeKey = ['appointment_id', 'appointment_type'];
@@ -66,10 +59,6 @@ class Appointment extends Model
         return $this->belongsTo(Opportunity::class, 'opportunity_id', 'opportunity_id');
     }
 
-    /**
-     * Gom các dòng lịch hẹn (đã sắp theo thời gian tăng dần) theo mã để hiển thị: mới nhất lên đầu,
-     * "lần N" đánh theo thời gian. Mỗi nhóm: id, no, rows (Test trước, Tư vấn sau).
-     */
     public static function groupForDisplay(Collection $rows): Collection
     {
         return $rows->groupBy('appointment_id')

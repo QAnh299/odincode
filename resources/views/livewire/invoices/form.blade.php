@@ -31,7 +31,6 @@
     </nav>
 
     @if ($this->blocked === 'missing_profile')
-        {{-- HĐ19 → HĐ20: khách thiếu email (cần để gửi email hóa đơn) → SP bổ sung rồi tiếp tục --}}
         <section class="qt-card qt-panel-card iv-profile">
             <p class="qt-followup__title"><x-icon name="alert" />{{ __('invoices.form.blocked.missing_profile') }}</p>
             <form wire:submit="saveCustomerEmail" class="iv-profile__form">
@@ -54,21 +53,17 @@
         </section>
     @else
         <form wire:submit="save" novalidate>
-            {{-- Một khung phiếu: đơn hàng (khách, khóa học, tổng / đã đóng / còn lại) + phần nhập kỳ thanh toán này --}}
             <x-invoice-receipt :order="$order" :invoice="$editing" :installment="$this->nextInstallment" :issued-date="$this->issuedDate()">
                 <h3 class="iv-doc__part-title">{{ __('invoices.form.this_installment', ['number' => $this->nextInstallment]) }}</h3>
 
-                {{-- Hóa đơn Quá hạn: chọn hạn mới từ hôm nay để mở lại --}}
                 @if ($this->isOverdue)
                     <p class="iv-doc__note"><x-icon name="alert" />{{ __('invoices.form.overdue_reopen') }}</p>
                 @endif
 
-                {{-- Có giao dịch chuyển khoản lệch: chỉ sửa hạn, số tiền / hình thức / phương thức giữ nguyên --}}
                 @if ($locked)
                     <p class="iv-doc__note"><x-icon name="alert" />{{ __('invoices.form.transfer_locked') }}</p>
                 @endif
 
-                {{-- HĐ21 – HĐ22: chọn hình thức một lần cho đơn (sửa: chỉ hóa đơn đầu tiên và duy nhất) --}}
                 @if ($this->needsType)
                     <fieldset class="qt-field iv-form-block">
                         <legend class="qt-field__label">{{ __('invoices.payment_type_label') }} *</legend>
@@ -88,7 +83,6 @@
                 @endif
 
                 <div class="qt-form-fields">
-                    {{-- HĐ23: Toàn bộ → tự điền phần còn lại, khóa; Trả góp → SP nhập (tối đa = còn lại − đang chờ) --}}
                     <label class="qt-field">
                         <span class="qt-field__label">{{ __('invoices.amount') }} (VNĐ) *</span>
                         <input type="number" min="1" step="1000" max="{{ $limits['max'] }}" wire:model="amount"
@@ -119,7 +113,6 @@
                         @enderror
                     </label>
 
-                    {{-- HĐ24: phương thức của hóa đơn này (sửa được khi còn Chờ thanh toán, trừ khi có giao dịch lệch) --}}
                     <fieldset class="qt-field qt-field--wide">
                         <legend class="qt-field__label">{{ __('invoices.method_label') }} *</legend>
                         <div class="iv-checks">

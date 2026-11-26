@@ -1,5 +1,5 @@
 @php
-    // Màu có sẵn (màu đầu tiên là màu mặc định của ODIN, khớp với resources/js/theme.js)
+
     $presets = [
         'green'  => '#005e12',
         'teal'   => '#0f766e',
@@ -15,8 +15,6 @@
     $languages = ['vi' => __('general.vietnamese'), 'en' => __('general.english')];
 @endphp
 
-{{-- Popup Cài đặt: ngôn ngữ và màu giao diện (xử lý trong resources/js/theme.js).
-     Mở bằng: data-bs-toggle="modal" data-bs-target="#settingsModal" --}}
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

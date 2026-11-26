@@ -21,23 +21,18 @@ class Opportunity extends Model
 
     public const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_WON, self::STATUS_LOST, self::STATUS_ARCHIVED];
 
-    // Data đã xử lý: số ngày để khách quyết định, tính từ lúc chuyển sang stage này
     public const DECISION_DAYS = 14;
 
-    // Data chưa tương tác: được phân quá số ngày này mà chưa liên hệ lần nào → nhắc trên chuông thông báo
     public const FIRST_CONTACT_DAYS = 1;
 
-    // Không liên lạc được: lần liên hệ tiếp theo sau số ngày này (hệ thống nhắc khi tới hạn)
     public const RECONTACT_DAYS = 1;
 
-    // Data đã có lịch hẹn: quá số ngày này kể từ buổi khách không đến mà chưa hẹn lại → Archived
     public const REBOOK_DAYS = 7;
 
     protected $table = 'Opportunities';
 
     protected $primaryKey = 'opportunity_id';
 
-    // Cơ hội thay đổi → thẻ thống kê danh sách Lead (chờ phân, khách cũ quay lại) phải tính lại
     protected static function booted(): void
     {
         static::saved(fn () => Lead::touchStats());
@@ -76,7 +71,7 @@ class Opportunity extends Model
     {
         return match ($employee?->role_name) {
             Role::DIRECTOR, Role::SALE_ADMIN => $query,
-            // Kế toán: khách thuộc cơ sở mình phụ trách (Employee::coveredBranchIds)
+
             Role::ACCOUNTANT  => $query->whereHas('lead', fn ($q) => $q->whereIn('branch_id', $employee->coveredBranchIds())),
             Role::SALE_LEADER => $employee->team_id
                 ? $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id))
@@ -86,11 +81,6 @@ class Opportunity extends Model
         };
     }
 
-    /**
-     * Cơ hội đã phân cho salesperson (Lead đã 'Converted'). Cơ hội trưởng nhóm đang giữ chờ phân
-     * (Lead còn 'New') chưa xuất hiện ở Quản lý cơ hội.
-     * Khách cũ được đưa về hàng chờ (Lead 'New' lại): các cơ hội đã kết thúc trước đó vẫn hiển thị.
-     */
     public function scopeAssigned(Builder $query): Builder
     {
         return $query->where(fn ($q) => $q
@@ -118,10 +108,6 @@ class Opportunity extends Model
         return $this->hasMany(OpportunityTransfer::class, 'opportunity_id', 'opportunity_id');
     }
 
-    /**
-     * Học viên được tạo từ chính cơ hội này (qua opportunity_id).
-     * Dùng để kiểm tra "cơ hội này đã chốt chưa?" — không dùng để lấy thông tin người học.
-     */
     public function student()
     {
         return $this->hasOne(Student::class, 'opportunity_id', 'opportunity_id');
@@ -168,7 +154,6 @@ class Opportunity extends Model
 
     public function stageEnteredAt(): Carbon
     {
-        // Dùng attribute đã load sẵn bằng scopeWithStageEnteredAt() nếu có (tránh N+1)
         $changed = array_key_exists('stage_entered_at', $this->attributes)
             ? $this->attributes['stage_entered_at']
             : $this->stagesHistory()->where('to_stage_id', $this->stage_id)->max('changed_at');
@@ -222,11 +207,6 @@ class Opportunity extends Model
                 || ! $this->appointments()->where('status', Appointment::STATUS_SCHEDULED)->exists());
     }
 
-    /**
-     * Khách đồng ý đăng ký, được lập báo giá đầu tiên: đang xử lý ở Data chưa tương tác (đã "Liên hệ ban đầu"
-     * thành công) hoặc Data đã xử lý (đã "Chốt đăng ký" thành công, chưa quá hạn quyết định) - tính từ lúc vào stage.
-     * Lưu báo giá (kể cả Nháp) mới chuyển cơ hội sang stage Chốt.
-     */
     public function agreedToRegister(): bool
     {
         $activity = [Stage::UNTOUCHED => CareActivity::INITIAL, Stage::PROCESSED => CareActivity::DECISION][$this->stage_id] ?? null;

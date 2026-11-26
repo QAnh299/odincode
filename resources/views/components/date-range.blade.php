@@ -1,8 +1,3 @@
-{{--
-    Ô chọn khoảng ngày: bấm 2 ngày trên cùng một lịch → [từ ngày, đến ngày] (Y-m-d).
-    Ghi thẳng vào 2 thuộc tính của component Livewire đang chứa nó (resources/js/date-range.js).
-    Dùng: <x-date-range from="from" to="to" />
---}}
 @props(['from' => 'from', 'to' => 'to', 'align' => 'end'])
 
 <div {{ $attributes->class(['odin-dr', 'odin-dr--'.$align]) }}

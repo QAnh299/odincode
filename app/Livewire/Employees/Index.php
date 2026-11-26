@@ -15,13 +15,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách nhân viên + tra cứu (tìm kiếm, lọc vai trò / đội / chi nhánh / trạng thái).
- * Chỉ xem. Phạm vi theo Employee::scopeVisibleTo:
- *   - Giám đốc: toàn bộ nhân viên.
- *   - Sale Admin: Sale Leader + Salesperson.
- *   - Sale Leader: Salesperson trong đội của mình (không có bộ lọc vai trò / đội / chi nhánh).
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -31,7 +24,6 @@ class Index extends Component
 
     public const SORTS = ['code', 'name', 'newest', 'oldest'];
 
-    // Giá trị bộ lọc đặc biệt: nhân viên chưa thuộc đội nào
     public const NO_TEAM = 'none';
 
     #[Url(as: 'q', except: '')]
@@ -59,9 +51,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Bấm vào thẻ thống kê: lọc theo trạng thái, bấm lại thì bỏ lọc.
-     */
     public function filterState(string $state): void
     {
         $this->state = $this->state === $state ? '' : $state;
@@ -74,27 +63,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Prefix route theo vai trò, VD: 'director' → route 'director.employees.show'.
-     */
     #[Computed]
     public function routePrefix(): string
     {
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Có bộ lọc Đội và Chi nhánh (Giám đốc, Sale Admin); Sale Leader chỉ xem đội của mình.
-     */
     #[Computed]
     public function canFilterScope(): bool
     {
         return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
-    /**
-     * Vai trò cho bộ lọc: chỉ các vai trò mà người đang đăng nhập được xem.
-     */
     #[Computed]
     public function roles(): Collection
     {
@@ -104,9 +84,6 @@ class Index extends Component
             ->orderBy('role_id')->get(['role_id', 'role_name']);
     }
 
-    /**
-     * Chỉ hiện bộ lọc Vai trò khi có từ 2 vai trò trở lên (Sale Leader chỉ xem Salesperson).
-     */
     #[Computed]
     public function canFilterRole(): bool
     {
@@ -129,9 +106,6 @@ class Index extends Component
             : collect();
     }
 
-    /**
-     * Đội đang xem của Sale Leader (hiện trong tiêu đề).
-     */
     #[Computed]
     public function ownTeam(): ?SalesTeam
     {
@@ -140,9 +114,6 @@ class Index extends Component
         return $this->routePrefix === Role::SALE_LEADER && $teamId ? SalesTeam::find($teamId) : null;
     }
 
-    /**
-     * Số nhân viên theo từng trạng thái trong phạm vi được xem (cho các thẻ thống kê).
-     */
     #[Computed]
     public function counts(): array
     {
@@ -192,9 +163,6 @@ class Index extends Component
         ])->title(__('employees.title'));
     }
 
-    /**
-     * Nhân viên trong phạm vi được xem của người đang đăng nhập.
-     */
     private function baseQuery(): Builder
     {
         return Employee::query()->visibleTo(Auth::user()->employee);

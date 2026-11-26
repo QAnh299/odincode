@@ -1,7 +1,7 @@
 @props(['name'])
 
 @php
-    // Icon nét (stroke) dùng chung: <x-icon name="search" class="..." />
+
     $paths = [
         'search'      => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
         'filter'      => '<path d="M22 3H2l8 9.46V19l4 2v-8.54z"/>',
@@ -50,7 +50,6 @@
         'list'        => '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
         'arrow-right' => '<path d="M5 12h14M12 5l7 7-7 7"/>',
 
-        // Loại biểu đồ (trang báo cáo)
         'chart-bar'      => '<path d="M3 3v18h18"/><path d="M8 17v-5M13 17V7M18 17v-8"/>',
         'chart-bar_h'    => '<path d="M3 3v18h18"/><path d="M7 7h9M7 12h12M7 17h5"/>',
         'chart-stacked'  => '<path d="M3 3v18h18"/><rect x="6" y="11" width="4" height="6"/><rect x="6" y="7" width="4" height="4"/><rect x="14" y="13" width="4" height="4"/><rect x="14" y="5" width="4" height="8"/>',

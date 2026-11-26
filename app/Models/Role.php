@@ -11,12 +11,11 @@ class Role extends Model
     use HasFactory;
     use HasStringId;
 
-    // Giá trị role_name trong bảng Roles
-    public const DIRECTOR = 'director';       // Giám đốc
-    public const SALE_ADMIN = 'sale_admin';   // Sale Admin
-    public const SALE_LEADER = 'sale_leader'; // Sale Leader
-    public const SALESPERSON = 'salesperson'; // Salesperson
-    public const ACCOUNTANT = 'accountant';   // Kế toán
+    public const DIRECTOR = 'director';
+    public const SALE_ADMIN = 'sale_admin';
+    public const SALE_LEADER = 'sale_leader';
+    public const SALESPERSON = 'salesperson';
+    public const ACCOUNTANT = 'accountant';
 
     protected $table = 'Roles';
 

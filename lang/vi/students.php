@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang học viên: danh sách (livewire/students/index) và chi tiết (livewire/students/show)
 return [
     'title'              => 'Danh sách học viên',
     'subtitle'           => 'Khách hàng đã thanh toán toàn bộ học phí của khóa học đăng ký',
@@ -20,7 +19,6 @@ return [
         'Dropped'   => 'Đã nghỉ',
     ],
 
-    // Tra cứu
     'lookup'             => 'Tra cứu học viên',
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã, họ tên, SĐT hoặc email…',
@@ -34,13 +32,20 @@ return [
     'resigned'           => 'đã nghỉ',
     'from'               => 'Từ ngày',
     'to'                 => 'Đến ngày',
+    'lead_filter' => [
+        'label'   => 'Lọc theo Lead',
+        'source'  => 'Nguồn :value',
+        'method'  => 'Kênh :value',
+        'branch'  => 'Chi nhánh :value',
+        'created' => 'Lead tạo :from → :to',
+        'clear'   => 'Bỏ lọc theo Lead',
+    ],
     'reset'              => 'Xoá bộ lọc',
     'loading'            => 'Đang tải…',
     'result_count'       => 'Tìm thấy :count học viên',
     'empty'              => 'Không tìm thấy học viên nào',
     'empty_sub'          => 'Thử đổi từ khoá hoặc bỏ bớt bộ lọc.',
 
-    // Cột / trường
     'code'               => 'Mã học viên',
     'student'            => 'Học viên',
     'full_name'          => 'Họ và tên',
@@ -54,7 +59,6 @@ return [
     'actions'            => 'Thao tác',
     'view'               => 'Xem chi tiết',
 
-    // Chi tiết
     'back_to'            => 'Quay lại :code',
     'back'               => 'Quay lại danh sách',
     'edit'               => 'Chỉnh sửa',
@@ -74,7 +78,7 @@ return [
         'Lost'       => 'Từ chối',
         'Archived'   => 'Lưu trữ',
     ],
-    // Chi tiết: đầu trang, thẻ khóa học, tham chiếu
+
     'stat_courses'       => 'Số khóa học',
     'stat_total'         => 'Tổng học phí',
     'remaining'          => 'Còn lại',
@@ -108,7 +112,6 @@ return [
     'method'             => 'Phương thức',
     'payment_date'       => 'Ngày thanh toán',
 
-    // Chỉnh sửa
     'edit_title'         => 'Chỉnh sửa thông tin học viên',
     'save'               => 'Lưu thay đổi',
     'saved'              => 'Đã cập nhật thông tin học viên.',

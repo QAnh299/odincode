@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang thông tin tài khoản cá nhân (livewire/profile/show.blade.php)
 return [
     'title'           => 'Thông tin tài khoản',
     'personal'        => 'Thông tin cá nhân',

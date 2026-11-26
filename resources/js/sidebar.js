@@ -1,7 +1,3 @@
-// ── Menu dọc bên trái: thu gọn / mở rộng + mở menu con ───────────────
-// Trạng thái thu gọn lưu ở localStorage; class được áp sẵn trong <head>
-// của layouts/app.blade.php để trang không bị nháy khi tải.
-
 const STORAGE_KEY = "odin.sidebar.collapsed";
 const COLLAPSED_CLASS = "odin-sidebar-collapsed";
 const root = document.documentElement;
@@ -21,7 +17,6 @@ function setCollapsed(collapsed) {
     try {
         localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
     } catch (e) {
-        // Trình duyệt chặn localStorage: vẫn thu gọn được, chỉ không nhớ.
     }
 }
 
@@ -41,7 +36,6 @@ document.addEventListener("click", (event) => {
         return;
     }
 
-    // Đang thu gọn (chỉ icon): mở rộng menu ra rồi mở luôn menu con
     if (desktop.matches && root.classList.contains(COLLAPSED_CLASS)) {
         setCollapsed(false);
         setSubmenuOpen(submenuToggle, true);

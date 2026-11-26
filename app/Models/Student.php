@@ -7,16 +7,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Học viên: người đã thanh toán ít nhất một lần - 1 Lead = 1 Student xuyên suốt mọi lần đăng ký.
- * opportunity_id ghi lại cơ hội tạo ra học viên này (dùng cho báo cáo tính theo salesperson).
- */
 class Student extends Model
 {
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái (CHECK trong odin.sql: Studying, Dropped, Completed)
     public const STATUS_STUDYING = 'Studying';
     public const STATUS_COMPLETED = 'Completed';
     public const STATUS_DROPPED = 'Dropped';
@@ -49,27 +44,16 @@ class Student extends Model
         'conversion_date' => 'datetime',
     ];
 
-    /**
-     * Lead (người) của học viên.
-     */
     public function lead()
     {
         return $this->belongsTo(Lead::class, 'lead_id', 'lead_id');
     }
 
-    /**
-     * Cơ hội đã tạo ra học viên này (lần đăng ký đầu tiên).
-     */
     public function opportunity()
     {
         return $this->belongsTo(Opportunity::class, 'opportunity_id', 'opportunity_id');
     }
 
-    /**
-     * Học viên mà nhân viên được phép xem: theo bất kỳ Opportunity nào cùng Lead.
-     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách,
-     * Sale Leader xem của đội mình, Salesperson xem của chính mình.
-     */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return $query->whereHas('lead', fn ($q) =>
@@ -77,9 +61,6 @@ class Student extends Model
         );
     }
 
-    /**
-     * Đơn hàng đã đóng tiền của bất kỳ cơ hội nào cùng Lead.
-     */
     public function paidOrder(): ?SalesOrder
     {
         return SalesOrder::query()
@@ -89,11 +70,6 @@ class Student extends Model
             ->first();
     }
 
-    /**
-     * Tạo / cập nhật học viên khi thanh toán thành công (gọi từ SalesOrder khi lưu).
-     * - Lead chưa có học viên → tạo mới.
-     * - Lead đã có → cập nhật trạng thái về Studying nếu trước đó Completed / Dropped.
-     */
     public static function enrollFromOrder(SalesOrder $order): ?self
     {
         $opportunity = $order->quotation?->opportunity;

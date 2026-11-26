@@ -12,13 +12,11 @@ class SalesOrder extends Model
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái đơn hàng (CHECK trong odin.sql: InProgress, Completed). InProgress khi còn nợ, Completed khi hết nợ (HĐ33)
     public const STATUS_IN_PROGRESS = 'InProgress';
     public const STATUS_COMPLETED = 'Completed';
 
     public const STATUSES = [self::STATUS_IN_PROGRESS, self::STATUS_COMPLETED];
 
-    // Hình thức thanh toán (CHECK trong odin.sql: Full, Installment)
     public const PAYMENT_FULL = 'Full';
     public const PAYMENT_INSTALLMENT = 'Installment';
 
@@ -32,7 +30,6 @@ class SalesOrder extends Model
 
     protected int $idLength = 3;
 
-    // Bảng SalesOrders chỉ có created_at
     public const UPDATED_AT = null;
 
     protected $fillable = [
@@ -53,10 +50,6 @@ class SalesOrder extends Model
         'created_at'       => 'datetime',
     ];
 
-    /**
-     * Đơn hàng có lần thanh toán thành công đầu tiên (trả toàn bộ hoặc kỳ trả góp đầu) → khách trở thành học viên
-     * (chốt 06/11/2026). Các kỳ sau không tạo thêm: enrollFromOrder bỏ qua Opportunity đã có học viên.
-     */
     protected static function booted(): void
     {
         static::saved(function (self $order) {
@@ -76,18 +69,11 @@ class SalesOrder extends Model
         return $this->hasMany(Invoice::class, 'order_id', 'order_id');
     }
 
-    /**
-     * Đơn hàng mà nhân viên được phép xem: theo báo giá của đơn (Quotation::visibleTo).
-     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của đội mình, Salesperson xem của chính mình.
-     */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return $query->whereHas('quotation', fn ($q) => $q->visibleTo($employee));
     }
 
-    /**
-     * Phần trăm đã thanh toán = đã thanh toán ÷ tổng tiền, làm tròn (tổng = 0 thì 0), giới hạn 0 - 100.
-     */
     public function progressPercent(): int
     {
         $total = (float) $this->total_amount;

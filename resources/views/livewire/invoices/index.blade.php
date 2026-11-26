@@ -10,10 +10,8 @@
     $pending = $this->hasPendingChanges();
     $chips = $this->chips;
 
-    // Số bộ lọc trong panel đang áp dụng (huy hiệu trên nút "Bộ lọc"); từ khóa nằm ở ô tìm kiếm nên không tính
     $panelCount = count(array_diff_key($chips, ['search' => true]));
 
-    // Thẻ thống kê trạng thái: [trạng thái, icon]
     $tabs = [
         ['', 'layers'],
         [Invoice::STATUS_UNPAID, 'hourglass'],
@@ -26,20 +24,15 @@
 @endphp
 
 <div class="iv">
-    {{-- CSS riêng của trang hóa đơn: resources/css/invoice.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/invoice.css')
     @endassets
 
-    {{-- Tiêu đề hiển thị ở thanh trên cùng; giữ thẻ h1 ẩn cho trình đọc màn hình.
-         Không có nút "Tạo hóa đơn": hóa đơn được tạo từ đơn hàng (HĐ18). --}}
     <h1 class="visually-hidden">{{ __('invoices.title') }}</h1>
 
-    {{-- ── Khối dính khi cuộn: thẻ trạng thái + tổng tiền + thanh công cụ + chip bộ lọc ── --}}
     <div class="iv-sticky">
 
         <div class="iv-overview">
-            {{-- Thẻ trạng thái (bấm để lọc ngay, bấm lại bỏ lọc; số đếm theo mọi bộ lọc trừ trạng thái) --}}
             <nav class="iv-tabs" aria-label="{{ __('invoices.status_label') }}">
                 @foreach ($tabs as [$key, $icon])
                     @php $current = $key === '' ? $activeStatuses === [] : $activeStatuses === [$key]; @endphp
@@ -53,7 +46,6 @@
                 @endforeach
             </nav>
 
-            {{-- Tổng tiền trong phạm vi quyền + bộ lọc hiện tại (trừ trạng thái) --}}
             <div class="iv-totals" aria-label="{{ __('invoices.totals_label') }}" title="{{ __('invoices.totals_label') }}">
                 <span class="iv-total iv-total--collected">
                     <x-icon name="wallet" />
@@ -69,7 +61,6 @@
             </div>
         </div>
 
-        {{-- Thanh công cụ: tìm kiếm (cập nhật ngay) + nút Bộ lọc + Xoá bộ lọc --}}
         <div class="iv-toolbar" x-data="{ open: false }" x-on:keydown.escape.window="open = false"
             x-on:invoice-filters-applied.window="open = false">
             <div class="iv-search">
@@ -80,7 +71,6 @@
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 </span>
 
-                {{-- Hướng dẫn cú pháp tìm kiếm --}}
                 <span class="iv-hint" x-data="{ tip: false }" x-on:click.outside="tip = false">
                     <button type="button" class="iv-hint__btn" x-on:click="tip = ! tip" :aria-expanded="tip.toString()"
                         title="{{ __('invoices.search_help_title') }}">
@@ -90,7 +80,6 @@
                     <span class="iv-hint__pop" x-show="tip" x-cloak x-transition.opacity role="tooltip">
                         <strong>{{ __('invoices.search_help_title') }}</strong>
                         <span class="iv-hint__list">
-                            {{-- Chuỗi cố định trong lang (có thẻ <code>/<strong>), không chứa dữ liệu người dùng --}}
                             @foreach (__('invoices.search_help') as $line)
                                 <span class="iv-hint__item">{!! $line !!}</span>
                             @endforeach
@@ -107,12 +96,10 @@
                     @if ($panelCount)
                         <span class="iv-btn__badge">{{ $panelCount }}</span>
                     @endif
-                    {{-- Chấm báo: đã đổi bộ lọc trong panel nhưng chưa bấm Áp dụng --}}
                     <span class="iv-btn__dot" title="{{ __('invoices.pending') }}"
                         @unless ($pending) wire:dirty wire:target="form" @endunless></span>
                 </button>
 
-                {{-- Panel bộ lọc: thả xuống trên màn rộng, drawer toàn màn hình trên màn hẹp --}}
                 <div class="iv-panel" id="iv-panel" x-show="open" x-cloak x-transition.opacity role="dialog"
                     aria-label="{{ __('invoices.filters') }}">
                     <form wire:submit="applyFilters" class="iv-panel__form">
@@ -125,7 +112,6 @@
                         </div>
 
                         <div class="iv-panel__body">
-                            {{-- Trạng thái (chọn nhiều, đồng bộ với thẻ thống kê) --}}
                             <fieldset class="iv-field">
                                 <legend class="iv-field__label">{{ __('invoices.status_label') }}</legend>
                                 <div class="iv-checks">
@@ -138,7 +124,6 @@
                                 </div>
                             </fieldset>
 
-                            {{-- Phương thức (chọn nhiều, gồm "Chưa chọn" = NULL) --}}
                             <fieldset class="iv-field">
                                 <legend class="iv-field__label">{{ __('invoices.method_label') }}</legend>
                                 <div class="iv-checks">
@@ -172,7 +157,6 @@
                                 </select>
                             </label>
 
-                            {{-- Khoảng số tiền: ô chữ để báo lỗi khi nhập số âm / chữ (cho phép 3.000.000) --}}
                             <fieldset class="iv-field">
                                 <legend class="iv-field__label">{{ __('invoices.amount_range') }}</legend>
                                 <div class="iv-range">
@@ -192,7 +176,6 @@
                                 @enderror
                             </fieldset>
 
-                            {{-- Khoảng ngày: cặp từ / đến trong một nhóm (không có thư viện date range picker) --}}
                             @foreach (['issued' => ['issuedFrom', 'issuedTo'], 'due' => ['dueFrom', 'dueTo'], 'paid' => ['paidFrom', 'paidTo']] as $group => [$from, $to])
                                 <fieldset class="iv-field" wire:key="range-{{ $group }}">
                                     <legend class="iv-field__label">{{ __('invoices.'.$group.'_range') }}</legend>
@@ -213,7 +196,6 @@
                             @if ($this->canFilterTeam)
                                 <label class="iv-field">
                                     <span class="iv-field__label">{{ __('invoices.team') }}</span>
-                                    {{-- .live chỉ để thu hẹp danh sách nhân viên theo đội, danh sách hóa đơn chưa đổi --}}
                                     <select wire:model.live="form.team" class="iv-control">
                                         <option value="">{{ __('invoices.all_teams') }}</option>
                                         @foreach ($this->teams as $option)
@@ -235,7 +217,6 @@
                                 </label>
                             @endif
 
-                            {{-- Công tắc: hàng đợi duyệt tiền mặt của kế toán (Chờ thanh toán + Tiền mặt, HĐ30 - HĐ32) --}}
                             <label class="iv-switch iv-field--wide">
                                 <input type="checkbox" role="switch" wire:model="form.cashPending">
                                 <span class="iv-switch__track" aria-hidden="true"><span class="iv-switch__thumb"></span></span>
@@ -247,7 +228,6 @@
                         </div>
 
                         <div class="iv-panel__foot">
-                            {{-- Nhắc khi bộ lọc trên form khác bộ lọc đang áp dụng (wire:dirty: đổi phía trình duyệt chưa gửi) --}}
                             <span class="iv-pending" role="status" @unless ($pending) wire:dirty wire:target="form" @endunless>
                                 <x-icon name="info" />{{ __('invoices.pending') }}
                             </span>
@@ -264,7 +244,6 @@
                 </div>
             </div>
 
-            {{-- Chỉ hiện khi có bộ lọc / từ khóa đang áp dụng --}}
             @if ($chips !== [])
                 <button type="button" class="iv-btn iv-btn--ghost iv-btn--clear" wire:click="resetFilters">
                     <x-icon name="refresh" /><span>{{ __('invoices.reset') }}</span>
@@ -272,10 +251,8 @@
             @endif
         </div>
 
-        {{-- Dòng gợi ý cú pháp tìm kiếm --}}
         <p class="iv-hintline"><x-icon name="info" />{{ __('invoices.search_hint') }}</p>
 
-        {{-- Bộ lọc đang áp dụng (hiện cả khi panel đã đóng) --}}
         @if ($chips !== [])
             <div class="iv-chips" aria-label="{{ __('invoices.active_filters') }}">
                 <span class="iv-chips__title">{{ __('invoices.active_filters') }}:</span>
@@ -294,7 +271,6 @@
         @endif
     </div>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="iv-card iv-results">
         <div class="iv-results__bar">
             <span>
@@ -358,7 +334,6 @@
                                 $lead = $order?->quotation?->opportunity?->lead;
                                 $url = route($this->routePrefix.'.invoices.show', $invoice);
                             @endphp
-                            {{-- Bấm cả dòng mở chi tiết hóa đơn (giống danh sách báo giá); dùng bàn phím: Tab tới mã hóa đơn rồi Enter --}}
                             <tr wire:key="invoice-{{ $invoice->invoice_id }}" class="iv-row-link" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('invoices.code') }}">
                                     <a href="{{ $url }}" class="iv-code" onclick="event.stopPropagation()">
@@ -392,7 +367,6 @@
                                 <td data-label="{{ __('invoices.due_date') }}">
                                     <span class="iv-stack">
                                         <span class="iv-stack__main">{{ $invoice->due_date?->format('d/m/Y') }}</span>
-                                        {{-- Nhãn tính ra từ hạn thanh toán, không đổi dữ liệu; hóa đơn đã thanh toán không có dòng này --}}
                                         @if (! $isPaid)
                                             @if ($daysLeft < 0)
                                                 <span class="iv-due iv-due--late">
@@ -424,7 +398,6 @@
                                 <td data-label="{{ __('invoices.status_label') }}">
                                     <span class="iv-stack">
                                         <span class="iv-badge iv-tone--{{ $tone($invoice->status) }}">
-                                            {{-- Giá trị ngoài Invoice::STATUSES (dữ liệu cũ) thì hiện nguyên giá trị --}}
                                             <span class="iv-badge__dot"></span>{{ in_array($invoice->status, Invoice::STATUSES, true) ? __('invoices.status.'.$invoice->status) : $invoice->status }}
                                         </span>
                                         @if ($isPaid && $invoice->payment_date)

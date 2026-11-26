@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-// Trang voucher: danh sách (livewire/vouchers/index) và chi tiết (livewire/vouchers/show)
 return [
     'title'              => 'Quản lý voucher',
     'subtitle'           => 'Tra cứu mã giảm giá, thời gian hiệu lực và tình hình áp dụng',
     'detail_title'       => 'Voucher :code',
 
-    // Tra cứu
     'lookup'             => 'Tra cứu voucher',
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã voucher hoặc giá trị giảm (VD: VCH001, 10, 500000)…',
@@ -41,7 +39,6 @@ return [
         'inactive' => 'Không hoạt động',
     ],
 
-    // Cột bảng
     'code'               => 'Mã voucher',
     'value'              => 'Giá trị giảm',
     'validity'           => 'Thời gian hiệu lực',
@@ -50,7 +47,6 @@ return [
     'view'               => 'Xem chi tiết',
     'progress'           => 'Đã qua :percent% thời gian hiệu lực',
 
-    // Chi tiết
     'back'               => 'Quay lại',
     'copy'               => 'Sao chép mã',
     'copied'             => 'Đã sao chép',

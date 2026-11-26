@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Dashboard & Báo cáo
 return [
     'other'         => 'Khác',
     'money_billion' => 'tỷ',
@@ -19,7 +18,6 @@ return [
     'loading'       => 'Đang tải…',
     'no_data'       => 'Không có dữ liệu trong phạm vi lọc.',
 
-    // Popup chọn thời gian xuất Excel (App\Livewire\Reports\Concerns\ExportPeriod)
     'export_period' => [
         'title'          => 'Xuất báo cáo Excel',
         'sub'            => 'Chọn thời gian của báo cáo cần xuất',
@@ -48,7 +46,6 @@ return [
         'err_future'     => 'Kỳ đã chọn chưa bắt đầu, chưa có số liệu.',
     ],
 
-    // Phần đầu / cuối của báo cáo Excel dạng văn bản (App\Services\ReportDocumentWriter)
     'document' => [
         'company_1'  => 'CÔNG TY CỔ PHẦN PHÁT TRIỂN',
         'company_2'  => 'GIÁO DỤC VÀ ĐÀO TẠO ODIN',
@@ -65,7 +62,6 @@ return [
         'sign_hint'  => '(Ký, ghi rõ họ tên)',
     ],
 
-    // Chiều phân tích
     'dimension' => [
         'source' => 'Nguồn Lead',
         'method' => 'Kênh liên hệ',
@@ -75,7 +71,6 @@ return [
         'week'   => 'Tuần',
     ],
 
-    // Chỉ số
     'metric' => [
         'leads'            => 'Số Lead',
         'converted'        => 'Lead đã chuyển đổi',
@@ -90,8 +85,6 @@ return [
         'revenue_per_lead' => 'Doanh thu TB / Lead',
     ],
 
-    // Phân tích chất lượng nguồn Lead
-    // Popup danh sách khi bấm vào số liệu báo cáo
     'drill' => [
         'hint' => 'Bấm để xem danh sách',
         'open' => 'Mở chi tiết (tab mới)',
@@ -161,6 +154,7 @@ return [
             'total_amount' => 'Tổng tiền',
             'paid_amount' => 'Đã thu',
             'student_id' => 'Mã học viên',
+            'notes' => 'Ghi chú',
             'student_name' => 'Học viên',
         ],
     ],
@@ -328,7 +322,6 @@ return [
         ],
     ],
 
-    // Popup xuất báo cáo dùng chung (chọn sheet, cột, xem trước)
     'export_ui' => [
         'period'          => 'Kỳ báo cáo',
         'quarters'        => 'Theo quý',
@@ -353,8 +346,6 @@ return [
         'stt'             => 'STT',
     ],
 
-    // Phân tích hiệu quả Sales Team / Salesperson
-    // Hiệu quả nhân viên Sale (giao diện 2 tab: Đội kinh doanh / Nhân viên kinh doanh)
     'sales_team' => [
         'title'       => 'Hiệu quả nhân viên Sale',
         'month_option' => 'Tháng :month',
@@ -630,8 +621,28 @@ return [
         ],
     ],
 
-    // Phân tích hiệu quả chuyển đổi Lead
     'lead_conversion' => [
+        'drill' => [
+            'contacts' => 'Lần liên hệ',
+            'appointments' => 'Lịch hẹn',
+            'set' => [
+                'all' => 'Danh sách Lead',
+                'opportunities' => 'Lead đã chuyển thành Cơ hội',
+                'contacted' => 'Lead đã được liên hệ',
+                'won' => 'Lead đã chốt',
+                'open' => 'Lead đang xử lý',
+                'lost' => 'Lead bị từ chối',
+                'archived' => 'Lead không liên lạc được',
+                'new' => 'Lead chưa có Cơ hội',
+                'failed' => 'Lead thất bại (từ chối / không liên lạc được)',
+                'closed' => 'Lead đã có kết quả (thắng / thua)',
+                'students' => 'Lead đã thành học viên',
+                'within24' => 'Lead được liên hệ trong 24 giờ',
+                'stuck' => 'Cơ hội bị kẹt',
+                'untouched' => 'Lead đang xử lý chưa liên hệ',
+                'cohort' => 'Lead theo cohort',
+            ],
+        ],
         'title'        => 'Phân tích hiệu quả chuyển đổi Lead',
         'subtitle'     => 'Tỷ lệ chuyển đổi tính theo ngày tạo Lead',
         'from'         => 'Lead tạo từ ngày',
@@ -964,7 +975,6 @@ return [
         ],
     ],
 
-    // Phân tích doanh thu & thanh toán (livewire/reports/revenue)
     'revenue' => [
         'title'      => 'Phân tích doanh thu & thanh toán',
         'subtitle'   => 'Doanh thu đơn hàng, tiền thực thu, phương thức thanh toán và công nợ cần thu hồi',

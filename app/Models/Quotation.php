@@ -12,7 +12,6 @@ class Quotation extends Model
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái báo giá (CHECK trong odin.sql: Draft, Confirmed, Rejected)
     public const STATUS_DRAFT = 'Draft';
     public const STATUS_CONFIRMED = 'Confirmed';
     public const STATUS_REJECTED = 'Rejected';
@@ -61,15 +60,11 @@ class Quotation extends Model
         return $this->hasMany(QuotationDetail::class, 'quotation_id', 'quotation_id');
     }
 
-    /**
-     * Báo giá mà nhân viên được phép xem:
-     * Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách, Sale Leader xem của nhóm mình, Salesperson xem của chính mình.
-     */
     public function scopeVisibleTo(Builder $query, ?Employee $employee): Builder
     {
         return match ($employee?->role_name) {
             Role::DIRECTOR, Role::SALE_ADMIN => $query,
-            // Kế toán: báo giá / đơn / hóa đơn của khách thuộc cơ sở mình phụ trách
+
             Role::ACCOUNTANT  => $query->whereHas('opportunity', fn ($q) => $q->visibleTo($employee)),
             Role::SALE_LEADER => $query->whereHas('employee', fn ($q) => $q->where('team_id', $employee->team_id)),
             Role::SALESPERSON => $query->where('employee_id', $employee->employee_id),
@@ -82,10 +77,6 @@ class Quotation extends Model
         return $this->hasOne(SalesOrder::class, 'quotation_id', 'quotation_id');
     }
 
-    /**
-     * Tạm tính: tổng line_total các dòng chi tiết (đã gồm VAT, trước voucher).
-     * Dùng giá trị withSum('details as details_subtotal', 'line_total') nếu đã nạp sẵn.
-     */
     public function subtotal(): float
     {
         return array_key_exists('details_subtotal', $this->attributes)
@@ -93,28 +84,16 @@ class Quotation extends Model
             : (float) $this->details()->sum('line_total');
     }
 
-    /**
-     * Tiền giảm của voucher trên tạm tính (không có voucher thì 0).
-     */
     public function discountAmount(): float
     {
         return $this->voucher?->discountFor($this->subtotal()) ?? 0.0;
     }
 
-    /**
-     * Tổng tiền báo giá = tạm tính − giảm giá (không lưu trong CSDL, luôn tính ra).
-     */
     public function totalAmount(): float
     {
         return max(0, $this->subtotal() - $this->discountAmount());
     }
 
-    /**
-     * Biểu thức SQL tính tổng tiền báo giá, cùng công thức với totalAmount():
-     * tạm tính = SUM(line_total); voucher % = ROUND(tạm tính × giá trị / 100, 2);
-     * voucher cố định = MIN(giá trị, tạm tính); tổng = MAX(0, tạm tính − giảm giá).
-     * Chỉ chứa hằng số của hệ thống (không có dữ liệu người dùng) nên dùng được trong whereRaw/orderByRaw.
-     */
     public static function totalSql(): string
     {
         $subtotal = '(SELECT COALESCE(SUM(qd.line_total), 0) FROM QuotationDetails AS qd'
@@ -128,9 +107,6 @@ class Quotation extends Model
         return "GREATEST(0, $subtotal - COALESCE($discount, 0))";
     }
 
-    /**
-     * Thêm cột computed_total (tổng tiền tính bằng SQL) để lọc, sắp xếp và hiển thị dùng chung một công thức.
-     */
     public function scopeWithTotal(Builder $query): Builder
     {
         if ($query->getQuery()->columns === null) {
@@ -140,17 +116,11 @@ class Quotation extends Model
         return $query->selectRaw(self::totalSql().' AS computed_total');
     }
 
-    /**
-     * Số ngày còn lại tới ngày hết hạn (hôm nay = 0, đã qua thì âm). Chỉ có ý nghĩa với báo giá Nháp.
-     */
     public function daysUntilExpiry(): int
     {
         return (int) today()->diffInDays($this->expiry_date, false);
     }
 
-    /**
-     * Báo giá Nháp đã quá ngày hết hạn (chỉ là nhãn tính ra, không đổi dữ liệu; tự Từ chối làm ở HĐ15).
-     */
     public function isExpired(): bool
     {
         return $this->status === self::STATUS_DRAFT && $this->daysUntilExpiry() < 0;

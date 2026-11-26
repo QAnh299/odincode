@@ -8,7 +8,7 @@
     $isAuto = $mode === 'auto';
     $isManual = $mode === 'manual';
     $ranking = $this->needsRanking;
-    // Chỉ số hiệu suất tháng trước: luôn hiện khi phân cho Salesperson (để trưởng nhóm cân nhắc), đội thì khi có Lead dư
+
     $showKpis = $ranking || ($mode && ! $this->forTeams);
     $overLimit = $this->overLimit;
     $showList = $mode && ! ($this->forTeams && ! $branch) && $this->targets->isNotEmpty();
@@ -18,7 +18,6 @@
     $receivers = count(array_filter($incoming));
     $available = $this->available;
 
-    // Chỉ số hiệu suất của 1 tiêu chí: [giá trị, ghi chú chưa đủ cỡ mẫu tối thiểu (xếp cuối ở tiêu chí đó) hoặc null]
     $metric = function (?array $perf, string $criterion) {
         $revenue = (float) ($perf['revenue'] ?? 0);
         $value = match ($criterion) {
@@ -39,7 +38,6 @@
     };
     $kpiIcons = ['revenue' => 'wallet', 'close_rate' => 'check-circle', 'avg_close_days' => 'clock'];
 
-    // Chữ cái đại diện + màu avatar cố định theo mã
     $initial = fn (string $name) => mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim($name), ' '), 0, 1));
     $hues = [152, 200, 262, 24, 330, 45];
     $hue = fn (string $id) => $hues[crc32($id) % count($hues)];
@@ -66,7 +64,6 @@
                 </header>
 
                 <div class="ld-modal__body ld-dist__body">
-                    {{-- ── Thiết lập: phương thức + tiêu chí Lead ─────────────── --}}
                         <section class="ld-dist__panel">
                             <div class="ld-dist__grid {{ $mode ? '' : 'is-single' }}">
                                 <label class="vc-field">
@@ -117,13 +114,11 @@
                         </section>
 
                     @if (! $mode)
-                        {{-- Chưa chọn phương thức --}}
                         <div class="ld-dist__state">
                             <span class="ld-dist__state-icon"><x-icon name="layers" /></span>
                             <p>{{ __('leads.distribute.pick_mode') }}</p>
                         </div>
                     @else
-                        {{-- ── Chỉ số nhanh ─────────────────────────────────────── --}}
                         <div class="ld-dist__stats">
                             <div class="ld-dist__stat">
                                 <span class="ld-dist__stat-icon"><x-icon name="inbox" /></span>
@@ -153,7 +148,6 @@
                             </div>
                         </div>
 
-                        {{-- ── Khách cũ / người thân: gợi ý đội / người đang hoặc từng phụ trách ── --}}
                         @php
                             $suggest = $this->returning;
                             $suggestItems = collect(['returning', 'family', 'batch'])
@@ -175,7 +169,6 @@
                             </div>
                         @endif
 
-                        {{-- ── Lead dư → xếp hạng hiệu suất (cộng hạng) ─────────── --}}
                         @if ($showList && $ranking)
                             <div class="ld-dist__ranking">
                                 <span class="ld-dist__ranking-icon"><x-icon name="trending" /></span>
@@ -189,7 +182,6 @@
                             </div>
                         @endif
 
-                        {{-- ── Danh sách nhận Lead ──────────────────────────────── --}}
                         @if ($this->forTeams && ! $branch)
                             <div class="ld-dist__state">
                                 <span class="ld-dist__state-icon"><x-icon name="filter" /></span>
@@ -252,7 +244,6 @@
                                                     </span>
                                                 @endif
                                                 @if ($showKpis)
-                                                    {{-- Chỉ số hiệu suất tháng trước (chỉ để tham khảo); dẫn đầu nhóm ở tiêu chí nào thì tô nổi tiêu chí đó --}}
                                                     @php $board = $this->scoreboard[$id] ?? null; @endphp
                                                     <span class="ld-dist__kpis">
                                                         @foreach (LeadDistributionService::CRITERIA as $criterion)
@@ -303,7 +294,6 @@
                                             @else
                                                 <div class="ld-dist__stepper">
                                                     <button type="button" wire:click="adjust('{{ $id }}', -1)" aria-label="−1">−</button>
-                                                    {{-- Chỉ nhận chữ số: chặn gõ/dán dấu âm, dấu thập phân, số mũ --}}
                                                     <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
                                                         onkeydown="if (['-', '+', '.', ',', 'e', 'E'].includes(event.key)) event.preventDefault()"
                                                         onpaste="if (! /^\d*$/.test(event.clipboardData.getData('text').trim())) event.preventDefault()"
@@ -325,7 +315,6 @@
                         <div class="ld-notice ld-notice--danger ld-notice--inline"><x-icon name="alert" /><span class="ld-notice__text">{{ $message }}</span></div>
                     @enderror
 
-                    {{-- ── Xác nhận phân dù có Salesperson vượt ngưỡng 50 ────── --}}
                     @if ($confirming && $overLimit)
                         <div class="ld-notice ld-notice--warning ld-notice--inline ld-dist__confirm" role="alertdialog"
                             aria-labelledby="ld-dist-confirm-title" x-data x-init="$el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })">

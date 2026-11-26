@@ -8,16 +8,13 @@
 @endphp
 
 <div class="vc od">
-    {{-- Dùng lại giao diện trang voucher (voucher.css), nhãn kênh liên hệ (lead.css) + phần riêng opportunity.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/opportunity.css'])
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     @if ($trailStudent)
         @include('livewire.partials.student-trail', ['class' => 'vc-crumb', 'trail' => $this->studentTrail([['opportunities', $opp->opportunity_id]])])
     @elseif ($appointmentsBackUrl)
-        {{-- Đi từ trang Danh sách lịch hẹn: Lịch hẹn › mã cơ hội, quay lại đúng bộ lọc / trang đang xem --}}
         <nav class="vc-crumb" aria-label="breadcrumb">
             <a href="{{ $appointmentsBackUrl }}" class="odin-back" wire:navigate>
                 <x-icon name="arrow-left" />{{ __('opportunities.back') }}
@@ -41,13 +38,11 @@
         </nav>
     @endif
 
-    {{-- ── Đầu trang: tên khách, nút Tạo báo giá + thanh giai đoạn ───── --}}
     <section class="vc-card od-head">
         <div class="od-head__top">
             <div class="od-head__title">
                 <span class="vc-mono">{{ $opp->opportunity_id }}</span>
                 <h1>{{ $lead?->full_name ?? '-' }}</h1>
-                {{-- Stage Lưu trữ: Từ chối (Lost) / Lưu trữ (Archived), kèm lý do --}}
                 @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
                     <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
                         <span class="vc-badge__dot"></span>{{ __('opportunities.status_name.'.$opp->status) }}
@@ -56,7 +51,6 @@
                         <span class="od-muted">{{ $this->closeReason }}</span>
                     @endif
                 @endif
-                {{-- HĐ11: nhãn tính ra từ báo giá Nháp còn hạn (không lưu trong CSDL) --}}
                 @if ($this->undecidedDays !== null)
                     <span class="vc-badge od-undecided"><x-icon name="hourglass" />{{ __('opportunities.undecided', ['days' => $this->undecidedDays]) }}</span>
                 @endif
@@ -77,7 +71,6 @@
             @endif
         </div>
 
-        {{-- Thanh giai đoạn kiểu Odoo: stage đã qua / hiện tại / chưa tới --}}
         <ol class="od-stages" aria-label="{{ __('opportunities.stage') }}">
             @php $visitedStageIds = $this->visitedStageIds; @endphp
             @foreach ($this->stages as $stage)
@@ -154,7 +147,6 @@
                     @endif
 
                     @if ($tab === 'appointments')
-                        {{-- Form tạo lịch hẹn: chỉ các loại cần hẹn (lần đầu / hẹn lại sau khi khách không đến) --}}
                         @if ($form === 'create')
                             <form class="od-create" wire:submit="saveAppointment">
                                 <h3 class="od-create__title">{{ __('opportunities.create_appointment') }}</h3>
@@ -211,10 +203,8 @@
                             </form>
                         @endif
 
-                        {{-- Lịch hẹn: mới nhất lên đầu; mỗi mã lịch hẹn gồm dòng Test và/hoặc Tư vấn --}}
                         @include('livewire.opportunities.partials.appointment-list', ['appointments' => $appointments, 'place' => $this->appointmentPlace, 'focus' => $focusApt])
                     @else
-                        {{-- Form ghi nhận lần liên hệ tiếp theo (mở từ nút trên hàng tab) --}}
                         @if ($this->needsContact())
                             @if ($form === 'care' && $canLog)
                                 <form class="od-create" wire:submit="saveCare">
@@ -241,7 +231,6 @@
                                             @endforeach
                                         </div>
                                         @error('careResult') <span class="ld-error">{{ $message }}</span> @enderror
-                                        {{-- Thất bại (khách từ chối): báo trước Opportunity sẽ đi đâu --}}
                                         @if ($careResult === \App\Models\CareResult::RESULT_FAILED)
                                             <span class="od-muted">
                                                 {{ __('opportunities.care_failed_lost') }}
@@ -269,13 +258,11 @@
                             @endif
                         @endif
 
-                        {{-- Lịch sử chăm sóc: tách theo hoạt động, mới nhất lên đầu --}}
                         @include('livewire.opportunities.partials.care-history', ['cares' => $cares])
                     @endif
                 </div>
             </section>
 
-            {{-- Báo giá: chỉ ở stage Chốt (stage 1-3 chưa có báo giá) --}}
             @if ($this->showQuotations())
                 @php $quotations = $this->quotations; @endphp
                 <section class="vc-card vc-results">
@@ -304,7 +291,6 @@
                                             $isDraft = $quo->status === \App\Models\Quotation::STATUS_DRAFT;
                                             $daysLeft = $isDraft ? $quo->daysUntilExpiry() : null;
                                         @endphp
-                                        {{-- Bấm cả dòng mở chi tiết báo giá; dùng bàn phím: Tab tới mã báo giá rồi Enter --}}
                                         <tr wire:key="quo-{{ $quo->quotation_id }}" @if ($quoUrl) class="od-row-link" onclick="window.location='{{ $quoUrl }}'" @endif>
                                             <td data-label="{{ __('opportunities.quotation_id') }}">
                                                 @if ($quoUrl)
@@ -320,7 +306,6 @@
                                             <td data-label="{{ __('opportunities.expiry_date') }}" class="ld-nowrap">
                                                 <span class="od-quo-expiry">
                                                     {{ $quo->expiry_date?->format('d/m/Y') }}
-                                                    {{-- Báo giá Nháp: số ngày còn lại / quá hạn (nhãn tính ra) --}}
                                                     @if ($isDraft)
                                                         <small @class(['od-quo-days', 'is-over' => $daysLeft < 0])>
                                                             {{ $daysLeft < 0 ? __('quotations.overdue') : __('quotations.days_left', ['days' => $daysLeft]) }}
@@ -330,7 +315,6 @@
                                             </td>
                                             <td data-label="{{ __('opportunities.voucher') }}">{{ $quo->voucher_id ?? '-' }}</td>
                                             <td data-label="{{ __('opportunities.quotation_total') }}" class="text-lg-end">
-                                                {{-- computed_total = tạm tính − voucher (cùng công thức trang chi tiết báo giá, Quotation::totalSql) --}}
                                                 <span class="vc-value">{{ $money($quo->computed_total) }}</span>
                                             </td>
                                             <td data-label="{{ __('opportunities.status') }}">
@@ -349,7 +333,6 @@
             @endif
         </div>
 
-        {{-- ── Cột phải: thông tin khách hàng + cơ hội ─────────────── --}}
         <aside class="od-side">
             <section class="vc-card">
                 <div class="od-title-row">
@@ -425,14 +408,12 @@
                     @endif
                 </dl>
 
-                {{-- Sale Leader: chuyển người phụ trách (tới hết stage Chốt, khi khách chưa đóng tiền) - mở popup --}}
                 @if ($this->reassignOptions->isNotEmpty())
                     <button type="button" class="vc-btn vc-btn--ghost od-reassign__open" wire:click="startReassign">
                         <x-icon name="users" />{{ __('opportunities.reassign') }}
                     </button>
                 @endif
 
-                {{-- Lịch sử chuyển người phụ trách --}}
                 @if ($this->transfers->isNotEmpty())
                     <div class="od-transfers">
                         <h3 class="od-transfers__title">{{ __('opportunities.transfers') }}</h3>
@@ -460,7 +441,6 @@
             </section>
         </aside>
     </div>
-    {{-- Popup: chuyển người phụ trách (Sale Leader) --}}
     @if ($reassigning && $this->reassignOptions->isNotEmpty())
         <div class="ld-modal" wire:key="modal-reassign" x-data x-on:keydown.escape.window="$wire.cancelReassign()">
             <div class="ld-modal__backdrop" wire:click="cancelReassign"></div>
@@ -479,7 +459,7 @@
                 </header>
 
                 @php
-                    // Thanh tải x/50 như popup phân công Lead (đậm = đang quản lý, sọc = cơ hội này nếu chuyển sang); 50 chỉ là ngưỡng cảnh báo
+
                     $max = \App\Services\LeadDistributionService::MAX_PER_SALESPERSON;
                     $loads = $this->reassignLoad;
                     $loadBar = function (int $now, int $add) use ($max) {
@@ -492,7 +472,7 @@
                             'tone' => $after > $max ? 'danger' : ($after >= $max * 0.8 ? 'warn' : 'ok'),
                         ];
                     };
-                    // Chữ cái đại diện + màu avatar cố định theo mã (giống popup phân công)
+
                     $initial = fn (?string $name) => mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim((string) $name), ' '), 0, 1));
                     $hues = [152, 200, 262, 24, 330, 45];
                     $hue = fn (string $id) => $hues[crc32($id) % count($hues)];
@@ -500,7 +480,6 @@
                     $currentBar = $loadBar($currentLoad, 0);
                 @endphp
                 <div class="ld-modal__body od-reassign">
-                    {{-- Người đang phụ trách --}}
                     <section>
                         <h3 class="od-reassign__label">{{ __('opportunities.reassign_current') }}</h3>
                         <div class="od-reassign__card is-current">
@@ -523,7 +502,6 @@
 
                     <span class="od-reassign__arrow" aria-hidden="true"><x-icon name="chevron" /></span>
 
-                    {{-- Salesperson nhận --}}
                     <section>
                         <h3 class="od-reassign__label">{{ __('opportunities.reassign_to') }} <span class="ld-req">*</span></h3>
                         <div class="od-reassign__list @error('newOwner') is-invalid @enderror" role="radiogroup" aria-label="{{ __('opportunities.reassign_to') }}">
@@ -568,7 +546,6 @@
                         @error('transferReason') <span class="ld-error">{{ $message }}</span> @enderror
                     </label>
 
-                    {{-- Xác nhận chuyển dù người nhận vượt ngưỡng 50 (như popup phân công Lead) --}}
                     @php $over = $this->reassignOver; @endphp
                     @if ($confirmingOver && $over)
                         <div class="ld-notice ld-notice--warning ld-notice--inline ld-dist__confirm" role="alertdialog"
@@ -601,7 +578,6 @@
                         </button>
                     @else
                         <button type="button" class="vc-btn vc-btn--ghost" wire:click="cancelReassign">{{ __('leads.cancel') }}</button>
-                        {{-- Người nhận vượt ngưỡng thì bỏ hộp hỏi chung - server hiện hộp xác nhận vượt ngưỡng ở trên --}}
                         <button type="submit" class="vc-btn vc-btn--primary" wire:loading.attr="disabled" wire:target="reassign"
                             @unless ($over) wire:confirm="{{ __('opportunities.reassign_confirm') }}" @endunless>
                             <x-icon name="check" />{{ __('opportunities.reassign_save') }}
@@ -612,7 +588,6 @@
         </div>
     @endif
 
-    {{-- Popup: chuyển người phụ trách thành công --}}
     @if ($reassigned)
         <div class="ld-modal" wire:key="modal-reassigned" x-data x-on:keydown.escape.window="$wire.closeReassigned()">
             <div class="ld-modal__backdrop" wire:click="closeReassigned"></div>
@@ -643,7 +618,6 @@
         </div>
     @endif
 
-    {{-- ── Popup sửa thông tin khách (Lead) ── --}}
     @if ($editingLead && $this->canEditLead())
         @include('livewire.leads.partials.edit-modal', ['lead' => $lead, 'branches' => collect()])
     @endif

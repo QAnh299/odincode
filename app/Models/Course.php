@@ -12,12 +12,10 @@ class Course extends Model
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái khóa học (cột status): Đang cung cấp hoặc Ngừng cung cấp
     public const STATUS_ACTIVE = 'Active';
 
-    // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang courses.state.*)
-    public const STATE_ACTIVE = 'active';     // status = 'Active'
-    public const STATE_INACTIVE = 'inactive'; // status khác 'Active'
+    public const STATE_ACTIVE = 'active';
+    public const STATE_INACTIVE = 'inactive';
 
     public const STATES = [self::STATE_ACTIVE, self::STATE_INACTIVE];
 
@@ -29,7 +27,6 @@ class Course extends Model
 
     protected int $idLength = 3;
 
-    // Bảng Courses chỉ có created_at
     public const UPDATED_AT = null;
 
     protected $fillable = [
@@ -53,9 +50,6 @@ class Course extends Model
         return $this->hasMany(QuotationDetail::class, 'course_id', 'course_id');
     }
 
-    /**
-     * Lọc theo trạng thái (một trong self::STATES).
-     */
     public function scopeState(Builder $query, string $state): Builder
     {
         return match ($state) {
@@ -70,29 +64,16 @@ class Course extends Model
         return $this->status === self::STATUS_ACTIVE ? self::STATE_ACTIVE : self::STATE_INACTIVE;
     }
 
-    /**
-     * Học phí hiển thị: "6.000.000 ₫".
-     */
     public function displayPrice(): string
     {
         return number_format((float) $this->unit_price, 0, ',', '.').' ₫';
     }
 
-    /**
-     * VAT hiển thị: "10%", "0%", "8,5%".
-     */
     public function displayVat(): string
     {
         return rtrim(rtrim(number_format((float) $this->VAT, 2, ',', '.'), '0'), ',').'%';
     }
 
-    /**
-     * Các dòng báo giá (QuotationDetails) của khóa học, đã nối với Quotations.
-     * Khóa chính (quotation_id, course_id) nên mỗi báo giá có đúng 1 dòng cho khóa học này.
-     *
-     * @param  array<int, string>|null  $employeeIds  null: mọi báo giá; mảng: chỉ báo giá do các nhân viên này lập
-     *                                                ([] = không có báo giá nào)
-     */
     public function quotationLines(?array $employeeIds = null): Builder
     {
         return QuotationDetail::query()
@@ -101,11 +82,6 @@ class Course extends Model
             ->when($employeeIds !== null, fn ($q) => $q->whereIn('Quotations.employee_id', $employeeIds));
     }
 
-    /**
-     * Thống kê báo giá của khóa học (1 truy vấn GROUP BY trạng thái).
-     *
-     * @param  array<int, string>|null  $employeeIds  phạm vi nhân viên, như quotationLines()
-     */
     public function quotationStats(?array $employeeIds = null): array
     {
         $rows = $this->quotationLines($employeeIds)
@@ -120,12 +96,6 @@ class Course extends Model
         return self::summarizeQuotationStats($rows);
     }
 
-    /**
-     * Tính số liệu từ kết quả GROUP BY (tách riêng để test không cần CSDL).
-     *
-     * @param  array<int, array{status: string, quotations: int|string, seats: int|string|null, revenue: float|string|null}>  $rows
-     * @return array{total: int, by_status: array<string, int>, seats_confirmed: int, revenue_confirmed: float, close_rate: float|null}
-     */
     public static function summarizeQuotationStats(array $rows): array
     {
         $byStatus = array_fill_keys(Quotation::STATUSES, 0);
@@ -137,7 +107,6 @@ class Course extends Model
             $count = (int) $row['quotations'];
             $total += $count;
 
-            // Collation không phân biệt hoa thường: 'confirmed' cũng là Confirmed
             $status = collect(Quotation::STATUSES)->first(fn ($s) => strcasecmp($s, (string) $row['status']) === 0);
             if ($status === null) {
                 continue;
@@ -151,7 +120,6 @@ class Course extends Model
             }
         }
 
-        // Tỷ lệ chốt = Confirmed / (Confirmed + Rejected); chưa có báo giá đã kết thúc thì null
         $closed = $byStatus[Quotation::STATUS_CONFIRMED] + $byStatus[Quotation::STATUS_REJECTED];
 
         return [

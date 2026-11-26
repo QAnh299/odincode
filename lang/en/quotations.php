@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-// Quotation page: list (livewire/quotations/index)
 return [
     'title'              => 'Quotations',
 
-    // Search
     'search'             => 'Search',
     'search_placeholder' => 'Search by quotation code, customer, phone, email, employee, course, voucher, order code…',
     'search_hint'        => 'Type several keywords to narrow results · "exact phrase" · -keyword to exclude',
@@ -19,7 +17,6 @@ return [
         'Searches: quotation code, status, notes, opportunity code, customer name/phone/email, creator, order code, voucher code, courses',
     ],
 
-    // Filters
     'filters'            => 'Filters',
     'close'              => 'Close',
     'active_filters'     => 'Filtering by',
@@ -60,14 +57,12 @@ return [
         'customer'   => 'Customer name (A → Z)',
     ],
 
-    // Quotation status (Quotation::STATUSES)
     'status' => [
         'Draft'     => 'Draft',
         'Confirmed' => 'Confirmed',
         'Rejected'  => 'Rejected',
     ],
 
-    // Deadline state (draft quotations only)
     'deadline' => [
         'valid'   => 'Not expired',
         'soon'    => 'Expiring soon (≤ 3 days)',
@@ -79,7 +74,6 @@ return [
         'without' => 'No order yet',
     ],
 
-    // Group labels on active filter chips
     'chip' => [
         'search'   => 'Keywords',
         'statuses' => 'Status',
@@ -94,14 +88,13 @@ return [
         'to'       => 'to :value',
     ],
 
-    // ── Create / edit quotation (livewire/quotations/form) ──
     'form' => [
         'create_title'     => 'New quotation',
         'edit_title'       => 'Edit quotation :code',
         'back_opportunity' => 'Back to opportunity',
         'back_quotation'   => 'Back to quotation',
         'blocked_title'    => 'Cannot create a quotation',
-        // Step 2 not met
+
         'blocked' => [
             'not_owner'     => 'Only the salesperson in charge of this opportunity can create a quotation.',
             'not_closed'    => 'The opportunity is not at the Closed stage yet.',
@@ -137,7 +130,6 @@ return [
         'updated'          => 'Quotation :code saved. Export the PDF again to send the new version.',
     ],
 
-    // Draft quotations awaiting a reply, in the salesperson's notification bell (step 11)
     'reminder' => [
         'header'   => 'Appointments & quotations to follow up today and tomorrow',
         'today'    => 'Quotation :code · :name expires today',
@@ -146,8 +138,6 @@ return [
         'time'     => 'Expires :date · contact the customer',
     ],
 
-
-    // ── Quotation PDF (pdf/quotation) ──
     'pdf' => [
         'title'           => 'Quotation',
         'company'         => 'ODIN Language Academy',
@@ -161,14 +151,13 @@ return [
         'consultant_sign' => 'Consultant',
     ],
 
-    // ── Detail page (livewire/quotations/show) ──
     'detail_title'       => 'Quotation :code',
 
     'detail' => [
         'back'              => 'Back to list',
         'back_opportunity'  => 'Back to opportunity :code',
         'expires_on'        => 'Expires :date',
-        // Action bar (steps 7, 10, 12, 16)
+
         'actions'           => 'Actions',
         'edit'              => 'Edit',
         'export_pdf'        => 'Export PDF',
@@ -179,7 +168,7 @@ return [
         'confirm_confirm'   => 'Has the customer accepted quotation :code? Confirming creates the order; the quotation can no longer be edited or rejected.',
         'confirm_title'     => 'Confirm quotation',
         'confirmed_done'    => 'Quotation :code confirmed and order :order created. Click "Create invoice" to bill the customer.',
-        // Step 17 not met
+
         'confirm_blocked'   => [
             'not_author'      => 'Only the salesperson who created the quotation can confirm it.',
             'not_draft'       => 'The quotation is no longer a draft.',
@@ -189,7 +178,7 @@ return [
         ],
         'rejected_done'     => 'Quotation :code rejected.',
         'expired_warning'   => 'This quotation has expired. If the customer still wants it, choose Edit to extend the expiry date, then confirm; otherwise choose Reject.',
-        // Step 14: after rejecting
+
         'close_reason'      => 'Customer did not accept quotation :code.',
         'close_reason_no_response' => 'Customer did not respond to quotation :code before it expired.',
         'opportunity_lost'  => 'The opportunity is now Lost.',
@@ -206,7 +195,7 @@ return [
         'reject_cancel' => 'Cancel',
         'reject_submit' => 'Reject quotation',
         'opportunity_kept'  => 'The opportunity is already Won, so it stays Won.',
-        // Progress
+
         'progress'          => 'Progress',
         'step_quotation'    => 'Quotation',
         'step_order'        => 'Order',
@@ -216,7 +205,7 @@ return [
         'invoice_count'     => ':count invoice|:count invoices',
         'paid_of'           => ':paid / :total',
         'rejected_note'     => 'The quotation was rejected, so no order is created',
-        // General information
+
         'general'           => 'General information',
         'created_at'        => 'Created',
         'updated_at'        => 'Last updated',
@@ -224,7 +213,7 @@ return [
         'employee'          => 'Created by',
         'notes'             => 'Notes',
         'no_notes'          => 'No notes',
-        // Customer, opportunity
+
         'customer'          => 'Customer',
         'full_name'         => 'Full name',
         'email'             => 'Email',
@@ -233,7 +222,7 @@ return [
         'opportunity_id'    => 'Opportunity code',
         'stage'             => 'Stage',
         'opportunity_state' => 'Opportunity status',
-        // Courses + totals
+
         'courses'           => 'Courses in quotation',
         'no_courses'        => 'This quotation has no courses',
         'no'                => '#',
@@ -246,14 +235,14 @@ return [
         'subtotal'          => 'Subtotal',
         'discount'          => 'Voucher :code (−:value)',
         'grand_total'       => 'Total',
-        // Voucher
+
         'voucher'           => 'Applied voucher',
         'voucher_code'      => 'Voucher code',
         'voucher_type'      => 'Discount type',
         'voucher_value'     => 'Value',
         'voucher_validity'  => 'Validity period',
         'voucher_invalid'   => 'This voucher is no longer valid; the discount is still calculated as when the quotation was created',
-        // Order
+
         'order'             => 'Order',
         'order_id'          => 'Order code',
         'order_created'     => 'Order created',
@@ -267,7 +256,6 @@ return [
         'create_next_invoice' => 'Create next invoice',
     ],
 
-    // Opportunity status (Opportunity::STATUSES)
     'opportunity_status' => [
         'InProgress' => 'In progress',
         'Won'        => 'Won',
@@ -275,20 +263,17 @@ return [
         'Archived'   => 'Archived',
     ],
 
-    // Order status (SalesOrders.status)
     'order_status' => [
         'InProgress' => 'In progress',
         'Completed'  => 'Completed',
     ],
 
-    // Payment type (SalesOrders.payment_type)
     'payment_type' => [
         'Full'        => 'Full payment',
         'Installment' => 'Installments',
         'none'        => 'Not decided',
     ],
 
-    // Table columns
     'code'               => 'Quotation',
     'customer'           => 'Customer',
     'employee'           => 'Created by',

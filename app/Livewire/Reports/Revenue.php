@@ -18,18 +18,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Dashboard & Báo cáo → Phân tích doanh thu & thanh toán (mọi vai trò).
- *
- * Phạm vi theo vai trò: Giám đốc, Sale Admin, Kế toán xem toàn bộ (lọc được theo chi nhánh / đội / nhân viên);
- * Sale Leader xem đơn của đội mình; Salesperson xem đơn mình phụ trách.
- *
- * Tối đa 6 tab: Tổng quan (việc cần xử lý, nhận định), Thanh toán, Công nợ, Tỷ lệ thu theo tháng, Theo nhân viên, Cơ cấu doanh thu;
- * tab, nhóm việc, nhận định, chỉ tiêu và bảng chi tiết hiện theo vai trò (ROLE_VIEWS).
- * Mỗi tab chỉ tính số liệu khi được mở; thẻ chỉ số bấm được để mở danh sách hóa đơn / đơn hàng tương ứng.
- * Doanh thu theo ngày tạo đơn, thực thu theo ngày thanh toán, công nợ tại thời điểm xem – xem App\Services\RevenueReport.
- * Cùng khung với các báo cáo khác: bộ lọc trên URL, kỳ so sánh, thẻ biểu đồ, popup xuất Excel (trait ReportExport).
- */
 #[Layout('layouts.app')]
 class Revenue extends Component
 {
@@ -37,31 +25,18 @@ class Revenue extends Component
 
     public const TABS = ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'];
 
-    // Việc cần xử lý: tiền mặt chờ duyệt quá STALE_CASH_DAYS ngày; đơn chưa lập hóa đơn kỳ tiếp quá STALE_ORDER_DAYS ngày
     public const STALE_CASH_DAYS = 1;
 
     public const STALE_ORDER_DAYS = 7;
 
-    // Số dòng hiện trong mỗi nhóm việc cần xử lý
     public const TODO_ROWS = 5;
 
-    // Mốc ngày của bảng tỷ lệ thu theo tháng tạo đơn
     public const COHORT_HORIZONS = [7, 30, 60];
 
-    // Nhận định "đúng hạn tốt nhất" chỉ xét nhân viên có từ chừng này hóa đơn đã thu trong kỳ
     public const MIN_PAID_INVOICES = 3;
 
-    // Cột sắp xếp của bảng theo nhân viên
     public const EMPLOYEE_SORTS = ['collected', 'revenue', 'debt', 'on_time', 'overdue_amount'];
 
-    /*
-     * Nội dung báo cáo theo vai trò:
-     *   - Giám đốc, Sale Admin: chỉ số tổng quan toàn trung tâm (không có danh sách việc, không có bảng chi tiết từng đơn / hóa đơn).
-     *   - Kế toán: thu tiền và công nợ – việc cần làm là đối chiếu chuyển khoản, duyệt tiền mặt.
-     *   - Sale Leader: đội mình – chỉ tiêu đội, nhân viên trong đội, việc của đội (gia hạn, lập hóa đơn kỳ tiếp).
-     *   - Salesperson: đơn mình phụ trách – việc của mình, công nợ của khách mình.
-     * tabs: tab hiện; todo: nhóm việc cần xử lý; insights: nhận định; target: chỉ tiêu doanh thu; debt_lists: bảng đơn còn nợ / hóa đơn quá hạn.
-     */
     public const ROLE_VIEWS = [
         Role::DIRECTOR => [
             'tabs' => ['overview', 'payments', 'debt', 'cohort', 'employees', 'structure'], 'todo' => [],
@@ -85,7 +60,6 @@ class Revenue extends Component
         ],
     ];
 
-    // Màu cố định theo chỉ số (cùng bảng màu các báo cáo khác – LeadSources::PALETTE)
     public const COLORS = [
         'revenue'     => '#2a78d6',
         'collected'   => '#1baf7a',
@@ -102,7 +76,6 @@ class Revenue extends Component
         'more'        => '#e34948',
     ];
 
-    // Số dòng hiện trên bảng công nợ (xuất Excel thì đủ)
     public const DEBT_ROWS = 15;
 
     #[Url(except: 'overview')]
@@ -123,7 +96,6 @@ class Revenue extends Component
     #[Url(except: '')]
     public string $employee = '';
 
-    // Bảng theo nhân viên: cột đang sắp (giảm dần; riêng % đúng hạn tăng dần để thấy người cần nhắc trước)
     #[Url(as: 'sort', except: 'collected')]
     public string $employeeSort = 'collected';
 
@@ -134,17 +106,11 @@ class Revenue extends Component
         $this->tab = in_array($tab, $this->tabs(), true) ? $tab : 'overview';
     }
 
-    /**
-     * Cấu hình nội dung của vai trò đang xem (ROLE_VIEWS); vai trò lạ dùng cấu hình Salesperson (ít quyền nhất).
-     */
     public function roleView(): array
     {
         return self::ROLE_VIEWS[$this->routePrefix] ?? self::ROLE_VIEWS[Role::SALESPERSON];
     }
 
-    /**
-     * Tab hiện được theo vai trò, giữ thứ tự TABS.
-     */
     public function tabs(): array
     {
         return array_values(array_intersect(self::TABS, $this->roleView()['tabs']));
@@ -181,8 +147,6 @@ class Revenue extends Component
         return in_array($this->tab, $this->tabs(), true) ? $this->tab : 'overview';
     }
 
-    /* ── Phạm vi theo vai trò (giống báo cáo Chuyển đổi Lead; thêm Kế toán xem toàn bộ) ── */
-
     #[Computed]
     public function routePrefix(): string
     {
@@ -195,9 +159,6 @@ class Revenue extends Component
         return Auth::user()->employee;
     }
 
-    /**
-     * Xem toàn bộ, lọc được theo đội: Giám đốc, Sale Admin, Kế toán.
-     */
     #[Computed]
     public function canFilterTeam(): bool
     {
@@ -210,9 +171,6 @@ class Revenue extends Component
         return $this->routePrefix !== Role::SALESPERSON;
     }
 
-    /**
-     * Xuất Excel: Giám đốc, Sale Admin, Kế toán.
-     */
     #[Computed]
     public function canExport(): bool
     {
@@ -237,9 +195,6 @@ class Revenue extends Component
         return $this->canFilterEmployee && $this->branches->contains('branch_id', $this->branch) ? $this->branch : null;
     }
 
-    /**
-     * Đội chọn được: đang lọc chi nhánh thì chỉ đội của chi nhánh đó (SalesTeam::branchId).
-     */
     #[Computed]
     public function teamOptions(): Collection
     {
@@ -261,10 +216,6 @@ class Revenue extends Component
         }
     }
 
-    /**
-     * Đội đang xem: Giám đốc / Sale Admin / Kế toán = đội đã chọn ('' = tất cả); Sale Leader = đội của mình
-     * (chưa thuộc đội → null, không thấy dữ liệu); Salesperson không lọc theo đội ('').
-     */
     #[Computed]
     public function teamScope(): ?string
     {
@@ -293,9 +244,6 @@ class Revenue extends Component
             ->get(['employee_id', 'full_name', 'team_id', 'status']);
     }
 
-    /**
-     * Nhân viên đang xem: Salesperson = chính mình; vai trò khác = người đã chọn (null = tất cả).
-     */
     #[Computed]
     public function employeeScope(): ?string
     {
@@ -319,8 +267,6 @@ class Revenue extends Component
         };
     }
 
-    /* ── Số liệu chung ────────────────────────────────────────────────── */
-
     #[Computed]
     public function revenueTotals(): array
     {
@@ -338,9 +284,6 @@ class Revenue extends Component
         return $this->revenueTotals['orders'] > 0 || $this->collectionTotals['invoices'] > 0 || $this->debt['orders'] > 0;
     }
 
-    /**
-     * Kỳ liền trước cùng độ dài (chỉ khi chọn đủ Từ ngày và Đến ngày).
-     */
     #[Computed]
     public function previous(): ?array
     {
@@ -361,9 +304,6 @@ class Revenue extends Component
         ];
     }
 
-    /**
-     * Nhóm thời gian của biểu đồ xu hướng: theo tháng nếu kỳ trải từ 4 tháng trở lên, không thì theo tuần.
-     */
     #[Computed]
     public function period(): string
     {
@@ -372,9 +312,6 @@ class Revenue extends Component
         return $this->monthIndex($end) - $this->monthIndex($start) >= 3 ? 'month' : 'week';
     }
 
-    /**
-     * Khoảng thời gian của kỳ: theo bộ lọc, thiếu đầu nào thì lấy theo dữ liệu.
-     */
     #[Computed]
     public function range(): ?array
     {
@@ -385,8 +322,6 @@ class Revenue extends Component
 
         return $start && $end ? [$start, max($start, $end)] : null;
     }
-
-    /* ── Tab 1: Tổng quan ─────────────────────────────────────────────── */
 
     #[Computed]
     public function overview(): array
@@ -419,10 +354,6 @@ class Revenue extends Component
         ];
     }
 
-    /**
-     * Chỉ tiêu doanh thu của các tháng trong kỳ (TeamSalesTargets loại Revenue) so với doanh thu cùng các tháng.
-     * Đang lọc theo nhân viên thì không có chỉ tiêu (chỉ tiêu đặt cho đội).
-     */
     protected function target(): ?array
     {
         if (! $this->range || $this->employeeScope !== null || $this->teamScope === null) {
@@ -458,9 +389,6 @@ class Revenue extends Component
         ];
     }
 
-    /**
-     * Doanh thu lũy kế so với chỉ tiêu lũy kế theo tháng (kỳ từ 2 tháng). Tháng chưa tới không vẽ doanh thu.
-     */
     protected function targetChart(array $months, ?array $teams): array
     {
         $revenue = $this->report()->revenueByMonth($this->filterValues(), $months);
@@ -481,8 +409,6 @@ class Revenue extends Component
             ['label' => __('reports.revenue.target.cumulative_target'), 'color' => self::COLORS['target_line'], 'data' => $goal, 'dash' => true],
         ]];
     }
-
-    /* ── Tab 2: Thanh toán ────────────────────────────────────────────── */
 
     #[Computed]
     public function payments(): array
@@ -516,8 +442,6 @@ class Revenue extends Component
         ];
     }
 
-    /* ── Tab 3: Công nợ (tại thời điểm xem, không theo bộ lọc ngày) ───── */
-
     #[Computed]
     public function debt(): array
     {
@@ -535,7 +459,7 @@ class Revenue extends Component
             'orders'   => $this->report()->debtOrders($f, self::DEBT_ROWS),
             'invoices' => $this->report()->overdueInvoices($f, self::DEBT_ROWS),
             'chart'    => ['type' => 'bar', 'unit' => 'money', 'labels' => array_map(fn ($k) => __('reports.revenue.aging.'.$k), $keys),
-                // Mỗi cột một màu theo mức trễ (Chart.js nhận mảng màu cho backgroundColor)
+
                 'series' => [['label' => __('reports.revenue.debt.amount'), 'data' => array_map(fn ($k) => $aging[$k]['amount'], $keys),
                     'color' => array_map(fn ($k) => self::COLORS[$k], $keys)]],
                 'links' => [array_map(fn ($k) => $this->agingUrl($k), $keys)]],
@@ -543,9 +467,6 @@ class Revenue extends Component
         ];
     }
 
-    /**
-     * Cơ cấu công nợ: một thanh chồng quá hạn / chờ thu / chưa lập hóa đơn (màu cùng biểu đồ tuổi nợ), nhãn kèm tỷ lệ.
-     */
     protected function debtMix(): array
     {
         $d = $this->debt;
@@ -560,8 +481,6 @@ class Revenue extends Component
             'links' => array_map(fn ($key) => [$this->kpiUrl($key)], array_keys($parts))];
     }
 
-    /* ── Tab 4: Cơ cấu doanh thu ──────────────────────────────────────── */
-
     #[Computed]
     public function structure(): array
     {
@@ -573,14 +492,12 @@ class Revenue extends Component
             'courses'   => $courses,
             'branches'  => $this->canFilterEmployee ? $this->report()->byDimension($f, 'branch') : [],
             'teams'     => $this->canFilterTeam && ! $this->teamScope ? $this->report()->byDimension($f, 'team') : [],
-            // Theo nhân viên: xem tab "Theo nhân viên" (thêm công nợ, quá hạn, % đúng hạn)
+
             'employees' => [],
             'chart'     => ['type' => 'bar_h', 'unit' => 'money', 'labels' => array_column($top, 'name'),
                 'series' => [['label' => __('reports.revenue.metric.revenue'), 'color' => self::COLORS['revenue'], 'data' => array_column($top, 'revenue')]]],
         ];
     }
-
-    /* ── Việc cần xử lý + nhận định (tab Tổng quan) ──────────────────── */
 
     #[Computed]
     public function transferQueue(): array
@@ -588,10 +505,6 @@ class Revenue extends Component
         return $this->report()->transferQueue($this->workScope($this->filterValues(dates: false)));
     }
 
-    /**
-     * Hàng đợi việc của Kế toán (tiền mặt chờ xác nhận, chuyển khoản lệch) chỉ gồm cơ sở kế toán phụ trách
-     * (Employee::coveredBranchIds); số liệu báo cáo vẫn theo bộ lọc, toàn hệ thống.
-     */
     private function workScope(array $f): array
     {
         return $this->routePrefix === Role::ACCOUNTANT
@@ -599,15 +512,11 @@ class Revenue extends Component
             : $f;
     }
 
-    /**
-     * Các nhóm việc cần xử lý tại thời điểm xem (không theo bộ lọc ngày): [key => ['count', 'amount', 'rows' (tối đa TODO_ROWS), 'url']].
-     * Nhóm không có việc thì bỏ.
-     */
     #[Computed]
     public function todo(): array
     {
         $f = $this->filterValues(dates: false);
-        // Chỉ tính các nhóm việc của vai trò đang xem
+
         $groups = array_intersect_key([
             'overdue'    => fn () => [array_values(array_filter($this->report()->overdueInvoices($f), fn ($r) => $r['status'] === Invoice::STATUS_OVERDUE)),
                 'payment_amount', $this->listUrl('invoices', ['status' => [Invoice::STATUS_OVERDUE]])],
@@ -627,14 +536,6 @@ class Revenue extends Component
         return $out;
     }
 
-    /**
-     * Nhận định tự động trong kỳ: khóa học doanh thu cao nhất, nhân viên thu đúng hạn tốt nhất,
-     * chi nhánh / đội thu tiền nhiều nhất. Không đủ số liệu thì bỏ.
-     *
-     * Mỗi nhận định hiện như một thẻ chỉ số: nhãn + biểu tượng, giá trị chính (tên), dòng phụ (số liệu).
-     *
-     * @return list<array{key: string, icon: string, value: string, detail: string}>
-     */
     #[Computed]
     public function highlights(): array
     {
@@ -667,11 +568,8 @@ class Revenue extends Component
             }
         }
 
-        // Chỉ giữ nhận định của vai trò đang xem
         return array_values(array_filter($out, fn ($item) => in_array($item['key'], $this->roleView()['insights'], true)));
     }
-
-    /* ── Tab: Tỷ lệ thu theo tháng tạo đơn ────────────────────────────── */
 
     #[Computed]
     public function cohort(): array
@@ -679,30 +577,23 @@ class Revenue extends Component
         return $this->report()->collectionCohort($this->filterValues(), self::COHORT_HORIZONS);
     }
 
-    /* ── Tab: Theo nhân viên ──────────────────────────────────────────── */
-
     #[Computed]
     public function employeeRows(): array
     {
         return $this->report()->collectionByEmployee($this->filterValues(), $this->filterValues(dates: false));
     }
 
-    /**
-     * Bảng theo nhân viên đã sắp theo cột đang chọn, kèm hạng.
-     */
     public function sortedEmployees(): array
     {
         $sort = in_array($this->employeeSort, self::EMPLOYEE_SORTS, true) ? $this->employeeSort : 'collected';
         $rows = $this->employeeRows;
-        // % đúng hạn: thấp trước (người cần nhắc); người chưa có hóa đơn đã thu xếp cuối
+
         usort($rows, $sort === 'on_time'
             ? fn ($a, $b) => ($a['on_time'] === null) <=> ($b['on_time'] === null) ?: $a['on_time'] <=> $b['on_time']
             : fn ($a, $b) => $b[$sort] <=> $a[$sort] ?: strcmp($a['name'], $b['name']));
 
         return $rows;
     }
-
-    /* ── Liên kết ─────────────────────────────────────────────────────── */
 
     public function invoiceUrl(string $id): string
     {
@@ -714,9 +605,6 @@ class Revenue extends Component
         return route($this->routePrefix.'.invoices', ['q' => $orderId]);
     }
 
-    /**
-     * Danh sách hóa đơn / đơn hàng đã lọc sẵn, kèm đội và nhân viên đang xem (nếu có).
-     */
     public function listUrl(string $page, array $params = []): string
     {
         $scope = array_filter(['team' => $this->canFilterTeam ? $this->teamScope : null,
@@ -775,9 +663,6 @@ class Revenue extends Component
         ]));
     }
 
-    /**
-     * Liên kết của thẻ chỉ số (null = thẻ không bấm được).
-     */
     public function kpiUrl(string $key): ?string
     {
         $f = $this->filterValues();
@@ -796,14 +681,10 @@ class Revenue extends Component
         };
     }
 
-    /* ── Xuất Excel (popup chọn kỳ / sheet / cột / xem trước - trait ReportExport) ── */
-
-    // Sheet: tổng hợp theo tháng · đơn trong kỳ · thực thu · công nợ · hóa đơn quá hạn · theo nhân viên
     public const EXPORT_SHEETS = ['summary', 'orders', 'payments', 'debt', 'overdue', 'employees'];
 
     public const EXPORT_LOCKED = ['summary' => 'month', 'orders' => 'order', 'payments' => 'invoice', 'debt' => 'order', 'overdue' => 'invoice', 'employees' => 'name'];
 
-    // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportBranch = '';
 
     public string $exportTeam = '';
@@ -868,10 +749,6 @@ class Revenue extends Component
         ];
     }
 
-    /**
-     * Số liệu cho các sheet cần xuất: phần theo kỳ (đơn, thực thu, theo tháng) dùng kỳ của popup;
-     * công nợ, hóa đơn quá hạn tính tại thời điểm xuất.
-     */
     protected function exportData(array $period, array $filters, array $sheets): array
     {
         $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters;
@@ -992,9 +869,6 @@ class Revenue extends Component
         return 'bao-cao-doanh-thu-thanh-toan';
     }
 
-    /**
-     * Năm chọn được trong popup xuất: từ năm có đơn hàng sớm nhất đến năm hiện tại.
-     */
     public function exportYears(): array
     {
         $first = SalesOrder::query()->min('created_at');
@@ -1003,16 +877,11 @@ class Revenue extends Component
         return range($current, $first ? min($current, (int) CarbonImmutable::parse($first)->year) : $current);
     }
 
-    /* ── Tiện ích ─────────────────────────────────────────────────────── */
-
     protected function report(): RevenueReport
     {
         return app(RevenueReport::class);
     }
 
-    /**
-     * Bộ lọc đã kiểm tra + phạm vi theo vai trò. $dates = false: bỏ lọc ngày (công nợ tính tại thời điểm xem).
-     */
     protected function filterValues(bool $dates = true): array
     {
         return [
@@ -1034,9 +903,6 @@ class Revenue extends Component
         return (int) date('Y', $time) * 12 + (int) date('n', $time) - 1;
     }
 
-    /**
-     * Các kỳ liên tiếp từ đầu đến cuối khoảng (không bỏ trống kỳ không có số liệu); khóa giống RevenueReport::periodSql.
-     */
     protected function periodKeys(int $start, int $end): array
     {
         $month = $this->period === 'month';

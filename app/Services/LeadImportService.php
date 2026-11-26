@@ -21,39 +21,22 @@ use OpenSpout\Writer\XLSX\Writer;
 use Throwable;
 use ZipArchive;
 
-/**
- * Thêm Lead thủ công + Import Lead từ file Excel (HĐ1 - HĐ6, PhanLead.docx).
- *
- * - Dùng chung bộ kiểm tra dữ liệu cho popup Thêm Lead và từng dòng Excel.
- * - Import 2 bước: preview() đọc file, kiểm tra từng dòng (lỗi dữ liệu, trùng trong file, trùng khách cũ theo
- *   LeadDuplicateService - khớp liên hệ + họ tên) và lưu bảng xem trước, chưa ghi DB; Sale Admin chọn cách xử lý
- *   từng dòng (tạo mới / cùng người / cập nhật Lead cũ / đưa về hàng chờ / bỏ qua) rồi commit() mới ghi nhận
- *   và trả về file kết quả (mỗi dòng có cột Kết quả, Mã Lead, Ghi chú, Lý do lỗi).
- */
 class LeadImportService
 {
     public function __construct(protected LeadDuplicateService $duplicates)
     {
     }
 
-    // Số dòng dữ liệu tối đa trong một file
     public const MAX_ROWS = 1000;
 
-    // Thư mục lưu file kết quả trên disk local (storage/app/private)
     public const RESULT_DIR = 'lead-imports';
 
-    // Cột trong file mẫu, theo thứ tự
     public const COLUMNS = ['full_name', 'phone', 'email', 'source_name', 'source_url', 'contact_method', 'branch_id'];
 
-    // Cột luôn bắt buộc (đánh dấu * trên tiêu đề); SĐT, Link nguồn bắt buộc tuỳ kênh liên hệ
     public const REQUIRED = ['full_name', 'source_name', 'contact_method', 'branch_id'];
 
-    // Ngăn cách mã và tên chi nhánh trong ô chọn của file mẫu
     public const BRANCH_SEPARATOR = ' - ';
 
-    /**
-     * Chuẩn hoá dữ liệu nhập: bỏ khoảng trắng, chuẩn SĐT, kênh liên hệ, mã chi nhánh.
-     */
     public function normalize(array $data): array
     {
         $value = fn ($key) => trim((string) ($data[$key] ?? ''));
@@ -65,22 +48,16 @@ class LeadImportService
             'source_name'    => $this->normalizeSource($value('source_name')),
             'source_url'     => $value('source_url') !== '' ? $value('source_url') : null,
             'contact_method' => $this->normalizeMethod($value('contact_method')),
-            // Ô chọn trong file mẫu có dạng "BR001 - Tên chi nhánh" → chỉ lấy mã
+
             'branch_id'      => Str::upper(trim(Str::before($value('branch_id'), self::BRANCH_SEPARATOR))),
         ];
     }
 
-    /**
-     * Nhãn chi nhánh trong ô chọn của file mẫu: "BR001 - Trụ sở chính".
-     */
     public function branchLabel(Branch $branch): string
     {
         return $branch->branch_id.self::BRANCH_SEPARATOR.$branch->branch_name;
     }
 
-    /**
-     * 0912 345 678, 0912.345.678, +84912345678, 912345678 (Excel mất số 0) → 0912345678.
-     */
     public function normalizePhone(string $phone): string
     {
         $phone = preg_replace('/[\s.\-()]/', '', $phone);
@@ -96,9 +73,6 @@ class LeadImportService
         return $phone;
     }
 
-    /**
-     * Cho phép nhập không phân biệt hoa thường, hoặc nhập "Điện thoại".
-     */
     public function normalizeMethod(string $method): string
     {
         $key = Str::lower(Str::ascii($method));
@@ -112,9 +86,6 @@ class LeadImportService
         return $method;
     }
 
-    /**
-     * Cho phép nhập nguồn không phân biệt hoa thường, khoảng trắng (VD: "website odin", "Tiktok").
-     */
     public function normalizeSource(string $source): string
     {
         $key = Str::lower(preg_replace('/\s+/u', '', Str::ascii($source)));
@@ -128,18 +99,15 @@ class LeadImportService
         return $source;
     }
 
-    /**
-     * Luật kiểm tra cho dữ liệu đã chuẩn hoá (theo ràng buộc bảng Leads trong odin.sql).
-     */
     public function rules(): array
     {
         return [
             'full_name'      => ['required', 'string', 'max:150'],
-            // Trùng khách cũ không kiểm tra ở đây mà ở LeadDuplicateService (cần khớp cả liên hệ và họ tên)
+
             'phone'        => ['nullable', 'required_if:contact_method,'.implode(',', Lead::METHODS_PHONE_REQUIRED), 'regex:/^0\d{9}$/'],
             'email'          => ['nullable', 'email', 'max:254'],
             'source_name'    => ['required', Rule::in(Lead::SOURCES)],
-            // Bắt buộc khi liên hệ qua Facebook; nguồn nào (TikTok, Instagram…) cũng không bắt buộc nếu liên hệ qua kênh khác
+
             'source_url'     => ['nullable', 'required_if:contact_method,'.implode(',', Lead::METHODS_LINK_REQUIRED), 'string', 'max:2000'],
             'contact_method' => ['required', Rule::in(Lead::CONTACT_METHODS)],
             'branch_id'      => ['required', Rule::exists(Branch::class, 'branch_id')],
@@ -175,11 +143,6 @@ class LeadImportService
         return Lead::create($data + ['status' => Lead::STATUS_NEW]);
     }
 
-    /* ── File mẫu ─────────────────────────────────────────────────────── */
-
-    /**
-     * Tạo file mẫu (.xlsx) vào file tạm và trả về đường dẫn.
-     */
     public function template(): string
     {
         $path = tempnam(sys_get_temp_dir(), 'lead').'.xlsx';
@@ -196,7 +159,6 @@ class LeadImportService
             'https://facebook.com/odin', 'Zalo', $branchLabels[0] ?? 'BR001',
         ], (new Style())->setFontItalic()->setFontColor(Color::rgb(107, 114, 128))));
 
-        // Sheet hướng dẫn: mô tả cột + giá trị hợp lệ
         $writer->addNewSheetAndMakeItCurrent()->setName(__('leads.excel.sheet_guide'));
         $bold = (new Style())->setFontBold();
 
@@ -221,7 +183,6 @@ class LeadImportService
         $writer->addRow(Row::fromValues([__('leads.excel.guide_branches')], $bold));
         $branches->each(fn ($branch) => $writer->addRow(Row::fromValues([$branch->branch_id, $branch->branch_name])));
 
-        // Sheet ẩn chứa danh sách giá trị cho ô chọn: cột A = kênh liên hệ, cột B = chi nhánh, cột C = nguồn
         $writer->addNewSheetAndMakeItCurrent()->setName(__('leads.excel.sheet_lists'));
         for ($i = 0; $i < max(count(Lead::CONTACT_METHODS), count($branchLabels), count(Lead::SOURCES)); $i++) {
             $writer->addRow(Row::fromValues([Lead::CONTACT_METHODS[$i] ?? '', $branchLabels[$i] ?? '', Lead::SOURCES[$i] ?? '']));
@@ -234,10 +195,6 @@ class LeadImportService
         return $path;
     }
 
-    /**
-     * Thêm ô chọn (Data Validation dạng List) cho cột Nguồn Lead, Kênh liên hệ, Mã chi nhánh của sheet nhập liệu
-     * và ẩn sheet danh sách. OpenSpout chưa hỗ trợ nên sửa trực tiếp XML trong file .xlsx.
-     */
     protected function addDropdowns(string $path, int $methodCount, int $branchCount, int $sourceCount): void
     {
         $listSheet = __('leads.excel.sheet_lists');
@@ -273,7 +230,6 @@ class LeadImportService
         $zip = new ZipArchive();
         $zip->open($path);
 
-        // <dataValidations> phải đứng trước các thẻ này theo chuẩn OOXML
         $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
         $sheet = preg_replace_callback(
             '#(?=<(?:hyperlinks|printOptions|pageMargins|pageSetup|headerFooter|drawing|legacyDrawing|tableParts|extLst)[\s>/]|</worksheet>)#',
@@ -294,29 +250,18 @@ class LeadImportService
         $zip->close();
     }
 
-    /* ── Import: xem trước → xác nhận ─────────────────────────────────── */
+    public const ROW_INVALID = 'invalid';
+    public const ROW_FILE_DUP = 'file_dup';
+    public const ROW_FILE_FAMILY = 'file_family';
 
-    // Loại dòng trong bảng xem trước (ngoài các tình huống của LeadDuplicateService)
-    public const ROW_INVALID = 'invalid';       // lỗi dữ liệu
-    public const ROW_FILE_DUP = 'file_dup';     // trùng liên hệ + họ tên với dòng trước trong cùng file
-    public const ROW_FILE_FAMILY = 'file_family'; // cùng liên hệ, khác họ tên với dòng trước trong file (người thân)
-
-    // Xử lý một dòng (ô chọn trong bảng xem trước); 'same:<lead_id>' = cùng người với Lead đó
     public const ACTION_CREATE = 'create';
     public const ACTION_SKIP = 'skip';
     public const ACTION_REOPEN = 'reopen';
     public const ACTION_UPDATE = 'update';
     public const ACTION_SAME = 'same:';
 
-    // Bảng xem trước được lưu tạm (JSON) trên disk local tới lúc xác nhận
     public const PREVIEW_TTL_HOURS = 6;
 
-    /**
-     * Bước 1: đọc file, kiểm tra từng dòng (lỗi dữ liệu, trùng trong file, trùng khách đã có) - chưa ghi gì vào DB.
-     * Lưu bảng xem trước tạm trên disk local, trả về mã để xác nhận ở bước 2.
-     *
-     * @return array{ok: bool, error?: string, token?: string}
-     */
     public function preview(string $path): array
     {
         try {
@@ -333,7 +278,6 @@ class LeadImportService
             return ['ok' => false, 'error' => __('leads.excel.error_template')];
         }
 
-        // Bỏ các dòng trống hoàn toàn, giữ số dòng gốc trên Excel (dòng 1 là tiêu đề)
         $rows = array_filter($rows, fn ($row) => implode('', array_map('trim', $row)) !== '');
 
         if ($rows === []) {
@@ -345,7 +289,7 @@ class LeadImportService
         }
 
         $branches = Branch::query()->pluck('branch_name', 'branch_id')->all();
-        $seen = [];   // khoá liên hệ → [[dòng, họ tên chuẩn hoá], ...] của các dòng hợp lệ phía trên
+        $seen = [];
         $preview = [];
 
         foreach ($rows as $index => $values) {
@@ -362,9 +306,6 @@ class LeadImportService
         return ['ok' => true, 'token' => $token];
     }
 
-    /**
-     * Một dòng của bảng xem trước: dữ liệu, lỗi, tình huống phát hiện, các cách xử lý và cách xử lý mặc định.
-     */
     protected function previewRow(int $line, array $raw, array &$seen, array $branches): array
     {
         $data = $this->normalize($raw);
@@ -376,7 +317,6 @@ class LeadImportService
             return $row + ['kind' => self::ROW_INVALID, 'options' => [self::ACTION_SKIP], 'default' => self::ACTION_SKIP];
         }
 
-        // Trùng với dòng phía trên trong cùng file (chưa có trong DB nên LeadDuplicateService không thấy)
         $keys = array_filter([
             $data['phone'] ? 'p:'.$data['phone'] : null,
             $data['email'] ? 'e:'.Str::lower($data['email']) : null,
@@ -403,7 +343,6 @@ class LeadImportService
                 : ['kind' => LeadDuplicateService::NEW, 'options' => [self::ACTION_CREATE, self::ACTION_SKIP], 'default' => self::ACTION_CREATE]);
         }
 
-        // Có khách cũ khớp liên hệ: bảng so sánh với từng Lead; cập nhật được khi đã xác định cùng người
         $sure = $match['lead'] !== null;
         $leads = ($sure ? collect([$match['lead']]) : $match['leads'])
             ->map(fn (Lead $lead) => $this->previewLead($lead, $data, $sure, $branches))
@@ -416,17 +355,14 @@ class LeadImportService
             LeadDuplicateService::REOPEN       => [[self::ACTION_REOPEN, self::ACTION_CREATE, self::ACTION_SKIP], self::ACTION_REOPEN],
             LeadDuplicateService::IN_QUEUE,
             LeadDuplicateService::IN_PROGRESS  => [array_values(array_filter([self::ACTION_SKIP, $canUpdate ? self::ACTION_UPDATE : null, self::ACTION_CREATE])), self::ACTION_SKIP],
-            // Chưa chắc cùng người: mặc định tạo mới (người học khác), có thể chọn "cùng người với LEADxxx"
+
             LeadDuplicateService::OTHER_PERSON => [[self::ACTION_CREATE, ...$same, self::ACTION_SKIP], self::ACTION_CREATE],
-            default                            => [[self::ACTION_SKIP, ...$same, self::ACTION_CREATE], self::ACTION_SKIP], // AMBIGUOUS
+            default                            => [[self::ACTION_SKIP, ...$same, self::ACTION_CREATE], self::ACTION_SKIP],
         };
 
         return array_merge($row, ['kind' => $case, 'leads' => $leads, 'options' => $options, 'default' => $default]);
     }
 
-    /**
-     * Lead khớp liên hệ trong bảng xem trước: tình trạng + so sánh với dữ liệu dòng.
-     */
     protected function previewLead(Lead $lead, array $data, bool $updatable, array $branches): array
     {
         $active = $lead->opportunities->firstWhere('status', Opportunity::STATUS_IN_PROGRESS);
@@ -444,7 +380,7 @@ class LeadImportService
             'name'      => $lead->full_name,
             'state'     => $waitingTeam ? 'in_queue_team' : $state,
             'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
-            // Lý do trường bị khoá khi cập nhật (hiện dưới bảng so sánh)
+
             'locked_reason' => $this->duplicates->lockReason($lead),
             'changes' => collect($this->duplicates->changes($lead, $data, $updatable))
                 ->map(fn ($change, $field) => [
@@ -456,9 +392,6 @@ class LeadImportService
         ];
     }
 
-    /**
-     * Bảng xem trước đã lưu (null nếu không còn / hết hạn).
-     */
     public function loadPreview(string $token): ?array
     {
         $path = $this->previewPath($token);
@@ -490,12 +423,6 @@ class LeadImportService
         return self::RESULT_DIR.'/preview-'.$token.'.json';
     }
 
-    /**
-     * Bước 2: ghi nhận theo cách xử lý đã chọn cho từng dòng ([dòng => cách xử lý], dòng không chọn / chọn sai
-     * dùng mặc định) và tạo file kết quả. Tình trạng Lead cũ được kiểm tra lại lúc ghi (có thể đã đổi).
-     *
-     * @return array{ok: bool, error?: string, total?: int, success?: int, skipped?: int, failed?: int, result?: string}
-     */
     public function commit(string $token, array $decisions): array
     {
         $preview = $this->loadPreview($token);
@@ -531,9 +458,6 @@ class LeadImportService
         ];
     }
 
-    /**
-     * Ghi nhận một dòng hợp lệ theo cách xử lý đã chọn.
-     */
     protected function commitRow(array $row, string $action): array
     {
         $data = $row['data'];
@@ -549,7 +473,6 @@ class LeadImportService
             return $this->outcome('created', $lead->lead_id, $notes);
         }
 
-        // Cùng người với một Lead cụ thể: xử lý theo tình trạng hiện tại của Lead đó
         $leadId = str_starts_with($action, self::ACTION_SAME) ? substr($action, strlen(self::ACTION_SAME)) : ($row['leads'][0]['lead_id'] ?? null);
         $lead = $leadId ? $this->duplicates->find($leadId) : null;
 
@@ -561,7 +484,6 @@ class LeadImportService
 
         try {
             if ($state === LeadDuplicateService::REOPEN && $action !== self::ACTION_UPDATE) {
-                // Cập nhật luôn thông tin liên hệ khác Lead cũ (dấu ✓ trong bảng so sánh)
                 $result = $this->duplicates->reopen($lead, $data, LeadDuplicateService::CONTACT_FIELDS);
 
                 return $this->outcome('reopened', $lead->lead_id, array_merge(
@@ -582,7 +504,6 @@ class LeadImportService
             return $this->outcome('failed', $lead->lead_id, errors: [$e->getMessage()]);
         }
 
-        // Tình trạng Lead đã đổi so với lúc xem trước nên cách xử lý không còn phù hợp
         return $this->outcome('failed', $lead->lead_id, errors: [__('leads.import_review.state_changed', ['id' => $lead->lead_id])]);
     }
 
@@ -591,12 +512,8 @@ class LeadImportService
         return ['status' => $status, 'lead_id' => $leadId, 'notes' => $notes, 'errors' => $errors];
     }
 
-    /**
-     * Đọc sheet đầu tiên thành mảng các dòng (giá trị dạng chuỗi), khoá = thứ tự dòng từ 0.
-     */
     protected function readRows(string $path): array
     {
-        // Giữ dòng trống để số dòng báo lỗi khớp với Excel
         $options = new ReaderOptions();
         $options->SHOULD_PRESERVE_EMPTY_ROWS = true;
 
@@ -610,7 +527,6 @@ class LeadImportService
                 foreach ($sheet->getRowIterator() as $row) {
                     $rows[] = array_map(fn ($value) => $this->cellToString($value), $row->toArray());
 
-                    // Dừng sớm với file quá lớn (đã chắc chắn vượt giới hạn, kể cả khi có dòng trống)
                     if (count($rows) > self::MAX_ROWS * 2) {
                         break;
                     }
@@ -634,10 +550,6 @@ class LeadImportService
         };
     }
 
-    /**
-     * Tiêu đề phải khớp file mẫu (bỏ qua dấu *, hoa thường, khoảng trắng thừa).
-     * Chấp nhận file mẫu tải ở bất kỳ ngôn ngữ nào (vi / en).
-     */
     protected function validHeader(array $header): bool
     {
         $clean = fn ($text) => Str::lower(trim(str_replace('*', '', preg_replace('/\s+/u', ' ', (string) $text))));
@@ -691,9 +603,6 @@ class LeadImportService
         return $writer;
     }
 
-    /**
-     * File kết quả: dữ liệu gốc + Dòng trong file + Kết quả + Mã Lead + Ghi chú + Lý do lỗi.
-     */
     protected function writeResult(array $results): string
     {
         $relative = self::RESULT_DIR.'/'.Str::uuid().'.xlsx';

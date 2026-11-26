@@ -1,9 +1,7 @@
 @props(['title' => null])
 
-{{-- Menu ngang phía trên (layouts/app.blade.php) --}}
 <header class="odin-topbar">
     <div class="odin-topbar__left">
-        {{-- Màn nhỏ: mở menu trái dạng offcanvas --}}
         <button class="odin-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas"
             data-bs-target="#odinSidebar" aria-controls="odinSidebar" aria-label="{{ __('menu.open') }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -12,7 +10,6 @@
             </svg>
         </button>
 
-        {{-- Màn ≥ lg: thu gọn / mở rộng menu trái, xử lý trong resources/js/sidebar.js --}}
         <button class="odin-icon-btn d-none d-lg-inline-flex" type="button" data-odin-sidebar-toggle
             aria-expanded="true" aria-label="{{ __('menu.toggle') }}" title="{{ __('menu.toggle') }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -28,12 +25,10 @@
     </div>
 
     <div class="odin-topbar__right">
-        {{-- Lịch việc cần làm: Salesperson (các việc suy ra từ dữ liệu của chính họ) --}}
         @if (auth()->user()?->role_name === \App\Models\Role::SALESPERSON)
             <livewire:task-calendar />
         @endif
 
-        {{-- Chuông thông báo theo vai trò, có đánh dấu đã đọc (App\Livewire\NotificationBell) --}}
         <livewire:notification-bell />
 
         <span class="odin-topbar__divider d-none d-sm-block" aria-hidden="true"></span>

@@ -30,42 +30,9 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Chi tiết Opportunity: thanh giai đoạn, thông tin khách hàng,
- * 2 tab Lịch sử chăm sóc (mặc định) / Lịch hẹn, và báo giá.
- * Dùng chung cho Salesperson, Sale Leader, Giám đốc - xem được theo Opportunity::visibleTo().
- * Mọi thao tác (liên hệ, lịch hẹn, báo giá) chỉ dành cho salesperson đang phụ trách;
- * Sale Leader / Giám đốc chỉ xem. Sale Leader được chuyển người phụ trách sang salesperson khác
- * trong đội (popup chọn người + lý do, tới hết stage Chốt khi khách chưa đóng tiền) - lịch hẹn đang chờ, báo giá
- * và hóa đơn chưa thanh toán chuyển theo (người mới có đủ quyền), lịch sử chăm sóc / lịch hẹn đã có kết quả giữ người cũ;
- * mỗi lần chuyển lưu vào OpportunityTransfers.
- *
- * Lịch hẹn: mỗi mã lịch hẹn gồm 1-2 dòng (Test và/hoặc Tư vấn), mỗi dòng có thời gian và kết quả
- * riêng. Địa điểm cố định là cơ sở của khách (Leads.branch_id) nên không lưu trong lịch hẹn. Hàng nút ở đầu tab: Đổi lịch - Tạo lịch hẹn.
- *   - Đổi lịch: chọn dòng muốn đổi (chưa tới giờ hẹn, chưa có kết quả) rồi nhập thời gian / địa điểm mới.
- *   - Tạo lịch hẹn: hẹn lại loại khách không đến (chưa từng đến, chưa có lịch chờ); chỉ tạo được
- *     đúng các loại đó. Lịch hẹn đầu tiên đặt sau khi có lần liên hệ thành công (nút "Tạo lịch hẹn" ở tab Lịch hẹn).
- *     Lịch hẹn đầu tiên chuyển "Data chưa tương tác" → "Data đã có lịch hẹn".
- *   - Từ giờ hẹn trở đi: cập nhật từng dòng Khách đã đến (Success, bắt buộc ghi kết quả - nối vào ghi chú lịch hẹn)
- *     / Khách không đến (Failed).
- *     Mọi loại đã hẹn đều có lần khách đến → tự chuyển sang "Data đã xử lý".
- *   - Không tạo / đổi lịch hẹn khi đã tới stage Chốt.
- * Lịch sử chăm sóc: ghi nhận lần liên hệ (thời gian, kết quả, ghi chú) với hoạt động theo stage, đếm từ lúc
- * Opportunity vào stage (StagesHistory). Kết quả: Thành công (gọi được) / Thất bại (khách từ chối - bắt buộc
- * ghi lý do) / Không liên lạc được (không nghe máy, thuê bao).
- *   - Data chưa tương tác - "Liên hệ ban đầu": Thất bại → Lost; đủ 4 lần không liên lạc được → Archived;
- *     Thành công → "Tạo lịch hẹn" (→ Data đã có lịch hẹn) / "Tạo báo giá" (→ Chốt), hoặc liên hệ tiếp.
- *   - Data đã có lịch hẹn - "Xếp lại lịch" (khi khách không đến): Thất bại → Lost; không liên lạc được quá
- *     7 ngày từ buổi khách không đến → Archived; Thành công → "Tạo lịch hẹn".
- *   - Data đã xử lý - "Chốt đăng ký": Thành công (khách đồng ý) → "Tạo báo giá" (→ Chốt); Thất bại → Lost;
- *     quá 14 ngày từ khi chuyển sang Data đã xử lý mà khách chưa đồng ý → Archived.
- * Lost / Archived: chuyển sang stage Lưu trữ (lý do ghi vào StagesHistory), xoá lịch hẹn chưa diễn ra.
- * Phần Báo giá chỉ hiện ở stage Chốt (hoặc khi đã có báo giá).
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
-    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
     use StudentTrail;
 
     use EditsLead;
@@ -77,59 +44,46 @@ class Show extends Component
     #[Url(except: 'care')]
     public string $tab = 'care';
 
-    // Dòng lịch hẹn được tham chiếu từ trang Danh sách lịch hẹn ("APT006-Test"): làm nổi bật và cuộn tới
     #[Url(as: 'apt', except: '')]
     public string $focusApt = '';
 
-    // Đi từ trang Danh sách lịch hẹn (?from=appointments&list=bộ lọc): link quay lại đúng danh sách (giữ bộ lọc, trang)
     #[Locked]
     public ?string $appointmentsBackUrl = null;
 
-    // Thông báo sau khi thao tác lịch hẹn: ['tone' => success|danger, 'text' => ...]
     public ?array $notice = null;
 
-    // Chuyển người phụ trách (Sale Leader)
     public bool $reassigning = false;
 
     public string $newOwner = '';
 
     public string $transferReason = '';
 
-    // Đang hỏi xác nhận chuyển dù người nhận vượt ngưỡng 50 (đổi người nhận / Quay lại thì bỏ)
     public bool $confirmingOver = false;
 
-    // Popup chuyển thành công: ['from' => tên cũ, 'to' => tên mới, 'moved' => số lịch hẹn đang chờ đã chuyển]
     public ?array $reassigned = null;
 
-    // Form đang mở: null | 'care' (tab Lịch sử chăm sóc) | 'create' | 'reschedule' (tab Lịch hẹn)
     public ?string $form = null;
 
-    // Form ghi nhận liên hệ
     public string $careTime = '';
 
     public string $careResult = '';
 
     public string $careNotes = '';
 
-    // Form tạo lịch hẹn
     public array $newTypes = [];
 
-    // Thời gian riêng cho từng loại: ['Test' => ..., 'Consultation' => ...]
     public array $newTimes = [];
 
     public string $newNotes = '';
 
-    // Form đổi lịch: các dòng được chọn, dạng "APT006-Test"; thời gian mới riêng cho từng dòng
     public array $editKeys = [];
 
     public array $editTimes = [];
 
-    // Ghi kết quả khi khách đã đến: dòng đang mở ("APT006-Test") và nội dung kết quả
     public ?string $attendKey = null;
 
     public string $attendResult = '';
 
-    // Hủy buổi hẹn: dòng đang mở ("APT006-Test") và lý do hủy
     public ?string $cancelKey = null;
 
     public string $cancelReason = '';
@@ -149,9 +103,6 @@ class Show extends Component
         $this->initAppointmentsBack();
     }
 
-    /**
-     * Mở từ trang Danh sách lịch hẹn: dựng lại URL danh sách với bộ lọc / trang đang xem (chỉ nhận các tham số của trang đó).
-     */
     protected function initAppointmentsBack(): void
     {
         if (request()->query('from') !== 'appointments' || ! Route::has($this->routePrefix.'.appointments')) {
@@ -185,28 +136,18 @@ class Show extends Component
         $this->resetValidation();
     }
 
-    // ── Ghi nhận liên hệ (chăm sóc) ───────────────────────────────────
-
-    // Hoạt động liên hệ theo stage
     public const STAGE_ACTIVITIES = [
         Stage::UNTOUCHED => CareActivity::INITIAL,
         Stage::APPOINTED => CareActivity::RESCHEDULE,
         Stage::PROCESSED => CareActivity::DECISION,
     ];
 
-    // Data chưa tương tác: đủ số lần không liên lạc được này → Archived
     public const MAX_UNREACHABLE_CONTACTS = 4;
 
-    // Data đã có lịch hẹn: không liên lạc được quá số ngày này (tính từ buổi khách không đến) → Archived.
-    // Data đã xử lý dùng hạn quyết định Opportunity::DECISION_DAYS.
     public const UNREACHABLE_DAYS = [
         Stage::APPOINTED => Opportunity::REBOOK_DAYS,
     ];
 
-    /**
-     * Hoạt động của lần liên hệ tiếp theo theo stage hiện tại: "Liên hệ ban đầu" (Data chưa tương tác),
-     * "Xếp lại lịch" (Data đã có lịch hẹn) hoặc "Chốt đăng ký" (Data đã xử lý).
-     */
     #[Computed]
     public function nextActivity(): ?CareActivity
     {
@@ -215,19 +156,12 @@ class Show extends Component
         return $id ? CareActivity::find($id) : null;
     }
 
-    /**
-     * Thời điểm Opportunity vào stage hiện tại: lần chuyển sang stage này gần nhất trong StagesHistory,
-     * hoặc ngày chuyển đổi nếu chưa có.
-     */
     #[Computed]
     public function stageSince(): Carbon
     {
         return $this->opportunity->stageEnteredAt();
     }
 
-    /**
-     * Các lần liên hệ của hoạt động theo stage hiện tại, kể từ lúc Opportunity vào stage này.
-     */
     protected function stageContacts()
     {
         return $this->opportunity->careResults()
@@ -235,27 +169,18 @@ class Show extends Component
             ->where('performed_at', '>=', $this->stageSince);
     }
 
-    /**
-     * Số lần không liên lạc được (không nghe máy, thuê bao) ở stage hiện tại.
-     */
     #[Computed]
     public function unreachableContacts(): int
     {
         return $this->stageContacts()->where('result', CareResult::RESULT_UNREACHABLE)->count();
     }
 
-    /**
-     * Đã có lần liên hệ thành công ở stage hiện tại.
-     */
     #[Computed]
     public function stageContactDone(): bool
     {
         return $this->stageContacts()->where('result', CareResult::RESULT_SUCCESS)->exists();
     }
 
-    /**
-     * Buổi khách không đến gần nhất của Opportunity (thời gian hẹn), null nếu chưa có.
-     */
     protected function lastNoShow(): ?Carbon
     {
         $time = $this->opportunity->appointments()->where('status', Appointment::STATUS_FAILED)->max('scheduled_time');
@@ -263,10 +188,6 @@ class Show extends Component
         return $time ? Carbon::parse($time) : null;
     }
 
-    /**
-     * Cần liên hệ: salesperson phụ trách, Opportunity ở stage có hoạt động liên hệ. Ở Data đã có lịch hẹn
-     * chỉ liên hệ (xếp lại lịch) khi có buổi khách không đến chưa được hẹn lại.
-     */
     public function needsContact(): bool
     {
         if (! $this->canCreateAppointment() || $this->nextActivity === null) {
@@ -276,20 +197,12 @@ class Show extends Component
         return $this->opportunity->stage_id !== Stage::APPOINTED || $this->rebookTypes !== [];
     }
 
-    /**
-     * Lần liên hệ gần nhất ở stage hiện tại là "Không liên lạc được" → thời điểm được liên hệ lại
-     * (sau Opportunity::RECONTACT_DAYS ngày), null nếu không phải chờ.
-     */
     #[Computed]
     public function recontactAt(): ?Carbon
     {
         return $this->opportunity->recontactAt();
     }
 
-    /**
-     * Được ghi nhận liên hệ: cần liên hệ, (ở Data chưa tương tác) chưa đủ số lần không liên lạc được
-     * và đã hết thời gian chờ sau lần không liên lạc được.
-     */
     public function canLogCare(): bool
     {
         return $this->needsContact()
@@ -297,9 +210,6 @@ class Show extends Component
             && ! $this->recontactAt?->isFuture();
     }
 
-    /**
-     * Lý do nút ghi nhận bị khóa, null nếu ghi nhận được.
-     */
     public function careLockHint(): ?string
     {
         if ($this->canLogCare()) {
@@ -311,10 +221,6 @@ class Show extends Component
             : __('opportunities.care_hint_full', ['max' => self::MAX_UNREACHABLE_CONTACTS]);
     }
 
-    /**
-     * Thời điểm sớm nhất được ghi: sau lần liên hệ trước, sau lúc vào stage hiện tại
-     * và sau thời gian chờ liên hệ lại.
-     */
     protected function earliestCareTime(): Carbon
     {
         $last = $this->opportunity->careResults()->max('performed_at');
@@ -342,7 +248,6 @@ class Show extends Component
 
         $earliest = $this->earliestCareTime();
 
-        // Thất bại (khách từ chối) bắt buộc ghi lý do - lý do được lưu vào lịch sử chuyển stage
         $this->validate([
             'careTime'   => ['required', 'date', 'before_or_equal:now', 'after_or_equal:'.$earliest->format('Y-m-d H:i')],
             'careResult' => ['required', Rule::in(CareResult::RESULTS)],
@@ -382,11 +287,6 @@ class Show extends Component
         $this->refreshAppointments();
     }
 
-    /**
-     * Xử lý sau khi ghi nhận liên hệ, theo kết quả và stage; trả về nội dung thông báo.
-     *   - Thất bại (khách từ chối): Lost; ở Data đã xử lý lý do ghi là khách từ chối đăng ký.
-     *   - Không liên lạc được: vượt giới hạn của stage → Archived.
-     */
     protected function applyCareOutcome(string $result, Carbon $time, string $notes, string $activity): string
     {
         $params = ['activity' => $activity];
@@ -397,7 +297,6 @@ class Show extends Component
             return $this->closeOpportunity(Opportunity::STATUS_LOST, $reason.$notes, 'opportunities.care_closed_lost', $params);
         }
 
-        // Data đã xử lý: quá hạn quyết định (14 ngày từ khi chuyển sang stage) mà khách chưa đồng ý → Archived
         if ($this->opportunity->stage_id === Stage::PROCESSED && $this->opportunity->closeIfDecisionOverdue($time)) {
             $this->refreshStage();
 
@@ -414,12 +313,6 @@ class Show extends Component
             : __('opportunities.care_saved', $params);
     }
 
-    /**
-     * Lý do lưu trữ khi không liên lạc được đã vượt giới hạn của stage, null nếu chưa vượt:
-     *   - Data chưa tương tác: đủ 4 lần không liên lạc được;
-     *   - Data đã có lịch hẹn: quá 7 ngày kể từ buổi khách không đến.
-     * (Data đã xử lý: hạn quyết định – Opportunity::closeIfDecisionOverdue().)
-     */
     protected function unreachableReason(Carbon $time): ?string
     {
         $stage = $this->opportunity->stage_id;
@@ -440,9 +333,6 @@ class Show extends Component
         return 'Không liên lạc được quá '.$days.' ngày kể từ buổi khách không đến';
     }
 
-    /**
-     * Kết thúc xử lý (Lost / Archived) và trả về thông báo.
-     */
     protected function closeOpportunity(string $status, string $reason, string $key, array $params): string
     {
         $this->opportunity->close($status, $reason);
@@ -451,12 +341,6 @@ class Show extends Component
         return __($key, $params + ['reason' => $reason]);
     }
 
-    // ── Tạo báo giá ───────────────────────────────────────────────────
-
-    /**
-     * Khách đồng ý đăng ký (Data chưa tương tác – đăng ký ngay / Data đã xử lý – chốt đăng ký): mở biểu mẫu
-     * lập báo giá (HĐ1 → HĐ2). Cơ hội giữ stage hiện tại; lưu báo giá (kể cả Nháp) mới chuyển sang Chốt.
-     */
     public function createQuotation()
     {
         abort_unless($this->canCreateQuotation(), 403);
@@ -464,10 +348,6 @@ class Show extends Component
         return $this->redirectRoute('salesperson.quotations.create', $this->opportunity, navigate: false);
     }
 
-    /**
-     * Nút "Tạo báo giá" ở stage Chốt: salesperson phụ trách, đủ điều kiện HĐ2
-     * (Chốt; InProgress; không còn báo giá Nháp) - QuotationService::blockerFor().
-     */
     public function canStartQuotation(): bool
     {
         return $this->isOwner()
@@ -475,12 +355,6 @@ class Show extends Component
             && app(QuotationService::class)->blockerFor($this->opportunity, Auth::user()->employee) === null;
     }
 
-
-    /**
-     * Nhãn "Phân vân · còn N ngày": ở Data đã xử lý là số ngày còn lại của hạn quyết định (khách đang cân nhắc);
-     * không có thì null. Báo giá không còn dùng nhãn này (chốt 25/10/2026).
-     * Chỉ là nhãn tính ra, không phải trạng thái cơ hội.
-     */
     #[Computed]
     public function undecidedDays(): ?int
     {
@@ -489,20 +363,12 @@ class Show extends Component
         return $deadline ? max(0, (int) today()->diffInDays($deadline->copy()->startOfDay(), false)) : null;
     }
 
-    // ── Cập nhật kết quả lịch hẹn ─────────────────────────────────────
-
-    /**
-     * Mở ô ghi kết quả buổi hẹn trước khi xác nhận khách đã đến.
-     */
     public function startAttended(string $appointmentId, string $type): void
     {
         $this->closeForm();
         $this->attendKey = $appointmentId.'-'.$type;
     }
 
-    /**
-     * Khách đã đến: bắt buộc ghi kết quả (Test: điểm / trình độ; Tư vấn: nội dung tư vấn, khóa học đề xuất).
-     */
     public function saveAttended(): void
     {
         [$id, $type] = array_pad(explode('-', (string) $this->attendKey, 2), 2, '');
@@ -516,10 +382,6 @@ class Show extends Component
         $this->markAppointment($id, $type, Appointment::STATUS_SUCCESS, trim($this->attendResult));
     }
 
-    /**
-     * Khách đã đến (Success, kèm kết quả ghi nối vào ghi chú lịch hẹn) / Khách không đến (Failed) cho một dòng lịch hẹn.
-     * Chỉ dòng còn "Scheduled", đã tới giờ hẹn, thuộc Opportunity này và do chính mình phụ trách.
-     */
     public function markAppointment(string $appointmentId, string $type, string $status, ?string $result = null): void
     {
         abort_unless($this->isOwner(), 403);
@@ -541,31 +403,17 @@ class Show extends Component
         $this->refreshAppointments();
     }
 
-    /**
-     * Loại lịch hẹn khách còn tham gia: buổi gần nhất của loại đó không bị hủy.
-     *
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection>
-     */
     protected function activeAppointmentTypes(): Collection
     {
         return $this->appointmentService()->activeTypes($this->opportunity);
     }
 
-    /**
-     * Hủy buổi hẹn trước giờ hẹn: mở ô ghi lý do.
-     */
     public function startCancel(string $appointmentId, string $type): void
     {
         $this->closeForm();
         $this->cancelKey = $appointmentId.'-'.$type;
     }
 
-    /**
-     * Hủy buổi hẹn (chưa tới giờ, còn chờ), bắt buộc lý do - ghi nối vào ghi chú lịch hẹn. Sau khi hủy:
-     *   - không còn buổi nào đang chờ và chưa đến buổi nào → khách bỏ hẳn → Lưu trữ (Lost);
-     *   - các loại còn tham gia đều đã có buổi khách đến → Data đã xử lý;
-     *   - còn lại giữ nguyên stage.
-     */
     public function saveCancel(): void
     {
         abort_unless($this->canCreateAppointment(), 403);
@@ -588,20 +436,12 @@ class Show extends Component
         $this->refreshAppointments();
     }
 
-    /**
-     * Sau khi chuyển stage: cập nhật quan hệ stage, tính lại hoạt động liên hệ và bộ đếm theo stage mới.
-     */
     protected function refreshStage(): void
     {
         $this->opportunity->setRelation('stage', $this->stages->firstWhere('stage_id', $this->opportunity->stage_id));
         unset($this->nextActivity, $this->stageSince, $this->unreachableContacts, $this->stageContactDone, $this->rebookTypes, $this->recontactAt);
     }
 
-    // ── Tạo lịch hẹn ──────────────────────────────────────────────────
-
-    /**
-     * Opportunity chưa tới stage Chốt (Chốt / Lưu trữ không cần hẹn nữa).
-     */
     public function canCreateAppointment(): bool
     {
         if (! $this->isOwner()) {
@@ -613,11 +453,6 @@ class Show extends Component
         return $closed && $this->stageOrder() < $closed->sort_order;
     }
 
-    /**
-     * Loại được đặt lịch hẹn:
-     *   - Data chưa tương tác: mọi loại, sau khi đã liên hệ thành công ở stage này (kể cả khi quay lại stage);
-     *   - stage sau: loại đã có lần khách không đến, chưa từng đến và chưa có lịch chờ (hẹn lại).
-     */
     #[Computed]
     public function rebookTypes(): array
     {
@@ -629,7 +464,6 @@ class Show extends Component
             return $this->stageContactDone ? Appointment::TYPES : [];
         }
 
-        // Loại khách đã hủy không hẹn lại
         $types = $this->activeAppointmentTypes();
 
         return array_values(array_filter(Appointment::TYPES, function ($type) use ($types) {
@@ -641,9 +475,6 @@ class Show extends Component
         }));
     }
 
-    /**
-     * Địa điểm lịch hẹn: cố định là cơ sở của khách (Leads.branch_id) - "Tên cơ sở - Địa chỉ".
-     */
     #[Computed]
     public function appointmentPlace(): ?string
     {
@@ -686,18 +517,11 @@ class Show extends Component
         $this->refreshAppointments();
     }
 
-    /**
-     * Thời gian trống cho từng loại lịch hẹn.
-     */
     protected function fillNewDefaults(): void
     {
         $this->newTimes = array_fill_keys(Appointment::TYPES, '');
     }
 
-    /**
-     * Kiểm tra giờ bắt đầu của form tạo lịch hẹn: không trùng lịch đang chờ của Salesperson.
-     * Lỗi gắn vào ô thời gian.
-     */
     protected function checkNewTimes(): bool
     {
         foreach (array_intersect(Appointment::TYPES, $this->newTypes) as $type) {
@@ -709,11 +533,6 @@ class Show extends Component
         return $this->getErrorBag()->isEmpty();
     }
 
-    /**
-     * Kiểm tra form lịch hẹn (newTypes, newTimes, newNotes) - dùng cho
-     * nút "Tạo lịch hẹn".
-     * Mỗi loại được chọn (Test / Tư vấn) có thời gian riêng; địa điểm là cơ sở của khách.
-     */
     protected function appointmentRules(array $allowedTypes): array
     {
         $rules = [
@@ -751,11 +570,6 @@ class Show extends Component
         return $attributes;
     }
 
-    /**
-     * Ghi lịch hẹn mới từ form (mỗi loại một dòng, cùng mã, thời gian riêng). Lịch hẹn đầu tiên chuyển
-     * "Data chưa tương tác" → "Data đã có lịch hẹn". Gọi trong transaction.
-     * Trả về [mã lịch hẹn, đã chuyển stage hay chưa].
-     */
     protected function insertAppointment(): array
     {
         $id = Appointment::nextId();
@@ -782,12 +596,6 @@ class Show extends Component
         return [$id, true];
     }
 
-    // ── Đổi thời gian / địa điểm ──────────────────────────────────────
-
-    /**
-     * Dòng lịch hẹn đổi được: chưa có kết quả, chưa tới giờ hẹn, chưa tới stage Chốt.
-     * Khoá "APT006-Test" => nhãn hiển thị trong form.
-     */
     #[Computed]
     public function reschedulable(): array
     {
@@ -821,15 +629,11 @@ class Show extends Component
             return;
         }
 
-        // Chỉ một lịch đổi được thì chọn sẵn; nhiều lịch thì để salesperson tự chọn
         $this->form = 'reschedule';
         $this->editKeys = count($keys) === 1 ? $keys : [];
         $this->updatedEditKeys();
     }
 
-    /**
-     * Tick thêm lịch nào thì điền sẵn thời gian hiện tại của lịch đó.
-     */
     public function updatedEditKeys(): void
     {
         foreach ($this->editKeys as $key) {
@@ -886,9 +690,6 @@ class Show extends Component
         $this->refreshAppointments();
     }
 
-    /**
-     * Kiểm tra giờ mới của form đổi lịch: không trùng lịch đang chờ khác của Salesperson.
-     */
     protected function checkEditTimes(): bool
     {
         foreach ($this->editKeys as $key) {
@@ -902,12 +703,6 @@ class Show extends Component
         return $this->getErrorBag()->isEmpty();
     }
 
-    // ── Sửa thông tin khách (Lead) ────────────────────────────────────
-
-    /**
-     * Salesperson phụ trách sửa thông tin khách khi cơ hội đang chăm sóc (InProgress), kể cả khách cũ;
-     * cơ hội đã chốt / lưu trữ giữ nguyên thông tin.
-     */
     protected function leadToEdit(): ?Lead
     {
         return $this->isOwner()
@@ -917,10 +712,6 @@ class Show extends Component
             : null;
     }
 
-    /**
-     * Theo tình trạng Lead (LeadDuplicateService::editableFields), tối đa họ tên + thông tin liên hệ:
-     * nguồn, kênh, chi nhánh do Sale Admin quản lý.
-     */
     public function leadEditableFields(): array
     {
         $lead = $this->opportunity->lead;
@@ -941,8 +732,6 @@ class Show extends Component
         $this->notice = ['tone' => 'success', 'text' => __('leads.edit_saved')];
     }
 
-    // ── Dữ liệu ───────────────────────────────────────────────────────
-
     protected function appointmentService(): AppointmentService
     {
         return app(AppointmentService::class);
@@ -959,23 +748,12 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Salesperson đang phụ trách cơ hội - người duy nhất được thao tác.
-     */
     public function isOwner(): bool
     {
         return $this->routePrefix === Role::SALESPERSON
             && $this->opportunity->employee_id === $this->employeeId();
     }
 
-    // ── Chuyển người phụ trách (Sale Leader) ──────────────────────────
-
-    /**
-     * Salesperson đang làm việc trong đội của Leader (trừ người đang phụ trách), khi cơ hội chưa qua stage Chốt,
-     * chưa kết thúc (Lost / Archived) và khách chưa đóng tiền lần nào, chưa thành học viên.
-     * Ở stage Chốt (đang lập báo giá, chờ thanh toán) vẫn chuyển được. Xét theo thanh toán thực tế (đã đóng tiền
-     * kỳ nào chưa) chứ không theo trạng thái Won, vì Won chỉ có từ lần thanh toán thành công đầu tiên.
-     */
     #[Computed]
     public function reassignOptions(): Collection
     {
@@ -997,20 +775,12 @@ class Show extends Component
             ->get(['employee_id', 'full_name']);
     }
 
-    /**
-     * Khách đã đóng tiền (đơn hàng có thanh toán) hoặc đã thành học viên.
-     */
     protected function paidOrEnrolled(): bool
     {
         return $this->opportunity->student()->exists()
             || $this->opportunity->quotations()->whereHas('order', fn ($q) => $q->where('paid_amount', '>', 0))->exists();
     }
 
-    /**
-     * Số Cơ hội đang xử lý của người đang phụ trách + các salesperson có thể nhận (thanh tải x/50 như popup phân công Lead).
-     *
-     * @return array<string, int>
-     */
     #[Computed]
     public function reassignLoad(): array
     {
@@ -1039,18 +809,11 @@ class Show extends Component
         $this->confirmingOver = false;
     }
 
-    /**
-     * Hộp xác nhận vượt ngưỡng → "Quay lại" để chọn người khác.
-     */
     public function cancelOverConfirm(): void
     {
         $this->confirmingOver = false;
     }
 
-    /**
-     * Người nhận đang chọn sẽ vượt ngưỡng 50 sau khi nhận cơ hội này (giống hộp xác nhận phân Lead; 50 chỉ là cảnh báo):
-     * ['name', 'load' => đang quản lý, 'after' => sau khi chuyển, 'over' => số vượt], null nếu không vượt.
-     */
     #[Computed]
     public function reassignOver(): ?array
     {
@@ -1086,7 +849,6 @@ class Show extends Component
             ],
         );
 
-        // Người nhận vượt ngưỡng 50 → hỏi xác nhận trước (ngưỡng chỉ là cảnh báo, "Vẫn chuyển" thì ghi luôn)
         if (! $confirmed && $this->reassignOver) {
             $this->confirmingOver = true;
 
@@ -1105,15 +867,11 @@ class Show extends Component
                 'transferred_by'   => $this->employeeId(),
             ]);
 
-            // Lịch hẹn đang chờ chuyển sang người mới; lịch đã có kết quả và lịch sử chăm sóc giữ nguyên người thực hiện
             $moved = DB::table('Appointments')
                 ->where('opportunity_id', $this->opportunity->opportunity_id)
                 ->where('status', Appointment::STATUS_SCHEDULED)
                 ->update(['employee_id' => $this->newOwner]);
 
-            // Trao lại mọi quyền của người cũ trên cơ hội này (khách chưa đóng tiền nên tất cả còn dở): quyền với báo giá,
-            // đơn hàng, hóa đơn gắn theo người lập báo giá / người lập hóa đơn → báo giá và hóa đơn chưa thanh toán
-            // đổi sang người mới (xem, sửa, xác nhận, lập / sửa hóa đơn, nhận thông báo). Lần chuyển lưu ở OpportunityTransfers.
             $quotes = $this->opportunity->quotations()->update(['employee_id' => $this->newOwner]);
 
             Invoice::query()
@@ -1137,9 +895,6 @@ class Show extends Component
         unset($this->reassignOptions, $this->reassignLoad, $this->reassignOver, $this->appointments, $this->careResults, $this->transfers, $this->quotations);
     }
 
-    /**
-     * Lịch sử chuyển người phụ trách, mới nhất trước.
-     */
     #[Computed]
     public function transfers(): Collection
     {
@@ -1160,9 +915,6 @@ class Show extends Component
         return $this->opportunity->stage?->sort_order ?? 0;
     }
 
-    /**
-     * Lịch hẹn của Opportunity này (gồm cả lịch của người phụ trách trước khi được chuyển).
-     */
     protected function opportunityAppointments()
     {
         return DB::table('Appointments')
@@ -1173,13 +925,9 @@ class Show extends Component
     {
         unset($this->appointments, $this->rebookTypes, $this->reschedulable);
 
-        // Lịch hẹn / liên hệ vừa thay đổi: chuông bỏ ngay thông báo đã xử lý
         $this->dispatch('notifications-refresh');
     }
 
-    /**
-     * Lý do kết thúc (Lost / Archived): ghi chú của lần chuyển sang stage Lưu trữ gần nhất.
-     */
     #[Computed]
     public function closeReason(): ?string
     {
@@ -1215,10 +963,6 @@ class Show extends Component
             ->get();
     }
 
-    /**
-     * Lịch hẹn gom theo mã: mới nhất lên đầu, "lần N" đánh theo thời gian tăng dần.
-     * Mỗi nhóm: id, no, rows (Test trước, Tư vấn sau). Mỗi dòng thêm can_mark, can_reschedule.
-     */
     #[Computed]
     public function appointments(): Collection
     {
@@ -1242,7 +986,6 @@ class Show extends Component
     #[Computed]
     public function quotations(): Collection
     {
-        // withTotal(): cột computed_total = tạm tính − voucher, cùng công thức với trang chi tiết báo giá
         return $this->opportunity->quotations()
             ->withTotal()
             ->orderByDesc('created_at')
@@ -1250,18 +993,11 @@ class Show extends Component
             ->get();
     }
 
-    /**
-     * Nút "Tạo báo giá" (khách đồng ý đăng ký): salesperson phụ trách, đã liên hệ thành công ở stage hiện tại –
-     * "Liên hệ ban đầu" ở Data chưa tương tác hoặc "Chốt đăng ký" ở Data đã xử lý (chưa quá hạn quyết định).
-     */
     public function canCreateQuotation(): bool
     {
         return $this->isOwner() && $this->opportunity->agreedToRegister();
     }
 
-    /**
-     * Stage 1-3 chưa có báo giá nên ẩn phần Báo giá.
-     */
     public function showQuotations(): bool
     {
         return $this->opportunity->stage_id === Stage::CLOSED || $this->quotations->isNotEmpty();

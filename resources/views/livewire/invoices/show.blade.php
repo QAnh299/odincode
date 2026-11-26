@@ -23,7 +23,6 @@
 @endphp
 
 <div class="qt qt-detail iv" @if ($isUnpaid) wire:poll.5s="checkPayment" @endif>
-    {{-- Dùng lại khung trang chi tiết của báo giá (quotation.css) + nhãn trạng thái hóa đơn (invoice.css) --}}
     @assets
         @vite(['resources/css/quotation.css', 'resources/css/invoice.css'])
     @endassets
@@ -65,7 +64,6 @@
         </p>
     @endif
 
-    {{-- ── Trạng thái thanh toán + thao tác theo vai trò ── --}}
     <section @class(['qt-actions', 'iv-pay', 'iv-pay--'.$tone])>
         <p class="iv-pay__state">
             @if ($status === Invoice::STATUS_PAID)
@@ -78,7 +76,6 @@
             @elseif ($status === Invoice::STATUS_OVERDUE)
                 <x-icon name="alert" />{{ __('invoices.detail.overdue_note') }}
             @elseif ($isCash)
-                {{-- HĐ30 --}}
                 <x-icon name="hourglass" />{{ __('invoices.detail.cash_waiting') }}
             @elseif ($isTransfer)
                 <x-icon name="clock" />{{ __('invoices.detail.transfer_waiting') }}
@@ -89,14 +86,12 @@
 
         <div class="qt-actions__buttons">
             @if ($this->canApproveCash)
-                {{-- HĐ32: kế toán đã đối chiếu số tiền khách nộp khớp hóa đơn --}}
                 <button type="button" class="qt-btn qt-btn--primary" wire:loading.attr="disabled" wire:target="approveCash"
                     x-on:click="$dispatch('odin-confirm', { title: @js(__('invoices.detail.approve_title')), message: @js(__('invoices.detail.approve_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)])), ok: @js(__('invoices.detail.approve_cash')), run: () => $wire.approveCash() })">
                     <x-icon name="check-circle" />{{ __('invoices.detail.approve_cash') }}
                 </button>
             @endif
             @if ($this->canConfirmTransfer)
-                {{-- Ngoại lệ: khách chuyển lệch số tiền, kế toán đối chiếu sao kê rồi xác nhận thủ công --}}
                 <button type="button" class="qt-btn qt-btn--primary" wire:loading.attr="disabled" wire:target="confirmTransfer"
                     x-on:click="$dispatch('odin-confirm', { title: @js(__('invoices.detail.confirm_transfer_title')), message: @js(__('invoices.detail.confirm_transfer_confirm', ['code' => $invoice->invoice_id, 'amount' => $money($invoice->payment_amount)])), ok: @js(__('invoices.detail.confirm_transfer')), run: () => $wire.confirmTransfer() })">
                     <x-icon name="check-circle" />{{ __('invoices.detail.confirm_transfer') }}
@@ -110,7 +105,6 @@
             @endif
         </div>
         @if ($alert = $this->transferAlert)
-            {{-- Khách chuyển lệch số tiền hoặc chuyển vào hóa đơn đã Quá hạn: hệ thống không ghi nhận, báo kế toán và SP --}}
             @php
                 $alertKey = match (true) {
                     $status === Invoice::STATUS_OVERDUE => 'transfer_overdue',
@@ -130,7 +124,6 @@
         @endif
     </section>
 
-    {{-- ── Một khung phiếu: đơn hàng (khách, khóa học, tổng / đã đóng / còn lại) + thanh toán kỳ này ── --}}
     @if ($order)
         <x-invoice-receipt :order="$order" :invoice="$invoice" :installment="$invoice->payment_installment">
             <h3 class="iv-doc__part-title">{{ __('invoices.form.this_installment', ['number' => $invoice->payment_installment]) }}</h3>
@@ -153,20 +146,17 @@
                             @elseif ($isCash)
                                 {{ $invoice->accountant?->full_name ?? '-' }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @else
-                                {{-- Chuyển khoản: kế toán xác nhận thủ công thì có tên, hệ thống tự khớp thì "Hệ thống" --}}
                                 {{ $invoice->accountant?->full_name ?? __('invoices.detail.system') }} · {{ $invoice->payment_date?->format('d/m/Y H:i') }}
                             @endif
                         </dd>
                     </div>
                 </dl>
 
-                {{-- HĐ27: QR chuyển khoản (đúng số tiền, nội dung = mã hóa đơn) --}}
                 @if ($isUnpaid && $isTransfer)
                     <div class="iv-qr">
                         <div class="iv-qr__frame">
                             <img src="{{ $invoice->qrUrl() }}" alt="{{ __('invoices.detail.qr_alt', ['code' => $invoice->invoice_id]) }}" class="iv-qr__img" loading="lazy">
                             @if ($this->canDownloadQr)
-                                {{-- Tải QR (PNG) để gửi khách qua Zalo / email khi khách không đến trung tâm --}}
                                 <button type="button" class="iv-qr__download"
                                         title="{{ __('invoices.detail.qr_download_hint') }}" aria-label="{{ __('invoices.detail.qr_download') }}"
                                         data-qr-download="{{ route('salesperson.invoices.qr', $invoice) }}"
@@ -185,7 +175,6 @@
                 @endif
             </div>
 
-            {{-- Các kỳ thanh toán của đơn --}}
             @if ($order->invoices->count() > 1)
                 <h3 class="iv-doc__part-title">{{ __('invoices.detail.installments_title') }}</h3>
                 <div class="iv-doc__lines">
@@ -221,7 +210,6 @@
                 <p class="iv-doc__note"><x-icon name="file" /><a href="{{ $quotationUrl }}">{{ __('invoices.detail.view_quotation', ['code' => $quotation->quotation_id]) }}</a></p>
             @endif
 
-            {{-- Ký nhận như phiếu thu --}}
             <div class="iv-doc__sign">
                 <div><strong>{{ __('invoices.receipt.payer') }}</strong><span>{{ __('invoices.receipt.sign_hint') }}</span></div>
                 <div><strong>{{ __('invoices.receipt.receiver') }}</strong><span>{{ __('invoices.receipt.sign_hint') }}</span>

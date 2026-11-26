@@ -1,4 +1,3 @@
-{{-- Việc cần xử lý: $alertRows, $flaggedTotal. Dùng chung giữa sales-performance và sales-team-performance; nhận biến của view cha qua @include ($sp, $money, $num, $pct, $formats...) --}}
 <h2 class="rp-section">{{ $alertTitle ?? $sp('alert_section') }}</h2>
 <p class="rp-section__sub">{{ $sp('alert_section_sub', ['days' => \App\Services\SalesPerformanceReport::STALE_DAYS]) }}</p>
 
@@ -29,13 +28,13 @@
                             @foreach (\App\Services\SalesPerformanceReport::ALERTS as $alert)
                                 <td class="rp-num">
                                     @if ($row['alerts'][$alert])
-                                        <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $alert, 'employees' => [$row['id']]]) }})"><span class="rp-flag rp-flag--{{ $alert }}">{{ $row['alerts'][$alert] }}</span></button>
+                                        <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => $alert, 'employees' => [$row['id']]])) }})"><span class="rp-flag rp-flag--{{ $alert }}">{{ $row['alerts'][$alert] }}</span></button>
                                     @else
                                         <span class="rp-sub">0</span>
                                     @endif
                                 </td>
                             @endforeach
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'employees' => [$row['id']]]) }})"><strong>{{ $row['alerts']['flagged'] }}</strong></button></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'flagged', 'employees' => [$row['id']]])) }})"><strong>{{ $row['alerts']['flagged'] }}</strong></button></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -44,9 +43,9 @@
                         <tr>
                             <th scope="row" class="rp-pin">{{ $sp('total') }}</th>
                             @foreach (\App\Services\SalesPerformanceReport::ALERTS as $alert)
-                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $alert]) }})">{{ array_sum(array_map(fn ($r) => $r['alerts'][$alert], $alertRows)) }}</button></td>
+                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => $alert])) }})">{{ array_sum(array_map(fn ($r) => $r['alerts'][$alert], $alertRows)) }}</button></td>
                             @endforeach
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged']) }})"><strong>{{ $flaggedTotal }}</strong></button></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'flagged'])) }})"><strong>{{ $flaggedTotal }}</strong></button></td>
                         </tr>
                     </tfoot>
                 @endif

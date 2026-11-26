@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-// Voucher pages: list (livewire/vouchers/index) and detail (livewire/vouchers/show)
 return [
     'title'              => 'Vouchers',
     'subtitle'           => 'Look up discount codes, validity periods and usage',
     'detail_title'       => 'Voucher :code',
 
-    // Lookup
     'lookup'             => 'Voucher lookup',
     'search'             => 'Search',
     'search_placeholder' => 'Search by voucher code or discount value (e.g. VCH001, 10, 500000)…',
@@ -41,7 +39,6 @@ return [
         'inactive' => 'Inactive',
     ],
 
-    // Table columns
     'code'               => 'Voucher code',
     'value'              => 'Discount',
     'validity'           => 'Validity period',
@@ -50,7 +47,6 @@ return [
     'view'               => 'View details',
     'progress'           => ':percent% of the validity period has passed',
 
-    // Detail
     'back'               => 'Back',
     'copy'               => 'Copy code',
     'copied'             => 'Copied',

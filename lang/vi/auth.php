@@ -3,12 +3,10 @@
 declare(strict_types=1);
 
 return [
-    // Chuẩn Laravel
     'failed'   => 'Tên đăng nhập hoặc mật khẩu không đúng.',
     'password' => 'Mật khẩu không đúng.',
     'throttle' => 'Vượt quá số lần đăng nhập cho phép. Vui lòng thử lại sau :seconds giây.',
 
-    // Trang đăng nhập
     'login'                => 'Đăng nhập',
     'username'             => 'Tên đăng nhập',
     'password_label'       => 'Mật khẩu',
@@ -21,7 +19,6 @@ return [
     'show_password'        => 'Hiện mật khẩu',
     'hide_password'        => 'Ẩn mật khẩu',
 
-    // Thông báo
     'username_required' => 'Vui lòng nhập tên đăng nhập.',
     'password_required' => 'Vui lòng nhập mật khẩu.',
     'password_min'      => 'Mật khẩu phải có ít nhất :min ký tự.',
@@ -29,7 +26,6 @@ return [
     'locked'            => 'Tài khoản tạm khóa do nhập sai mật khẩu :max lần liên tiếp. Vui lòng thử lại sau :minutes phút.',
     'no_role'           => 'Tài khoản chưa được phân quyền.',
 
-    // Giao diện trang đăng nhập
     'username_placeholder' => 'Nhập tên đăng nhập',
     'password_placeholder' => 'Nhập mật khẩu',
     'forgot_password'      => 'Quên mật khẩu?',

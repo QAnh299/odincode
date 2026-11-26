@@ -1,23 +1,5 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Menu dọc bên trái theo vai trò
-|--------------------------------------------------------------------------
-| items: định nghĩa từng mục menu (cả mục lớn lẫn menu con).
-|   - route: hậu tố route name, ghép với prefix vai trò.
-|            VD: vai trò director + route 'leads' → route name 'director.leads'.
-|            Route chưa tồn tại thì link tạm là '#'.
-|   - icon:  tên icon trong resources/views/components/sidebar.blade.php
-|            (menu con không cần icon).
-|   Nhãn hiển thị lấy từ lang/{locale}/menu.php theo key của item.
-|
-| roles: các mục menu (đúng thứ tự hiển thị) của từng vai trò.
-|   - 'leads'                          → mục thường, bấm vào mở trang.
-|   - 'leads' => ['lead_list', ...]    → mục lớn có menu con; mỗi vai trò
-|                                        có thể có menu con khác nhau.
-*/
-
 return [
     'items' => [
         'dashboard'     => ['route' => 'home',         'icon' => 'dashboard'],
@@ -31,18 +13,12 @@ return [
         'courses'       => ['route' => 'courses',      'icon' => 'course'],
         'vouchers'      => ['route' => 'vouchers',     'icon' => 'voucher'],
 
-        // Menu con
         'employee_list' => ['route' => 'employees'],
         'sales_teams'   => ['route' => 'sales-teams'],
         'lead_list'     => ['route' => 'leads'],
         'opportunity_list' => ['route' => 'opportunities'],
         'appointments'  => ['route' => 'appointments'],
 
-        // Menu con của Dashboard & Báo cáo - phân quyền theo vai trò:
-        //   Doanh thu & thanh toán:     tất cả vai trò
-        //   Hiệu quả chuyển đổi Lead:   trừ Kế toán
-        //   Hiệu quả nhân viên Sales:   trừ Kế toán, Salesperson
-        //   Chất lượng nguồn Lead:      chỉ Giám đốc, Sale Admin
         'report_revenue'           => ['route' => 'reports.revenue'],
         'report_lead_conversion'   => ['route' => 'reports.lead-conversion'],
         'report_sales_performance' => ['route' => 'reports.sales-performance'],
@@ -70,6 +46,7 @@ return [
 
         'sale_admin' => [
             'leads',
+            'opportunities',
             'employees' => ['employee_list', 'sales_teams'],
             'quotations',
             'orders',

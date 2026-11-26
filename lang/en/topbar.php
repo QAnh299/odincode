@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Top navigation bar (components/topbar.blade.php)
 return [
     'notifications'    => 'Notifications',
     'no_notifications' => 'No notifications yet',
@@ -12,7 +11,7 @@ return [
     'notify_done'      => 'Done',
     'mark_tab_read'    => 'Mark as read',
     'no_notifications_tab' => 'No notifications in this section',
-    // Notification group tabs
+
     'notify_tab' => [
         'all'         => 'All',
         'care'        => 'Contact',

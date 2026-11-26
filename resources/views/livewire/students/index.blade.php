@@ -4,7 +4,6 @@
     $stats = $this->stats;
     $isSalesperson = $this->routePrefix === \App\Models\Role::SALESPERSON;
 
-    // Thẻ thống kê (bấm để lọc): [trạng thái, icon]
     $cards = [
         ['', 'users'],
         [Student::STATUS_STUDYING, 'book'],
@@ -14,14 +13,12 @@
 @endphp
 
 <div class="vc st">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/student.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/student.css'])
     @endassets
 
     <h1 class="visually-hidden">{{ __('students.title') }}</h1>
 
-    {{-- ── Thống kê theo trạng thái (bấm để lọc) ───────────────────── --}}
     <div class="vc-summary st-summary">
         @foreach ($cards as [$key, $icon])
             <button type="button" wire:click="filterStatus('{{ $key }}')"
@@ -36,7 +33,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tra cứu ──────────────────────────────────────────────────── --}}
     <section class="vc-card st-filters" aria-label="{{ __('students.lookup') }}">
         <label class="vc-field st-filters__search">
             <span class="vc-field__label">{{ __('students.search') }}</span>
@@ -112,10 +108,15 @@
         </div>
     </section>
 
-    {{-- ── Danh sách ────────────────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <div class="vc-results__bar">
             <span>{!! __('students.result_count', ['count' => '<strong>'.$students->total().'</strong>']) !!}</span>
+            @if ($leadFilter = $this->leadFilterParts())
+                <span class="vc-badge">
+                    {{ __('students.lead_filter.label') }}: {{ implode(' · ', $leadFilter) }}
+                    <button type="button" class="vc-btn vc-btn--ghost vc-btn--sm" wire:click="resetLeadFilters" title="{{ __('students.lead_filter.clear') }}" aria-label="{{ __('students.lead_filter.clear') }}">×</button>
+                </span>
+            @endif
             <span class="vc-results__loading" wire:loading.delay>
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('students.loading') }}

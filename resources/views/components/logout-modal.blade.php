@@ -1,4 +1,3 @@
-{{-- Popup xác nhận đăng xuất. Mở bằng: data-bs-toggle="modal" data-bs-target="#logoutModal" --}}
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content odin-logout-modal">

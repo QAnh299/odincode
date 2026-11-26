@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-// Trang đơn hàng: danh sách (livewire/orders/index)
 return [
     'title'              => 'Quản lý đơn hàng',
     'subtitle'           => 'Tra cứu đơn hàng tạo từ báo giá đã xác nhận: tổng tiền, tiến độ thanh toán và hóa đơn của từng đơn.',
 
-    // Tìm kiếm
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã đơn, khách hàng, SĐT, email, báo giá, nhân viên, khóa học, voucher, mã hóa đơn, số tiền…',
     'search_hint'        => 'Nhiều từ khóa · "cụm chính xác" · -loại trừ',
@@ -21,10 +19,8 @@ return [
         'Tìm trong: mã đơn, trạng thái, hình thức, ghi chú, mã báo giá / cơ hội / voucher / hóa đơn, tên/SĐT/email khách, nhân viên, khóa học, số tiền',
     ],
 
-    // Thẻ thống kê
     'all'                => 'Tất cả',
 
-    // Bộ lọc
     'filters'            => 'Bộ lọc',
     'close'              => 'Đóng',
     'active_filters'     => 'Đang lọc',
@@ -69,27 +65,23 @@ return [
         'customer'       => 'Tên khách hàng (A → Z)',
     ],
 
-    // Trạng thái đơn hàng (SalesOrder::STATUSES)
     'status' => [
         'InProgress' => 'Đang xử lý',
         'Completed'  => 'Hoàn tất',
     ],
 
-    // Hình thức thanh toán (SalesOrder::PAYMENT_TYPES; none = NULL hoặc rỗng)
     'payment_type' => [
         'Full'        => 'Toàn bộ',
         'Installment' => 'Trả góp',
         'none'        => 'Chưa xác định',
     ],
 
-    // Tiến độ thanh toán
     'progress' => [
         'unpaid'  => 'Chưa thanh toán',
         'partial' => 'Đang thanh toán',
         'paid'    => 'Đã thanh toán đủ',
     ],
 
-    // Bộ lọc hóa đơn của đơn
     'invoice_state' => [
         'pending'       => 'Có hóa đơn đang chờ thanh toán',
         'overdue'       => 'Có hóa đơn quá hạn',
@@ -97,7 +89,6 @@ return [
         'needs_invoice' => 'Cần tạo hóa đơn tiếp',
     ],
 
-    // Nhãn nhóm trên chip bộ lọc đang áp dụng
     'chip' => [
         'search'   => 'Từ khóa',
         'statuses' => 'Trạng thái',
@@ -113,7 +104,6 @@ return [
         'to'       => 'đến :value',
     ],
 
-    // Cột bảng
     'code'               => 'Mã đơn hàng',
     'customer'           => 'Khách hàng',
     'quotation'          => 'Báo giá',
@@ -129,8 +119,6 @@ return [
     'create_invoice'     => 'Tạo hóa đơn',
     'view_quotation'     => 'Xem báo giá :code',
 
-    // Trang chi tiết đơn hàng
-    // ── Khung phiếu ở chi tiết đơn hàng (components/invoice-receipt, type = order) ──
     'doc' => [
         'title'  => 'ĐƠN HÀNG',
         'number' => 'Số đơn hàng',

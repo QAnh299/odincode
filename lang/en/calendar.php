@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// To-do calendar on the top bar (livewire/task-calendar.blade.php)
 return [
     'title'         => 'To-do calendar',
     'month'         => 'Month :month, :year',

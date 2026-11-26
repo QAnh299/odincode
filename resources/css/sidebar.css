@@ -1,6 +1,3 @@
-/* ── Menu dọc bên trái + khung trang (layouts/app.blade.php) ───────────
-   Màu lấy từ logo ODIN: xanh lá đậm + vàng gold                      */
-
 :root {
     --odin-sidebar-width: 260px;
     --odin-sidebar-mini-width: 76px;
@@ -10,7 +7,6 @@
     --odin-sidebar-hover: rgba(255, 255, 255, 0.08);
 }
 
-/* Khung trang: sidebar trái + nội dung phải */
 .odin-shell {
     display: flex;
     min-height: 100vh;
@@ -25,8 +21,6 @@
     background: var(--odin-page-bg);
 }
 
-/* Hoạ tiết nền: tô bằng màu chính qua mask nên đổi theo màu giao diện.
-   Không dùng isolation/z-index ở đây: modal trong trang phải nằm trên backdrop của Bootstrap */
 .odin-main::before {
     content: "";
     position: absolute;
@@ -42,7 +36,6 @@
     position: relative;
 }
 
-/* Sidebar (offcanvas trên màn nhỏ, cố định trên màn ≥ lg) */
 .odin-sidebar {
     --bs-offcanvas-width: var(--odin-sidebar-width);
     --bs-offcanvas-bg: var(--odin-sidebar-bg);
@@ -82,7 +75,6 @@
     right: 1rem;
 }
 
-/* Logo nền trong suốt (public/images/logoodin-sidebar.png) */
 .odin-sidebar__logo img {
     display: block;
     height: auto;
@@ -92,7 +84,6 @@
     width: 160px;
 }
 
-/* Phần biểu tượng, chỉ hiện khi menu thu gọn (public/images/logoodin-mark.png) */
 .odin-sidebar__logo-mark {
     display: none !important;
     width: 46px;
@@ -104,21 +95,19 @@
     padding: 1rem 0.75rem;
 }
 
-/* Ẩn thanh cuộn của menu (vẫn cuộn được bằng chuột / cảm ứng) */
 .odin-sidebar,
 .odin-sidebar__inner,
 .odin-sidebar__nav {
-    scrollbar-width: none;      /* Firefox */
-    -ms-overflow-style: none;   /* Edge cũ */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .odin-sidebar::-webkit-scrollbar,
 .odin-sidebar__inner::-webkit-scrollbar,
 .odin-sidebar__nav::-webkit-scrollbar {
-    display: none;              /* Chrome, Edge, Safari */
+    display: none;
 }
 
-/* Danh sách mục menu */
 .odin-menu {
     list-style: none;
     margin: 0;
@@ -176,7 +165,6 @@
     flex-shrink: 0;
 }
 
-/* Mục lớn có menu con */
 .odin-menu__toggle {
     width: 100%;
     border: 0;
@@ -201,7 +189,6 @@
     transform: rotate(180deg);
 }
 
-/* Menu con: mở/đóng mượt bằng grid-template-rows */
 .odin-submenu {
     display: grid;
     grid-template-rows: 0fr;
@@ -247,7 +234,6 @@
     font-weight: 600;
 }
 
-/* Đăng xuất ở đáy sidebar */
 .odin-sidebar__footer {
     padding: 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -266,7 +252,6 @@
     color: #fecaca;
 }
 
-/* Trạng thái thu gọn: chỉ hiện icon (màn ≥ lg) */
 @media (min-width: 992px) {
     .odin-sidebar {
         transition: flex-basis 0.2s, width 0.2s;
@@ -305,7 +290,6 @@
         display: none;
     }
 
-    /* Thu gọn: mục lớn chứa trang đang mở vẫn được tô sáng */
     .odin-sidebar-collapsed .odin-menu__toggle.has-active {
         background: var(--odin-primary);
         color: var(--odin-on-primary);

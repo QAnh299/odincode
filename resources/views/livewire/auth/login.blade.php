@@ -9,7 +9,6 @@
 
     <main class="auth-main">
         <div class="auth-shell">
-            {{-- ── Cột trái: thương hiệu ────────────────────────────── --}}
             <aside class="auth-brand">
                 <div class="brand-center">
                     <img src="{{ asset('images/logoodin-sidebar.png') }}" alt="ODIN Language Center" class="brand-logo">
@@ -17,7 +16,7 @@
 
                     <h2 class="brand-title">{{ __('auth.brand_title') }}</h2>
                     @php
-                        // Icon nét (24×24) cho từng ý chính
+
                         $brandPoints = [
                             'brand_point_leads' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
                             'brand_point_classes' => '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/>',
@@ -40,7 +39,6 @@
                 <p class="brand-copy">© {{ date('Y') }} ODIN Language Center. {{ __('auth.rights') }}</p>
             </aside>
 
-            {{-- ── Cột phải: form đăng nhập ─────────────────────────── --}}
             <section class="auth-panel">
                 <img src="{{ asset('images/logoodin-trim.png') }}" alt="ODIN Language Center" class="panel-logo">
 
@@ -64,7 +62,6 @@
                     @enderror
 
                     @if ($mode === 'forgot')
-                        {{-- ── Form quên mật khẩu ───────────────────────── --}}
                         @if ($resetSent)
                             <div class="auth-alert auth-alert--success" role="status">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -114,7 +111,6 @@
                         </div>
                     @else
                     <form wire:submit="login" novalidate>
-                        {{-- Tên đăng nhập --}}
                         <div class="mb-3">
                             <label for="username" class="field-label">{{ __('auth.username') }}</label>
                             <div class="input-wrap">
@@ -132,7 +128,6 @@
                             @enderror
                         </div>
 
-                        {{-- Mật khẩu --}}
                         <div class="mb-2" x-data="{ show: false }">
                             <label for="password" class="field-label">{{ __('auth.password_label') }}</label>
                             <div class="input-wrap">

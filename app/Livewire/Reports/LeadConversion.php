@@ -3,6 +3,7 @@
 namespace App\Livewire\Reports;
 
 use App\Livewire\Reports\Concerns\ExportPeriod;
+use App\Livewire\Reports\Concerns\ReportDrill;
 use App\Models\Branch;
 use App\Models\CareResult;
 use App\Models\Employee;
@@ -22,28 +23,16 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Dashboard & Báo cáo → Phân tích hiệu quả chuyển đổi Lead.
- *
- * Phạm vi theo vai trò: Giám đốc, Sale Admin xem toàn bộ Lead (lọc được theo đội / salesperson);
- * Sale Leader xem Lead của đội mình; Salesperson xem Lead mình phụ trách.
- *
- * 5 tab: Tổng quan phễu, Hiệu quả theo nguồn, Tốc độ chuyển đổi,
- * Chất lượng chăm sóc, Cohort theo tháng. Mỗi tab chỉ tính số liệu khi được mở.
- * Tỷ lệ tính theo ngày tạo Lead - xem App\Services\LeadConversionReport.
- * Xuất Excel (Giám đốc, Sale Admin): popup chọn tháng / năm + tiêu chí, xem trước, chọn sheet và cột;
- * file dạng văn bản (App\Services\ReportDocumentWriter).
- */
 #[Layout('layouts.app')]
 class LeadConversion extends Component
 {
     use ExportPeriod {
         openExport as protected openExportPeriod;
     }
+    use ReportDrill;
 
     public const TABS = ['overview', 'sources', 'velocity', 'care', 'cohort'];
 
-    // Bảng màu phân loại dùng chung các trang báo cáo; màu đi theo thực thể / chỉ số
     public const PALETTE = LeadSources::PALETTE;
 
     public const COLORS = [
@@ -62,13 +51,10 @@ class LeadConversion extends Component
         'Unreachable'      => '#eda100',
     ];
 
-    // Nhóm thời gian phản hồi đầu tiên (giờ, cận trên)
     public const RESPONSE_BUCKETS = ['h1' => 1, 'h4' => 4, 'h24' => 24, 'd3' => 72, 'more' => INF];
 
-    // Nhóm thời gian chốt (ngày, cận trên)
     public const CLOSE_BUCKETS = ['d7' => 7, 'd14' => 14, 'd30' => 30, 'd60' => 60, 'more' => INF];
 
-    // Số lần liên hệ: 0, 1, …, 5+ (số cuối gộp từ đó trở lên)
     public const CONTACT_BUCKETS = [0, 1, 2, 3, 4, 5];
 
     public const COHORT_ROWS = 12;
@@ -79,7 +65,6 @@ class LeadConversion extends Component
 
     public const COHORT_METRICS = ['won', 'converted', 'student'];
 
-    // Bộ lọc riêng trong từng khung biểu đồ: khung => loại lọc (tính tiếp trên kết quả của bộ lọc chung)
     public const PANELS = [
         'funnel'         => 'source',
         'share'          => 'share',
@@ -96,14 +81,11 @@ class LeadConversion extends Component
         'touches'        => 'source',
     ];
 
-    // Xuất Excel: các sheet, cột luôn có của từng sheet (không bỏ chọn được), số dòng xem trước trong popup
     public const EXPORT_SHEETS = ['summary', 'leads', 'care', 'appointments'];
 
     public const EXPORT_LOCKED = ['summary' => 'source', 'leads' => 'name', 'care' => 'at', 'appointments' => 'at'];
 
     public const EXPORT_PREVIEW_ROWS = 50;
-
-    /* ── Bộ lọc ───────────────────────────────────────────────────────── */
 
     #[Url(except: 'overview')]
     public string $tab = 'overview';
@@ -126,10 +108,8 @@ class LeadConversion extends Component
     #[Url(except: 'won')]
     public string $cohortMetric = 'won';
 
-    // Giá trị bộ lọc riêng của từng khung biểu đồ: [khung => giá trị]
     public array $chart = [];
 
-    // Tiêu chí riêng của popup xuất ('' = tất cả), không theo bộ lọc trên màn hình
     public string $exportBranch = '';
 
     public string $exportSource = '';
@@ -138,7 +118,6 @@ class LeadConversion extends Component
 
     public string $exportEmployee = '';
 
-    // Sheet được xuất [sheet => bool], cột được chọn [sheet => [cột => bool]], sheet đang xem trước
     public array $exportSheets = [];
 
     public array $exportColumns = [];
@@ -178,8 +157,6 @@ class LeadConversion extends Component
         return in_array($this->tab, self::TABS, true) ? $this->tab : 'overview';
     }
 
-    /* ── Phạm vi theo vai trò ─────────────────────────────────────────── */
-
     #[Computed]
     public function me(): ?Employee
     {
@@ -192,9 +169,6 @@ class LeadConversion extends Component
         return in_array(Auth::user()->role_name, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
-    /**
-     * Xuất Excel: chỉ Giám đốc, Sale Admin.
-     */
     #[Computed]
     public function canExport(): bool
     {
@@ -214,18 +188,12 @@ class LeadConversion extends Component
             ->get(['team_id', 'team_name', 'team_leader_id']);
     }
 
-    /**
-     * Chi nhánh đang lọc (đã kiểm tra). Salesperson chỉ thuộc 1 chi nhánh, nhận Lead của chi nhánh đó → không lọc.
-     */
     #[Computed]
     public function branchScope(): ?string
     {
         return $this->canFilterEmployee && $this->branches->contains('branch_id', $this->branch) ? $this->branch : null;
     }
 
-    /**
-     * Đội chọn được ở bộ lọc: mỗi đội thuộc 1 chi nhánh (SalesTeam::branchId) → đang lọc chi nhánh thì chỉ còn đội của chi nhánh đó.
-     */
     #[Computed]
     public function teamOptions(): Collection
     {
@@ -236,9 +204,6 @@ class LeadConversion extends Component
         return $this->teams->filter(fn ($team) => $team->branchId() === $this->branchScope)->values();
     }
 
-    /**
-     * Đổi chi nhánh: bỏ đội / salesperson không còn thuộc chi nhánh mới.
-     */
     public function updatedBranch(): void
     {
         unset($this->branchScope, $this->teamOptions, $this->teamScope, $this->employeeOptions);
@@ -252,10 +217,6 @@ class LeadConversion extends Component
         }
     }
 
-    /**
-     * Đội đang xem: Giám đốc / Sale Admin = đội đã chọn ('' = tất cả); Sale Leader = đội của mình
-     * (không thuộc đội nào → null, không thấy dữ liệu). Salesperson không lọc theo đội ('').
-     */
     #[Computed]
     public function teamScope(): ?string
     {
@@ -266,9 +227,6 @@ class LeadConversion extends Component
         return $this->canFilterEmployee ? $this->me?->team_id : '';
     }
 
-    /**
-     * Salesperson trong phạm vi đang xem (cho bộ lọc và để hiện cả người chưa có số liệu).
-     */
     #[Computed]
     public function employeeOptions(): Collection
     {
@@ -287,9 +245,6 @@ class LeadConversion extends Component
             ->get(['employee_id', 'full_name', 'team_id', 'status']);
     }
 
-    /**
-     * Salesperson đang xem: Salesperson = chính mình; vai trò khác = người đã chọn (null = tất cả).
-     */
     #[Computed]
     public function employeeScope(): ?string
     {
@@ -300,10 +255,6 @@ class LeadConversion extends Component
         return $this->employeeOptions->contains('employee_id', $this->employee) ? $this->employee : null;
     }
 
-    /**
-     * Đang xem toàn bộ Lead (gồm cả Lead chưa có Cơ hội): Giám đốc / Sale Admin không lọc đội, nhân viên.
-     * Phạm vi khác chỉ gồm Lead đã giao nên không có bước Lead → Cơ hội.
-     */
     #[Computed]
     public function seesAll(): bool
     {
@@ -316,16 +267,11 @@ class LeadConversion extends Component
         return Branch::query()->orderBy('branch_id')->get(['branch_id', 'branch_name']);
     }
 
-    /**
-     * Toàn bộ nguồn Lead (theo tên) - cho bộ lọc và làm khoá màu cố định của từng nguồn.
-     */
     #[Computed]
     public function sources(): array
     {
         return DB::table('Leads')->distinct()->orderBy('source_name')->pluck('source_name')->all();
     }
-
-    /* ── Số liệu chung ────────────────────────────────────────────────── */
 
     #[Computed]
     public function facts(): array
@@ -339,9 +285,6 @@ class LeadConversion extends Component
         return $this->report()->summarize($this->facts);
     }
 
-    /**
-     * Kỳ liền trước cùng độ dài (chỉ khi chọn đủ Từ ngày và Đến ngày).
-     */
     #[Computed]
     public function previous(): ?array
     {
@@ -362,9 +305,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * Nhóm thời gian của biểu đồ xu hướng: theo tháng nếu dữ liệu trải từ 4 tháng trở lên, không thì theo tuần.
-     */
     #[Computed]
     public function period(): string
     {
@@ -376,27 +316,25 @@ class LeadConversion extends Component
         return $this->monthIndex(max($times)) - $this->monthIndex(min($times)) >= 3 ? 'month' : 'week';
     }
 
-    /* ── Tab 1: Tổng quan phễu ────────────────────────────────────────── */
-
     #[Computed]
     public function overview(): array
     {
         $s = $this->report()->summarize($this->panelFacts('funnel'));
         $label = fn ($key) => __('reports.lead_conversion.overview.'.$key);
 
-        // Phễu: Lead → (Cơ hội) → các stage sau stage đầu → Học viên
-        $steps = [[$label($this->seesAll ? 'step_leads' : 'step_assigned'), $s['leads']]];
+        $steps = [[$label($this->seesAll ? 'step_leads' : 'step_assigned'), $s['leads'], ['set' => 'all']]];
         if ($this->seesAll) {
-            $steps[] = [$label('step_opportunities'), $s['opportunities']];
+            $steps[] = [$label('step_opportunities'), $s['opportunities'], ['set' => 'opportunities']];
         }
         foreach (array_slice($this->report()->funnelStages(), 1) as $stage) {
-            $steps[] = [$stage['name'], $s['reached'][$stage['order']]];
+            $steps[] = [$stage['name'], $s['reached'][$stage['order']], ['reached' => $stage['order']]];
         }
-        $steps[] = [$label('step_students'), $s['students']];
+        $steps[] = [$label('step_students'), $s['students'], ['set' => 'students']];
 
         $funnel = [];
-        foreach ($steps as $i => [$name, $value]) {
+        foreach ($steps as $i => [$name, $value, $drill]) {
             $funnel[] = [
+                'drill'   => ['kind' => 'leads', 'panel' => 'funnel'] + $drill,
                 'name'    => $name,
                 'value'   => $value,
                 'rate'    => $i ? LeadConversionReport::pct($value, $steps[$i - 1][1]) : null,
@@ -404,7 +342,6 @@ class LeadConversion extends Component
             ];
         }
 
-        // Lead theo nguồn: tỷ trọng theo chỉ số chọn trong khung
         $metric = $this->panelValue('share');
         $bySource = [];
         foreach ($this->groupFacts(fn ($f) => $f['source']) as $source => $facts) {
@@ -419,8 +356,8 @@ class LeadConversion extends Component
         $outcomes = array_values(array_filter(LeadConversionReport::OUTCOMES, fn ($key) => $o[$key] > 0));
 
         $trendPeriod = $this->panelValue('trend_count') ?: $this->period;
-        [$countLabels, $countRows] = $this->trendRows($this->facts, $trendPeriod);
-        [$rateLabels, $rateRows] = $this->trendRows($this->panelFacts('trend_rate'), $this->period);
+        [$countLabels, $countRows, $countKeys] = $this->trendRows($this->facts, $trendPeriod);
+        [$rateLabels, $rateRows, $rateKeys] = $this->trendRows($this->panelFacts('trend_rate'), $this->period);
 
         $rateMetrics = $this->seesAll ? ['conversion_rate', 'win_rate'] : ['win_rate', 'close_rate'];
 
@@ -430,22 +367,23 @@ class LeadConversion extends Component
             'charts'       => [
                 'share'    => ['type' => 'pie', 'unit' => 'count', 'labels' => $sources,
                     'series' => [['label' => $this->shareLabel($metric), 'data' => array_values($bySource),
-                        'colors' => array_map(fn ($source) => $colors[$source], $sources)]]],
+                        'colors' => array_map(fn ($source) => $colors[$source], $sources)]],
+                    'drills' => [array_map(fn ($source) => ['kind' => 'leads', 'set' => self::METRIC_SETS[$metric], 'source' => $source], $sources)]],
                 'outcomes' => ['type' => 'doughnut', 'unit' => 'count',
                     'labels' => array_map(fn ($key) => __('reports.lead_conversion.outcome.'.$key), $outcomes),
                     'series' => [['label' => $label('leads'), 'data' => array_map(fn ($key) => $o[$key], $outcomes),
-                        'colors' => array_map(fn ($key) => self::COLORS[$key], $outcomes)]]],
+                        'colors' => array_map(fn ($key) => self::COLORS[$key], $outcomes)]],
+                    'drills' => [array_map(fn ($key) => ['kind' => 'leads', 'set' => $key, 'panel' => 'outcomes'], $outcomes)]],
                 'trend_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => $countLabels,
-                    'series' => $this->series($countRows, ['leads', 'won'])],
+                    'series' => $this->series($countRows, ['leads', 'won']),
+                    'drills' => $this->seriesDrills(['leads', 'won'], array_map(fn ($key) => ['period' => $key, 'ptype' => $trendPeriod], $countKeys))],
                 'trend_rate' => ['type' => 'line', 'unit' => 'percent', 'labels' => $rateLabels,
-                    'series' => $this->series($rateRows, $rateMetrics)],
+                    'series' => $this->series($rateRows, $rateMetrics),
+                    'drills' => $this->seriesDrills($rateMetrics, array_map(fn ($key) => ['period' => $key, 'ptype' => $this->period, 'panel' => 'trend_rate'], $rateKeys))],
             ],
         ];
     }
 
-    /**
-     * Xu hướng theo kỳ tạo Lead: [nhãn các kỳ, chỉ số từng kỳ].
-     */
     protected function trendRows(array $facts, string $period): array
     {
         $groups = [];
@@ -457,10 +395,9 @@ class LeadConversion extends Component
         return [
             array_map(fn ($key) => $this->periodLabel($key, $period), $keys),
             array_map(fn ($key) => $this->report()->summarize($groups[$key] ?? []), $keys),
+            $keys,
         ];
     }
-
-    /* ── Tab 2: Hiệu quả theo nguồn ───────────────────────────────────── */
 
     #[Computed]
     public function bySource(): array
@@ -475,7 +412,6 @@ class LeadConversion extends Component
 
         $rateMetrics = $this->seesAll ? ['conversion_rate', 'win_rate', 'close_rate'] : ['win_rate', 'close_rate'];
 
-        // Biểu đồ tỷ lệ theo nguồn lọc theo kênh; tỷ lệ theo kênh lọc theo nguồn
         $rateGroups = [];
         foreach ($this->panelFacts('rates') as $f) {
             $rateGroups[$f['source']][] = $f;
@@ -492,7 +428,7 @@ class LeadConversion extends Component
         }
         $methodRows = [];
         foreach ($methodGroups as $method => $facts) {
-            $methodRows[] = $this->report()->summarize($facts) + ['name' => __('leads.method.'.$method)];
+            $methodRows[] = $this->report()->summarize($facts) + ['name' => __('leads.method.'.$method), 'key' => (string) $method];
         }
         usort($methodRows, fn ($a, $b) => $b['leads'] <=> $a['leads']);
 
@@ -502,22 +438,22 @@ class LeadConversion extends Component
             'rows'    => $rows,
             'total'   => $this->summary,
             'charts'  => [
-                // Số Lead (trục ngang) × tỷ lệ chốt (trục dọc): nguồn nhiều nhưng kém chất lượng nằm góc phải dưới
                 'scatter' => ['type' => 'scatter', 'unit' => 'percent', 'xUnit' => 'count',
                     'xLabel' => __('reports.lead_conversion.metric.leads'),
                     'yLabel' => __('reports.lead_conversion.metric.'.$yMetric),
                     'labels' => [],
                     'series' => array_map(fn ($r) => ['label' => $r['name'], 'color' => $colors[$r['name']],
-                        'data' => [['x' => $r['leads'], 'y' => $r[$yMetric] ?? 0]]], $rows)],
+                        'data' => [['x' => $r['leads'], 'y' => $r[$yMetric] ?? 0]]], $rows),
+                    'drills' => array_map(fn ($r) => [['kind' => 'leads', 'source' => $r['name']]], $rows)],
                 'rates'   => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rateRows, 'name'),
-                    'series' => $this->series($rateRows, $rateMetrics)],
+                    'series' => $this->series($rateRows, $rateMetrics),
+                    'drills' => $this->seriesDrills($rateMetrics, array_map(fn ($r) => ['source' => $r['name'], 'panel' => 'rates'], $rateRows))],
                 'methods' => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($methodRows, 'name'),
-                    'series' => $this->series($methodRows, $rateMetrics)],
+                    'series' => $this->series($methodRows, $rateMetrics),
+                    'drills' => $this->seriesDrills($rateMetrics, array_map(fn ($r) => ['method' => $r['key'], 'panel' => 'methods'], $methodRows))],
             ],
         ];
     }
-
-    /* ── Tab 3: Tốc độ chuyển đổi ─────────────────────────────────────── */
 
     #[Computed]
     public function velocity(): array
@@ -527,7 +463,6 @@ class LeadConversion extends Component
         $label = fn ($key, $params = []) => __('reports.lead_conversion.velocity.'.$key, $params);
         $hours = fn ($a, $b) => $a !== null && $b !== null ? max(0, $b - $a) / 3600 : null;
 
-        // Thời gian từng bước (giờ)
         $steps = [['key' => 'response', 'name' => $label('step_response'),
             'values' => array_map(fn ($f) => $hours($f['created'], $f['first_contact']), $facts)]];
         if ($this->seesAll) {
@@ -573,20 +508,20 @@ class LeadConversion extends Component
             'charts'    => [
                 'response_count' => ['type' => 'bar', 'unit' => 'count', 'labels' => array_column($countRows, 'name'),
                     'series' => [['label' => __('reports.lead_conversion.metric.leads'), 'color' => self::COLORS['leads'],
-                        'data' => array_column($countRows, 'leads')]]],
+                        'data' => array_column($countRows, 'leads')]],
+                    'drills' => [array_map(fn ($r) => ['kind' => 'leads', 'response' => $r['key'], 'panel' => 'response_count'], $countRows)]],
                 'response_rate'  => ['type' => 'bar', 'unit' => 'percent', 'labels' => array_column($rateRows, 'name'),
-                    'series' => $this->series($rateRows, ['win_rate'])],
+                    'series' => $this->series($rateRows, ['win_rate']),
+                    'drills' => [array_map(fn ($r) => ['kind' => 'leads', 'set' => 'won', 'response' => $r['key'], 'panel' => 'response_rate'], $rateRows)]],
                 'close'          => ['type' => 'bar', 'unit' => 'count',
                     'labels' => array_map(fn ($k) => $label('close.'.$k), array_keys(self::CLOSE_BUCKETS)),
                     'series' => [['label' => __('reports.lead_conversion.metric.won'), 'color' => self::COLORS['won'],
-                        'data' => array_values($this->closeCounts($this->panelFacts('close')))]]],
+                        'data' => array_values($this->closeCounts($this->panelFacts('close')))]],
+                    'drills' => [array_map(fn ($k) => ['kind' => 'leads', 'set' => 'won', 'close' => $k, 'panel' => 'close'], array_keys(self::CLOSE_BUCKETS))]],
             ],
         ];
     }
 
-    /**
-     * Thời gian phản hồi đầu tiên: chỉ số theo từng nhóm thời gian (chỉ Lead đã giao).
-     */
     protected function responseRows(array $facts): array
     {
         $groups = array_fill_keys(array_merge(array_keys(self::RESPONSE_BUCKETS), ['none']), []);
@@ -602,15 +537,12 @@ class LeadConversion extends Component
 
         $rows = [];
         foreach ($groups as $key => $group) {
-            $rows[] = $this->report()->summarize($group) + ['name' => __('reports.lead_conversion.velocity.response.'.$key)];
+            $rows[] = $this->report()->summarize($group) + ['name' => __('reports.lead_conversion.velocity.response.'.$key), 'key' => $key];
         }
 
         return $rows;
     }
 
-    /**
-     * Số Lead đã chốt theo nhóm thời gian chốt (ngày).
-     */
     protected function closeCounts(array $facts): array
     {
         $counts = array_fill_keys(array_keys(self::CLOSE_BUCKETS), 0);
@@ -622,8 +554,6 @@ class LeadConversion extends Component
 
         return $counts;
     }
-
-    /* ── Tab 4: Chất lượng chăm sóc ───────────────────────────────────── */
 
     #[Computed]
     public function care(): array
@@ -637,11 +567,9 @@ class LeadConversion extends Component
         $activities = $this->activityRows($contacts);
         $touches = $this->touchRows($this->panelFacts('touches'));
 
-        // Biểu đồ kết quả liên hệ: chỉ các lần liên hệ của Lead khớp bộ lọc trong khung
         $panelIds = array_flip(array_merge(...array_column($this->panelFacts('activities'), 'opportunities') ?: [[]]));
         $activityChart = $this->activityRows(array_filter($contacts, fn ($c) => isset($panelIds[$c['opportunity']])));
 
-        // Lịch hẹn theo loại
         $types = [];
         foreach ($appointments as $ap) {
             $types[$ap['type']] ??= ['total' => 0, 'Success' => 0, 'Failed' => 0, 'Scheduled' => 0];
@@ -653,7 +581,6 @@ class LeadConversion extends Component
         }
         unset($t);
 
-        // Bản đồ nhiệt: thứ trong tuần × giờ liên hệ
         $heat = [];
         $hours = [];
         foreach ($contacts as $c) {
@@ -695,26 +622,25 @@ class LeadConversion extends Component
             'charts'       => [
                 'activities' => ['type' => 'stacked_h', 'unit' => 'percent', 'labels' => array_column($activityChart, 'name'),
                     'series' => array_map(fn ($r) => ['label' => __('reports.lead_conversion.care.result.'.$r), 'color' => self::COLORS[$r],
-                        'data' => array_map(fn ($a) => $a['rate'][$r] ?? 0, $activityChart)], $results)],
+                        'data' => array_map(fn ($a) => $a['rate'][$r] ?? 0, $activityChart)], $results),
+                    'drills' => array_map(fn ($r) => array_map(fn ($a) => ['kind' => 'contacts', 'activity' => $a['id'], 'result' => $r, 'panel' => 'activities'], $activityChart), $results)],
                 'touches'    => ['type' => 'bar', 'unit' => 'percent',
                     'labels' => array_map(fn ($t) => $t['name'].' (n='.$t['leads'].')', $touches),
-                    'series' => $this->series($touches, ['close_rate'])],
+                    'series' => $this->series($touches, ['close_rate']),
+                    'drills' => [array_map(fn ($t) => ['kind' => 'leads', 'set' => 'closed', 'touches' => $t['n'], 'panel' => 'touches'], $touches)]],
             ],
         ];
     }
 
-    /**
-     * Kết quả liên hệ theo hoạt động chăm sóc (bỏ hoạt động chưa có lần liên hệ).
-     */
     protected function activityRows(array $contacts): array
     {
         $results = CareResult::RESULTS;
         $activities = [];
         foreach (DB::table('CareActivities')->orderBy('activity_id')->pluck('activity_name', 'activity_id') as $id => $name) {
-            $activities[$id] = ['name' => $name, 'total' => 0] + array_fill_keys($results, 0);
+            $activities[$id] = ['id' => (string) $id, 'name' => $name, 'total' => 0] + array_fill_keys($results, 0);
         }
         foreach ($contacts as $c) {
-            $activities[$c['activity']] ??= ['name' => $c['activity'], 'total' => 0] + array_fill_keys($results, 0);
+            $activities[$c['activity']] ??= ['id' => (string) $c['activity'], 'name' => $c['activity'], 'total' => 0] + array_fill_keys($results, 0);
             $activities[$c['activity']]['total']++;
             $activities[$c['activity']][$c['result']] = ($activities[$c['activity']][$c['result']] ?? 0) + 1;
         }
@@ -728,9 +654,6 @@ class LeadConversion extends Component
         return array_values(array_filter($activities, fn ($a) => $a['total'] > 0));
     }
 
-    /**
-     * Tỷ lệ thắng theo số lần liên hệ (Lead đã đóng).
-     */
     protected function touchRows(array $facts): array
     {
         $closed = [LeadConversionReport::OUTCOME_WON, LeadConversionReport::OUTCOME_LOST, LeadConversionReport::OUTCOME_ARCHIVED];
@@ -745,13 +668,11 @@ class LeadConversion extends Component
         $rows = [];
         foreach (array_filter($groups) as $n => $group) {
             $rows[] = $this->report()->summarize($group)
-                + ['name' => __('reports.lead_conversion.care.touches_'.($n === $last ? 'more' : 'n'), ['n' => $n])];
+                + ['name' => __('reports.lead_conversion.care.touches_'.($n === $last ? 'more' : 'n'), ['n' => $n]), 'n' => $n];
         }
 
         return $rows;
     }
-
-    /* ── Tab 5: Cohort theo tháng tạo Lead ────────────────────────────── */
 
     public function activeCohortMetric(): string
     {
@@ -811,16 +732,273 @@ class LeadConversion extends Component
             'rows'   => $rows,
             'chart'  => ['type' => 'line', 'unit' => 'percent', 'labels' => array_map(fn ($m) => 'M'.$m, range(0, $width)),
                 'series' => array_map(fn ($r, $i) => ['label' => $r['label'], 'color' => self::PALETTE[$i % count(self::PALETTE)],
-                    'data' => array_values($r['cells'])], $lines, array_keys($lines))],
+                    'data' => array_values($r['cells'])], $lines, array_keys($lines)),
+                'drills' => array_map(fn ($r) => array_map(fn ($m) => ['kind' => 'leads', 'set' => 'cohort', 'cohort' => $r['month'], 'offset' => $m],
+                    array_keys($r['cells'])), array_values($lines))],
         ];
     }
 
-    /* ── Xuất Excel ───────────────────────────────────────────────────── */
+    public const DRILL_SETS = [
+        'all', 'opportunities', 'contacted', 'won', 'open', 'lost', 'archived', 'new', 'failed', 'closed',
+        'students', 'within24', 'stuck', 'untouched', 'cohort',
+    ];
 
-    /**
-     * Mở popup xuất: kỳ = tháng hiện tại, tiêu chí "Tất cả" (không theo bộ lọc trên màn hình),
-     * xuất tất cả sheet và cột.
-     */
+    public const METRIC_SETS = [
+        'leads' => 'all', 'opportunities' => 'opportunities', 'conversion_rate' => 'opportunities', 'contact_rate' => 'contacted',
+        'won' => 'won', 'win_rate' => 'won', 'close_rate' => 'closed', 'students' => 'students',
+    ];
+
+    protected function drillUrl(string $kind, array $params): ?string
+    {
+        $set = $params['set'] ?? 'all';
+        if ($kind !== 'leads' || ! $this->seesAll || ! in_array($set, ['all', 'opportunities', 'won', 'students'], true)) {
+            return null;
+        }
+        foreach (['step', 'response', 'close', 'touches', 'reached', 'offset'] as $key) {
+            if (isset($params[$key])) {
+                return null;
+            }
+        }
+
+        $panel = $this->drillText($params, 'panel');
+        if ($panel !== null) {
+            $type = self::PANELS[$panel] ?? null;
+            if (! in_array($type, ['source', 'method'], true)) {
+                return null;
+            }
+            $value = $this->panelValue($panel);
+            if ($value !== '') {
+                if (($params[$type] ?? $value) !== $value) {
+                    return null;
+                }
+                $params[$type] = $value;
+            }
+        }
+
+        $f = $this->filterValues();
+        [$from, $to] = [$f['from'], $f['to']];
+        $period = $this->drillText($params, 'period');
+        $cohort = is_int($params['cohort'] ?? null) ? $params['cohort'] : null;
+        if ($cohort !== null) {
+            [$from, $to] = $this->drillMonthRange(sprintf('%d-%02d', intdiv($cohort, 12), $cohort % 12 + 1), $from, $to);
+        } elseif ($period !== null) {
+            $type = in_array($params['ptype'] ?? null, ['month', 'week'], true) ? $params['ptype'] : $this->period;
+            if ($type === 'month' && preg_match('/^\d{4}-\d{2}$/', $period)) {
+                [$from, $to] = $this->drillMonthRange($period, $from, $to);
+            } elseif ($type === 'week' && preg_match('/^(\d{4})-(\d{2})$/', $period, $m)) {
+                $start = CarbonImmutable::now()->setISODate((int) $m[1], (int) $m[2])->startOfWeek();
+                $from = max($start->toDateString(), $from ?? '');
+                $to = min($start->endOfWeek()->toDateString(), $to ?? '9999-12-31');
+            } else {
+                return null;
+            }
+        }
+
+        $source = $this->drillText($params, 'source');
+        $method = $this->drillText($params, 'method');
+
+        if ($set === 'students') {
+            return $this->listUrlFor('students', ['source' => $source, 'method' => $method, 'branch' => $f['branch'], 'lead_from' => $from, 'lead_to' => $to]);
+        }
+
+        return $this->listUrlFor('leads', [
+            'status' => $set === 'all' ? null : Lead::STATUS_CONVERTED,
+            'source' => $source,
+            'method' => $method,
+            'branch' => $f['branch'],
+            'from'   => $from,
+            'to'     => $to,
+        ]);
+    }
+
+    protected function drillKinds(): array
+    {
+        $event = ['performed_at' => 'date', 'customer' => 'text', 'source' => 'text', 'employee' => 'text',
+            'activity' => 'text', 'result' => 'text', 'notes' => 'text'];
+
+        return [
+            'leads' => ['customer' => 'text', 'created' => 'date', 'source' => 'text', 'method' => 'text', 'employee' => 'text',
+                'outcome' => 'text', 'stage' => 'text', 'contacts' => 'int', 'response_hours' => 'decimal', 'close_days' => 'decimal'],
+            'contacts'     => $event,
+            'appointments' => $event,
+        ];
+    }
+
+    protected function seriesDrills(array $metrics, array $points): array
+    {
+        return array_map(fn ($m) => array_map(fn ($p) => ['kind' => 'leads', 'set' => self::METRIC_SETS[$m] ?? 'all'] + $p, $points), $metrics);
+    }
+
+    protected function drillList(string $kind, array $params): array
+    {
+        $t = fn ($key, $replace = []) => __('reports.lead_conversion.'.$key, $replace);
+        $int = fn ($key) => is_int($params[$key] ?? null) ? $params[$key] : null;
+        $hours = fn ($a, $b) => $a !== null && $b !== null ? max(0, $b - $a) / 3600 : null;
+        $scope = [$this->scopeLabel()];
+
+        $panel = $this->drillText($params, 'panel');
+        $panel = isset(self::PANELS[$panel ?? '']) ? $panel : null;
+        $facts = $panel ? $this->panelFacts($panel) : $this->facts;
+        if ($panel && in_array(self::PANELS[$panel], ['source', 'method'], true) && ($value = $this->panelValue($panel)) !== '') {
+            $scope[] = self::PANELS[$panel] === 'method' ? __('leads.method.'.$value) : $value;
+        }
+        $keep = function (callable $test) use (&$facts) {
+            $facts = array_values(array_filter($facts, $test));
+        };
+
+        if (($source = $this->drillText($params, 'source')) !== null) {
+            $keep(fn ($f) => $f['source'] === $source);
+            $scope[] = $source;
+        }
+        if (($method = $this->drillText($params, 'method')) !== null) {
+            $keep(fn ($f) => $f['method'] === $method);
+            $scope[] = __('leads.method.'.$method);
+        }
+        if (($period = $this->drillText($params, 'period')) !== null) {
+            $type = in_array($params['ptype'] ?? null, ['month', 'week'], true) ? $params['ptype'] : $this->period;
+            $keep(fn ($f) => $this->periodKey($f['created'], $type) === $period);
+            $scope[] = $this->periodLabel($period, $type);
+        }
+        if (($cohort = $int('cohort')) !== null) {
+            $keep(fn ($f) => $this->monthIndex($f['created']) === $cohort);
+            $scope[] = $t('cohort.month').' '.sprintf('%02d/%d', $cohort % 12 + 1, intdiv($cohort, 12));
+        }
+        if (($reached = $int('reached')) !== null) {
+            $keep(fn ($f) => $f['reached'] >= $reached);
+            $scope[] = collect($this->report()->funnelStages())->firstWhere('order', $reached)['name'] ?? null;
+        }
+        $response = $this->drillText($params, 'response');
+        if ($response !== null && ($response === 'none' || isset(self::RESPONSE_BUCKETS[$response]))) {
+            $keep(fn ($f) => $f['outcome'] !== LeadConversionReport::OUTCOME_NEW && ($f['first_contact']
+                ? $this->bucket(max(0, $f['first_contact'] - $f['created']) / 3600, self::RESPONSE_BUCKETS) : 'none') === $response);
+            $scope[] = $t('velocity.chart.response_count').': '.$t('velocity.response.'.$response);
+        }
+        if (isset(self::CLOSE_BUCKETS[$close = $this->drillText($params, 'close') ?? ''])) {
+            $keep(fn ($f) => $f['won_at'] && $this->bucket(max(0, $f['won_at'] - $f['created']) / 86400, self::CLOSE_BUCKETS) === $close);
+            $scope[] = $t('velocity.close.'.$close);
+        }
+        if (($touches = $int('touches')) !== null) {
+            $last = self::CONTACT_BUCKETS[array_key_last(self::CONTACT_BUCKETS)];
+            $keep(fn ($f) => min($f['contacts'], $last) === $touches);
+            $scope[] = $t('care.touches_'.($touches === $last ? 'more' : 'n'), ['n' => $touches]);
+        }
+        $title = null;
+        if (($step = $this->drillText($params, 'step')) !== null) {
+            $stages = $this->report()->funnelStages();
+            $value = match (true) {
+                $step === 'response' => fn ($f) => $hours($f['created'], $f['first_contact']),
+                $step === 'assign'   => fn ($f) => $hours($f['created'], $f['converted_at']),
+                $step === 'total'    => fn ($f) => $hours($f['created'], $f['won_at']),
+                (bool) preg_match('/^stage_(\d+)$/', $step, $m) => function ($f) use ($m, $stages, $hours) {
+                    $i = array_search((int) $m[1], array_column($stages, 'order'), true);
+
+                    return $i ? $hours($f['entries'][$stages[$i - 1]['order']] ?? null, $f['entries'][$stages[$i]['order']] ?? null) : null;
+                },
+                default => fn () => null,
+            };
+            $keep(fn ($f) => $value($f) !== null);
+            $title = collect($this->velocity['steps'])->firstWhere('key', $step)['name'] ?? null;
+        }
+
+        $set = in_array($params['set'] ?? null, self::DRILL_SETS, true) ? $params['set'] : 'all';
+        $stuck = $set === 'stuck' ? array_flip(array_column($this->report()->stuck($facts), 'id')) : [];
+        $offset = $int('offset');
+        $keep(fn ($f) => $this->inDrillSet($f, $set, $stuck, $offset));
+        if ($set === 'cohort') {
+            $scope[] = $t('cohort.metric_'.$this->activeCohortMetric()).($offset !== null ? ' · M'.$offset : '');
+        }
+
+        if ($kind === 'leads') {
+            usort($facts, fn ($a, $b) => $b['created'] <=> $a['created']);
+
+            return [array_map(fn ($f) => [
+                '_lead'          => $f['id'],
+                '_opportunity'   => $f['opportunity'],
+                'customer'       => $f['name'],
+                'created'        => date('Y-m-d H:i:s', $f['created']),
+                'source'         => $f['source'],
+                'method'         => __('leads.method.'.$f['method']),
+                'employee'       => $f['employee_name'],
+                'outcome'        => $t('outcome.'.$f['outcome']),
+                'stage'          => $f['stage_name'],
+                'contacts'       => $f['contacts'],
+                'response_hours' => $f['first_contact'] ? round(max(0, $f['first_contact'] - $f['created']) / 3600, 1) : null,
+                'close_days'     => $f['won_at'] ? round(max(0, $f['won_at'] - $f['created']) / 86400, 1) : null,
+            ], $facts), $scope, $title ?? $t('drill.set.'.$set)];
+        }
+
+        $leads = $this->leadsByOpportunity($facts);
+        $ids = array_keys($leads);
+        if ($kind === 'contacts') {
+            $activity = $this->drillText($params, 'activity');
+            $result = $this->drillText($params, 'result');
+            [$day, $hour] = [$int('day'), $int('hour')];
+            $events = array_filter($this->report()->contacts($ids), fn ($c) => ($activity === null || $c['activity'] === $activity)
+                && ($result === null || $c['result'] === $result)
+                && ($day === null || (int) date('N', $c['at']) === $day)
+                && ($hour === null || (int) date('G', $c['at']) === $hour));
+            $names = DB::table('CareActivities')->pluck('activity_name', 'activity_id');
+            $scope[] = $activity !== null ? $names[$activity] ?? $activity : null;
+            $scope[] = $result !== null ? $t('care.result.'.$result) : null;
+            $scope[] = $day !== null ? $t('weekday.'.$day).($hour !== null ? ' '.$hour.'h' : '') : null;
+            $label = fn ($e) => [$names[$e['activity']] ?? $e['activity'], $t('care.result.'.$e['result'])];
+        } else {
+            $type = $this->drillText($params, 'type');
+            $status = $this->drillText($params, 'status');
+            $events = array_filter($this->report()->appointments($ids), fn ($a) => ($type === null || $a['type'] === $type)
+                && match ($status) {
+                    null    => true,
+                    'done'  => in_array($a['status'], ['Success', 'Failed'], true),
+                    default => $a['status'] === $status,
+                });
+            $scope[] = $type !== null ? __('opportunities.appointment_type_name.'.$type) : null;
+            $scope[] = $status !== null && $status !== 'done' ? __('appointments.status.'.$status) : null;
+            $label = fn ($e) => [__('opportunities.appointment_type_name.'.$e['type']), __('appointments.status.'.$e['status'])];
+        }
+        usort($events, fn ($a, $b) => $b['at'] <=> $a['at']);
+        $people = $this->employeeNames(array_column($events, 'employee'));
+
+        return [array_map(function ($e) use ($leads, $people, $label) {
+            $lead = $leads[$e['opportunity']] ?? [];
+            [$activity, $result] = $label($e);
+
+            return [
+                '_lead'        => $lead['id'] ?? null,
+                '_opportunity' => $e['opportunity'],
+                'performed_at' => date('Y-m-d H:i:s', $e['at']),
+                'customer'     => $lead['name'] ?? null,
+                'source'       => $lead['source'] ?? null,
+                'employee'     => $people[$e['employee']] ?? $e['employee'],
+                'activity'     => $activity,
+                'result'       => $result,
+                'notes'        => $e['notes'],
+            ];
+        }, $events), $scope, $t('drill.'.$kind)];
+    }
+
+    protected function inDrillSet(array $f, string $set, array $stuck, ?int $offset): bool
+    {
+        $outcome = $f['outcome'];
+
+        return match ($set) {
+            'opportunities' => $outcome !== LeadConversionReport::OUTCOME_NEW,
+            'contacted'     => (bool) $f['first_contact'],
+            'failed'        => in_array($outcome, [LeadConversionReport::OUTCOME_LOST, LeadConversionReport::OUTCOME_ARCHIVED], true),
+            'closed'        => in_array($outcome, [LeadConversionReport::OUTCOME_WON, LeadConversionReport::OUTCOME_LOST, LeadConversionReport::OUTCOME_ARCHIVED], true),
+            'students'      => (bool) $f['student'],
+            'within24'      => $outcome !== LeadConversionReport::OUTCOME_NEW && $f['first_contact'] && $f['first_contact'] - $f['created'] <= 86400,
+            'stuck'         => isset($stuck[$f['id']]),
+            'untouched'     => $outcome === LeadConversionReport::OUTCOME_OPEN && ! $f['first_contact'],
+            'cohort'        => ($at = match ($this->activeCohortMetric()) {
+                'converted' => $f['converted_at'],
+                'student'   => $f['student'] ? ($f['won_at'] ?? $f['converted_at']) : null,
+                default     => $f['won_at'],
+            }) !== null && ($offset === null || max(0, $this->monthIndex($at) - $this->monthIndex($f['created'])) <= $offset),
+            'all'           => true,
+            default         => $outcome === $set,
+        };
+    }
+
     public function openExport(): void
     {
         $this->openExportPeriod();
@@ -845,9 +1023,6 @@ class LeadConversion extends Component
         $this->exportColumns[$sheet] = array_combine($columns, array_map(fn ($c) => in_array($c, $on, true), $columns));
     }
 
-    /**
-     * Tháng chọn được của năm đang chọn (năm nay thì đến tháng hiện tại); 0 = cả năm.
-     */
     public function exportMonths(): array
     {
         $now = CarbonImmutable::now();
@@ -860,9 +1035,6 @@ class LeadConversion extends Component
         $this->exportMonth = min($this->exportMonth, max($this->exportMonths()));
     }
 
-    /**
-     * Đội chọn được trong popup: đang chọn chi nhánh thì chỉ còn đội của chi nhánh đó.
-     */
     #[Computed]
     public function exportTeamOptions(): Collection
     {
@@ -871,9 +1043,6 @@ class LeadConversion extends Component
         return $branch === null ? $this->teams : $this->teams->filter(fn ($team) => $team->branchId() === $branch)->values();
     }
 
-    /**
-     * Salesperson chọn được trong popup: theo đội và chi nhánh đã chọn.
-     */
     #[Computed]
     public function exportEmployeeOptions(): Collection
     {
@@ -904,9 +1073,6 @@ class LeadConversion extends Component
         $this->exportEmployee = '';
     }
 
-    /**
-     * Năm chọn được trong popup: từ năm có Lead sớm nhất đến năm nay (mới nhất trước).
-     */
     public function exportYears(): array
     {
         $first = DB::table('Leads')->min('created_at');
@@ -916,10 +1082,6 @@ class LeadConversion extends Component
         return range($now, $start);
     }
 
-    /**
-     * Các cột của từng sheet: [sheet => [cột => kiểu]]; tiêu đề cột lấy từ lang reports.lead_conversion.export.{sheet}.{cột}.
-     * Cột STT luôn có (không nằm trong danh sách chọn).
-     */
     public function exportColumnCatalog(): array
     {
         return [
@@ -963,9 +1125,6 @@ class LeadConversion extends Component
         return in_array($this->exportTab, self::EXPORT_SHEETS, true) ? $this->exportTab : self::EXPORT_SHEETS[0];
     }
 
-    /**
-     * Xem trước sheet đang mở trong popup: đúng bố cục file (phần đầu văn bản, bảng, chữ ký), tối đa EXPORT_PREVIEW_ROWS dòng.
-     */
     #[Computed]
     public function exportPreview(): ?array
     {
@@ -990,10 +1149,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * Báo cáo dạng văn bản (quốc hiệu, tiêu ngữ, ngày lập = ngày xuất, khối chữ ký) cho Lead tạo trong tháng / năm chọn ở popup,
-     * theo tiêu chí, các sheet và cột đã chọn.
-     */
     public function export(ReportDocumentWriter $writer)
     {
         abort_unless($this->canExport, 403);
@@ -1022,9 +1177,6 @@ class LeadConversion extends Component
         return response()->download($path, 'bao-cao-chuyen-doi-lead-'.$period['slug'].'.xlsx')->deleteFileAfterSend();
     }
 
-    /**
-     * Kỳ xuất: tháng đã chọn, hoặc cả năm khi tháng = 0 (ExportPeriod tính from / to, nhãn, tên file).
-     */
     protected function resolveExportPeriod(): ?array
     {
         $this->exportType = $this->exportMonth > 0 ? 'month' : 'year';
@@ -1033,9 +1185,6 @@ class LeadConversion extends Component
         return $this->exportPeriod();
     }
 
-    /**
-     * Tiêu chí trong popup đã kiểm tra (giá trị không hợp lệ coi như "Tất cả"): [bộ lọc cho LeadConversionReport, dòng phạm vi].
-     */
     protected function exportCriteria(): array
     {
         $branch = $this->branches->firstWhere('branch_id', $this->exportBranch);
@@ -1061,9 +1210,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * Lead tạo trong kỳ theo tiêu chí; lịch sử chăm sóc / lịch hẹn chỉ lấy khi có sheet cần.
-     */
     protected function exportData(array $period, array $filters, array $sheets): array
     {
         $facts = $this->report()->leads(['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters);
@@ -1077,9 +1223,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * 1 sheet của tài liệu: cột STT + các cột đã chọn, đánh số các dòng chi tiết.
-     */
     protected function exportSheet(string $sheet, array $rows, array $period, string $criteria): array
     {
         $catalog = $this->exportColumnCatalog()[$sheet];
@@ -1104,9 +1247,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * Các dòng của 1 sheet: [[loại dòng, [cột => giá trị]], ...].
-     */
     protected function exportRows(string $sheet, array $data): array
     {
         return match ($sheet) {
@@ -1117,9 +1257,6 @@ class LeadConversion extends Component
         };
     }
 
-    /**
-     * Tổng hợp theo nguồn: dòng tổng cộng rồi mỗi nguồn 1 dòng (nhiều Lead trước).
-     */
     protected function summaryRows(array $facts): array
     {
         $groups = [];
@@ -1140,9 +1277,6 @@ class LeadConversion extends Component
         return $rows;
     }
 
-    /**
-     * Mỗi Lead 1 dòng - không kèm số điện thoại / email.
-     */
     protected function leadRows(array $facts): array
     {
         $branches = $this->branches->pluck('branch_name', 'branch_id');
@@ -1183,9 +1317,6 @@ class LeadConversion extends Component
         }, array_values($facts));
     }
 
-    /**
-     * Mỗi lần chăm sóc 1 dòng.
-     */
     protected function careRows(array $contacts, array $leads): array
     {
         $people = $this->employeeNames(array_column($contacts, 'employee'));
@@ -1204,9 +1335,6 @@ class LeadConversion extends Component
         ]], array_values($contacts));
     }
 
-    /**
-     * Mỗi lịch hẹn 1 dòng.
-     */
     protected function appointmentRows(array $appointments, array $leads): array
     {
         $people = $this->employeeNames(array_column($appointments, 'employee'));
@@ -1225,9 +1353,6 @@ class LeadConversion extends Component
         ]], array_values($appointments));
     }
 
-    /**
-     * Mô tả phạm vi đang xem (tiêu đề trang).
-     */
     public function scopeLabel(): string
     {
         $label = fn ($key, $params = []) => __('reports.lead_conversion.scope.'.$key, $params);
@@ -1243,9 +1368,6 @@ class LeadConversion extends Component
         };
     }
 
-    /**
-     * Mã Cơ hội → Lead của nó.
-     */
     protected function leadsByOpportunity(array $facts): array
     {
         $map = [];
@@ -1274,11 +1396,6 @@ class LeadConversion extends Component
         return __('reports.lead_conversion.export.'.$key, $replace);
     }
 
-    /* ── Hỗ trợ ───────────────────────────────────────────────────────── */
-
-    /**
-     * Link tới chi tiết Cơ hội (nếu vai trò có trang này).
-     */
     public function opportunityUrl(?string $id): ?string
     {
         $name = Str::before((string) Auth::user()->homeRoute(), '.').'.opportunities.show';
@@ -1291,9 +1408,6 @@ class LeadConversion extends Component
         return app(LeadConversionReport::class);
     }
 
-    /**
-     * Bộ lọc đã kiểm tra (giá trị không hợp lệ bị bỏ qua) + phạm vi theo vai trò.
-     */
     protected function filterValues(): array
     {
         return [
@@ -1310,9 +1424,6 @@ class LeadConversion extends Component
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) && strtotime($value) !== false;
     }
 
-    /**
-     * Các lựa chọn của bộ lọc trong khung: [giá trị => nhãn]; khoá '' = không lọc.
-     */
     protected function panelOptions(string $panel): array
     {
         $t = fn ($key) => __('reports.lead_conversion.'.$key);
@@ -1343,9 +1454,6 @@ class LeadConversion extends Component
         };
     }
 
-    /**
-     * Giá trị đã kiểm tra của bộ lọc trong khung (không hợp lệ thì về lựa chọn đầu tiên).
-     */
     public function panelValue(string $panel): string
     {
         $options = $this->panelOptions($panel);
@@ -1354,9 +1462,6 @@ class LeadConversion extends Component
         return array_key_exists($value, $options) ? $value : (string) array_key_first($options);
     }
 
-    /**
-     * Dữ liệu cho ô lọc trong khung biểu đồ (components/report-panel).
-     */
     public function panelFilter(string $panel): array
     {
         return [
@@ -1367,9 +1472,6 @@ class LeadConversion extends Component
         ];
     }
 
-    /**
-     * Lead của 1 khung biểu đồ: kết quả bộ lọc chung, thu hẹp theo nguồn / kênh chọn trong khung.
-     */
     protected function panelFacts(string $panel): array
     {
         $kind = self::PANELS[$panel];
@@ -1381,9 +1483,6 @@ class LeadConversion extends Component
         return array_values(array_filter($this->facts, fn ($f) => $f[$kind] === $value));
     }
 
-    /**
-     * Nhóm các Lead theo 1 khoá.
-     */
     protected function groupFacts(callable $key): array
     {
         $groups = [];
@@ -1394,9 +1493,6 @@ class LeadConversion extends Component
         return $groups;
     }
 
-    /**
-     * Mỗi chỉ số 1 dãy biểu đồ, màu cố định theo chỉ số.
-     */
     protected function series(array $rows, array $metrics): array
     {
         return array_map(fn ($m) => [
@@ -1406,9 +1502,6 @@ class LeadConversion extends Component
         ], $metrics);
     }
 
-    /**
-     * Màu cố định cho từng giá trị theo vị trí trong danh mục; ngoài bảng màu thì xám.
-     */
     protected function colorMap(array $catalog, array $values): array
     {
         $map = [];
@@ -1441,9 +1534,6 @@ class LeadConversion extends Component
         return ($period ?? $this->period) === 'month' ? date('Y-m', $time) : date('o-W', $time);
     }
 
-    /**
-     * Các kỳ liên tiếp từ thời điểm nhỏ nhất đến lớn nhất (không bỏ trống kỳ không có số liệu).
-     */
     protected function periodKeys(array $times, ?string $period = null): array
     {
         if (! $times) {

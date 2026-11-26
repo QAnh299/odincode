@@ -15,7 +15,6 @@
     $pct = fn ($v) => $v === null ? '-' : $dec($v).'%';
     $date = fn ($v) => $v ? \Illuminate\Support\Carbon::parse($v)->format('d/m/Y') : '-';
 
-    // So với kỳ trước: [chữ, class]; $dir = 1 cao là tốt
     $delta = function ($cur, $old, int $dir = 1) use ($prev, $dec, $L) {
         if (! $prev || $old === null) {
             return null;
@@ -35,7 +34,6 @@
 @endphp
 
 <div class="vc rp">
-    {{-- Giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
@@ -50,7 +48,6 @@
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('reports.loading') }}
             </span>
-            {{-- Xuất Excel (Giám đốc, Sale Admin, Kế toán): popup chọn kỳ, sheet, cột, xem trước – partials.report-export --}}
             @if ($this->canExport)
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
                     <x-icon name="file" />{{ $L('export.button') }}
@@ -59,7 +56,6 @@
         </div>
     </header>
 
-    {{-- ── Bộ lọc ──────────────────────────────────────────────────────── --}}
     <section class="vc-card rp-filters rp-filters--wide" aria-label="{{ $L('filters') }}">
         <label class="vc-field">
             <span class="vc-field__label">{{ $L('from') }}</span>
@@ -111,7 +107,6 @@
         </div>
     </section>
 
-    {{-- ── Tab ─────────────────────────────────────────────────────────── --}}
     <nav class="rp-tabs" role="tablist">
         @foreach ($this->tabs() as $key)
             <button type="button" role="tab" wire:click="setTab('{{ $key }}')"
@@ -125,7 +120,6 @@
         <section class="vc-card rp-empty">{{ __('reports.no_data') }}</section>
     @else
         @switch($tab)
-            {{-- ══ 1. TỔNG QUAN ════════════════════════════════════════════ --}}
             @case('overview')
                 @php
                     $o = $this->overview;
@@ -143,7 +137,6 @@
 
                 @include('livewire.reports.partials.rv-kpis', ['kpis' => $kpis, 'prevLabel' => $prev['label'] ?? null])
 
-                {{-- Nhận định tự động trong kỳ: cùng lưới và kiểu thẻ với hàng chỉ số phía trên để thẳng hàng --}}
                 @if ($this->highlights !== [])
                     <div class="rp-kpis rp-kpis--fit rv-insights" style="--n: {{ count($this->highlights) }}" aria-label="{{ $L('insight.title') }}">
                         @foreach ($this->highlights as $item)
@@ -159,7 +152,6 @@
                     </div>
                 @endif
 
-                {{-- Việc cần xử lý (tại thời điểm xem) – chỉ các vai trò có việc (Revenue::ROLE_VIEWS); Giám đốc, Sale Admin xem tổng quan --}}
                 @if ($this->roleView()['todo'] !== [])
                 @php $todo = $this->todo; @endphp
                 <section class="vc-card rp-card rv-todo" id="rv-todo">
@@ -202,7 +194,6 @@
                 </section>
                 @endif
 
-                {{-- Chỉ tiêu doanh thu của các tháng trong kỳ (TeamSalesTargets) --}}
                 @if ($t)
                     <section class="vc-card rp-card rv-target">
                         <div class="rv-target__head">
@@ -220,7 +211,6 @@
                         <p class="rp-card__sub rv-target__source">{{ $L('target.source') }}</p>
                     </section>
 
-                    {{-- Tiến độ đạt chỉ tiêu theo tháng (kỳ từ 2 tháng trở lên) --}}
                     @if ($t['chart'])
                         <div class="rp-grid">
                             @include('livewire.reports.partials.chart-card', ['id' => 'rv-target', 'spec' => $t['chart'], 'wide' => true, 'height' => 280,
@@ -237,7 +227,6 @@
                 </div>
                 @break
 
-            {{-- ══ 2. THANH TOÁN ═══════════════════════════════════════════ --}}
             @case('payments')
                 @php
                     $p = $this->payments;
@@ -293,7 +282,6 @@
                     </div>
                 </section>
 
-                {{-- Doanh thu theo hình thức thanh toán: thẻ riêng (số cột khác bảng đúng hạn) --}}
                 <section class="vc-card rp-card">
                     <h3 class="rp-card__title">{{ $L('payments.types_table') }}</h3>
                     <p class="rp-card__sub">{{ $L('payments.types_sub') }}</p>
@@ -323,7 +311,6 @@
                 </section>
                 @break
 
-            {{-- ══ 3. CÔNG NỢ (tại thời điểm xem) ══════════════════════════ --}}
             @case('debt')
                 @php
                     $d = $this->debt;
@@ -377,9 +364,7 @@
                     </section>
                 </div>
 
-                {{-- Bảng chi tiết từng đơn / hóa đơn: Kế toán, Sale Leader, Salesperson (Giám đốc, Sale Admin chỉ xem tổng quan) --}}
                 @if ($this->roleView()['debt_lists'])
-                {{-- Đơn còn nợ: quá hạn trước, rồi còn lại cao nhất – bấm để xem hóa đơn của đơn --}}
                 <section class="vc-card rp-card">
                     <h3 class="rp-card__title">{{ $L('debt.orders') }}</h3>
                     <p class="rp-card__sub">{{ $L('debt.orders_sub', ['count' => Revenue::DEBT_ROWS]) }}</p>
@@ -467,7 +452,6 @@
                 @endif
                 @break
 
-            {{-- ══ 4. TỶ LỆ THU THEO THÁNG TẠO ĐƠN ═════════════════════════ --}}
             @case('cohort')
                 @php $rows = $this->cohort; @endphp
                 <section class="vc-card rp-card">
@@ -496,7 +480,6 @@
                                             <td class="rp-num">{{ $num($row['orders']) }}</td>
                                             <td class="rp-num">{{ $money($row['revenue']) }}</td>
                                             @foreach (array_merge($row['rates'], ['now' => $row['now']]) as $h => $rate)
-                                                {{-- Màu nền theo mức thu: càng đậm càng thu được nhiều --}}
                                                 <td class="rp-num rv-cohort__cell" @if ($rate !== null) style="--a: {{ round(min(100, $rate) / 100, 2) }}" @endif
                                                     @if ($rate === null) title="{{ $L('cohort.too_new') }}" @endif>{{ $pct($rate) }}</td>
                                             @endforeach
@@ -509,7 +492,6 @@
                 </section>
                 @break
 
-            {{-- ══ 5. THEO NHÂN VIÊN ═══════════════════════════════════════ --}}
             @case('employees')
                 @php $rows = $this->sortedEmployees(); @endphp
                 <section class="vc-card rp-card">
@@ -564,7 +546,6 @@
                 </section>
                 @break
 
-            {{-- ══ 6. CƠ CẤU DOANH THU ═════════════════════════════════════ --}}
             @case('structure')
                 @php
                     $st = $this->structure;
@@ -611,7 +592,6 @@
                     </section>
                 </div>
 
-                {{-- Theo chi nhánh / đội / nhân viên: doanh thu (ngày tạo đơn) và thực thu (ngày thanh toán) trong kỳ --}}
                 @foreach (['branches' => 'branch', 'teams' => 'team', 'employees' => 'employee'] as $set => $key)
                     @continue($st[$set] === [])
                     <section class="vc-card rp-card">
@@ -651,7 +631,6 @@
 
     @endif
 
-    {{-- Popup xuất Excel: chọn kỳ, tiêu chí, sheet, cột, xem trước (trait ReportExport) --}}
     @if ($this->canExport)
         @include('livewire.reports.partials.report-export')
     @endif

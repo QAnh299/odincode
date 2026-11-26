@@ -31,7 +31,6 @@
 @endphp
 
 <div class="vc rp tp">
-    {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
@@ -54,7 +53,6 @@
         </div>
     </header>
 
-    {{-- ── Bộ lọc (giống báo cáo Chất lượng nguồn Lead, không có kênh liên hệ / nguồn Lead) ─────── --}}
     <section class="vc-card ls-filters tp-filters" style="--n: {{ 1 + ($this->canFilterTeam ? 1 : 0) + ($tab === 'employees' ? 1 : 0) + 1 }}"
         aria-label="{{ $ls('filters') }}">
         <label class="vc-field">
@@ -67,12 +65,10 @@
             <input type="date" wire:model.live="to" class="vc-control"
                 min="{{ $period['from']->toDateString() }}">
         </label>
-        {{-- Kỳ nhanh theo tháng: chọn → đặt Từ ngày / Đến ngày đúng tháng đó; tự nhập ngày khác → hiện "Tự chọn" --}}
         <label class="vc-field">
             <span class="vc-field__label">{{ $ls('quick') }}</span>
             <select class="vc-control" wire:key="quick-{{ $active ?? 'custom' }}" wire:change="preset($event.target.value)">
                 <option value="" @selected(! $active) disabled>{{ $ls('preset.custom') }}</option>
-                {{-- Tháng đang xem không có trong danh sách (vd. tháng tương lai) vẫn hiện để chọn sẵn --}}
                 @foreach (array_unique(array_filter([$active, ...$this->months])) as $key)
                     <option value="{{ $key }}" @selected($active === $key)>{{ $tk('month_option', ['month' => $this->monthLabel($key)]) }}</option>
                 @endforeach
@@ -118,7 +114,6 @@
         </div>
     </section>
 
-    {{-- ── Tab (dưới bộ lọc, giống báo cáo Hiệu quả chuyển đổi Lead) ─────── --}}
     <nav class="rp-tabs" role="tablist">
         @foreach (SalesTeamPerformance::TABS as $key)
             <button type="button" role="tab" wire:click="$set('tab', '{{ $key }}')"
@@ -129,13 +124,11 @@
     </nav>
 
     @if ($tab === 'teams')
-        {{-- ══ TAB ĐỘI KINH DOANH ═══════════════════════════════════════════ --}}
 
-        {{-- Thẻ KPI (giống báo cáo Chất lượng nguồn Lead): tên → số lớn + xu hướng 6 tháng → so với tháng trước → chú thích --}}
         <div class="ls-kpis tp-kpis--4">
             @foreach ($this->kpis as $k)
                 <div class="ls-kpi dr-card {{ $k['alert'] ? 'tp-kpi--alert' : '' }}" wire:key="kpi-{{ $k['key'] }}" role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
-                x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]]) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]]) }})">
+                x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]])) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => SalesTeamPerformance::KPI_DRILLS[$k['key']]])) }})">
                     <div class="ls-kpi__head">
                         <span class="ls-kpi__icon"><x-icon :name="$k['icon']" /></span>
                         <span>{{ $tk('kpi.'.$k['key']) }}</span>
@@ -170,10 +163,10 @@
         @else
             @php
                 $charts = $this->teamCharts;
-                // Chiều cao 2 biểu đồ hàng trên theo số đội (nhiều đội thì mỗi dòng thấp hơn)
+
                 $teamCount = count($charts['status']['labels']);
                 $topHeight = max(300, $teamCount * ($teamCount > SalesTeamPerformance::STATUS_COMPACT_TEAMS ? 36 : 56) + 80);
-                // Doanh số gộp 1 cột (1 đội hoặc quá nhiều đội) thì không phải "cột chồng theo đội"
+
                 $revenueSub = count(array_filter($charts['revenue']['series'], fn ($s) => ($s['type'] ?? null) !== 'line')) > 1
                     ? 'chart.revenue_sub' : 'chart.revenue_sub_single';
             @endphp
@@ -182,7 +175,6 @@
                 @include('livewire.reports.partials.chart-card', ['id' => 'tp-status', 'spec' => $charts['status'],
                     'title' => $tk('chart.status'), 'sub' => $tk('chart.status_sub'), 'height' => $topHeight])
 
-                {{-- Cơ cấu theo đội: biểu đồ tròn ở giữa, chú thích màu từng đội bên dưới; dropdown chọn doanh thu / số học viên --}}
                 @php
                     $shareSpec = $charts['share'];
                 @endphp
@@ -228,7 +220,6 @@
                     'sub' => $tk('chart.win_rate_sub'), 'height' => 360])
             </div>
 
-            {{-- ── Bảng xếp hạng đội (xếp theo % đạt chỉ tiêu doanh số; bấm 1 đội để lọc riêng đội đó) ── --}}
             @if ($teamRows)
                 @php
                     $teamShown = $this->topRows($teamRows, $this->teamTop);
@@ -261,7 +252,7 @@
                                         $rate = $row['attain']['revenue'];
                                         $goal = $row['target']['revenue'] ?? null;
                                         $studentGoal = $row['target']['students'] ?? null;
-                                        // Mức đạt chỉ tiêu: >= 100% xanh lá, >= 80% xanh dương, >= 50% vàng, thấp hơn đỏ
+
                                         $level = match (true) {
                                             $rate === null => '',
                                             $rate >= 100   => 'is-done',
@@ -281,11 +272,10 @@
                                             </div>
                                             <span class="tp-sub tp-team__sub">{{ $tk('members', ['count' => $row['members']]) }}</span>
                                         </td>
-                                        {{-- Doanh số / chỉ tiêu: số liệu + chip % đạt, thanh tiến độ bên dưới --}}
                                         <td class="tp-col-goal">
                                             <div class="tp-goal">
                                                 <span>
-                                                    <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'team' => $row['id']]) }})"><strong>{{ $this->shortMoney($row['revenue']) }}</strong></button>
+                                                    <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue', 'team' => $row['id']])) }})"><strong>{{ $this->shortMoney($row['revenue']) }}</strong></button>
                                                     @if ($goal)
                                                         <span class="tp-muted">/ {{ $this->shortMoney($goal) }}</span>
                                                     @endif
@@ -301,17 +291,17 @@
                                             @endif
                                         </td>
                                         <td class="is-num">
-                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'students', 'team' => $row['id']]) }})"><strong>{{ $num($row['students']) }}</strong></button>@if ($studentGoal)<span class="tp-muted"> / {{ $num($studentGoal) }}</span>@endif
+                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'students', 'team' => $row['id']])) }})"><strong>{{ $num($row['students']) }}</strong></button>@if ($studentGoal)<span class="tp-muted"> / {{ $num($studentGoal) }}</span>@endif
                                             <span class="tp-sub">{{ $studentGoal ? $tk('attain', ['rate' => $pct($row['attain']['students'])]) : $sp('no_target') }}</span>
                                         </td>
                                         <td class="is-num">
-                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'closed', 'team' => $row['id']]) }})"><strong>{{ $pct($row['close_rate']) }}</strong></button>
+                                            <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'closed', 'team' => $row['id']])) }})"><strong>{{ $pct($row['close_rate']) }}</strong></button>
                                             <span class="tp-sub">{{ $sp('won_lost', ['won' => $num($row['won']), 'lost' => $num($row['lost'])]) }}</span>
                                         </td>
-                                        <td class="is-num"><button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'won', 'team' => $row['id']]) }})"><strong>{{ $days($row['avg_close_days']) }}</strong></button></td>
+                                        <td class="is-num"><button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'won', 'team' => $row['id']])) }})"><strong>{{ $days($row['avg_close_days']) }}</strong></button></td>
                                         <td class="is-num">
                                             @if ($row['flagged'])
-                                                <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'team' => $row['id']]) }})"><span class="tp-pill tp-pill--warn">{{ $row['flagged'] }}</span></button>
+                                                <button type="button" class="dr-cell" x-on:click.stop="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'flagged', 'team' => $row['id']])) }})"><span class="tp-pill tp-pill--warn">{{ $row['flagged'] }}</span></button>
                                             @else
                                                 <span class="rp-ok">✓</span>
                                             @endif
@@ -325,7 +315,6 @@
             @endif
         @endif
     @else
-        {{-- ══ TAB NHÂN VIÊN KINH DOANH ═════════════════════════════════════ --}}
         @if (! $hasData)
             <section class="tp-card rp-empty">{{ __('reports.no_data') }}</section>
         @else
@@ -342,7 +331,6 @@
                 $empHeight = max(300, $empTop['count'] * 34 + 50);
             @endphp
 
-            {{-- ── 2 biểu đồ: cơ cấu theo nhân viên (tròn) · top nhân viên (thanh ngang, màu theo đội) ── --}}
             <div class="tp-row tp-row--even tp-emp-charts">
                 <section class="vc-card rp-card tp-share">
                     <div class="tp-share__head">
@@ -400,7 +388,6 @@
                             x-data="odinChart(@js(array_diff_key($empTop, ['legend' => 1, 'count' => 1])))">
                             <canvas x-ref="canvas" role="img" aria-label="{{ $tk('emp.top', ['count' => SalesTeamPerformance::EMP_TOP]) }}"></canvas>
                         </div>
-                        {{-- Màu thanh = màu đội của nhân viên --}}
                         <ul class="tp-share__legend tp-emp-legend">
                             @foreach ($empTop['legend'] as $item)
                                 <li><span class="tp-share__swatch" style="--c: {{ $item['color'] }}"></span>{{ $item['name'] }}</li>
@@ -415,10 +402,8 @@
         @endif
     @endif
 
-    {{-- Popup danh sách của số liệu vừa bấm --}}
     @include('livewire.reports.partials.report-drill')
 
-    {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)
         @include('livewire.reports.partials.report-export')
     @endif

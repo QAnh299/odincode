@@ -15,17 +15,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách lịch hẹn của Salesperson (menu Quản lý Opportunity → Lịch hẹn): các lịch hẹn mình đang phụ trách.
- *   - Thẻ thống kê Tổng / Đã lên lịch / Khách đã đến / Khách không đến (bấm để lọc theo trạng thái).
- *   - Tìm theo tên khách, SĐT, mã cơ hội / mã lịch hẹn; lọc trạng thái + khoảng thời gian.
- *   - Mỗi dòng là một loại (Test / Tư vấn) vì hai loại có thể khác giờ. Bấm dòng → chi tiết cơ hội, tab Lịch hẹn,
- *     làm nổi bật đúng lịch hẹn đó (?apt=APT006-Test).
- *   - Cột thao tác mở popup: Đổi lịch / Hủy lịch (chưa tới giờ hẹn, chưa tới stage Chốt), Cập nhật kết quả
- *     (từ giờ hẹn trở đi: Khách đã đến - bắt buộc ghi kết quả / Khách không đến). Nghiệp vụ (chuyển stage,
- *     trùng lịch…) dùng chung với chi tiết cơ hội qua AppointmentService.
- * Địa điểm là cơ sở của khách (Leads.branch_id).
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -33,13 +22,10 @@ class Index extends Component
 
     public const PER_PAGE = 10;
 
-    // Lọc trạng thái: Overdue = đã qua giờ hẹn mà chưa cập nhật kết quả
     public const STATUSES = ['Scheduled', 'Overdue', 'Success', 'Failed', 'Cancelled'];
 
-    // Lọc thời gian
     public const PERIODS = ['today', 'tomorrow', 'week', 'month', 'past'];
 
-    // Popup thao tác
     public const DIALOGS = ['result', 'reschedule', 'cancel'];
 
     #[Url(as: 'q', except: '')]
@@ -51,23 +37,18 @@ class Index extends Component
     #[Url(except: '')]
     public string $period = '';
 
-    // Thông báo sau thao tác: ['tone' => success|danger, 'text' => ...]
     public ?array $notice = null;
 
-    // Popup đang mở (result | reschedule | cancel) và dòng lịch hẹn ("APT006-Test")
     public ?string $dialog = null;
 
     public string $targetKey = '';
 
-    // Popup cập nhật kết quả
     public string $outcome = Appointment::STATUS_SUCCESS;
 
     public string $resultNote = '';
 
-    // Popup đổi lịch
     public string $newTime = '';
 
-    // Popup hủy lịch
     public string $cancelReason = '';
 
     public function updated(string $property): void
@@ -98,8 +79,6 @@ class Index extends Component
     {
         $this->notice = null;
     }
-
-    // ── Popup thao tác ────────────────────────────────────────────────
 
     public function openDialog(string $dialog, string $appointmentId, string $type): void
     {
@@ -135,9 +114,6 @@ class Index extends Component
         unset($this->target);
     }
 
-    /**
-     * Dòng lịch hẹn đang mở popup - chỉ lịch hẹn của mình, kèm cờ can_mark / can_change.
-     */
     #[Computed]
     public function target(): ?Appointment
     {
@@ -156,9 +132,6 @@ class Index extends Component
         return $row ? $this->withFlags($row) : null;
     }
 
-    /**
-     * Khách đã đến (bắt buộc ghi kết quả) / Khách không đến.
-     */
     public function saveResult(): void
     {
         $this->validate([
@@ -186,9 +159,6 @@ class Index extends Component
         ));
     }
 
-    /**
-     * Đổi giờ hẹn: sau thời điểm hiện tại, không trùng lịch đang chờ khác của mình.
-     */
     public function saveReschedule(): void
     {
         $this->validate(
@@ -218,9 +188,6 @@ class Index extends Component
             : ['tone' => 'danger', 'text' => __('opportunities.apt_cannot_reschedule')]);
     }
 
-    /**
-     * Hủy lịch hẹn trước giờ hẹn, bắt buộc lý do.
-     */
     public function saveCancel(): void
     {
         $this->validate(
@@ -245,7 +212,6 @@ class Index extends Component
         $this->notice = $notice;
         unset($this->counts);
 
-        // Chuông bỏ ngay thông báo lịch hẹn đã xử lý
         if ($notice['tone'] === 'success') {
             $this->dispatch('notifications-refresh');
         }
@@ -255,8 +221,6 @@ class Index extends Component
     {
         $this->done(['tone' => 'danger', 'text' => $text]);
     }
-
-    // ── Dữ liệu ───────────────────────────────────────────────────────
 
     public const RELATIONS = [
         'opportunity:opportunity_id,lead_id,stage_id,employee_id',
@@ -275,28 +239,17 @@ class Index extends Component
         return Auth::user()->employee?->employee_id;
     }
 
-    /**
-     * Lịch hẹn của salesperson đang đăng nhập.
-     */
     protected function own(): Builder
     {
         return Appointment::query()->where('employee_id', $this->employeeId());
     }
 
-    /**
-     * Thứ tự stage Chốt - từ Chốt trở đi không đổi / hủy lịch hẹn nữa.
-     */
     #[Computed]
     public function closedOrder(): int
     {
         return (int) Stage::query()->whereKey(Stage::CLOSED)->value('sort_order');
     }
 
-    /**
-     * Gắn cờ thao tác cho một dòng (chỉ người đang phụ trách cơ hội):
-     *   can_mark   - còn chờ, đã tới giờ hẹn → cập nhật kết quả;
-     *   can_change - còn chờ, chưa tới giờ hẹn, cơ hội chưa tới stage Chốt → đổi / hủy lịch.
-     */
     protected function withFlags(Appointment $row): Appointment
     {
         $opp = $row->opportunity;
@@ -334,9 +287,6 @@ class Index extends Component
         };
     }
 
-    /**
-     * Số lịch hẹn cho các thẻ thống kê (toàn bộ lịch hẹn của mình).
-     */
     #[Computed]
     public function counts(): array
     {
@@ -366,12 +316,12 @@ class Index extends Component
                     ->orWhereHas('opportunity.lead', fn ($l) => $l->where('full_name', 'like', $like)->orWhere('phone', 'like', $like)));
             })
             ->with(self::RELATIONS)
-            // Lịch còn chờ lên đầu (gần nhất trước), sau đó lịch đã có kết quả / đã hủy (mới nhất trước)
+
             ->orderByRaw("CASE WHEN status = $scheduled THEN 0 ELSE 1 END")
             ->orderByRaw("CASE WHEN status = $scheduled THEN scheduled_time END ASC")
             ->orderByDesc('scheduled_time')
             ->orderBy('appointment_id')
-            // Cùng giờ: Test trước, Tư vấn sau
+
             ->orderByRaw('FIELD(appointment_type, '.implode(', ', array_map(fn ($t) => "'$t'", Appointment::TYPES)).')')
             ->paginate(self::PER_PAGE);
 

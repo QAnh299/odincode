@@ -9,22 +9,19 @@
     $pending = $this->hasPendingChanges();
     $chips = $this->chips;
 
-    // Số bộ lọc trong panel đang áp dụng (huy hiệu trên nút "Bộ lọc"); từ khóa nằm ở ô tìm kiếm nên không tính
     $panelCount = count(array_diff_key($chips, ['search' => true]));
 
-    // Thẻ thống kê trạng thái: [trạng thái, icon]
     $tabs = [
         ['', 'layers'],
         [SalesOrder::STATUS_IN_PROGRESS, 'clock'],
         [SalesOrder::STATUS_COMPLETED, 'check-circle'],
     ];
 
-    // Link sang trang khác chỉ khi route của vai trò đó tồn tại
     $quotationRoute = $this->routePrefix.'.quotations.show';
     $hasQuotationRoute = Route::has($quotationRoute);
     $invoiceRoute = $this->routePrefix.'.invoices';
     $hasInvoiceRoute = Route::has($invoiceRoute);
-    // Tạo hóa đơn từ Quản lý đơn hàng: Salesperson lập báo giá, đơn Đang xử lý còn phần chưa lập hóa đơn
+
     $invoiceService = app(\App\Services\InvoiceService::class);
     $viewer = auth()->user()?->employee;
 
@@ -33,19 +30,14 @@
 @endphp
 
 <div class="od">
-    {{-- CSS riêng của trang đơn hàng: resources/css/order.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/order.css')
     @endassets
 
-    {{-- Tiêu đề hiển thị ở thanh trên cùng; giữ thẻ h1 ẩn cho trình đọc màn hình.
-         Không có nút Thêm mới: đơn hàng được tạo khi xác nhận báo giá (HĐ16 - HĐ17). --}}
     <h1 class="visually-hidden">{{ __('orders.title') }}</h1>
 
-    {{-- ── Khối dính khi cuộn: thẻ trạng thái + tổng tiền + thanh công cụ + chip bộ lọc ── --}}
     <div class="od-sticky">
 
-        {{-- Thẻ trạng thái (bấm để lọc ngay, bấm lại bỏ lọc; số đếm theo mọi bộ lọc trừ trạng thái) --}}
         <nav class="od-tabs" aria-label="{{ __('orders.status_label') }}">
             @foreach ($tabs as [$key, $icon])
                 @php $current = $key === '' ? $activeStatuses === [] : $activeStatuses === [$key]; @endphp
@@ -59,7 +51,6 @@
             @endforeach
         </nav>
 
-        {{-- Thanh công cụ: tìm kiếm (cập nhật ngay) + nút Bộ lọc + Xoá bộ lọc --}}
         <div class="od-toolbar" x-data="{ open: false }" x-on:keydown.escape.window="open = false"
             x-on:order-filters-applied.window="open = false">
             <div class="od-search">
@@ -70,7 +61,6 @@
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 </span>
 
-                {{-- Hướng dẫn cú pháp tìm kiếm --}}
                 <span class="od-hint" x-data="{ tip: false }" x-on:click.outside="tip = false">
                     <button type="button" class="od-hint__btn" x-on:click="tip = ! tip" :aria-expanded="tip.toString()"
                         title="{{ __('orders.search_help_title') }}">
@@ -80,7 +70,6 @@
                     <span class="od-hint__pop" x-show="tip" x-cloak x-transition.opacity role="tooltip">
                         <strong>{{ __('orders.search_help_title') }}</strong>
                         <span class="od-hint__list">
-                            {{-- Chuỗi cố định trong lang (có thẻ <code>/<strong>), không chứa dữ liệu người dùng --}}
                             @foreach (__('orders.search_help') as $line)
                                 <span class="od-hint__item">{!! $line !!}</span>
                             @endforeach
@@ -97,12 +86,10 @@
                     @if ($panelCount)
                         <span class="od-btn__badge">{{ $panelCount }}</span>
                     @endif
-                    {{-- Chấm báo: đã đổi bộ lọc trong panel nhưng chưa bấm Áp dụng --}}
                     <span class="od-btn__dot" title="{{ __('orders.pending') }}"
                         @unless ($pending) wire:dirty wire:target="form" @endunless></span>
                 </button>
 
-                {{-- Panel bộ lọc: thả xuống trên màn rộng, drawer toàn màn hình trên màn hẹp --}}
                 <div class="od-panel" id="od-panel" x-show="open" x-cloak x-transition.opacity role="dialog"
                     aria-label="{{ __('orders.filters') }}">
                     <form wire:submit="applyFilters" class="od-panel__form">
@@ -115,7 +102,6 @@
                         </div>
 
                         <div class="od-panel__body">
-                            {{-- Trạng thái (chọn nhiều, đồng bộ với thẻ thống kê) --}}
                             <fieldset class="od-field">
                                 <legend class="od-field__label">{{ __('orders.status_label') }}</legend>
                                 <div class="od-checks">
@@ -128,7 +114,6 @@
                                 </div>
                             </fieldset>
 
-                            {{-- Hình thức (chọn nhiều, gồm "Chưa xác định" = NULL / rỗng) --}}
                             <fieldset class="od-field">
                                 <legend class="od-field__label">{{ __('orders.payment_type_label') }}</legend>
                                 <div class="od-checks">
@@ -161,7 +146,6 @@
                                 </select>
                             </label>
 
-                            {{-- Khoảng tổng tiền: ô chữ để báo lỗi khi nhập số âm / chữ (cho phép 3.000.000) --}}
                             <fieldset class="od-field">
                                 <legend class="od-field__label">{{ __('orders.amount_range') }}</legend>
                                 <div class="od-range">
@@ -181,7 +165,6 @@
                                 @enderror
                             </fieldset>
 
-                            {{-- Khoảng ngày tạo đơn (không có thư viện date range picker) --}}
                             <fieldset class="od-field">
                                 <legend class="od-field__label">{{ __('orders.created_range') }}</legend>
                                 <div class="od-range">
@@ -200,7 +183,6 @@
                             @if ($this->canFilterTeam)
                                 <label class="od-field">
                                     <span class="od-field__label">{{ __('orders.team') }}</span>
-                                    {{-- .live chỉ để thu hẹp danh sách nhân viên theo đội, danh sách đơn chưa đổi --}}
                                     <select wire:model.live="form.team" class="od-control">
                                         <option value="">{{ __('orders.all_teams') }}</option>
                                         @foreach ($this->teams as $option)
@@ -224,7 +206,6 @@
                         </div>
 
                         <div class="od-panel__foot">
-                            {{-- Nhắc khi bộ lọc trên form khác bộ lọc đang áp dụng (wire:dirty: đổi phía trình duyệt chưa gửi) --}}
                             <span class="od-pending" role="status" @unless ($pending) wire:dirty wire:target="form" @endunless>
                                 <x-icon name="info" />{{ __('orders.pending') }}
                             </span>
@@ -241,7 +222,6 @@
                 </div>
             </div>
 
-            {{-- Chỉ hiện khi có bộ lọc / từ khóa đang áp dụng --}}
             @if ($chips !== [])
                 <button type="button" class="od-btn od-btn--ghost od-btn--clear" wire:click="resetFilters">
                     <x-icon name="refresh" /><span>{{ __('orders.reset') }}</span>
@@ -249,10 +229,8 @@
             @endif
         </div>
 
-        {{-- Dòng gợi ý cú pháp tìm kiếm --}}
         <p class="od-hintline"><x-icon name="info" />{{ __('orders.search_hint') }}</p>
 
-        {{-- Bộ lọc đang áp dụng (hiện cả khi panel đã đóng) --}}
         @if ($chips !== [])
             <div class="od-chips" aria-label="{{ __('orders.active_filters') }}">
                 <span class="od-chips__title">{{ __('orders.active_filters') }}:</span>
@@ -271,7 +249,6 @@
         @endif
     </div>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="od-card od-results">
         <div class="od-results__bar">
             <span>
@@ -335,8 +312,6 @@
                                 $percent = $order->progressPercent();
                                 $paymentType = in_array($order->payment_type, SalesOrder::PAYMENT_TYPES, true) ? $order->payment_type : Index::PAYMENT_NONE;
                             @endphp
-                            {{-- Bấm cả dòng (hoặc mã đơn) mở trang chi tiết đơn hàng ({vai trò}.orders.show), giống danh sách báo giá;
-                                 bấm vào các link khác trong dòng (báo giá, hóa đơn, tạo hóa đơn) thì đi theo link đó --}}
                             @php $orderUrl = route($this->routePrefix.'.orders.show', $order); @endphp
                             <tr wire:key="order-{{ $order->order_id }}" class="od-row-link"
                                 onclick="if (!event.target.closest('a')) window.location='{{ $orderUrl }}'">
@@ -410,7 +385,6 @@
                                     </span>
                                 </td>
                                 <td data-label="{{ __('orders.status_label') }}">
-                                    {{-- Giá trị ngoài SalesOrder::STATUSES (dữ liệu cũ) thì hiện nguyên giá trị --}}
                                     <span class="od-badge od-tone--{{ $tone($order->status) }}">
                                         <span class="od-badge__dot"></span>{{ in_array($order->status, SalesOrder::STATUSES, true) ? __('orders.status.'.$order->status) : $order->status }}
                                     </span>

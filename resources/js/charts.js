@@ -1,4 +1,3 @@
-
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
@@ -53,7 +52,6 @@ function buildConfig(spec) {
                 hoverOffset: 6,
             };
         }
-        // s.type = "line" trong biểu đồ cột: đường tham chiếu (vd. chỉ tiêu) vẽ đè lên cột, không cộng vào cột chồng
         if (s.type === "line" && !line) {
             return {
                 type: "line",
@@ -83,9 +81,7 @@ function buildConfig(spec) {
                 backgroundColor: s.color + (spec.type === "area" ? "33" : "ff"),
                 fill: spec.type === "area" ? "origin" : false,
                 borderWidth: 2,
-                // s.dash: đường tham chiếu (vd. chỉ tiêu) – nét đứt, không chấm điểm
                 borderDash: s.dash ? [6, 4] : [],
-                // spec.straight: đường gấp khúc thẳng, chấm tròn đặc ở mỗi điểm
                 tension: s.dash || spec.straight ? 0 : 0.25,
                 spanGaps: Boolean(spec.spanGaps),
                 pointRadius: s.dash || spec.labels.length > 20 ? 0 : spec.straight ? 4.5 : 3,
@@ -98,7 +94,6 @@ function buildConfig(spec) {
         return {
             label: s.label,
             data: s.data,
-            // s.colors: màu riêng từng cột (vd. theo nguồn); s.counts / s.valueLabels / s.labelColor: cho tooltip & nhãn giá trị
             backgroundColor: s.colors || s.color,
             hoverBackgroundColor: s.colors || s.color,
             counts: s.counts,
@@ -138,10 +133,7 @@ function buildConfig(spec) {
         },
     };
 
-    // Chú thích chỉ hiện khi có từ 2 dãy trở lên (hoặc biểu đồ tròn)
-    // spec.legend = "top": chú thích phía trên, canh trái
     const legend = {
-        // spec.htmlLegend: chú thích đã vẽ bằng HTML phía trên biểu đồ
         display: !spec.htmlLegend && (round || spec.series.length > 1),
         position: spec.legend || (round ? "right" : "bottom"),
         align: spec.legend === "top" ? "start" : "center",
@@ -153,9 +145,7 @@ function buildConfig(spec) {
             color: ink,
             padding: 14,
             font: spec.legend === "top" ? { size: 13 } : undefined,
-            // Giữ đúng thứ tự dãy (dataset.order chỉ để vẽ đường đè lên cột)
             sort: (a, b) => a.datasetIndex - b.datasetIndex,
-            // Đường trong biểu đồ cột (vd. chỉ tiêu): chú thích là gạch ngang thay vì ô vuông
             generateLabels(chart) {
                 const items = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                 items.forEach((item) => {
@@ -202,7 +192,6 @@ function buildConfig(spec) {
         };
     }
 
-    // spec.divisor + spec.suffix: trục tiền rút gọn (vd. 0,5 tỷ); spec.max: trục cố định (vd. 100%)
     const tick = spec.divisor
         ? (v) => (v / spec.divisor).toLocaleString(locale, {
             minimumFractionDigits: spec.tickDecimals || 0,
@@ -218,18 +207,15 @@ function buildConfig(spec) {
             callback: tick,
             maxTicksLimit: spec.maxTicks || 6,
             color: spec.straight || spec.divisor ? ink : muted,
-            // spec.fontSize: cỡ chữ trục (mặc định 12)
             font: spec.fontSize ? { size: spec.fontSize } : undefined,
         },
         ...(unit === "percent" && !stacked && !spec.refLine && !spec.fit ? { suggestedMax: 100 } : {}),
-        // spec.fit: trục bám theo dữ liệu (không bắt đầu từ 0) - dễ thấy chênh lệch nhỏ giữa các đường
         ...(spec.fit ? { beginAtZero: false, grace: "10%" } : {}),
         ...(spec.suggestedMax ? { suggestedMax: spec.suggestedMax } : {}),
         ...(spec.max ? { max: spec.max } : {}),
     };
     const categoryAxis = {
         stacked,
-        // Cột ngang: nới trục tên thêm một chút (đo độ rộng có thể chạy trước khi font tải xong → cắt chữ đầu)
         ...(horizontal ? { afterFit: (scale) => { scale.width += 10; } } : {}),
         grid: { display: false },
         border: { color: "#d1d5db" },
@@ -237,14 +223,12 @@ function buildConfig(spec) {
             color: ink,
             autoSkip: true,
             maxRotation: 40,
-            // spec.boldCategories: tên nhóm in đậm (vd. tên đội ở cột ngang)
             font: spec.boldCategories
                 ? { weight: 700, size: spec.fontSize || 13 }
                 : spec.fontSize ? { size: spec.fontSize } : undefined,
         },
     };
 
-    // Chừa chỗ cho nhãn ở đầu cột / nhãn vạch tham chiếu
     const endLabels = spec.dataLabels === "end";
     const pointLabels = spec.series.some((s) => s.pointLabels);
     const padding = {
@@ -268,13 +252,6 @@ function buildConfig(spec) {
     };
 }
 
-/**
- * Nhãn giá trị vẽ trực tiếp lên biểu đồ (spec.dataLabels):
- *   "percent" - tỷ trọng % giữa mỗi miếng biểu đồ tròn (bỏ miếng < 3%)
- *   "end"     - giá trị ở đầu mỗi cột
- *   "inside"  - giá trị giữa mỗi đoạn cột chồng (bỏ đoạn quá hẹp)
- * Chữ lấy từ dataset.valueLabels nếu có, không thì định dạng theo spec.unit.
- */
 function valueLabelPlugin(spec, horizontal) {
     return {
         id: "odinValueLabels",
@@ -334,9 +311,6 @@ function valueLabelPlugin(spec, horizontal) {
     };
 }
 
-/**
- * Vạch tham chiếu nét đứt (vd. trung bình) trên trục giá trị: spec.refLine = { value, label }.
- */
 function refLinePlugin(ref, horizontal) {
     return {
         id: "odinRefLine",
@@ -372,9 +346,6 @@ function refLinePlugin(ref, horizontal) {
     };
 }
 
-/**
- * Giá trị cuối cùng (khác rỗng) của mỗi đường, ghi ngay bên phải điểm cuối, cùng màu đường (spec.endLabels).
- */
 function endLabelPlugin(unit) {
     return {
         id: "odinEndLabels",
@@ -404,9 +375,6 @@ function endLabelPlugin(unit) {
     };
 }
 
-/**
- * Chữ ở giữa biểu đồ vành khuyên: spec.center = { value (số lớn), label (chú thích nhỏ bên dưới) }.
- */
 function centerTextPlugin(center) {
     return {
         id: "odinCenterText",
@@ -433,9 +401,6 @@ function centerTextPlugin(center) {
     };
 }
 
-/**
- * Nhãn trên từng điểm của đường có dataset.pointLabels (mảng chữ đã định dạng sẵn).
- */
 function pointLabelPlugin() {
     return {
         id: "odinPointLabels",
@@ -534,10 +499,6 @@ function withLinks(config, spec) {
     return config;
 }
 
-/**
- * Bấm vào phần tử biểu đồ → mở danh sách bản ghi: spec.drills[dãy][điểm] = tham số của ReportDrill::drillHtml (null = không bấm được).
- * Biểu đồ cột chỉ có 1 dãy: bấm cả hàng / cột (cột ngắn khó bấm trúng).
- */
 function withDrills(config, spec, open) {
     if (!spec.drills) {
         return config;
@@ -564,7 +525,6 @@ function withDrills(config, spec, open) {
 
 document.addEventListener("alpine:init", () => {
     window.Alpine.data("odinChart", (spec) => {
-        // Giữ instance ngoài dữ liệu reactive của Alpine (proxy làm hỏng Chart.js)
         let chart = null;
 
         return {

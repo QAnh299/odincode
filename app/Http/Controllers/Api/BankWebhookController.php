@@ -8,14 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
-/**
- * HĐ29: SePay gọi vào khi tài khoản nhận của trung tâm có biến động số dư (webhook SePay, https://docs.sepay.vn/tich-hop-webhooks.html).
- * Xác thực kiểu API Key: header "Authorization: Apikey <BANK_WEBHOOK_SECRET>" (chưa cấu hình thì tắt, trả 503).
- * Body JSON của SePay: id, transferType (in/out), transferAmount, content, code, referenceCode, transactionDate...
- * Chỉ xử lý tiền vào; nội dung chứa mã hóa đơn thì đối chiếu như HĐ29 (khớp → tự ghi nhận, lệch → cảnh báo).
- * Luôn trả 200 + {"success": true} khi đã nhận (khớp hay không) để SePay không gửi lại; giao dịch không khớp ghi log 'payments'.
- * SePay có thể gửi lại cùng một giao dịch: hóa đơn đã Đã thanh toán thì lần gửi sau chỉ ghi log, không ghi nhận lại.
- */
 class BankWebhookController extends Controller
 {
     public function __invoke(Request $request, InvoiceService $service): JsonResponse
@@ -35,12 +27,10 @@ class BankWebhookController extends Controller
             'transactionDate' => ['nullable', 'date'],
         ]);
 
-        // Tiền ra khỏi tài khoản không liên quan đến hóa đơn
         if ($data['transferType'] !== 'in') {
             return response()->json(['success' => true, 'matched' => false, 'invoice' => null]);
         }
 
-        // Mã thanh toán SePay nhận diện được (nếu có cấu hình) + nội dung chuyển khoản: tìm mã hóa đơn INV...
         $content = trim(($data['code'] ?? '').' '.($data['content'] ?? ''));
 
         $invoice = $service->handleBankTransfer(

@@ -4,10 +4,6 @@ namespace App\Livewire\Reports\Concerns;
 
 use Carbon\CarbonImmutable;
 
-/**
- * Popup chọn thời gian trước khi xuất báo cáo Excel: tháng / quý / kỳ lũy kế từ đầu năm (3, 6, 9 tháng) / năm.
- * Kỳ chưa kết thúc thì số liệu tính đến hôm nay. Component dùng trait khai báo exportYears() và export().
- */
 trait ExportPeriod
 {
     public const EXPORT_TYPES = ['month', 'quarter', 'span', 'year'];
@@ -26,9 +22,6 @@ trait ExportPeriod
 
     public int $exportSpan = 6;
 
-    /**
-     * Các năm chọn được (mới nhất trước).
-     */
     abstract public function exportYears(): array;
 
     public function openExport(): void
@@ -49,10 +42,6 @@ trait ExportPeriod
         $this->resetErrorBag();
     }
 
-    /**
-     * Kỳ xuất đã kiểm tra: from, to (đã chặn ở hôm nay), months (Y-m trong kỳ), label (in trên báo cáo),
-     * range ("Từ ngày ... đến ngày ..."), slug (tên file). Không hợp lệ → null và gắn lỗi vào popup.
-     */
     protected function exportPeriod(): ?array
     {
         $type = in_array($this->exportType, self::EXPORT_TYPES, true) ? $this->exportType : 'month';
@@ -79,7 +68,6 @@ trait ExportPeriod
             $label = $p('label_quarter', ['quarter' => ['I', 'II', 'III', 'IV'][$quarter - 1], 'year' => $year]);
             $slug = "quy-$quarter-$year";
         } elseif ($type === 'span') {
-            // Lũy kế từ đầu năm, như "Báo cáo 6 tháng năm ..."
             $span = in_array($this->exportSpan, self::EXPORT_SPANS, true) ? $this->exportSpan : 6;
             $from = $jan;
             $end = $jan->addMonths($span - 1)->endOfMonth();

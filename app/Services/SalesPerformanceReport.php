@@ -9,70 +9,34 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Số liệu cho báo cáo Phân tích hiệu quả Sales Team / Salesperson theo tháng.
- *
- * Bảng Leads không có người phụ trách: Lead được giao cho salesperson khi chuyển thành Cơ hội
- * (Opportunities.employee_id, ngày giao = conversion_date). Mỗi Cơ hội = 1 Lead được giao.
- *
- * Mỗi chỉ số được tính theo đúng thời điểm phát sinh của nó trong kỳ:
- *
- *   A. Theo ngày giao Lead (nhóm Lead được giao trong kỳ - đo quy trình xử lý):
- *      Lead được giao, Lead đã xử lý (đã liên hệ hoặc đã rời stage đầu), Lead chuyển Stage,
- *      Stage đã đạt tới (phễu), thời gian phản hồi đầu tiên, số lần liên hệ,
- *      Lead không liên hệ được (đã liên hệ nhưng chưa lần nào thành công), Lead bị chuyển ngược Stage.
- *   B. Theo ngày chốt (Cơ hội Won / Lost có ngày đóng trong kỳ - đo kết quả):
- *      Lead chốt, Lead thất bại, tỷ lệ thắng = Won / (Won + Lost), thời gian chốt.
- *      Ngày đóng = lúc vào stage Chốt / Lưu trữ (StagesHistory); thiếu lịch sử thì lấy báo giá đầu tiên (Won),
- *      lần liên hệ cuối, cuối cùng là ngày giao.
- *   C. Theo ngày tạo đơn hàng: Doanh số chốt = SalesOrders.total_amount, số đơn, Đã thu = paid_amount
- *      (SalesOrders → Quotations → Opportunities). Ghi công cho người giữ Cơ hội lúc chốt = Opportunities.employee_id
- *      (chỉ chuyển người phụ trách được trước stage Chốt nên người đang giữ chính là người chốt).
- *   D. Theo ngày thành học viên: Học viên mới (Students.conversion_date).
- *   E. Theo ngày thực hiện, tính cho NGƯỜI THỰC HIỆN (không phải người đang giữ Cơ hội - opp bị chuyển thì
- *      công chăm sóc trước đó vẫn thuộc người cũ): lượt chăm sóc (CareResults), lịch hẹn đã có kết quả (Appointments).
- *   F. Theo ngày chuyển: số Cơ hội bị chuyển đi (OpportunityTransfers.from_employee_id).
- *
- * Mọi truy vấn đều có cột event_at (thời điểm phát sinh) nên lọc / nhóm theo tháng dùng chung được.
- * Pipeline đang mở và việc cần xử lý là ảnh chụp hiện tại (không theo tháng): pipeline(), alerts().
- */
 class SalesPerformanceReport
 {
-    // Chiều nhóm → biểu thức SQL (o = dòng dữ liệu đã có employee_id + event_at, e = Employees)
     public const DIMENSIONS = [
         'all'        => "'all'",
         'employee'   => 'o.employee_id',
         'team'       => 'e.team_id',
         'month'      => "DATE_FORMAT(o.event_at, '%Y-%m')",
         'team_month' => "CONCAT(e.team_id, '|', DATE_FORMAT(o.event_at, '%Y-%m'))",
-        // Tuần trong tháng: ngày 1-7 = tuần 1, 8-14 = tuần 2... (chỉ dùng khi lọc đúng 1 tháng)
+
         'week'       => 'FLOOR((DAY(o.event_at) - 1) / 7) + 1',
         'team_week'  => "CONCAT(e.team_id, '|', FLOOR((DAY(o.event_at) - 1) / 7) + 1)",
     ];
 
-    // Cam kết thời gian phản hồi đầu tiên (giờ, từ lúc giao Lead đến lần liên hệ đầu)
     public const RESPONSE_SLA_HOURS = 4;
 
-    // Lead được giao quá số giờ này mà chưa liên hệ lần nào = cần nhắc / chuyển người phụ trách
     public const UNCONTACTED_HOURS = 24;
 
-    // Cơ hội đang xử lý không có tương tác nào (liên hệ, chuyển stage, lịch hẹn) quá số ngày này = "nguội"
     public const STALE_DAYS = 7;
 
-    // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì cần xử lý (giống Kanban)
     public const DECISION_WARN_DAYS = 3;
 
-    // Việc cần xử lý (khoá trong alerts())
     public const ALERTS = ['overdue_appointment', 'needs_quotation', 'decision_due', 'stale'];
 
-    // Loại chỉ tiêu đội (SalesTargets.target_type) → chỉ số so sánh. KPI đội chỉ gồm doanh thu và học viên mới
-    // (số Lead được giao do Sale Admin phân bổ nên không làm chỉ tiêu của đội)
     public const TARGETS = [
         'Revenue'     => 'revenue',
         'NewStudents' => 'students',
     ];
 
-    // Chỉ số gốc (cộng dồn được); FLOATS là số thực (tiền, giờ, ngày)
     public const SUMMABLE = [
         'assigned', 'processed', 'moved', 'contacts', 'contacts_ok', 'unreachable', 'backward',
         'response_hours', 'response_n', 'won', 'lost', 'close_days', 'close_n', 'revenue', 'paid', 'students',
@@ -84,9 +48,6 @@ class SalesPerformanceReport
 
     protected ?array $funnel = null;
 
-    /**
-     * Các stage của phễu (từ stage đầu đến Chốt), theo sort_order: [['id', 'name', 'order'], ...].
-     */
     public function funnelStages(): array
     {
         if ($this->funnel === null) {
@@ -103,12 +64,6 @@ class SalesPerformanceReport
         return $this->funnel;
     }
 
-    /**
-     * Tổng hợp đủ chỉ số theo 1 chiều.
-     *
-     * @param  array  $filters  from, to (Y-m-d), team, employee
-     * @return array<string, array> dim → dòng chỉ số
-     */
     public function aggregate(array $filters, string $dimension): array
     {
         $dim = self::DIMENSIONS[$dimension];
@@ -116,7 +71,6 @@ class SalesPerformanceReport
 
         $parts = [];
 
-        // A. Theo ngày giao Lead
         $cohort = $this->scoped($this->facts(), $filters)->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw('COUNT(*) AS assigned')
             ->selectRaw('SUM(o.contacts > 0 OR o.left_first OR o.moves > 0) AS processed')
@@ -129,8 +83,7 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(o.response_hours) AS response_n')
             ->selectRaw('SUM(o.contacts > 0) AS contacted')
             ->selectRaw('SUM(o.contacts_ok > 0) AS contacted_ok')
-            // Tình trạng xử lý của Lead được giao trong kỳ (4 nhóm loại trừ nhau, cộng lại = Lead được giao):
-            // đã chốt → chưa liên hệ → không liên hệ được → còn lại = đang xử lý (đã liên hệ được, kể cả đã đóng thất bại)
+
             ->selectRaw("SUM(o.status = 'Won') AS status_won")
             ->selectRaw("SUM(o.status IN ('Lost', 'Archived')) AS status_closed")
             ->selectRaw("SUM(o.status <> 'Won' AND o.contacts = 0) AS status_new")
@@ -140,7 +93,6 @@ class SalesPerformanceReport
         }
         $parts[] = $cohort->get();
 
-        // B. Theo ngày chốt
         $parts[] = $this->scoped($this->facts('closed_at')->whereIn('f.status', ['Won', 'Lost']), $filters)
             ->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw("SUM(o.status = 'Won') AS won")
@@ -149,7 +101,6 @@ class SalesPerformanceReport
             ->selectRaw("COUNT(IF(o.status = 'Won', o.close_days, NULL)) AS close_n")
             ->get();
 
-        // C. Theo ngày tạo đơn hàng
         $orders = DB::table('SalesOrders as so')
             ->join('Quotations as q', 'q.quotation_id', '=', 'so.quotation_id')
             ->join('Opportunities as op', 'op.opportunity_id', '=', 'q.opportunity_id')
@@ -160,7 +111,6 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(*) AS orders')
             ->get();
 
-        // D. Theo ngày thành học viên
         $students = DB::table('Students as st')
             ->join('Opportunities as op', 'op.opportunity_id', '=', 'st.opportunity_id')
             ->select('op.employee_id', 'st.conversion_date as event_at');
@@ -168,7 +118,6 @@ class SalesPerformanceReport
             ->selectRaw('COUNT(*) AS students')
             ->get();
 
-        // E. Hoạt động chăm sóc theo người thực hiện
         $care = DB::table('CareResults')->select('employee_id', 'performed_at as event_at', 'result');
         $parts[] = $this->scoped($care, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw('COUNT(*) AS care')
@@ -183,13 +132,11 @@ class SalesPerformanceReport
             ->selectRaw("SUM(o.status = 'Success') AS appts_ok")
             ->get();
 
-        // F. Cơ hội bị chuyển đi
         $transfers = DB::table('OpportunityTransfers')->select('from_employee_id as employee_id', 'transferred_at as event_at');
         $parts[] = $this->scoped($transfers, $filters)->selectRaw("$dim AS dim")->groupBy('dim')
             ->selectRaw('COUNT(*) AS transfers_out')
             ->get();
 
-        // Gộp các phần theo dim
         $rows = [];
         foreach ($parts as $part) {
             foreach ($part as $row) {
@@ -202,17 +149,11 @@ class SalesPerformanceReport
         return array_map(fn ($row) => $this->derive($row), $rows);
     }
 
-    /**
-     * Tổng chung của phạm vi lọc.
-     */
     public function totals(array $filters): array
     {
         return $this->aggregate($filters, 'all')['all'] ?? $this->derive([]);
     }
 
-    /**
-     * Chỉ tiêu của các đội trong 1 tháng: [team_id => ['revenue' => ..., 'students' => ...]].
-     */
     public function targets(string $month, ?array $teamIds = null): array
     {
         $rows = DB::table('TeamSalesTargets as t')
@@ -231,12 +172,6 @@ class SalesPerformanceReport
         return $targets;
     }
 
-    /**
-     * Pipeline đang mở (hiện tại, không theo kỳ): Cơ hội InProgress mà người phụ trách đang giữ.
-     *
-     * @param  string  $dimension  all | employee | team
-     * @return array<string, array{open: int, open_value: float}>
-     */
     public function pipeline(array $filters, string $dimension): array
     {
         $dim = self::DIMENSIONS[$dimension];
@@ -250,9 +185,6 @@ class SalesPerformanceReport
             ->all();
     }
 
-    /**
-     * Số Lead đang xử lý (hiện tại) đã giao quá $hours giờ mà chưa có lần liên hệ nào.
-     */
     public function uncontacted(array $filters, int $hours = self::UNCONTACTED_HOURS): int
     {
         return $this->uncontactedQuery($filters, $hours)->count();
@@ -265,17 +197,6 @@ class SalesPerformanceReport
             ->whereNotExists(fn ($q) => $q->from('CareResults as cr')->whereColumn('cr.opportunity_id', 'o.opportunity_id'));
     }
 
-    /**
-     * Việc cần xử lý hiện tại theo người phụ trách (cùng tiêu chí với Kanban), mỗi loại đếm số Cơ hội:
-     *   overdue_appointment  lịch hẹn đã qua giờ mà chưa cập nhật kết quả
-     *   needs_quotation      ở stage Chốt nhưng chưa có báo giá
-     *   decision_due         Data đã xử lý, còn ≤ DECISION_WARN_DAYS ngày đến hạn quyết định
-     *                        (lần liên hệ chốt đăng ký đầu tiên kể từ khi vào stage + Opportunity::DECISION_DAYS)
-     *   stale                trước stage Chốt, không có lịch hẹn sắp tới và không tương tác nào quá STALE_DAYS ngày
-     *   flagged              số Cơ hội có ít nhất 1 việc trên
-     *
-     * @return array<string, array> employee_id → [loại => số Cơ hội, 'flagged' => ...]
-     */
     public function alerts(array $filters): array
     {
         $query = DB::query()->fromSub($this->alertFlags($filters), 'f')->select('f.employee_id')->groupBy('f.employee_id')
@@ -289,9 +210,6 @@ class SalesPerformanceReport
             ->all();
     }
 
-    /**
-     * Mỗi Cơ hội đang xử lý 1 dòng: opportunity_id, employee_id + cờ 0 / 1 của từng việc trong ALERTS.
-     */
     protected function alertFlags(array $filters): Builder
     {
         $now = now();
@@ -343,7 +261,6 @@ class SalesPerformanceReport
             );
     }
 
-    // Danh sách theo ngày giao Lead → điều kiện trên facts() (cùng điều kiện với aggregate())
     public const RECORDS_ASSIGNED = [
         'assigned'         => '1 = 1',
         'status_won'       => "o.status = 'Won'",
@@ -354,14 +271,8 @@ class SalesPerformanceReport
         'response'         => 'o.response_hours IS NOT NULL',
     ];
 
-    // Danh sách theo ngày đóng → trạng thái Cơ hội
     public const RECORDS_CLOSED = ['closed' => ['Won', 'Lost'], 'won' => ['Won'], 'lost' => ['Lost']];
 
-    /**
-     * Bản ghi tạo nên 1 số liệu (mới nhất trước), cùng nguồn và thời điểm tính với aggregate() / pipeline() / alerts().
-     *
-     * @param  array  $filters  như aggregate(), thêm only_team, only_employees
-     */
     public function records(string $kind, array $filters): array
     {
         $rows = match (true) {
@@ -420,9 +331,6 @@ class SalesPerformanceReport
         return $this->withCustomer($query)->addSelect('o.conversion_date as at', 'x.status', 'x.expected_value')->get();
     }
 
-    /**
-     * Gắn khách hàng, đội, stage hiện tại vào truy vấn đã có o (opportunity_id) và e (Employees).
-     */
     protected function withCustomer(Builder $query): Builder
     {
         return $query
@@ -434,9 +342,6 @@ class SalesPerformanceReport
                 'e.full_name as employee', 't.team_name as team', 'sg.stage_name as stage');
     }
 
-    /**
-     * Cơ hội đang xử lý (o) + Employees (e) theo phạm vi đội / salesperson của bộ lọc.
-     */
     protected function current(array $filters): Builder
     {
         return DB::table('Opportunities as o')
@@ -445,14 +350,11 @@ class SalesPerformanceReport
             ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee))
-            // Thu hẹp thêm khi mở danh sách của 1 số liệu (luôn nằm trong phạm vi bộ lọc ở trên)
+
             ->when($filters['only_team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['only_employees'] ?? null, fn ($q, $ids) => $q->whereIn('o.employee_id', $ids));
     }
 
-    /**
-     * Gắn Employees (e) + bộ lọc chung lên 1 truy vấn có employee_id, event_at.
-     */
     protected function scoped(Builder $source, array $filters): Builder
     {
         return DB::query()
@@ -463,21 +365,17 @@ class SalesPerformanceReport
             ->when($filters['branch'] ?? null, fn ($q, $branch) => $q->where('e.branch_id', $branch))
             ->when($filters['team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['employee'] ?? null, fn ($q, $employee) => $q->where('o.employee_id', $employee))
-            // Thu hẹp thêm khi mở danh sách của 1 số liệu (luôn nằm trong phạm vi bộ lọc ở trên)
+
             ->when($filters['only_team'] ?? null, fn ($q, $team) => $q->where('e.team_id', $team))
             ->when($filters['only_employees'] ?? null, fn ($q, $ids) => $q->whereIn('o.employee_id', $ids));
     }
 
-    /**
-     * Mỗi Cơ hội 1 dòng với các chỉ số đã gộp; event_at = ngày giao hoặc ngày đóng.
-     */
     protected function facts(string $event = 'conversion_date'): Builder
     {
         $stages = $this->funnelStages();
         $first = $stages[0]['order'] ?? 1;
         $last = $stages ? end($stages)['order'] : 1;
 
-        // Stage trong phễu thì lấy sort_order, ngoài phễu (Lưu trữ) thì 0
         $inFunnel = fn (string $col) => "IF($col <= $last, $col, 0)";
 
         $care = DB::table('CareResults')
@@ -522,22 +420,12 @@ class SalesPerformanceReport
                 WHEN 'Lost' THEN COALESCE(hs.archived_at, c.last_contact, o.conversion_date)
                 END AS closed_at");
 
-        // Bọc thêm 1 lớp để tính thời gian chốt và đặt event_at
         return DB::query()->fromSub($facts, 'f')
             ->select('f.*')
             ->selectRaw("f.$event AS event_at")
             ->selectRaw('GREATEST(0, TIMESTAMPDIFF(MINUTE, f.conversion_date, f.closed_at)) / 1440 AS close_days');
     }
 
-    /**
-     * Ép kiểu số + tính các chỉ số dẫn xuất (dùng lại được sau khi cộng gộp nhiều dòng):
-     *   processed_rate = Lead đã xử lý / Lead được giao      moved_rate = Lead chuyển Stage / Lead được giao
-     *   close_rate     = Won / (Won + Lost) đóng trong kỳ     contact_success_rate = liên hệ thành công / tổng liên hệ
-     *   avg_response_hours, avg_close_days
-     *   contact_rate   = Lead liên hệ được (≥ 1 lần thành công) / Lead đã liên hệ
-     *   status_progress = Lead được giao chưa chốt nhưng đã liên hệ được
-     *   stages: [order => ['reached', 'rate' (so với stage trước), 'overall' (so với Lead được giao)]]
-     */
     public function derive(array $row): array
     {
         foreach (self::SUMMABLE as $key) {
@@ -575,9 +463,6 @@ class SalesPerformanceReport
         return $row;
     }
 
-    /**
-     * Cộng các chỉ số gốc của nhiều dòng rồi tính lại chỉ số dẫn xuất.
-     */
     public function combine(array $rows): array
     {
         $keys = array_merge(self::SUMMABLE, array_map(fn ($s) => 'reached_'.$s['order'], $this->funnelStages()));

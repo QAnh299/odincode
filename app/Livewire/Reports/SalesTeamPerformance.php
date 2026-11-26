@@ -13,45 +13,28 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 
-/**
- * Dashboard & Báo cáo → Hiệu quả nhân viên Sale (giao diện Sale Admin), 2 tab:
- *   - Đội kinh doanh: thẻ KPI (Lead đã giao, Lead chưa liên hệ > 24h, phản hồi đầu tiên, tỷ lệ liên hệ được,
- *     cơ hội tồn đọng), tình trạng xử lý Lead đã giao theo đội, thời gian phản hồi đầu tiên theo tuần / tháng
- *     so với SLA, doanh số 6 tháng so với chỉ tiêu, tỷ lệ thắng theo đội, bảng xếp hạng đội.
- *   - Nhân viên kinh doanh: bảng xếp hạng salesperson + việc cần xử lý (dùng lại của báo cáo cũ).
- *
- * Số liệu, phạm vi theo vai trò, xếp hạng và xuất Excel kế thừa từ SalesPerformance; lớp này thêm
- * bộ lọc chi nhánh (Employees.branch_id), cách chia thời gian của biểu đồ phản hồi và các biểu đồ mới.
- */
 #[Layout('layouts.app')]
 class SalesTeamPerformance extends SalesPerformance
 {
     public const TABS = ['teams', 'employees'];
 
-    // Biểu đồ tròn cơ cấu theo đội: chỉ số chọn được ở dropdown
     public const SHARES = ['revenue', 'students'];
 
-    // Tab Nhân viên - biểu đồ tròn: nhiều người hơn số này thì giữ (số này - 1) người cao nhất, còn lại gộp "Nhân viên khác"
     public const EMP_SHARE_MAX = 10;
 
     public const EMP_OTHER_COLOR = '#c3cad5';
 
-    // Tab Nhân viên - biểu đồ top: số người, các chỉ số chọn được (→ đơn vị)
     public const EMP_TOP = 10;
 
     public const EMP_METRICS = ['revenue' => 'money', 'won' => 'count', 'close_rate' => 'percent', 'students' => 'count'];
 
-    // Xếp hạng theo tỷ lệ thắng chỉ tính người có ít nhất số cơ hội đóng (Won + Lost) này (ít quá thì tỷ lệ không đáng tin)
     public const EMP_MIN_CLOSED = 5;
 
-    // Màu cố định của từng đội (theo thứ tự đội trong phạm vi) - dùng chung cho mọi biểu đồ và bảng xếp hạng;
-    // đủ 12 màu khác nhau để biểu đồ tròn phân biệt được từng đội (nhiều đội hơn thì lặp lại)
     public const PALETTE = [
         '#2a78d6', '#eb6834', '#16a34a', '#9333ea', '#0891b2', '#db2777',
         '#d99a0b', '#b91c1c', '#65a30d', '#92400e', '#475569', '#6366f1',
     ];
 
-    // Tình trạng xử lý Lead đã giao (4 nhóm, cộng lại = Lead đã giao) → [khoá chỉ số, màu cột, màu chữ trong cột]
     public const STATUS_SERIES = [
         'won'       => ['status_won', '#1f9d4f', '#ffffff'],
         'progress'  => ['status_progress', '#7fb0ea', '#14213d'],
@@ -59,16 +42,13 @@ class SalesTeamPerformance extends SalesPerformance
         'new'       => ['status_new', '#cfd4dc', '#14213d'],
     ];
 
-    // Biểu đồ tình trạng xử lý: quá số đội này thì cột mảnh lại cho gọn
     public const STATUS_COMPACT_TEAMS = 5;
 
-    // Biểu đồ theo tháng: kỳ ngắn hơn 2 tháng thì xem 6 tháng gần nhất, kỳ dài thì tối đa số tháng này
     public const MAX_TREND_MONTHS = 12;
 
     #[Url(except: 'teams')]
     public string $tab = 'teams';
 
-    // Kỳ báo cáo (Y-m-d); mặc định tháng này
     #[Url]
     public string $from = '';
 
@@ -82,22 +62,18 @@ class SalesTeamPerformance extends SalesPerformance
         }
     }
 
-    // Chi nhánh ('' = tất cả): lọc theo chi nhánh của nhân viên
     #[Url(except: '')]
     public string $branch = '';
 
-    // Chỉ số của biểu đồ cơ cấu theo đội (xem SHARES)
     #[Url(except: 'revenue')]
     public string $share = 'revenue';
 
-    // Tab Nhân viên: chỉ số của biểu đồ tròn cơ cấu (SHARES) và biểu đồ top nhân viên (EMP_METRICS)
     public string $empShare = 'revenue';
 
     public string $empMetric = 'revenue';
 
     public function updatedTab(): void
     {
-        // Tab đội không có bộ lọc salesperson
         if ($this->activeTab() === 'teams') {
             $this->reset('employee');
         }
@@ -115,19 +91,11 @@ class SalesTeamPerformance extends SalesPerformance
         $this->preset($this->currentMonth());
     }
 
-    /**
-     * Có lọc khác mặc định (kỳ khác tháng hiện tại, chọn đội / chi nhánh / salesperson...).
-     */
     public function hasFilters(): bool
     {
         return parent::hasFilters() || [$this->from, $this->to] !== $this->presetRange($this->currentMonth()) || $this->branch !== '';
     }
 
-    /* ── Kỳ báo cáo (Từ ngày / Đến ngày / Kỳ nhanh) ───────────────────── */
-
-    /**
-     * Kỳ nhanh theo tháng: chọn 1 tháng (Y-m, trong danh sách months) → Từ ngày / Đến ngày = đầu / cuối tháng đó.
-     */
     public function preset(string $month): void
     {
         if ($range = $this->presetRange($month)) {
@@ -150,9 +118,6 @@ class SalesTeamPerformance extends SalesPerformance
         return CarbonImmutable::today()->format('Y-m');
     }
 
-    /**
-     * Tháng trùng đúng với kỳ đang xem (để chọn sẵn trong ô Kỳ nhanh), null nếu là khoảng tự chọn.
-     */
     public function activePreset(): ?string
     {
         $month = $this->period['from']->format('Y-m');
@@ -161,13 +126,6 @@ class SalesTeamPerformance extends SalesPerformance
             ? $month : null;
     }
 
-    /**
-     * Kỳ đang xem và kỳ liền trước để so sánh (cùng cách tính với báo cáo Chất lượng nguồn Lead):
-     *   - from / until: khoảng đã chọn (trống = tháng này); to: until nhưng không quá hôm nay.
-     *   - Khoảng trọn tháng: kỳ trước lùi đúng số tháng; khoảng tự chọn: lùi đúng số ngày.
-     *   - Kỳ chưa kết thúc chỉ so cùng độ dài (vd. 01-09/11 so với 01-09/10).
-     *   - months: các tháng nằm trong kỳ (Y-m) - để cộng chỉ tiêu tháng của đội.
-     */
     #[Computed]
     public function period(): array
     {
@@ -205,26 +163,17 @@ class SalesTeamPerformance extends SalesPerformance
         return ['from' => $from, 'until' => $until, 'to' => $to, 'previous' => $previous, 'compare' => $compare, 'months' => $months];
     }
 
-    /**
-     * Tháng "đang xem" (dùng cho các biểu đồ theo tháng): tháng cuối của kỳ.
-     */
     #[Computed]
     public function activeMonth(): string
     {
         return $this->period['to']->format('Y-m');
     }
 
-    /**
-     * Bộ lọc của kỳ đang xem (thay cho bộ lọc 1 tháng của báo cáo cũ - tham số tháng bỏ qua).
-     */
     protected function filterValues(string $month): array
     {
         return $this->filterRange($this->period['from']->toDateString(), $this->period['to']->toDateString());
     }
 
-    /**
-     * Tổng của kỳ liền trước (cùng đội / chi nhánh).
-     */
     #[Computed]
     public function previousTotals(): array
     {
@@ -233,9 +182,6 @@ class SalesTeamPerformance extends SalesPerformance
         return $this->report()->totals($this->filterRange($from->toDateString(), $to->toDateString()));
     }
 
-    /**
-     * Chỉ tiêu của kỳ: cộng chỉ tiêu các tháng nằm trong kỳ của từng đội.
-     */
     #[Computed]
     public function targets(): array
     {
@@ -247,10 +193,6 @@ class SalesTeamPerformance extends SalesPerformance
         return $this->targetsForMonths($this->period['months'], $filters);
     }
 
-    /**
-     * Các tháng của biểu đồ theo tháng: kỳ từ 2 tháng thì đúng các tháng của kỳ (tối đa MAX_TREND_MONTHS),
-     * ngắn hơn thì 6 tháng gần nhất tính đến tháng cuối của kỳ.
-     */
     protected function trailingMonths(string $month): array
     {
         $months = $this->period['months'];
@@ -278,8 +220,6 @@ class SalesTeamPerformance extends SalesPerformance
         return isset(self::EMP_METRICS[$this->empMetric]) ? $this->empMetric : 'revenue';
     }
 
-    /* ── Chi nhánh ────────────────────────────────────────────────────── */
-
     #[Computed]
     public function branches(): Collection
     {
@@ -291,9 +231,6 @@ class SalesTeamPerformance extends SalesPerformance
         return $this->branches->contains('branch_id', $this->branch) ? $this->branch : null;
     }
 
-    /**
-     * Đội chọn được: chọn chi nhánh thì chỉ còn các đội có nhân viên thuộc chi nhánh đó.
-     */
     #[Computed]
     public function teams(): Collection
     {
@@ -328,20 +265,12 @@ class SalesTeamPerformance extends SalesPerformance
         return parent::filterRange($from, $to) + ['branch' => $this->branchValue()];
     }
 
-    /* ── Số liệu tab Đội kinh doanh ───────────────────────────────────── */
-
-    /**
-     * Lead đang xử lý đã giao quá 24 giờ mà chưa liên hệ lần nào (hiện tại, không theo tháng).
-     */
     #[Computed]
     public function uncontacted(): int
     {
         return $this->report()->uncontacted($this->filterValues($this->activeMonth));
     }
 
-    /**
-     * Chỉ số theo đội × tháng của 6 tháng gần nhất (doanh số, tỷ lệ thắng, phản hồi theo tháng).
-     */
     #[Computed]
     public function teamMonthly(): array
     {
@@ -351,10 +280,6 @@ class SalesTeamPerformance extends SalesPerformance
         );
     }
 
-    /**
-     * Đội vẽ thành từng dãy riêng trên biểu đồ: khi phạm vi có 2..MAX_TREND_TEAMS đội và không lọc 1 salesperson.
-     * Nhiều đội hơn thì rối → biểu đồ gộp chung 1 dãy.
-     */
     #[Computed]
     public function seriesTeams(): Collection
     {
@@ -363,9 +288,6 @@ class SalesTeamPerformance extends SalesPerformance
         return $teams->count() > 1 && $teams->count() <= self::MAX_TREND_TEAMS ? $teams->values() : collect();
     }
 
-    /**
-     * Màu cố định của 1 đội (theo thứ tự trong phạm vi đang xem) - dùng chung cho biểu đồ và bảng xếp hạng.
-     */
     public function teamColor(string $teamId): string
     {
         $index = $this->scopeTeams->search(fn ($t) => $t->team_id === $teamId);
@@ -373,9 +295,6 @@ class SalesTeamPerformance extends SalesPerformance
         return self::PALETTE[($index === false ? 0 : $index) % count(self::PALETTE)];
     }
 
-    /**
-     * Tiền rút gọn cho bảng: 1,42 tỷ · 175,5 tr · 500.000 ₫.
-     */
     public function shortMoney(?float $value): string
     {
         $value = (float) $value;
@@ -387,9 +306,6 @@ class SalesTeamPerformance extends SalesPerformance
         };
     }
 
-    /**
-     * Tên đội rút gọn cho chú thích hẹp: bỏ từ đầu chung của mọi tên (ODIN Sales 1 → Sales 1).
-     */
     protected function shortTeamNames(array $names): array
     {
         $first = array_map(fn ($n) => explode(' ', $n, 2), $names);
@@ -404,12 +320,8 @@ class SalesTeamPerformance extends SalesPerformance
         return 'T'.(int) substr($month, 5, 2);
     }
 
-    // Thẻ KPI → loại danh sách
     public const KPI_DRILLS = ['assigned' => 'assigned', 'uncontacted' => 'uncontacted', 'response' => 'response', 'contact_rate' => 'contacted'];
 
-    /**
-     * Thẻ KPI: [key, icon, value, unit, delta [hướng, chữ, hậu tố], spark, color, hint, alert].
-     */
     #[Computed]
     public function kpis(): array
     {
@@ -420,7 +332,6 @@ class SalesTeamPerformance extends SalesPerformance
         $dec = fn ($v) => number_format((float) $v, 1, ',', '.');
         $num = fn ($v) => number_format((float) $v, 0, ',', '.');
 
-        // Lead đã giao: tách theo đội (≤ 3 đội thì liệt kê, nhiều hơn thì nêu đội cao nhất)
         $teams = array_values(array_filter($this->byTeam, fn ($r) => $r['assigned'] > 0));
         usort($teams, fn ($a, $b) => $b['assigned'] <=> $a['assigned']);
         $short = $this->shortTeamNames(array_column($teams, 'name'));
@@ -463,14 +374,9 @@ class SalesTeamPerformance extends SalesPerformance
             ],
         ];
 
-        // Màu đường xu hướng giống báo cáo Chất lượng nguồn Lead: số lượng xanh dương, tỷ lệ xanh lá, xấu đi thì đỏ
         return array_map(fn ($card) => ['color' => LeadSources::TREND_COLORS[($card['delta'][0] ?? null) === 'down' ? 'down' : $card['color']]] + $card, $cards);
     }
 
-    /**
-     * Mức thay đổi so với tháng trước: [hướng (up | down | flat), chữ, hậu tố].
-     * $mode: pct = % thay đổi, points = điểm %, hours = số giờ; $dir: 1 cao là tốt, -1 thấp là tốt.
-     */
     protected function kpiDelta(?float $cur, ?float $prev, string $mode, int $dir, ?string $suffix): ?array
     {
         if ($cur === null || $prev === null || ($mode === 'pct' && $prev == 0)) {
@@ -495,9 +401,6 @@ class SalesTeamPerformance extends SalesPerformance
         return [$good ? 'up' : 'down', ($change > 0 ? '▲ ' : '▼ ').$text, $suffix];
     }
 
-    /**
-     * Đường xu hướng nhỏ (SVG 120×36), bỏ qua tháng không có số liệu; cần từ 2 điểm.
-     */
     protected function sparkline(array $values): ?array
     {
         $values = array_values(array_filter($values, fn ($v) => $v !== null));
@@ -520,23 +423,17 @@ class SalesTeamPerformance extends SalesPerformance
         return ['line' => $line, 'area' => "0,$h $line $w,$h"];
     }
 
-    /* ── Biểu đồ tab Đội kinh doanh ───────────────────────────────────── */
-
     #[Computed]
     public function teamCharts(): array
     {
-        return [
+        return $this->drillCharts([
             'status'   => $this->statusChart(),
             'share'    => $this->shareChart(),
             'revenue'  => $this->revenueChart(),
             'win_rate' => $this->winRateChart(),
-        ];
+        ]);
     }
 
-    /**
-     * Lead đã giao trong tháng theo đội, chia theo tình trạng hiện tại (cột ngang chồng).
-     * Lọc 1 salesperson → 1 cột của người đó.
-     */
     protected function statusChart(): array
     {
         if ($this->byTeam) {
@@ -556,7 +453,6 @@ class SalesTeamPerformance extends SalesPerformance
             ];
         }
 
-        // Không tách theo đội (đang lọc 1 nhân viên): bộ lọc của trang đã đủ
         $drills = array_map(fn ($s) => array_map(
             fn ($r) => ['kind' => $s[0]] + (isset($r['id']) ? ['team' => $r['id']] : []), $rows
         ), array_values(self::STATUS_SERIES));
@@ -566,10 +462,6 @@ class SalesTeamPerformance extends SalesPerformance
             'barMax' => count($rows) > self::STATUS_COMPACT_TEAMS ? 26 : 40, 'barPercent' => 0.8];
     }
 
-    /**
-     * Cơ cấu theo đội (biểu đồ tròn) của doanh thu / học viên mới trong tháng: mỗi đội 1 phần, màu cố định của đội.
-     * 'legend' = chú thích dưới hình tròn (mọi đội trong phạm vi, kể cả đội chưa có số liệu): [name, color].
-     */
     protected function shareChart(): array
     {
         $metric = $this->activeShare();
@@ -595,9 +487,6 @@ class SalesTeamPerformance extends SalesPerformance
         ];
     }
 
-    /**
-     * Doanh số 6 tháng: cột chồng theo đội (đóng góp từng đội) + đường đứt = tổng chỉ tiêu.
-     */
     protected function revenueChart(): array
     {
         $trend = $this->trend;
@@ -609,7 +498,6 @@ class SalesTeamPerformance extends SalesPerformance
         $targets = array_column($trend, 'target');
         $hasTarget = $this->employee === '' && array_sum($targets) > 0;
 
-        // Trục rút gọn: tỷ khi số lớn nhất từ 1 tỷ, còn lại triệu
         $peak = max([0, ...array_column($trend, 'revenue'), ...($hasTarget ? $targets : [])]);
         [$divisor, $suffix] = $peak >= 1e9 ? [1e9, ' '.__('reports.sales_team.billion')] : [1e6, ' '.__('reports.sales_team.million')];
 
@@ -626,9 +514,6 @@ class SalesTeamPerformance extends SalesPerformance
             'tickDecimals' => $divisor === 1e9 ? 1 : 0, 'maxTicks' => 8, 'barMax' => 72, 'barPercent' => 0.85];
     }
 
-    /**
-     * Tỷ lệ thắng 6 tháng theo đội (theo tháng chốt).
-     */
     protected function winRateChart(): array
     {
         $trend = $this->trend;
@@ -642,10 +527,6 @@ class SalesTeamPerformance extends SalesPerformance
             'straight' => true, 'maxTicks' => 11];
     }
 
-    /**
-     * Mỗi đội của seriesTeams 1 dãy: giá trị $metric theo từng mốc (khoá "team_id|mốc" của $data()).
-     * Không tách theo đội được → [].
-     */
     protected function teamSeries(array $buckets, callable $data, string $metric, ?float $empty): array
     {
         if ($this->seriesTeams->isEmpty()) {
@@ -661,22 +542,15 @@ class SalesTeamPerformance extends SalesPerformance
         ])->all();
     }
 
-    /* ── Biểu đồ tab Nhân viên kinh doanh ─────────────────────────────── */
-
     #[Computed]
     public function employeeCharts(): array
     {
-        return [
+        return $this->drillCharts([
             'share' => $this->employeeShareChart(),
             'top'   => $this->employeeTopChart(),
-        ];
+        ]);
     }
 
-    /**
-     * Cơ cấu doanh thu / học viên mới theo nhân viên (biểu đồ tròn), lớn → nhỏ.
-     * Nhiều hơn EMP_SHARE_MAX người thì gộp phần nhỏ thành "Nhân viên khác" (37 lát thì không đọc được).
-     * 'legend' = chú thích dưới hình tròn: [name, color].
-     */
     protected function employeeShareChart(): array
     {
         $metric = $this->activeEmpShare();
@@ -716,10 +590,6 @@ class SalesTeamPerformance extends SalesPerformance
         ];
     }
 
-    /**
-     * Top EMP_TOP nhân viên theo chỉ số chọn (thanh ngang), mỗi thanh màu của đội người đó.
-     * Tỷ lệ thắng chỉ xét người có từ EMP_MIN_CLOSED cơ hội đóng. 'legend' = các đội có mặt: [name, color].
-     */
     protected function employeeTopChart(): array
     {
         $metric = $this->activeEmpMetric();
@@ -741,7 +611,6 @@ class SalesTeamPerformance extends SalesPerformance
             $legend[$r['team_id']] ??= ['name' => $r['team'] ?? __('reports.sales_performance.export.no_team'), 'color' => $color($r)];
         }
 
-        // Trục tiền rút gọn cùng kiểu với nhãn đầu thanh (48,5 tr / 1,2 tỷ)
         $peak = max([0, ...array_column($people, $metric)]);
         $axis = $unit !== 'money' ? [] : ($peak >= 1e9
             ? ['divisor' => 1e9, 'suffix' => ' '.__('reports.sales_team.billion')]

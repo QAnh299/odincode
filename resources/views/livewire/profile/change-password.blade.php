@@ -1,5 +1,5 @@
 @php
-    // Icon nét (stroke) dùng trong trang
+
     $icons = [
         'lock'     => '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
         'key'      => '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/>',
@@ -17,21 +17,18 @@
         .' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         .$icons[$name].'</svg>';
 
-    // Ô nhập mật khẩu: [thuộc tính, nhãn, autocomplete, placeholder]
     $fields = [
         ['current_password', 'current', 'current-password', 'current_placeholder'],
         ['password', 'new', 'new-password', 'new_placeholder'],
         ['password_confirmation', 'confirm', 'new-password', 'confirm_placeholder'],
     ];
 
-    // Đang dùng mật khẩu tạm: ẩn ô mật khẩu hiện tại
     if ($forced) {
         array_shift($fields);
     }
 @endphp
 
 <div class="pw">
-    {{-- CSS riêng của trang: resources/css/password.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/password.css')
     @endassets
@@ -41,7 +38,6 @@
     @endunless
 
     <div class="pw-grid">
-        {{-- ── Form đổi mật khẩu ────────────────────────────────────── --}}
         <section class="pw-card">
             <header class="pw-card__head">
                 <span class="pw-card__icon">{!! $icon('key') !!}</span>
@@ -120,7 +116,6 @@
                             <div class="pw-field__error" id="pw-{{ $field }}-error">{!! $icon('alert') !!}{{ $message }}</div>
                         @enderror
 
-                        {{-- Độ mạnh + yêu cầu cho mật khẩu mới --}}
                         @if ($field === 'password')
                             <div class="pw-strength" :data-score="score" x-show="pw" x-cloak>
                                 <div class="pw-strength__bars" aria-hidden="true">
@@ -166,7 +161,6 @@
             </form>
         </section>
 
-        {{-- ── Gợi ý bảo mật ────────────────────────────────────────── --}}
         <aside class="pw-card pw-tips">
             <span class="pw-tips__icon">{!! $icon('bulb') !!}</span>
             <h2 class="pw-tips__title">{{ __('change_password.tips_title') }}</h2>

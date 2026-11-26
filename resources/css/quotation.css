@@ -1,10 +1,3 @@
-/* ── Trang báo giá: danh sách (livewire/quotations/index) ─────────────
-   Chỉ nạp ở trang này qua @assets. Mọi class dùng tiền tố .qt- để không
-   đụng với menu dọc (sidebar.css), menu ngang (topbar.css) hay trang khác.
-   Màu chính lấy theo --odin-primary nên đổi theo bộ chọn màu giao diện.
-   Bố cục ưu tiên danh sách: tab trạng thái + thanh công cụ gọn, dính khi cuộn;
-   bộ lọc mở dạng panel (màn rộng) hoặc drawer toàn màn hình (màn hẹp). */
-
 .qt {
     --qt-primary: var(--odin-primary, #005e12);
     --qt-on-primary: var(--odin-on-primary, #fff);
@@ -19,12 +12,11 @@
     --qt-warning: #b45309;
     --qt-radius: 18px;
     --qt-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-    --qt-topbar: 64px; /* chiều cao menu ngang (topbar.css) - khối dính nằm ngay dưới */
+    --qt-topbar: 64px;
 
     max-width: 1280px;
     margin: 0 auto;
     color: var(--qt-ink);
-    /* backwards: hết hiệu ứng thì bỏ transform, để popup (position: fixed) phủ cả trang thay vì chỉ trong khung */
     animation: qt-in 0.3s ease-out backwards;
 }
 
@@ -43,26 +35,22 @@
     flex-shrink: 0;
 }
 
-/* Màu theo trạng thái báo giá: dùng chung cho tab, nhãn trạng thái */
 .qt-tone--all { --tone: var(--qt-primary); --tone-bg: var(--qt-tint); }
 .qt-tone--draft { --tone: #64748b; --tone-bg: #f1f5f9; }
 .qt-tone--confirmed { --tone: #15803d; --tone-bg: #dcfce7; }
 .qt-tone--rejected { --tone: #b91c1c; --tone-bg: #fee2e2; }
 
-/* ── Khối dính: tab trạng thái + thanh công cụ + chip ─────────────── */
 
 .qt-sticky {
     position: sticky;
     top: var(--qt-topbar);
     z-index: 30;
-    /* Kéo sát mép trên và hai bên của <main> (py-4 px-4) để nền che danh sách khi cuộn */
     margin: -1.5rem -1.5rem 1rem;
     padding: 1rem 1.5rem 0.85rem;
     background: var(--qt-page);
     border-bottom: 1px solid var(--qt-border);
 }
 
-/* Tab trạng thái (thay cho 4 thẻ thống kê) */
 .qt-tabs {
     display: flex;
     gap: 0.5rem;
@@ -131,7 +119,6 @@
     color: #fff;
 }
 
-/* Thanh công cụ: tìm kiếm + Bộ lọc + Xoá bộ lọc trên một hàng */
 .qt-toolbar {
     display: flex;
     align-items: stretch;
@@ -174,7 +161,6 @@
     color: var(--qt-primary);
 }
 
-/* Icon (i) ở cuối ô tìm kiếm + popover hướng dẫn cú pháp */
 .qt-hint {
     position: relative;
     display: inline-flex;
@@ -251,7 +237,6 @@
     font-size: 0.8rem;
 }
 
-/* ── Nút ───────────────────────────────────────────────────────────── */
 
 .qt-btn {
     position: relative;
@@ -311,7 +296,6 @@
     font-weight: 700;
 }
 
-/* Chấm báo "đã đổi bộ lọc nhưng chưa áp dụng" (Livewire ẩn/hiện bằng wire:dirty) */
 .qt-btn__dot {
     position: absolute;
     top: 7px;
@@ -323,7 +307,6 @@
     background: var(--qt-warning);
 }
 
-/* ── Panel bộ lọc (thả xuống dưới nút Bộ lọc) ──────────────────────── */
 
 .qt-filter {
     position: relative;
@@ -419,7 +402,6 @@
     height: 15px;
 }
 
-/* Ô nhập trong panel */
 .qt-field {
     display: flex;
     flex-direction: column;
@@ -490,7 +472,6 @@ select.qt-control {
     font-size: 0.85rem;
 }
 
-/* Cặp ngày từ - đến trong một nhóm */
 .qt-range {
     display: flex;
     align-items: center;
@@ -508,7 +489,6 @@ select.qt-control {
     color: var(--qt-muted);
 }
 
-/* ── Chip bộ lọc đang áp dụng ──────────────────────────────────────── */
 
 .qt-chips {
     display: flex;
@@ -569,7 +549,6 @@ select.qt-control {
     height: 13px;
 }
 
-/* ── Danh sách báo giá ─────────────────────────────────────────────── */
 
 .qt-card {
     margin-bottom: 1.25rem;
@@ -647,7 +626,6 @@ select.qt-control {
     text-align: left;
 }
 
-/* Dòng gọn để thấy được nhiều báo giá hơn trong màn hình đầu tiên */
 .qt-table td {
     padding: 0.55rem 1rem;
     border-top: 1px solid var(--qt-border);
@@ -662,7 +640,6 @@ select.qt-control {
     background: color-mix(in srgb, var(--qt-primary) 4%, #fff);
 }
 
-/* Mã báo giá */
 .qt-code {
     display: inline-flex;
     align-items: center;
@@ -691,7 +668,6 @@ select.qt-control {
     letter-spacing: 0.02em;
 }
 
-/* Hai dòng: chính + phụ (khách hàng / mã cơ hội, ngày hết hạn / hạn còn lại) */
 .qt-stack {
     display: inline-flex;
     flex-direction: column;
@@ -708,7 +684,6 @@ select.qt-control {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Cảnh báo khóa học khách đã mua (form báo giá) */
 .qt-purchased {
     display: inline-flex;
     align-items: flex-start;
@@ -725,7 +700,6 @@ select.qt-control {
     margin-top: 0.1rem;
 }
 
-/* Hạn còn lại của báo giá Nháp */
 .qt-expiry {
     display: inline-flex;
     align-items: center;
@@ -755,7 +729,6 @@ select.qt-control {
     white-space: nowrap;
 }
 
-/* Nhãn trạng thái */
 .qt-badge {
     display: inline-flex;
     align-items: center;
@@ -790,7 +763,6 @@ select.qt-control {
     color: var(--qt-muted);
 }
 
-/* Đánh dấu từ khóa tìm kiếm */
 .qt-mark {
     padding: 0 0.1em;
     border-radius: 4px;
@@ -798,7 +770,6 @@ select.qt-control {
     color: inherit;
 }
 
-/* Trống */
 .qt-empty {
     display: flex;
     flex-direction: column;
@@ -835,7 +806,6 @@ select.qt-control {
     font-size: 0.9rem;
 }
 
-/* Phân trang (giữ nguyên markup Bootstrap, chỉ đổi màu theo màu chính) */
 .qt-pagination {
     padding: 0.75rem 1rem;
     border-top: 1px solid var(--qt-border);
@@ -863,9 +833,7 @@ select.qt-control {
     font-size: 0.85rem;
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 
-/* Bảng chuyển thành thẻ trên màn nhỏ */
 @media (max-width: 991.98px) {
     .qt-table thead {
         display: none;
@@ -919,8 +887,6 @@ select.qt-control {
     }
 }
 
-/* Màn hẹp: khối trên cùng không dính (tiết kiệm chiều cao), ô tìm kiếm một hàng riêng,
-   panel bộ lọc thành drawer toàn màn hình */
 @media (max-width: 767.98px) {
     .qt-sticky {
         position: static;
@@ -946,7 +912,7 @@ select.qt-control {
     .qt-panel {
         position: fixed;
         inset: 0;
-        z-index: 1060; /* trên menu ngang (1020) và menu dọc dạng offcanvas */
+        z-index: 1060;
         width: auto;
         border: 0;
         border-radius: 0;
@@ -990,9 +956,7 @@ select.qt-control {
     }
 }
 
-/* ── Trang chi tiết báo giá (livewire/quotations/show) ─────────────── */
 
-/* Điều hướng: nút quay lại + đường dẫn */
 .qt-crumb {
     display: flex;
     flex-wrap: wrap;
@@ -1028,7 +992,6 @@ select.qt-control {
     font-weight: 600;
 }
 
-/* Đầu trang: mã báo giá + trạng thái + hạn */
 .qt-detail-head {
     display: flex;
     flex-wrap: wrap;
@@ -1069,7 +1032,6 @@ select.qt-control {
     height: 15px;
 }
 
-/* Thanh thao tác (SP lập báo giá, báo giá Nháp) */
 .qt-actions {
     margin-bottom: 1rem;
     padding: 0.75rem 1rem;
@@ -1108,7 +1070,6 @@ select.qt-control {
     color: var(--qt-danger);
 }
 
-/* Tiến trình 4 bước */
 .qt-progress {
     padding: 1rem 1.25rem;
 }
@@ -1133,12 +1094,10 @@ select.qt-control {
     min-width: 0;
 }
 
-/* Bước Báo giá lấy màu theo trạng thái báo giá */
 .qt-progress__step.qt-tone--draft { --tone: #64748b; --tone-bg: #f1f5f9; }
 .qt-progress__step.qt-tone--confirmed { --tone: #15803d; --tone-bg: #dcfce7; }
 .qt-progress__step.qt-tone--rejected { --tone: #b91c1c; --tone-bg: #fee2e2; }
 
-/* Đường nối giữa các bước */
 .qt-progress__step:not(:last-child)::after {
     content: "";
     flex: 1;
@@ -1185,7 +1144,6 @@ select.qt-control {
     text-overflow: ellipsis;
 }
 
-/* Bước chưa tới (hoặc sau báo giá bị từ chối): mờ */
 .qt-progress__step.is-muted {
     opacity: 0.45;
 }
@@ -1212,7 +1170,6 @@ select.qt-control {
     color: var(--qt-warning);
 }
 
-/* Lưới 2 cột: nội dung chính + cột khách hàng / cơ hội */
 .qt-detail-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
@@ -1246,7 +1203,6 @@ select.qt-control {
     margin: 0;
 }
 
-/* Thông tin dạng nhãn - giá trị */
 .qt-info {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1284,7 +1240,6 @@ select.qt-control {
     overflow-wrap: anywhere;
 }
 
-/* Ghi chú: giữ xuống dòng */
 .qt-info dd.qt-notes {
     display: block;
     white-space: pre-line;
@@ -1305,7 +1260,6 @@ select.qt-control {
     color: var(--qt-muted);
 }
 
-/* Khối tổng tiền dưới bảng khóa học */
 .qt-totals {
     display: flex;
     flex-direction: column;
@@ -1353,7 +1307,6 @@ select.qt-control {
     color: var(--qt-primary);
 }
 
-/* Danh sách báo giá: cả dòng là link sang trang chi tiết */
 .qt-table tbody tr.qt-row-link {
     cursor: pointer;
 }
@@ -1379,7 +1332,6 @@ select.qt-control {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Khách hàng / cơ hội lên trước khi xếp một cột */
     .qt-detail-side {
         order: -1;
         display: grid;
@@ -1415,7 +1367,6 @@ select.qt-control {
     }
 }
 
-/* ── Lập / sửa báo giá (livewire/quotations/form) + thao tác trên trang chi tiết ── */
 
 .qt-notice {
     display: flex;
@@ -1578,7 +1529,6 @@ select.qt-control {
     color: #b91c1c;
 }
 
-/* HĐ15: khung chọn lý do từ chối báo giá */
 .qt-reject {
     margin-top: 0.75rem;
     padding: 0.75rem 0.9rem;

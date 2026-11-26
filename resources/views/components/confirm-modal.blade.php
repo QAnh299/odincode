@@ -1,8 +1,3 @@
-{{--
-    Popup xác nhận dùng chung (thay hộp thoại confirm của trình duyệt). Mở bằng sự kiện trình duyệt:
-        x-on:click="$dispatch('odin-confirm', { title: '...', message: '...', ok: '...', tone: 'primary' | 'danger', run: () => $wire.hanhDong() })"
-    Chọn nút đồng ý → gọi run(); Hủy, bấm ra ngoài hoặc Esc → đóng, không làm gì.
---}}
 <div x-data="{ open: false, title: '', message: '', ok: '', tone: 'primary', run: null }"
     x-on:odin-confirm.window="title = $event.detail.title ?? ''; message = $event.detail.message ?? ''; ok = $event.detail.ok ?? @js(__('actions.confirm')); tone = $event.detail.tone ?? 'primary'; run = $event.detail.run ?? null; open = true; $nextTick(() => $refs.ok.focus())"
     x-on:keydown.escape.window="open = false">

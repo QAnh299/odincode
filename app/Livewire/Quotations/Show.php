@@ -14,34 +14,18 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-/**
- * Chi tiết một báo giá: thông tin chung, khách hàng, cơ hội, khóa học, tổng tiền,
- * voucher, đơn hàng và tiến trình Báo giá → Đơn hàng → Hóa đơn → Thanh toán.
- * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán (Kế toán chỉ xem).
- *
- * Phạm vi xem theo Quotation::visibleTo(): ngoài phạm vi hoặc không tồn tại → 404 (giống Opportunities\Show).
- * Thanh thao tác chỉ hiện với Salesperson lập báo giá và báo giá còn Nháp:
- *   - Chỉnh sửa (HĐ10) → trang sửa; Xuất PDF (HĐ7 – HĐ8) → tải file; Từ chối (HĐ12 – HĐ13).
- *   - Xác nhận (HĐ16 – HĐ17): một giao dịch gồm báo giá → Đã xác nhận + tạo đơn hàng (hình thức chưa xác định).
- * Từ chối = khách không đồng ý: kết thúc cơ hội luôn (Lost / giữ Won); đổi khóa học thì SP sửa báo giá Nháp.
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
-    // Breadcrumb nối tiếp khi đi từ trang Chi tiết học viên (?student=)
     use StudentTrail;
 
     public Quotation $quotation;
 
-    // Thông báo sau thao tác: ['tone' => success|info, 'text' => ...]
     public ?array $notice = null;
 
-    // Mở từ trang chi tiết cơ hội (?from=opportunity): nút "Quay lại" trở về cơ hội thay vì danh sách báo giá
     #[Locked]
     public bool $fromOpportunity = false;
 
-    // HĐ15: lý do từ chối đang chọn trong khung Từ chối báo giá (null = khung đang đóng)
     public ?string $rejectReason = null;
 
     public function mount(Quotation $quotation): void
@@ -61,31 +45,18 @@ class Show extends Component
         $this->initStudentTrail($this->quotation->opportunity_id);
     }
 
-    /**
-     * Prefix route theo vai trò, VD: 'director' → route 'director.quotations'.
-     */
     #[Computed]
     public function routePrefix(): string
     {
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Có thanh thao tác: Salesperson là chính người lập báo giá và báo giá còn Nháp.
-     * Giám đốc, Sale Admin, Sale Leader, Kế toán chỉ xem; báo giá đã Xác nhận / Từ chối thì đã chốt.
-     */
     #[Computed]
     public function canAct(): bool
     {
         return $this->isAuthor() && $this->quotation->status === Quotation::STATUS_DRAFT;
     }
 
-    /**
-     * Nút trên thanh thao tác (chỉ Salesperson lập báo giá). Nháp – kể cả đã quá hạn: Chỉnh sửa, Xuất PDF, Xác nhận, Từ chối;
-     * Đã xác nhận: Tạo hóa đơn (khi đơn còn phần chưa lập hóa đơn) và Xuất PDF; Từ chối: không có nút. 'url' = link, 'action' = hàm Livewire.
-     *
-     * @return array<int, array{key: string, icon: string, tone: string, url?: string, action?: string, confirm?: string, disabled?: string}>
-     */
     #[Computed]
     public function actions(): array
     {
@@ -96,7 +67,6 @@ class Show extends Component
         $code = $this->quotation->quotation_id;
 
         if (! $this->canAct) {
-            // Đã xác nhận: Tạo hóa đơn (HĐ18) đứng đầu thanh thao tác như trang chi tiết đơn hàng, sau đó Xuất PDF
             $order = $this->quotation->order;
             $create = $this->canCreateInvoice
                 ? [['key' => $order->invoices()->exists() ? 'create_next_invoice' : 'create_invoice', 'icon' => 'plus', 'tone' => 'primary', 'url' => route('salesperson.invoices.create', $order)]]
@@ -106,22 +76,15 @@ class Show extends Component
         }
 
         $all = [
-            ['key' => 'edit', 'icon' => 'edit', 'tone' => 'ghost', 'url' => route('salesperson.quotations.edit', $code)],       // HĐ10
-            ['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)],  // HĐ7 - HĐ8
-            ['key' => 'confirm', 'icon' => 'check-circle', 'tone' => 'primary', 'action' => 'confirm', 'confirm' => __('quotations.detail.confirm_confirm', ['code' => $code])], // HĐ16 - HĐ17
-            ['key' => 'reject', 'icon' => 'x', 'tone' => 'danger', 'action' => 'startReject'], // HĐ15: mở khung chọn lý do
+            ['key' => 'edit', 'icon' => 'edit', 'tone' => 'ghost', 'url' => route('salesperson.quotations.edit', $code)],
+            ['key' => 'export_pdf', 'icon' => 'file', 'tone' => 'ghost', 'url' => route('salesperson.quotations.pdf', $code)],
+            ['key' => 'confirm', 'icon' => 'check-circle', 'tone' => 'primary', 'action' => 'confirm', 'confirm' => __('quotations.detail.confirm_confirm', ['code' => $code])],
+            ['key' => 'reject', 'icon' => 'x', 'tone' => 'danger', 'action' => 'startReject'],
         ];
 
-        // Báo giá quá hạn vẫn đủ nút: Chỉnh sửa để gia hạn; Xác nhận bị chặn và nhắc gia hạn (confirmBlocker 'expired')
         return $all;
     }
 
-
-
-    /**
-     * HĐ18: nút "Tạo hóa đơn" trên thanh thao tác – Salesperson lập báo giá, đơn còn phần nợ chưa lập hóa đơn
-     * (gồm cả trường hợp khách thiếu email: biểu mẫu hóa đơn cho bổ sung ngay – HĐ20).
-     */
     #[Computed]
     public function canCreateInvoice(): bool
     {
@@ -131,10 +94,6 @@ class Show extends Component
             && in_array(app(InvoiceService::class)->blockerFor($order, Auth::user()->employee), [null, 'missing_profile'], true);
     }
 
-    /**
-     * HĐ16 → HĐ17: Salesperson xác nhận báo giá khi khách đồng ý. Không đạt điều kiện thì báo lý do, không đổi gì;
-     * đạt thì một giao dịch: báo giá → Đã xác nhận + tạo đơn hàng, rồi chuyển sang chi tiết đơn hàng để tạo hóa đơn (HĐ18).
-     */
     public function confirm(QuotationService $service)
     {
         abort_unless($this->canAct, 403);
@@ -147,15 +106,11 @@ class Show extends Component
 
         $order = $service->confirm($this->quotation, Auth::user()->employee);
 
-        // Chuyển sang chi tiết đơn hàng vừa tạo để Salesperson lập hóa đơn (HĐ18)
         session()->flash('order_notice', __('quotations.detail.confirmed_done', ['code' => $this->quotation->quotation_id, 'order' => $order->order_id]));
 
         return $this->redirectRoute('salesperson.orders.show', $order, navigate: false);
     }
 
-    /**
-     * HĐ15: mở khung Từ chối báo giá để Salesperson chọn lý do (mặc định: khách không đồng ý).
-     */
     public function startReject(): void
     {
         abort_unless($this->canAct, 403);
@@ -168,10 +123,6 @@ class Show extends Component
         $this->rejectReason = null;
     }
 
-    /**
-     * HĐ15 – HĐ16: Salesperson từ chối báo giá Nháp: báo giá → Từ chối; cơ hội đang xử lý → Lost (khách không đồng ý)
-     * hoặc Archived (khách không phản hồi đến khi quá hạn); đã Won giữ nguyên.
-     */
     public function reject(QuotationService $service): void
     {
         abort_unless($this->canAct, 403);
@@ -204,9 +155,6 @@ class Show extends Component
         unset($this->canAct, $this->actions);
     }
 
-    /**
-     * Nạp sẵn mọi quan hệ cần hiển thị (tránh N+1); tạm tính nạp bằng loadSum để subtotal() không truy vấn lại.
-     */
     private function loadQuotation(Quotation $quotation): void
     {
         $this->quotation = $quotation

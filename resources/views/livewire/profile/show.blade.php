@@ -4,23 +4,19 @@
     $name = $employee?->full_name ?? $account->username;
     $active = $account->canSignIn();
 
-    // Chỉ Sale Leader và Salesperson thuộc chi nhánh / nhóm kinh doanh
     $inSalesTeam = (bool) $employee?->hasRole(\App\Models\Role::SALE_LEADER, \App\Models\Role::SALESPERSON);
 
-    // Chữ cái đầu của tên (từ cuối trong họ tên tiếng Việt)
     $parts = preg_split('/\s+/u', trim($name));
     $initial = mb_strtoupper(mb_substr(end($parts) ?: '?', 0, 1));
 
     $date = fn ($value) => $value?->format('d/m/Y') ?? '-';
     $text = fn ($value) => filled($value) ? $value : '-';
 
-    // Thâm niên tính từ ngày vào làm, VD: "5 năm 4 tháng"
     $seniority = $employee?->hire_date?->diffForHumans([
         'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE,
         'parts'  => 2,
     ]);
 
-    // Icon nét (stroke) dùng trong trang
     $icons = [
         'user'     => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
         'cake'     => '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1M2 21h20M7 8v3M12 8v3M17 8v3M7 4h.01M12 4h.01M17 4h.01"/>',
@@ -47,12 +43,10 @@
 @endphp
 
 <div class="pf">
-    {{-- CSS riêng của trang: resources/css/profile.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/profile.css')
     @endassets
 
-    {{-- ── Thẻ tổng quan ────────────────────────────────────────────── --}}
     <section class="pf-hero">
         <div class="pf-hero__cover" aria-hidden="true"></div>
 
@@ -90,7 +84,6 @@
             </div>
         </div>
 
-        {{-- Số liệu nhanh --}}
         @if ($employee)
             <dl class="pf-stats">
                 <div class="pf-stat">
@@ -152,7 +145,6 @@
 
     <div class="pf-grid">
         <div class="pf-col">
-            {{-- ── Thông tin cá nhân ────────────────────────────────── --}}
             <section class="pf-card {{ $editing ? 'is-editing' : '' }}">
                 <header class="pf-card__head">
                     <span class="pf-card__icon">{!! $icon('user') !!}</span>
@@ -240,7 +232,6 @@
                 @endif
             </section>
 
-            {{-- ── Công việc ────────────────────────────────────────── --}}
             <section class="pf-card">
                 <header class="pf-card__head">
                     <span class="pf-card__icon">{!! $icon('briefcase') !!}</span>
@@ -294,7 +285,6 @@
         </div>
 
         <div class="pf-col">
-            {{-- ── Tài khoản đăng nhập ──────────────────────────────── --}}
             <section class="pf-card">
                 <header class="pf-card__head">
                     <span class="pf-card__icon">{!! $icon('key') !!}</span>
@@ -327,7 +317,6 @@
                 </ul>
             </section>
 
-            {{-- ── Bảo mật ──────────────────────────────────────────── --}}
             <section class="pf-card pf-security">
                 <span class="pf-security__icon">{!! $icon('shield') !!}</span>
                 <div class="pf-security__body">

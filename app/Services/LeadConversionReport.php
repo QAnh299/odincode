@@ -6,64 +6,37 @@ use App\Models\Stage;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Số liệu cho báo cáo Phân tích hiệu quả chuyển đổi Lead.
- *
- * Tỷ lệ chuyển đổi tính theo ngày tạo Lead: nhóm Lead tạo trong kỳ, theo dõi kết quả tới hiện tại.
- * Doanh thu không thuộc báo cáo này (xem module Doanh thu & thanh toán).
- *
- * Mỗi Lead 1 dòng (fact): Lead có nhiều Cơ hội thì gộp lại - kết quả ưu tiên Won > đang xử lý > Lost / Archived,
- * người phụ trách = người phụ trách Cơ hội mới nhất. Lead chưa có Cơ hội chưa thuộc salesperson nào,
- * chỉ có trong phạm vi xem toàn bộ Lead (Giám đốc, Sale Admin không lọc đội / nhân viên).
- *
- * Bảng Leads không lưu thời điểm qua từng bước nên dữ liệu được lấy về PHP rồi mới tổng hợp
- * (cần trung vị, phân nhóm, cohort). Thời điểm vào từng stage lấy từ StagesHistory; thiếu lịch sử thì ước tính:
- *   Đã có lịch hẹn = lần liên hệ thành công đầu tiên, Đã xử lý = buổi hẹn thành công đầu tiên, Chốt = ngày chốt.
- */
 class LeadConversionReport
 {
-    // Kết quả của 1 Lead
-    public const OUTCOME_NEW = 'new';           // chưa có Cơ hội
-    public const OUTCOME_OPEN = 'open';         // đang xử lý
+    public const OUTCOME_NEW = 'new';
+    public const OUTCOME_OPEN = 'open';
     public const OUTCOME_WON = 'won';
-    public const OUTCOME_LOST = 'lost';         // khách từ chối
-    public const OUTCOME_ARCHIVED = 'archived'; // không liên lạc được
+    public const OUTCOME_LOST = 'lost';
+    public const OUTCOME_ARCHIVED = 'archived';
 
     public const OUTCOMES = [self::OUTCOME_WON, self::OUTCOME_OPEN, self::OUTCOME_LOST, self::OUTCOME_ARCHIVED, self::OUTCOME_NEW];
 
-    // Cơ hội đang xử lý nằm quá số ngày này ở 1 stage thì coi là bị "kẹt"
     public const STUCK_DAYS = [
         Stage::UNTOUCHED => 2,
         Stage::APPOINTED => 7,
         Stage::PROCESSED => 14,
     ];
 
-    // Không có lịch sử chuyển stage: ước tính thời điểm vào stage theo cột này của Cơ hội
     public const STAGE_ESTIMATES = [
         Stage::APPOINTED => 'first_ok',
         Stage::PROCESSED => 'first_appt_ok',
         Stage::CLOSED    => 'won_at',
     ];
 
-    // Số id tối đa trong 1 câu whereIn
     public const CHUNK = 1000;
 
     protected ?array $stages = null;
 
-    /**
-     * Các stage của phễu (từ stage đầu đến Chốt): [['id', 'name', 'order'], ...].
-     */
     public function funnelStages(): array
     {
         return $this->stages ??= app(SalesPerformanceReport::class)->funnelStages();
     }
 
-    /**
-     * Mỗi Lead tạo trong kỳ 1 dòng, đã gộp các Cơ hội của nó.
-     *
-     * @param  array  $filters  from, to (Y-m-d, theo ngày tạo Lead), branch, source,
-     *                          team, employee (theo người phụ trách; '__none__' = không thấy gì)
-     */
     public function leads(array $filters): array
     {
         if (($filters['team'] ?? null) === '__none__' || ($filters['employee'] ?? null) === '__none__') {
@@ -83,7 +56,6 @@ class LeadConversionReport
         foreach ($leads as $lead) {
             $fact = $this->fact($lead, $opportunities[$lead->lead_id] ?? collect());
 
-            // Phạm vi theo người phụ trách Cơ hội mới nhất
             if (($filters['employee'] ?? null) && $fact['employee'] !== $filters['employee']) {
                 continue;
             }
@@ -97,9 +69,6 @@ class LeadConversionReport
         return $facts;
     }
 
-    /**
-     * Các lần chăm sóc của những Cơ hội đã cho.
-     */
     public function contacts(array $opportunityIds): array
     {
         $rows = [];
@@ -122,9 +91,6 @@ class LeadConversionReport
         return $rows;
     }
 
-    /**
-     * Các lịch hẹn của những Cơ hội đã cho.
-     */
     public function appointments(array $opportunityIds): array
     {
         $rows = [];
@@ -147,13 +113,6 @@ class LeadConversionReport
         return $rows;
     }
 
-    /**
-     * Tổng hợp 1 nhóm Lead. Tỷ lệ không có mẫu số trả về null.
-     *   conversion_rate = Lead có Cơ hội / Lead          win_rate = Lead chốt / Lead
-     *   close_rate      = Won / (Won + Lost + Archived)    contact_rate = Lead đã liên hệ / Lead
-     *   appointment_rate = buổi hẹn thành công / (thành công + thất bại)
-     *   response_* (giờ) = từ lúc tạo Lead đến lần liên hệ đầu tiên; close_* (ngày) = từ lúc tạo Lead đến lúc chốt
-     */
     public function summarize(array $facts): array
     {
         $count = array_count_values(array_column($facts, 'outcome'));
@@ -214,9 +173,6 @@ class LeadConversionReport
         ];
     }
 
-    /**
-     * Cơ hội đang xử lý nằm ở stage hiện tại quá ngưỡng STUCK_DAYS, quá lâu nhất trước.
-     */
     public function stuck(array $facts, ?int $now = null): array
     {
         $now ??= time();
@@ -236,8 +192,6 @@ class LeadConversionReport
         return $rows;
     }
 
-    /* ── Thống kê ─────────────────────────────────────────────────────── */
-
     public static function pct(float|int $part, float|int $total): ?float
     {
         return $total ? round($part * 100 / $total, 1) : null;
@@ -248,9 +202,6 @@ class LeadConversionReport
         return $values ? round(array_sum($values) / count($values), 1) : null;
     }
 
-    /**
-     * Phân vị p (0-100), nội suy tuyến tính.
-     */
     public static function percentile(array $values, float $p): ?float
     {
         if (! $values) {
@@ -264,12 +215,6 @@ class LeadConversionReport
         return round($values[$low] + ($values[$high] - $values[$low]) * ($index - $low), 1);
     }
 
-    /* ── Truy vấn ─────────────────────────────────────────────────────── */
-
-    /**
-     * Leads (alias l) + bộ lọc. Lọc đội / nhân viên ở đây chỉ để thu hẹp (Lead có Cơ hội thuộc phạm vi);
-     * leads() lọc lại chính xác theo người phụ trách Cơ hội mới nhất.
-     */
     protected function leadQuery(array $filters): Builder
     {
         $team = $filters['team'] ?? null;
@@ -288,9 +233,6 @@ class LeadConversionReport
                 ->when($employee, fn ($s) => $s->where('so.employee_id', $employee))));
     }
 
-    /**
-     * Mỗi Cơ hội của các Lead đã lọc 1 dòng, kèm số liệu chăm sóc, lịch hẹn, lịch sử stage, đơn hàng.
-     */
     protected function opportunityQuery(Builder $leadIds): Builder
     {
         $stages = $this->funnelStages();
@@ -372,9 +314,6 @@ class LeadConversionReport
         return $query;
     }
 
-    /**
-     * Gộp 1 Lead và các Cơ hội của nó thành 1 dòng.
-     */
     protected function fact(object $lead, $opportunities): array
     {
         $ts = fn ($value) => $value ? strtotime($value) : null;
@@ -422,12 +361,10 @@ class LeadConversionReport
             default                                 => self::OUTCOME_ARCHIVED,
         };
 
-        // Cơ hội đại diện cho tiến trình: Cơ hội Won (nếu có), không thì Cơ hội mới nhất
         $main = $outcome === self::OUTCOME_WON
             ? $opportunities->where('status', 'Won')->sortBy('won_at')->first()
             : $latest;
 
-        // Thời điểm vào từng stage của Cơ hội đại diện (không lùi về trước stage trước đó)
         $entries = [];
         $previous = null;
         foreach ($this->funnelStages() as $i => $stage) {

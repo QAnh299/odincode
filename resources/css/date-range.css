@@ -1,5 +1,3 @@
-/* ── Ô chọn khoảng ngày (components/date-range.blade.php) ──────────── */
-
 .odin-dr {
     --dr-primary: var(--odin-primary, #005e12);
     --dr-tint: color-mix(in srgb, var(--dr-primary) 12%, #fff);

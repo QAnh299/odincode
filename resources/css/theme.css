@@ -1,5 +1,3 @@
-/* ── Bộ chọn màu giao diện (components/settings-modal.blade.php) ───── */
-
 .odin-theme-menu__title {
     font-size: 0.8rem;
     font-weight: 600;
@@ -55,7 +53,6 @@
     cursor: pointer;
 }
 
-/* Popup đăng xuất (components/logout-modal.blade.php) */
 .odin-logout-modal {
     border: 0;
     border-radius: 16px;
@@ -71,8 +68,6 @@
     color: #dc2626;
 }
 
-/* Popup xác nhận dùng chung (components/confirm-modal.blade.php). Hiện/ẩn do x-show (style inline display: none)
-   nên ở đây chỉ ghi đè display: none mặc định của .modal Bootstrap */
 .modal.odin-confirm {
     display: block;
 }

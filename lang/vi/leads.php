@@ -2,19 +2,16 @@
 
 declare(strict_types=1);
 
-// Trang danh sách Lead (livewire/leads/index)
 return [
     'title'                  => 'Danh sách Lead',
     'subtitle'               => 'Theo dõi Lead mới nhập và tình trạng phân chia cho đội kinh doanh',
     'subtitle_branch'        => 'Lead thuộc :branch',
 
-    // Nút thao tác (Phân chia chưa có chức năng)
     'add'                    => 'Thêm Lead',
     'import'                 => 'Import Excel',
     'close'                  => 'Đóng',
     'cancel'                 => 'Huỷ',
 
-    // Tên trường - dùng cho popup Thêm Lead, tiêu đề cột file Excel mẫu và thông báo lỗi
     'field' => [
         'full_name'      => 'Họ và tên',
         'phone'          => 'Số điện thoại',
@@ -25,7 +22,6 @@ return [
         'branch_id'      => 'Mã chi nhánh',
     ],
 
-    // Popup Thêm Lead
     'form' => [
         'title'              => 'Thêm Lead mới',
         'required_hint'      => 'Các trường có dấu * là bắt buộc.',
@@ -47,7 +43,6 @@ return [
         'branch_invalid'     => 'Mã chi nhánh không tồn tại.',
     ],
 
-    // Kiểm tra trùng khách cũ khi thêm / import Lead (App\Services\LeadDuplicateService)
     'duplicate' => [
         'title' => [
             'ok'   => 'Khách cũ quay lại đăng ký',
@@ -79,7 +74,7 @@ return [
         'other_example'  => 'Ví dụ: anh chị em trong gia đình, phụ huynh đăng ký cho các con,...',
         'other_button'   => 'Tạo Lead mới',
         'recheck'       => 'Kiểm tra lại',
-        // Cùng người, Lead đang chờ phân: cập nhật thông tin vào Lead cũ
+
         'changes_title'  => 'Thông tin vừa nhập khác Lead cũ',
         'compare_title'  => 'So sánh với thông tin vừa nhập',
         'compare_same'   => 'Thông tin vừa nhập giống Lead này.',
@@ -96,7 +91,6 @@ return [
         'update_none'    => 'Vui lòng chọn ít nhất một thông tin để cập nhật.',
     ],
 
-    // Popup Import Excel + file mẫu + file kết quả
     'excel' => [
         'title'          => 'Import Lead từ Excel',
         'step_template'  => 'Tải file mẫu',
@@ -161,7 +155,6 @@ return [
         ],
     ],
 
-    // Import 2 bước - bảng xem trước (LeadImportService::preview / commit)
     'import_review' => [
         'sub'             => 'Kiểm tra từng dòng và chọn cách xử lý trước khi ghi nhận. Chưa có dữ liệu nào được lưu.',
         'step_review'     => 'Xem lại và xác nhận',
@@ -223,12 +216,10 @@ return [
     'distribute_team'        => 'Phân chia Lead cho Sale Team',
     'distribute_salesperson' => 'Phân chia Lead cho Salesperson',
 
-    // Thông báo chuông cho Sale Leader (App\Services\LeadAssignmentNotices)
     'notice' => [
         'title' => 'Sale Admin đã phân :count Lead cho đội :team - chờ bạn phân cho Salesperson',
     ],
 
-    // Popup Phân chia Lead (Leads\Distribute)
     'distribute' => [
         'title_team'              => 'Phân bổ Lead cho Sales Team',
         'title_person'            => 'Phân bổ Lead cho Salesperson',
@@ -257,7 +248,7 @@ return [
         'days'                    => ':count ngày',
         'money_million'           => ':value tr ₫',
         'money_billion'           => ':value tỷ ₫',
-        // Chưa đủ cỡ mẫu tối thiểu → xếp cuối ở tiêu chí này
+
         'sample_short' => [
             'close_rate'     => 'chưa đủ dữ liệu (:count/:min đơn đã đóng)',
             'avg_close_days' => 'chưa đủ dữ liệu (:count/:min đơn chốt thành công)',
@@ -287,7 +278,7 @@ return [
         'nothing'                 => 'Không có Lead nào được phân.',
         'done_team'               => 'Phân bổ Leads thành công: đã phân :count Lead cho :receivers đội.',
         'done_person'             => 'Phân bổ Leads thành công: đã phân :count Lead cho :receivers Salesperson.',
-        // Gợi ý khách cũ / người thân dùng chung SĐT, email
+
         'suggest_title'           => 'Gợi ý phân công',
         'suggest_returning'       => ':count khách cũ quay lại',
         'suggest_family'          => ':count Lead có người thân (dùng chung SĐT / email) đã có người phụ trách',
@@ -297,7 +288,6 @@ return [
         'suggest_row'             => 'Ưu tiên :count Lead (khách cũ / người thân)',
     ],
 
-    // Popup Phân Lead cho một Lead cụ thể (Leads\AssignOne)
     'assign_one' => [
         'button'              => 'Phân Lead',
         'title_team'          => 'Phân Lead cho Sales Team',
@@ -335,7 +325,6 @@ return [
         'invalid_person'      => 'Salesperson đã chọn không thuộc đội hoặc đã nghỉ việc.',
     ],
 
-    // Thống kê
     'stat' => [
         'all'          => 'Tổng Lead',
         'Unassigned'   => 'Chưa phân cho đội',
@@ -343,7 +332,6 @@ return [
         'Converted'    => 'Đã chuyển đổi',
     ],
 
-    // Bộ lọc
     'filters'                => 'Bộ lọc Lead',
     'search'                 => 'Tìm kiếm',
     'search_placeholder'     => 'Tìm kiếm',
@@ -357,7 +345,6 @@ return [
     'empty'                  => 'Không tìm thấy Lead nào',
     'empty_sub'              => 'Thử đổi từ khoá hoặc bỏ bớt bộ lọc.',
 
-    // Cột bảng
     'code'                   => 'Mã Lead',
     'customer'               => 'Khách hàng',
     'phone'                  => 'Số điện thoại',
@@ -373,7 +360,6 @@ return [
     'actions'                => 'Thao tác',
     'view'                   => 'Xem chi tiết',
 
-    // Danh sách Lead - thẻ thống kê, bộ lọc, cột, phân trang
     'card' => [
         'all'          => 'Tổng Lead',
         'Unassigned'   => 'Chờ phân',
@@ -399,7 +385,6 @@ return [
     'prev'                   => 'Trước',
     'next'                   => 'Sau',
 
-    // Chi tiết Lead
     'detail_title'           => 'Lead :code',
     'back'                   => 'Quay lại danh sách',
     'info'                   => 'Thông tin liên hệ',

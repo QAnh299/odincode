@@ -9,7 +9,6 @@
 @endphp
 
 <div class="ed">
-    {{-- Dùng chung giao diện trang chi tiết nhân viên: resources/css/employee-detail.css --}}
     @assets
         @vite('resources/css/employee-detail.css')
     @endassets
@@ -18,7 +17,6 @@
         <x-icon name="arrow-left" />{{ __('employees.teams.back_to_list') }}
     </a>
 
-    {{-- ── Thẻ đội ───────────────────────────────────────────────────── --}}
     <header class="ed-hero">
         <div class="ed-hero__banner" aria-hidden="true"></div>
         <div class="ed-hero__body">
@@ -41,7 +39,6 @@
                 </ul>
             </div>
 
-            {{-- Trưởng nhóm --}}
             <div class="ed-hero__leader">
                 <span class="ed-team__label">{{ __('employees.team_leader') }}</span>
                 @if ($leader)
@@ -59,10 +56,8 @@
         </div>
     </header>
 
-    {{-- ── Kết quả kinh doanh của đội ─────────────────────────────────── --}}
     @include('livewire.sales-teams.partials.performance')
 
-    {{-- ── Thành viên ─────────────────────────────────────────────────── --}}
     <section class="ed-card ed-members" aria-labelledby="ed-members-title">
         <div class="ed-card__head">
             <h2 class="ed-card__title mb-0" id="ed-members-title">
@@ -88,7 +83,6 @@
                             <span class="ed-person__text">
                                 <span class="ed-person__name">{{ $member->full_name }}</span>
                                 <span class="ed-person__meta">
-                                    {{-- Trưởng nhóm: nhãn nằm ở dòng phụ để tên không bị cắt trong ô hẹp --}}
                                     @if ($member->employee_id === $team->team_leader_id)
                                         <span class="ed-tag">{{ __('employees.leader_tag') }}</span> {{ $member->employee_id }}
                                     @else

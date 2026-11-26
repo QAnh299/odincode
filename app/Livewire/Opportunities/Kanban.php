@@ -16,25 +16,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Quản lý Opportunity dạng Kanban (giống Odoo CRM): mỗi cột là một Stage (theo sort_order).
- * Dùng chung cho Salesperson, Sale Leader, Giám đốc - phạm vi theo Opportunity::visibleTo():
- *   - Salesperson: cơ hội do chính mình phụ trách.
- *   - Sale Leader: cơ hội của đội mình; lọc được theo salesperson trong đội.
- *   - Giám đốc: tất cả; lọc theo đội, chọn đội rồi mới lọc được theo salesperson của đội đó.
- * Leader / Giám đốc thấy tên người phụ trách trên thẻ.
- * Không hiển thị trạng thái vì mỗi stage đã tương ứng một trạng thái.
- *
- * Bộ lọc theo ngày chuyển đổi (ngày Lead được chia cho salesperson):
- * nút chọn nhanh (Hôm nay, Hôm qua, 7 ngày qua, Tháng này) chỉ điền sẵn Từ ngày - Đến ngày,
- * nút đang sáng được suy ra từ khoảng ngày nên không cần lưu thêm trạng thái.
- * Hiện chỉ xem; chưa kéo thả đổi stage.
- *
- * Gọn khi có nhiều cơ hội: việc cần xử lý lên đầu cột (biểu tượng góc thẻ, bộ lọc "Cần xử lý"),
- * mỗi cột hiện PAGE_SIZE thẻ rồi "Xem thêm", cột Lưu trữ mặc định thu gọn.
- *
- * Hai kiểu xem trên cùng dữ liệu: Kanban hoặc danh sách; tìm theo khách hàng, SĐT, email, mã cơ hội.
- */
 #[Layout('layouts.app')]
 class Kanban extends Component
 {
@@ -42,25 +23,20 @@ class Kanban extends Component
 
     public const VIEWS = ['kanban', 'list'];
 
-    // default = việc gấp lên đầu; newest = ngày chuyển đổi mới nhất; value = giá trị dự kiến cao nhất
     public const SORTS = ['default', 'newest', 'value'];
 
-    // Số thẻ hiện mỗi lần trong một cột; "Xem thêm" tải thêm chừng ấy
     public const PAGE_SIZE = 20;
 
-    // Data đã xử lý: còn không quá số ngày này đến hạn quyết định thì coi là cần xử lý
     public const DECISION_WARN_DAYS = 3;
 
-    // Việc cần xử lý, theo mức ưu tiên (nhỏ = gấp hơn): thẻ lên đầu cột, có biểu tượng góc phải trên
     public const URGENCY = [
-        'overdue_appointment' => 0, // lịch hẹn đã qua giờ, chưa cập nhật kết quả
-        'needs_quotation'     => 1, // stage Chốt chưa có báo giá
-        'decision_due'        => 2, // Data đã xử lý sắp hết hạn quyết định
-        'recontact'           => 3, // không liên lạc được, đã tới lúc liên hệ lại
-        'not_contacted'       => 4, // Data chưa tương tác, chưa liên hệ lần nào
+        'overdue_appointment' => 0,
+        'needs_quotation'     => 1,
+        'decision_due'        => 2,
+        'recontact'           => 3,
+        'not_contacted'       => 4,
     ];
 
-    // Kiểu xem, sắp xếp - có thể bị sửa từ URL nên luôn đọc qua activeView(), activeSort()
     #[Url(except: 'kanban')]
     public string $view = 'kanban';
 
@@ -70,45 +46,34 @@ class Kanban extends Component
     #[Url(except: '')]
     public string $search = '';
 
-    // Lọc theo Stage ngay trên cột Giai đoạn (chỉ dạng danh sách) - '' = Tất cả; không đặt tên $stage vì trùng biến trong view
     #[Url(as: 'stage', except: '')]
     public string $stageFilter = '';
 
-    // Chỉ hiện cơ hội cần xử lý
     #[Url(except: false)]
     public bool $urgent = false;
 
-    // Số thẻ đang hiện của từng cột: [stage_id => số thẻ]
     public array $shown = [];
 
-    // Khoảng ngày vào stage hiện tại (Y-m-d) - có thể bị sửa từ client nên luôn kiểm tra qua validDate()
     #[Url(except: '')]
     public string $from = '';
 
     #[Url(except: '')]
     public string $to = '';
 
-    // Kênh nguồn khách (Facebook, Zalo, v.v.) - '' = Tất cả
     #[Url(except: '')]
     public string $source = '';
 
-    // Đội (Giám đốc) - '' = Tất cả đội; luôn đọc qua activeTeam
     #[Url(except: '')]
     public string $team = '';
 
-    // Salesperson (Sale Leader, Giám đốc) - '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
     #[Url(except: '')]
     public string $employee = '';
 
-    // Đổi đội thì bỏ chọn salesperson (danh sách salesperson phụ thuộc đội)
     public function updatedTeam(): void
     {
         $this->employee = '';
     }
 
-    /**
-     * Bấm nút chọn nhanh: điền Từ ngày - Đến ngày; '' = Tất cả.
-     */
     public function applyPreset(string $preset): void
     {
         [$this->from, $this->to] = $this->presetRange($preset) ?? ['', ''];
@@ -124,7 +89,6 @@ class Kanban extends Component
         return $this->from !== '' || $this->to !== '' || $this->source !== '' || $this->team !== '' || $this->employee !== '' || $this->urgent || $this->search !== '' || $this->stageFilter !== '';
     }
 
-    // Đổi bộ lọc thì mỗi cột hiện lại từ đầu
     public function updated(string $property): void
     {
         if (in_array($property, ['from', 'to', 'source', 'team', 'employee', 'search', 'stageFilter'], true)) {
@@ -137,7 +101,6 @@ class Kanban extends Component
         $this->view = in_array($view, self::VIEWS, true) ? $view : 'kanban';
         $this->shown = [];
 
-        // Kanban đã chia sẵn theo Stage nên không giữ bộ lọc này
         if ($this->activeView() === 'kanban') {
             $this->stageFilter = '';
         }
@@ -170,15 +133,10 @@ class Kanban extends Component
         $this->shown[$stageId] = $this->limitFor($stageId) + self::PAGE_SIZE;
     }
 
-    /**
-     * Số thẻ hiện trong một cột (ít nhất PAGE_SIZE).
-     */
     public function limitFor(string $stageId): int
     {
         return max(self::PAGE_SIZE, (int) ($this->shown[$stageId] ?? 0));
     }
-
-    // ── Phạm vi theo vai trò ──────────────────────────────────────────
 
     #[Computed]
     public function me(): ?Employee
@@ -197,9 +155,6 @@ class Kanban extends Component
         return $this->routePrefix === Role::SALESPERSON;
     }
 
-    /**
-     * Salesperson được tạo cơ hội mới cho khách cũ.
-     */
     public function canCreateOpportunity(): bool
     {
         return $this->isSalesperson();
@@ -208,7 +163,7 @@ class Kanban extends Component
     #[Computed]
     public function canFilterTeam(): bool
     {
-        return $this->routePrefix === Role::DIRECTOR;
+        return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
     #[Computed]
@@ -219,22 +174,16 @@ class Kanban extends Component
             : collect();
     }
 
-    /**
-     * Đội đang xem: Giám đốc = đội đã chọn; Sale Leader = đội của mình.
-     */
     #[Computed]
     public function activeTeam(): ?SalesTeam
     {
         return match ($this->routePrefix) {
-            Role::DIRECTOR    => $this->teams->firstWhere('team_id', $this->team),
+            Role::DIRECTOR, Role::SALE_ADMIN => $this->teams->firstWhere('team_id', $this->team),
             Role::SALE_LEADER => $this->me?->team_id ? SalesTeam::find($this->me->team_id) : null,
             default           => null,
         };
     }
 
-    /**
-     * Salesperson của đội đang xem (cho bộ lọc).
-     */
     #[Computed]
     public function employeeOptions(): Collection
     {
@@ -249,9 +198,6 @@ class Kanban extends Component
             ->get(['employee_id', 'full_name', 'status']);
     }
 
-    /**
-     * Nút chọn nhanh đang khớp với khoảng ngày hiện tại ('' = Tất cả, null = khoảng tuỳ chọn).
-     */
     public function activePreset(): ?string
     {
         if ($this->from === '' && $this->to === '') {
@@ -267,9 +213,6 @@ class Kanban extends Component
         return null;
     }
 
-    /**
-     * Khoảng ngày [từ, đến] (Y-m-d) của một nút chọn nhanh.
-     */
     protected function presetRange(string $preset): ?array
     {
         $today = CarbonImmutable::today();
@@ -298,8 +241,6 @@ class Kanban extends Component
 
     public function render()
     {
-        // Opportunity đã thanh toán và trở thành học viên không còn trên Kanban - xem ở Chi tiết học viên
-        // Ẩn: (1) cơ hội đã tạo học viên trực tiếp, (2) cơ hội Won của khách cũ quay lại (không tạo học viên mới)
         $opportunities = Opportunity::query()
             ->visibleTo($this->me)
             ->assigned()
@@ -333,7 +274,6 @@ class Kanban extends Component
             )
             ->with(['lead:lead_id,full_name,phone,email,source_name,contact_method', 'employee:employee_id,full_name'])
 
-            // Việc cần xử lý: số báo giá, lịch hẹn đã qua giờ chưa cập nhật, số lần liên hệ
             ->withCount([
                 'quotations',
                 'appointments as overdue_appointments' => fn ($q) => $q
@@ -353,7 +293,6 @@ class Kanban extends Component
             $opportunities = $opportunities->whereNotNull('urgency')->values();
         }
 
-        // Mặc định: việc gấp lên đầu (cùng mức thì sắp hạn gần hơn trước), còn lại giữ thứ tự ngày chuyển đổi
         $opportunities = match ($this->activeSort()) {
             'newest' => $opportunities,
             'value'  => $opportunities->sortByDesc(fn (Opportunity $opp) => (float) $opp->expected_value)->values(),
@@ -373,9 +312,6 @@ class Kanban extends Component
         ])->title(__('opportunities.title'));
     }
 
-    /**
-     * Tìm theo tên, SĐT, email khách hoặc mã cơ hội.
-     */
     protected function applySearch($query): void
     {
         $like = '%'.addcslashes(trim($this->search), '%_\\').'%';
@@ -388,10 +324,6 @@ class Kanban extends Component
                 ->orWhere('email', 'like', $like)));
     }
 
-    /**
-     * Gắn việc cần xử lý gấp nhất cho từng cơ hội đang xử lý: urgency (khóa của URGENCY, null nếu không có)
-     * và urgency_days (số ngày còn lại của hạn quyết định).
-     */
     protected function markUrgency(Collection $opportunities): void
     {
         foreach ($opportunities as $opp) {

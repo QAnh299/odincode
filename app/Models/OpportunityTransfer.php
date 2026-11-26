@@ -6,11 +6,6 @@ use App\Models\Concerns\HasStringId;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Lịch sử chuyển người phụ trách Opportunity - bảng `OpportunityTransfers` trong odin.sql.
- * Mỗi dòng là một lần Sale Leader chuyển cơ hội từ from_employee_id sang to_employee_id (kèm lý do).
- * Dữ liệu chăm sóc trước đó vẫn giữ người thực hiện cũ.
- */
 class OpportunityTransfer extends Model
 {
     use HasFactory;

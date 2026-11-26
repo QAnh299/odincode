@@ -1,11 +1,3 @@
-/* ── Trang nhân viên & đội kinh doanh (livewire/employees/*, livewire/sales-teams/*) ──
-   - Danh sách (employees/index, sales-teams/index): nạp cùng voucher.css, dùng lại class .vc-*.
-   - Chi tiết (employees/show): nạp cùng course.css, dùng lại khung .cd-*.
-   Phần riêng dùng tiền tố .em-. Màu lấy từ --odin-primary và biến Bootstrap, không hardcode màu. */
-
-/* ══ Dùng chung ══════════════════════════════════════════════════════ */
-
-/* Avatar chữ cái (dựa trên .odin-avatar của topbar) */
 .em-avatar {
     width: 34px;
     height: 34px;
@@ -72,7 +64,6 @@ a.em-person:hover .em-person__name {
     white-space: nowrap;
 }
 
-/* ══ Danh sách ═══════════════════════════════════════════════════════ */
 
 .em .vc-head__sub .odin-icon {
     width: 15px;
@@ -80,12 +71,10 @@ a.em-person:hover .em-person__name {
     vertical-align: -2px;
 }
 
-/* Sale Leader: ít bộ lọc hơn (trạng thái, sắp xếp) */
 .em .vc-filters__grid.em-filters--compact {
     grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
 }
 
-/* Trang đội: ô tìm kiếm + sắp xếp + xoá lọc trên một hàng */
 .em-filters {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 240px auto;
@@ -99,7 +88,6 @@ a.em-person:hover .em-person__name {
     border-radius: 12px;
 }
 
-/* Thẻ tổng quan chỉ để xem (không bấm lọc) */
 .em-summary-static,
 .em-summary-static:hover {
     transform: none;
@@ -117,7 +105,6 @@ a.em-person:hover .em-person__name {
     background: color-mix(in srgb, var(--odin-primary, var(--bs-primary)) 12%, transparent);
 }
 
-/* Cột Thành viên: avatar chồng lên nhau + số lượng */
 .em-stack {
     display: flex;
     align-items: center;
@@ -151,7 +138,6 @@ a.em-person:hover .em-person__name {
     white-space: nowrap;
 }
 
-/* ── Đội kinh doanh: thao tác của Sale Admin ───────────────────────── */
 
 .em-row-actions {
     display: inline-flex;
@@ -160,7 +146,6 @@ a.em-person:hover .em-person__name {
     gap: 0.4rem;
 }
 
-/* Giá trị chỉ xem trong popup (trưởng nhóm ở popup Chỉnh sửa đội) */
 .em-fixed {
     display: flex;
     align-items: center;
@@ -171,7 +156,6 @@ a.em-person:hover .em-person__name {
     font-weight: 600;
 }
 
-/* Mục Thành viên trong popup Chỉnh sửa đội: danh sách đánh dấu, cuộn khi dài */
 .em-members-label {
     display: flex;
     align-items: baseline;
@@ -235,7 +219,6 @@ a.em-person:hover .em-person__name {
     width: min(560px, 100%);
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .em .vc-filters__grid.em-filters--compact {

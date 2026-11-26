@@ -5,19 +5,8 @@ namespace App\Services;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Số liệu cho báo cáo Phân tích chất lượng nguồn Lead.
- *
- * Mỗi Lead được gộp sẵn các chỉ số của nó (đã có Cơ hội chưa, có Cơ hội Won/Lost không,
- * doanh thu đơn hàng, giá trị kỳ vọng) rồi mới nhóm theo chiều phân tích,
- * nên một Lead có nhiều Cơ hội / đơn hàng không bị đếm trùng.
- *
- * Doanh thu = tổng SalesOrders.total_amount, đã thu = tổng SalesOrders.paid_amount
- * (SalesOrders → Quotations → Opportunities → Leads).
- */
 class LeadSourceReport
 {
-    // Chiều nhóm → biểu thức SQL trên bảng Leads (alias l)
     public const DIMENSIONS = [
         'source' => 'l.source_name',
         'method' => 'l.contact_method',
@@ -25,12 +14,6 @@ class LeadSourceReport
         'month'  => "DATE_FORMAT(l.created_at, '%Y-%m')",
     ];
 
-    /**
-     * Tổng hợp chỉ số theo 1 chiều (và chiều chia nhóm, nếu có).
-     *
-     * @param  array  $filters  from, to (Y-m-d), branch, method, sources (mảng tên nguồn)
-     * @return array<int, array> mỗi dòng: dim, group (null nếu không chia nhóm) + đủ các chỉ số
-     */
     public function aggregate(array $filters, string $dimension, ?string $breakdown = null): array
     {
         $query = $this->base($filters)
@@ -51,9 +34,6 @@ class LeadSourceReport
             ->all();
     }
 
-    /**
-     * Tổng chung (thẻ KPI, dòng tổng cộng, mốc so sánh trung bình).
-     */
     public function totals(array $filters): array
     {
         $query = $this->base($filters)->selectRaw('COUNT(DISTINCT l.source_name) AS sources');
@@ -64,11 +44,6 @@ class LeadSourceReport
         return $this->derive($row) + ['sources' => (int) $row['sources']];
     }
 
-    /**
-     * Danh sách Lead theo bộ lọc (mới nhất trước) - không kèm số điện thoại / email.
-     * outcome: won (có Cơ hội Won) → open (còn Cơ hội đang xử lý) → lost → archived → new (chưa có Cơ hội);
-     * owner = người phụ trách Cơ hội gần nhất.
-     */
     public function leads(array $filters): array
     {
         $owners = DB::table('Opportunities as o')
@@ -108,9 +83,6 @@ class LeadSourceReport
             ->all();
     }
 
-    /**
-     * Leads (alias l) + chỉ số đã gộp theo từng Lead + bộ lọc chung.
-     */
     protected function base(array $filters): Builder
     {
         $opportunities = DB::table('Opportunities')
@@ -146,7 +118,7 @@ class LeadSourceReport
             ->selectRaw("SUM(l.status = 'Converted') AS converted")
             ->selectRaw('SUM(COALESCE(op.won, 0)) AS won')
             ->selectRaw('SUM(COALESCE(op.lost, 0)) AS lost')
-            // Kết quả xử lý (mỗi Lead đúng 1 nhóm): Won → còn Cơ hội đang xử lý → thất bại / lưu trữ → chưa có Cơ hội
+
             ->selectRaw('SUM(COALESCE(op.won, 0) = 0 AND COALESCE(op.open, 0) = 1) AS in_progress')
             ->selectRaw('SUM(COALESCE(op.won, 0) = 0 AND COALESCE(op.open, 0) = 0 AND COALESCE(op.failed, 0) = 1) AS failed')
             ->selectRaw('SUM(COALESCE(rv.revenue, 0)) AS revenue')
@@ -154,13 +126,6 @@ class LeadSourceReport
             ->selectRaw('SUM(COALESCE(op.expected, 0)) AS expected');
     }
 
-    /**
-     * Ép kiểu số + tính các chỉ số dẫn xuất:
-     *   conversion_rate = Lead đã chuyển thành Cơ hội / Lead
-     *   win_rate        = Lead chốt thành công (Won) / Lead
-     *   close_rate      = Won / (Won + Lost) - tỷ lệ thắng trên các Cơ hội đã có kết quả
-     *   revenue_per_lead = Doanh thu / Lead
-     */
     public function derive(array $row): array
     {
         foreach (['leads', 'converted', 'won', 'lost', 'in_progress', 'failed'] as $key) {

@@ -1,8 +1,3 @@
-{{--
-    Lịch sử chăm sóc của một Opportunity - dùng chung cho chi tiết Opportunity và chi tiết học viên.
-    $cares: các lần liên hệ, mới nhất lên đầu (kèm activity, employee).
-    Tách theo hoạt động (Liên hệ ban đầu - Xếp lại lịch - Chốt đăng ký), trong mỗi nhóm đánh số "Lần N" theo thời gian.
---}}
 @foreach ($cares->groupBy('activity_id')->sortKeys() as $activityId => $group)
     <section class="od-care-group" wire:key="care-group-{{ $activityId }}">
         <h3 class="od-care-group__title">
@@ -26,7 +21,6 @@
                         @endif
                         <div class="od-timeline__by">
                             <span class="od-muted">{{ $care->performed_at?->format('d/m/Y H:i') }}</span>
-                            {{-- Nhân viên thực hiện lần liên hệ --}}
                             <span class="od-by"><x-icon name="user" />{{ $care->employee?->full_name ?? '-' }}</span>
                         </div>
                     </div>

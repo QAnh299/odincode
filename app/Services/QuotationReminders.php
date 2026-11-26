@@ -8,20 +8,10 @@ use App\Models\Role;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/**
- * Nhắc báo giá Nháp cho Salesperson lập báo giá (chuông thông báo trên topbar): hết hạn hôm nay hoặc ngày mai,
- * và báo giá đã quá hạn – nhắc mỗi ngày cho tới khi SP xử lý (gia hạn bằng Chỉnh sửa, xác nhận hoặc từ chối).
- * Báo giá quá hạn không tự đổi trạng thái (chốt 25/10/2026).
- * Không có bảng thông báo trong odin.sql nên suy ra trực tiếp từ báo giá (giống AppointmentReminders).
- */
 class QuotationReminders
 {
-    // Nhắc khi còn 0 - REMIND_DAYS ngày tới hạn
     public const REMIND_DAYS = 1;
 
-    /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon}>
-     */
     public static function for(?Employee $employee): Collection
     {
         if ($employee?->role_name !== Role::SALESPERSON) {

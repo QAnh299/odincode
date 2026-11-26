@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Quên mật khẩu (form trên trang đăng nhập + email mật khẩu tạm)
 return [
     'title'                  => 'Quên mật khẩu',
     'subtitle'               => 'Điền email gắn với tài khoản của bạn để nhận mật khẩu tạm',

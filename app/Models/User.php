@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * Tài khoản đăng nhập - bảng `Accounts` trong odin.sql.
- */
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -28,10 +25,8 @@ class User extends Authenticatable
 
     protected int $idLength = 3;
 
-    // Bảng Accounts chỉ có created_at
     public const UPDATED_AT = null;
 
-    // Bảng Accounts không có cột remember_token → tắt "ghi nhớ đăng nhập"
     protected $rememberTokenName = '';
 
     protected $fillable = ['account_id', 'username', 'password', 'status'];
@@ -43,30 +38,16 @@ class User extends Authenticatable
         'created_at' => 'datetime',
     ];
 
-    /**
-     * Lấy thông tin nhân viên gắn với tài khoản này.
-     */
     public function employee()
     {
         return $this->hasOne(Employee::class, 'account_id', 'account_id');
     }
 
-    /**
-     * Lấy role thông qua employee.
-     */
     public function getRoleNameAttribute(): ?string
     {
         return $this->employee?->role?->role_name;
     }
 
-    /**
-     * Route name trang home theo vai trò, null nếu chưa được phân quyền.
-     */
-    /**
-     * Trang đầu tiên sau khi đăng nhập: mục đầu tiên trong menu dọc của vai trò
-     * (config/sidebar.php); mục có menu con thì lấy menu con đầu tiên.
-     * Bỏ qua mục chưa có route.
-     */
     public function homeRoute(): ?string
     {
         $role = $this->role_name;
@@ -90,18 +71,11 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
-    /**
-     * Được phép đăng nhập: tài khoản 'active' và nhân viên còn 'Working'.
-     */
     public function canSignIn(): bool
     {
         return $this->isActive() && (bool) $this->employee?->isActive();
     }
 
-    /**
-     * Cờ "bắt buộc đổi mật khẩu" sau khi được cấp mật khẩu tạm (quên mật khẩu).
-     * Bảng Accounts không có cột cho cờ này nên lưu trong cache file, không hết hạn.
-     */
     public function mustChangePassword(): bool
     {
         return (bool) Cache::store('file')->get($this->mustChangePasswordKey());

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Bộ chọn màu giao diện (components/theme-picker.blade.php)
 return [
     'title'  => 'Màu giao diện',
     'custom' => 'Tự chọn màu',

@@ -1,8 +1,8 @@
 @php
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
-    // Avatar thẻ: chữ cái đầu của tên (từ cuối trong họ tên)
+
     $initial = fn (?string $name) => mb_strtoupper(mb_substr(\Illuminate\Support\Str::afterLast(trim((string) $name), ' '), 0, 1)) ?: '?';
-    // Biểu tượng theo việc cần xử lý
+
     $urgencyIcons = ['overdue_appointment' => 'clock', 'needs_quotation' => 'alert', 'decision_due' => 'hourglass', 'recontact' => 'refresh', 'not_contacted' => 'phone'];
     $activeView = $this->activeView();
     $activeSort = $this->activeSort();
@@ -20,7 +20,6 @@
         </p>
     @endif
 
-    {{-- ── Thanh công cụ: kiểu xem, sắp xếp, tổng số | tìm kiếm, cần xử lý, bộ lọc ── --}}
     <section class="vc-card ok-toolbar">
         <div class="ok-toolbar__row">
             <div class="ok-toolbar__info">
@@ -53,7 +52,6 @@
             </div>
 
             <div class="ok-toolbar__tools">
-                    {{-- Nút Tạo cơ hội: chỉ Salesperson, đặt trước ô tìm kiếm --}}
                     @if ($this->canCreateOpportunity())
                         <a href="{{ route('salesperson.opportunities.create') }}"
                             class="vc-btn vc-btn--primary ok-tool-btn--create"
@@ -74,7 +72,6 @@
                     </span>
                 </label>
 
-                {{-- Chỉ hiện cơ hội cần xử lý: số việc nằm ở chấm đỏ góc nút --}}
                 @php $urgentLabel = __('opportunities.urgent_filter', ['count' => $urgentCount]); @endphp
                 <button type="button" wire:click="toggleUrgent" class="ok-tool-btn {{ $urgent ? 'is-active' : '' }}"
                     title="{{ $urgentLabel }}" aria-label="{{ $urgentLabel }}" aria-pressed="{{ $urgent ? 'true' : 'false' }}">
@@ -92,7 +89,6 @@
             </div>
         </div>
 
-        {{-- ── Bộ lọc mở rộng ───────────────────────────────────────── --}}
         @php $activePreset = $this->activePreset(); @endphp
         <div class="ok-filter" x-show="filtersOpen" x-cloak aria-label="{{ __('opportunities.filter_title') }}">
             <div class="vc-field">
@@ -128,7 +124,6 @@
                 </select>
             </label>
 
-            {{-- Đội (Giám đốc) → Salesperson (Sale Leader, Giám đốc) --}}
             @if ($this->canFilterTeam)
                 <label class="vc-field ok-filter__select">
                     <span class="vc-field__label">{{ __('opportunities.team') }}</span>
@@ -164,10 +159,8 @@
     </section>
 
     @if ($activeView === 'list')
-        {{-- ── Danh sách: toàn bộ cơ hội, theo cùng bộ lọc và cách sắp xếp ── --}}
         @php $listLimit = $this->limitFor('list'); @endphp
         <section class="vc-card ok-list" wire:key="view-list">
-            {{-- Bảng luôn hiện kể cả khi rỗng, để vẫn đổi được bộ lọc trên cột Giai đoạn --}}
             <div>
                 <div class="vc-table-wrap" wire:loading.class="is-loading">
                     <table class="vc-table">
@@ -251,7 +244,6 @@
             </div>
         </section>
     @else
-        {{-- ── Bảng Kanban: mỗi cột một Stage ───────────────────────────── --}}
         <div class="ok-board" wire:key="view-kanban" wire:loading.class="is-loading">
             @foreach ($this->stages as $stage)
                 @php
@@ -261,7 +253,6 @@
 
                 @continue($stage->stage_id === \App\Models\Stage::ARCHIVED)
 
-                {{-- Màu đầu cột theo thứ tự stage: .ok-col--1 … .ok-col--5 (opportunity.css) --}}
                 <section class="ok-col ok-col--{{ $stage->sort_order }}" wire:key="stage-{{ $stage->stage_id }}" aria-labelledby="stage-{{ $stage->stage_id }}">
                     <header class="ok-col__head" title="{{ $stage->description }}">
                         <div class="ok-col__title">
@@ -282,7 +273,6 @@
                                     <span class="ok-card__name">{{ $opp->lead?->full_name ?? '-' }}</span>
                                 </span>
 
-                                {{-- Việc cần xử lý: biểu tượng góc phải trên, rê chuột hiện nội dung --}}
                                 @if ($opp->urgency)
                                     @php $urgencyText = __('opportunities.urgency.'.$opp->urgency, ['days' => $opp->urgency_days]); @endphp
                                     <span class="ok-card__alert" title="{{ $urgencyText }}" aria-label="{{ $urgencyText }}">
@@ -299,7 +289,6 @@
 
                                 <span class="ok-card__row">
                                     <span class="ok-card__info"><x-icon name="wallet" />{{ $opp->displayValue() ?? '-' }}</span>
-                                    {{-- Leader / Giám đốc: người phụ trách --}}
                                     @unless ($this->isSalesperson())
                                         <span class="ok-card__owner" title="{{ __('opportunities.owner') }}">{{ $opp->employee?->full_name ?? '-' }}</span>
                                     @endunless
@@ -307,7 +296,6 @@
 
                                 <span class="ok-card__foot">
                                     <span class="ok-card__tags">
-                                        {{-- Stage Lưu trữ gồm 2 trạng thái: Từ chối (Lost) / Lưu trữ (Archived) --}}
                                         @if (in_array($opp->status, [\App\Models\Opportunity::STATUS_LOST, \App\Models\Opportunity::STATUS_ARCHIVED], true))
                                             <span class="vc-badge ok-status ok-status--{{ $opp->status }}">
                                                 <span class="vc-badge__dot"></span>{{ __('opportunities.status_name.'.$opp->status) }}
@@ -321,12 +309,10 @@
                                 </span>
                             </a>
                         @endforeach
-                        {{-- @foreach + @if thay cho @forelse/@empty: Livewire không chèn dấu đóng khối cho @forelse --}}
                         @if ($cards->isEmpty())
                             <p class="ok-col__empty">{{ __('opportunities.empty_stage') }}</p>
                         @endif
 
-                        {{-- Mỗi cột hiện PAGE_SIZE thẻ, bấm để tải thêm --}}
                         @if ($cards->count() > $limit)
                             <button type="button" class="ok-col__more" wire:click="showMore('{{ $stage->stage_id }}')">
                                 {{ __('opportunities.show_more', ['count' => $cards->count() - $limit]) }}

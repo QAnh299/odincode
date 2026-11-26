@@ -1,19 +1,12 @@
-/* ── Trang học viên: danh sách + chi tiết (livewire/students/*) ────────
-   Nạp cùng voucher.css (khung, bảng, nhãn, thẻ thống kê); chi tiết nạp thêm lead.css (popup, thông báo).
-   Phần riêng tiền tố .st-. */
-
-/* Màu theo trạng thái học viên */
 .st-tone--all { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
 .st-tone--Studying { --tone: #1d4ed8; --tone-bg: #dbeafe; }
 .st-tone--Completed { --tone: #15803d; --tone-bg: #dcfce7; }
 .st-tone--Dropped { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-/* Trạng thái hoá đơn */
 .st-inv--Paid { --tone: #15803d; --tone-bg: #dcfce7; }
 .st-inv--Unpaid { --tone: #b45309; --tone-bg: #fef3c7; }
 .st-inv--Overdue { --tone: #b91c1c; --tone-bg: #fee2e2; }
 
-/* ══ Danh sách ═══════════════════════════════════════════════════════ */
 
 .st-summary {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -64,15 +57,12 @@
     white-space: nowrap;
 }
 
-/* ══ Chi tiết ════════════════════════════════════════════════════════ */
 
-/* Trạng thái cơ hội (thẻ khóa học chưa có học viên) */
 .st-opp--InProgress { --tone: #b45309; --tone-bg: #fef3c7; }
 .st-opp--Won { --tone: #15803d; --tone-bg: #dcfce7; }
 .st-opp--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
 .st-opp--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-/* Nhãn nhỏ dạng viên thuốc (mã, trạng thái) */
 .st-tags {
     display: flex;
     flex-wrap: wrap;
@@ -91,7 +81,6 @@
     white-space: nowrap;
 }
 
-/* Tiêu đề mục: chữ nhỏ in hoa */
 .st-section {
     margin: 0 0 0.75rem;
     font-size: 0.78rem;
@@ -118,7 +107,6 @@
 .st-paid { color: #15803d; }
 .st-due { color: #c2410c; }
 
-/* ── Đầu trang ────────────────────────────────────────────────────── */
 
 .st-head {
     display: flex;
@@ -186,7 +174,6 @@
     flex-shrink: 0;
 }
 
-/* Lưới 2 cột: trái linh hoạt, phải 360px */
 .st-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
@@ -194,7 +181,6 @@
     align-items: stretch;
 }
 
-/* Hai cột cao bằng nhau: thẻ cuối mỗi cột giãn kín đáy */
 .st-main,
 .st-side {
     display: flex;
@@ -208,7 +194,6 @@
     margin-bottom: 0;
 }
 
-/* ── Thẻ khóa học: một hàng, nhiều thẻ thì cuộn ngang ─────────────── */
 
 .st-courses {
     display: flex;
@@ -222,7 +207,7 @@
 
 .st-course {
     display: flex;
-    flex: 1 0 250px; /* ít khóa: giãn kín hàng; nhiều khóa: giữ tối thiểu 250px và cuộn ngang */
+    flex: 1 0 250px;
     flex-direction: column;
     gap: 0.45rem;
     padding: 0.95rem 1rem;
@@ -292,7 +277,6 @@
     font-weight: 700;
 }
 
-/* ── Chi tiết khóa đang chọn ──────────────────────────────────────── */
 
 .st-detail {
     padding: 0;
@@ -306,7 +290,6 @@
     justify-content: space-between;
     gap: 0.75rem 1.25rem;
     padding: 1.25rem 1.4rem 0.7rem;
-    /* Kẻ mờ ngăn tên khóa học với hàng tab */
     border-bottom: 1px solid color-mix(in srgb, var(--vc-border) 70%, transparent);
 }
 
@@ -344,7 +327,6 @@
     white-space: nowrap;
 }
 
-/* Mã có link sang trang chi tiết */
 a.st-chip.is-link:hover {
     background: var(--vc-tint);
     color: var(--vc-primary);
@@ -366,7 +348,6 @@ a.st-chip.is-link:hover {
     padding: 0 1.4rem;
 }
 
-/* Tab sát đường kẻ phía trên */
 .vc .st-detail__tabs .od-tab {
     padding-top: 0.55rem;
 }
@@ -375,7 +356,6 @@ a.st-chip.is-link:hover {
     padding: 1.1rem 1.4rem 1.4rem;
 }
 
-/* Tóm tắt thanh toán */
 .st-pay {
     display: flex;
     flex-wrap: wrap;
@@ -406,7 +386,6 @@ a.st-chip.is-link:hover {
     border-radius: 12px;
 }
 
-/* ── Cột phải ─────────────────────────────────────────────────────── */
 
 .st-title-row {
     display: flex;
@@ -440,7 +419,6 @@ a.st-chip.is-link:hover {
     overflow-wrap: anywhere;
 }
 
-/* Nút Chỉnh sửa: không nền, chữ xanh primary */
 .st-edit-btn {
     display: inline-flex;
     align-items: center;

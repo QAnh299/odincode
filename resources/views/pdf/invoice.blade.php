@@ -1,5 +1,5 @@
 @php
-    // Mẫu PDF hóa đơn đính kèm email gửi khách sau khi thanh toán thành công (dompdf, cùng bố cục PDF báo giá).
+
     $order = $invoice->order;
     $quotation = $order?->quotation;
     $lead = $quotation?->opportunity?->lead;
@@ -10,7 +10,7 @@
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $percent = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
     $P = fn ($key, $params = []) => __('invoices.pdf.'.$key, $params);
-    // Logo PNG cần extension GD của PHP; máy chưa bật GD thì bỏ logo thay vì lỗi
+
     $logo = extension_loaded('gd') ? public_path('images/logoodin-trim.png') : null;
 @endphp
 <!doctype html>
@@ -88,7 +88,6 @@
         </tr>
     </table>
 
-    {{-- Khóa học của đơn hàng (theo báo giá đã xác nhận) --}}
     @if ($quotation)
         <table class="lines">
             <thead>

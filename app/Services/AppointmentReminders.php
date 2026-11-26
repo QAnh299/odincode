@@ -8,17 +8,8 @@ use App\Models\Role;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/**
- * Nhắc lịch hẹn cho Salesperson (hiển thị ở chuông thông báo trên topbar):
- * lịch hẹn "Scheduled" do mình phụ trách, diễn ra hôm nay (chưa tới giờ) hoặc ngày mai
- * - tức nhắc trước 1 ngày để salesperson kịp nhắc khách hàng.
- * Một mã lịch hẹn (Test + Tư vấn) gom thành một thông báo, lấy giờ sớm nhất.
- */
 class AppointmentReminders
 {
-    /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon}>
-     */
     public static function for(?Employee $employee): Collection
     {
         if ($employee?->role_name !== Role::SALESPERSON) {
@@ -27,7 +18,6 @@ class AppointmentReminders
 
         $now = now();
 
-        // Đã qua giờ hẹn mà chưa cập nhật kết quả (Khách đã đến / Khách không đến)
         $overdue = Appointment::query()
             ->where('employee_id', $employee->employee_id)
             ->where('status', Appointment::STATUS_SCHEDULED)
@@ -47,7 +37,7 @@ class AppointmentReminders
                     'time'  => __('appointments.overdue_time', ['time' => $first->scheduled_time->format('d/m/Y H:i')]),
                     'url'   => route('salesperson.opportunities.show', ['opportunity' => $first->opportunity_id, 'tab' => 'appointments']),
                     'at'    => $first->scheduled_time,
-                    // Khác khóa với lời nhắc trước giờ hẹn để lịch chuyển sang quá giờ thì báo "chưa đọc" lại
+
                     'key'   => 'appointment-overdue:'.$first->appointment_id,
                 ];
             })
@@ -79,9 +69,6 @@ class AppointmentReminders
             ->values());
     }
 
-    /**
-     * "Test + Tư vấn" theo thứ tự Appointment::TYPES.
-     */
     protected static function typeNames(Collection $rows): string
     {
         return $rows->sortBy(fn ($r) => array_search($r->appointment_type, Appointment::TYPES))

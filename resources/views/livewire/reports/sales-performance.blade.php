@@ -24,7 +24,6 @@
         'close_rate' => $pct, 'reach_rate' => $pct, 'show_rate' => $pct, 'avg_response_hours' => $hours,
     ];
 
-    // So với tháng trước: [chữ, class]. $mode: pct = % thay đổi, points = điểm %, days = số ngày; $dir = 1 cao là tốt, -1 thấp là tốt
     $delta = function ($cur, $prev, string $mode = 'pct', int $dir = 1) use ($dec, $sp, $prevText) {
         if ($cur === null || $prev === null) {
             return null;
@@ -47,7 +46,6 @@
     };
     $attain = fn ($value, $goal) => $goal ? round($value * 100 / $goal, 1) : null;
 
-    // Thẻ KPI: [khoá, icon, số chính, chú thích, so với tháng trước, % đạt chỉ tiêu (thanh tiến độ)]
     $kpis = [
         ['revenue', 'cash', $money($t['revenue']),
             $goals['revenue'] ? $sp('kpi.of_target', ['target' => $money($goals['revenue'])]) : $sp('kpi.revenue_hint', ['count' => $num($t['orders'])]),
@@ -77,7 +75,6 @@
 @endphp
 
 <div class="vc rp">
-    {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
@@ -92,7 +89,6 @@
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('reports.loading') }}
             </span>
-            {{-- Xuất báo cáo tổng hợp dạng văn bản (Giám đốc, Sale Admin) --}}
             @if ($this->canExport)
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
                     <x-icon name="file" />
@@ -102,7 +98,6 @@
         </div>
     </header>
 
-    {{-- ── Bộ lọc ──────────────────────────────────────────────────────── --}}
     <section class="vc-card rp-filters" aria-label="{{ __('reports.lead_sources.filters') }}">
         <label class="vc-field">
             <span class="vc-field__label">{{ $sp('month') }}</span>
@@ -141,12 +136,11 @@
         </div>
     </section>
 
-    {{-- ── Thẻ KPI ─────────────────────────────────────────────────────── --}}
     <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
         @foreach ($kpis as [$key, $icon, $value, $hint, $change, $rate])
             @php $drillArgs = ['kind' => ['close_rate' => 'closed', 'close_days' => 'won', 'pipeline' => 'open'][$key] ?? $key]; @endphp
             <div class="rp-stat dr-card" role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
-                x-on:click="$dispatch('report-drill', {{ Js::from($drillArgs) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($drillArgs) }})">
+                x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget($drillArgs)) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($this->drillTarget($drillArgs)) }})">
                 <div class="rp-stat__head">
                     <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
                     <span>{{ $sp('kpi.'.$key) }}</span>
@@ -169,7 +163,6 @@
     @if (! $hasData)
         <section class="vc-card rp-empty">{{ $sp('no_data', ['month' => $monthText]) }}</section>
     @else
-        {{-- ══ 1. XẾP HẠNG ĐỘI ═══════════════════════════════════════════ --}}
         @if ($teamRows)
             <h2 class="rp-section">{{ $sp('team_section') }}</h2>
             <p class="rp-section__sub">{{ $sp('team_section_sub') }}</p>
@@ -177,20 +170,17 @@
             @include('livewire.reports.partials.sp-team-table')
         @endif
 
-        {{-- ══ 2. XẾP HẠNG SALESPERSON ═══════════════════════════════════ --}}
         @include('livewire.reports.partials.sp-employees')
 
-        {{-- ══ 3. VIỆC CẦN XỬ LÝ (hiện tại) ══════════════════════════════ --}}
         @include('livewire.reports.partials.sp-alerts')
 
-        {{-- ══ 4. XU HƯỚNG 6 THÁNG ═══════════════════════════════════════ --}}
         <h2 class="rp-section">{{ $sp('trend_section') }}</h2>
         <p class="rp-section__sub">{{ $sp('trend_section_sub') }}</p>
 
         <div class="rp-grid">
             @foreach (['trend_revenue', 'trend_close'] as $key)
                 @php
-                    // Tỷ lệ thắng chỉ 1 đường (1 đội / 1 người / quá nhiều đội) thì không ghi "theo đội"
+
                     $title = $key === 'trend_close' && count($charts[$key]['series']) === 1 ? 'trend_close_all' : $key;
                 @endphp
                 @include('livewire.reports.partials.chart-card', ['id' => 'sp-'.$key, 'spec' => $charts[$key],
@@ -200,10 +190,8 @@
 
     @endif
 
-    {{-- Popup danh sách của số liệu vừa bấm --}}
     @include('livewire.reports.partials.report-drill')
 
-    {{-- Popup chọn thời gian xuất Excel --}}
     @if ($this->canExport)
         @include('livewire.reports.partials.report-export')
     @endif

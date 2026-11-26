@@ -1,8 +1,3 @@
-/* ── Trang voucher: danh sách + chi tiết (livewire/vouchers/*) ───────
-   Chỉ nạp ở 2 trang này qua @assets. Mọi class dùng tiền tố .vc- để không
-   đụng với menu dọc (sidebar.css), menu ngang (topbar.css) hay trang khác.
-   Màu chính lấy theo --odin-primary nên đổi theo bộ chọn màu giao diện. */
-
 .vc {
     --vc-primary: var(--odin-primary, #005e12);
     --vc-on-primary: var(--odin-on-primary, #fff);
@@ -18,7 +13,6 @@
     max-width: 1280px;
     margin: 0 auto;
     color: var(--vc-ink);
-    /* backwards: hết hiệu ứng thì bỏ transform, để popup (position: fixed) phủ cả trang thay vì chỉ trong khung */
     animation: vc-in 0.3s ease-out backwards;
 }
 
@@ -33,12 +27,10 @@
     flex-shrink: 0;
 }
 
-/* Màu theo trạng thái: dùng chung cho thẻ thống kê, nhãn, thanh tiến độ, thẻ voucher */
 .vc-tone--all { --tone: var(--vc-primary); --tone-bg: var(--vc-tint); }
 .vc-tone--active { --tone: #15803d; --tone-bg: #dcfce7; }
 .vc-tone--inactive { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-/* ── Tiêu đề trang ─────────────────────────────────────────────────── */
 
 .vc-head {
     display: flex;
@@ -55,7 +47,6 @@
     font-size: 0.92rem;
 }
 
-/* ── Thẻ thống kê (bấm để lọc) ─────────────────────────────────────── */
 
 .vc-summary {
     display: grid;
@@ -127,7 +118,6 @@
     line-height: 1.15;
 }
 
-/* ── Thẻ nền chung ─────────────────────────────────────────────────── */
 
 .vc-card {
     margin-bottom: 1.25rem;
@@ -138,7 +128,6 @@
     box-shadow: var(--vc-shadow);
 }
 
-/* ── Bộ lọc ────────────────────────────────────────────────────────── */
 
 .vc-search {
     display: flex;
@@ -224,7 +213,6 @@ select.vc-control {
     box-shadow: 0 0 0 4px var(--vc-tint);
 }
 
-/* ── Nút ───────────────────────────────────────────────────────────── */
 
 .vc-btn {
     display: inline-flex;
@@ -290,7 +278,6 @@ select.vc-control {
     height: 16px;
 }
 
-/* ── Kết quả / bảng ────────────────────────────────────────────────── */
 
 .vc-results {
     padding: 0;
@@ -372,7 +359,6 @@ select.vc-control {
     text-align: right;
 }
 
-/* Mã voucher dạng vé */
 .vc-code {
     display: inline-flex;
     align-items: center;
@@ -438,7 +424,6 @@ select.vc-control {
     color: var(--vc-muted);
 }
 
-/* Thanh tiến độ thời gian */
 .vc-meter {
     position: relative;
     height: 6px;
@@ -470,7 +455,6 @@ select.vc-control {
     transform: translate(-50%, -50%);
 }
 
-/* Nhãn tình trạng */
 .vc-badge {
     display: inline-flex;
     align-items: center;
@@ -497,7 +481,6 @@ select.vc-control {
     box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
 }
 
-/* Trạng thái báo giá */
 .vc-q--confirmed { --tone: #15803d; --tone-bg: #dcfce7; }
 .vc-q--draft { --tone: #64748b; --tone-bg: #f1f5f9; }
 .vc-q--sent { --tone: #1d4ed8; --tone-bg: #dbeafe; }
@@ -537,7 +520,6 @@ select.vc-control {
     white-space: nowrap;
 }
 
-/* Trống */
 .vc-empty {
     display: flex;
     flex-direction: column;
@@ -574,7 +556,6 @@ select.vc-control {
     font-size: 0.9rem;
 }
 
-/* Phân trang (giữ nguyên markup Bootstrap, chỉ đổi màu theo màu chính) */
 .vc-pagination {
     padding: 0.85rem 1.25rem;
     border-top: 1px solid var(--vc-border);
@@ -602,7 +583,6 @@ select.vc-control {
     font-size: 0.85rem;
 }
 
-/* ── Chi tiết: điều hướng ──────────────────────────────────────────── */
 
 .vc-crumb {
     display: flex;
@@ -639,7 +619,6 @@ select.vc-control {
     font-weight: 600;
 }
 
-/* ── Chi tiết: thẻ voucher dạng vé ─────────────────────────────────── */
 
 .vc-ticket {
     --notch: 14px;
@@ -650,7 +629,6 @@ select.vc-control {
     border-radius: var(--vc-radius);
     background: var(--vc-surface);
     box-shadow: var(--vc-shadow);
-    /* Hai vết khoét tròn ở đường xé của vé */
     -webkit-mask: radial-gradient(circle var(--notch) at var(--cut) 0, transparent 98%, #000) top / 100% 51% no-repeat,
         radial-gradient(circle var(--notch) at var(--cut) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
     mask: radial-gradient(circle var(--notch) at var(--cut) 0, transparent 98%, #000) top / 100% 51% no-repeat,
@@ -776,7 +754,6 @@ select.vc-control {
     color: var(--tone);
 }
 
-/* ── Chi tiết: số liệu ─────────────────────────────────────────────── */
 
 .vc-stats {
     display: grid;
@@ -852,7 +829,6 @@ select.vc-control {
     color: var(--vc-primary);
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .vc-filters__grid {
@@ -864,7 +840,6 @@ select.vc-control {
     }
 }
 
-/* Bảng chuyển thành thẻ trên màn nhỏ */
 @media (max-width: 991.98px) {
     .vc-table thead {
         display: none;

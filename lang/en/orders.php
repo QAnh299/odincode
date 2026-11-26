@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-// Order page: list (livewire/orders/index)
 return [
     'title'              => 'Orders',
     'subtitle'           => 'Look up orders created from confirmed quotations: totals, payment progress and invoices of each order.',
 
-    // Search
     'search'             => 'Search',
     'search_placeholder' => 'Search by order code, customer, phone, email, quotation, employee, course, voucher, invoice code, amount…',
     'search_hint'        => 'Several keywords · "exact phrase" · -exclude',
@@ -21,10 +19,8 @@ return [
         'Searches: order code, status, payment type, notes, quotation / opportunity / voucher / invoice code, customer name/phone/email, employee, courses, amount',
     ],
 
-    // Status cards
     'all'                => 'All',
 
-    // Filters
     'filters'            => 'Filters',
     'close'              => 'Close',
     'active_filters'     => 'Filtering by',
@@ -69,27 +65,23 @@ return [
         'customer'       => 'Customer name (A → Z)',
     ],
 
-    // Order status (SalesOrder::STATUSES)
     'status' => [
         'InProgress' => 'In progress',
         'Completed'  => 'Completed',
     ],
 
-    // Payment type (SalesOrder::PAYMENT_TYPES; none = NULL or empty)
     'payment_type' => [
         'Full'        => 'Full payment',
         'Installment' => 'Installments',
         'none'        => 'Not decided',
     ],
 
-    // Payment progress
     'progress' => [
         'unpaid'  => 'Not paid',
         'partial' => 'Partially paid',
         'paid'    => 'Fully paid',
     ],
 
-    // Invoice filter
     'invoice_state' => [
         'pending'       => 'Has invoices awaiting payment',
         'overdue'       => 'Has overdue invoices',
@@ -97,7 +89,6 @@ return [
         'needs_invoice' => 'Next invoice needed',
     ],
 
-    // Group labels on active filter chips
     'chip' => [
         'search'   => 'Keywords',
         'statuses' => 'Status',
@@ -113,7 +104,6 @@ return [
         'to'       => 'to :value',
     ],
 
-    // Table columns
     'code'               => 'Order',
     'customer'           => 'Customer',
     'quotation'          => 'Quotation',
@@ -129,8 +119,6 @@ return [
     'create_invoice'     => 'Create invoice',
     'view_quotation'     => 'View quotation :code',
 
-    // Order detail page
-    // ── Khung phiếu ở chi tiết đơn hàng (components/invoice-receipt, type = order) ──
     'doc' => [
         'title'  => 'SALES ORDER',
         'number' => 'Order no.',

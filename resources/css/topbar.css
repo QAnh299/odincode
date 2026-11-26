@@ -1,5 +1,3 @@
-/* ── Menu ngang phía trên (components/topbar.blade.php) ─────────────── */
-
 .odin-topbar {
     position: sticky;
     top: 0;
@@ -37,7 +35,6 @@
     background: var(--odin-border);
 }
 
-/* Nút icon tròn góc (thu gọn menu, màu giao diện, chuông) */
 .odin-icon-btn {
     display: inline-flex;
     align-items: center;
@@ -65,7 +62,6 @@
     color: var(--odin-primary);
 }
 
-/* Chuông thông báo */
 .odin-bell-badge {
     position: absolute;
     top: -6px;
@@ -125,7 +121,6 @@
     white-space: nowrap;
 }
 
-/* Dòng mô tả dưới tiêu đề */
 .odin-notify-menu__sub {
     display: block;
     margin-top: 0.3rem;
@@ -158,7 +153,6 @@
     background: color-mix(in srgb, var(--odin-primary) 10%, #fff);
 }
 
-/* Tab nhóm thông báo (Tất cả / Liên hệ / Lịch hẹn / …): cuộn ngang khi hẹp */
 .odin-notify-tabs {
     display: flex;
     gap: 0.25rem;
@@ -198,7 +192,6 @@
     color: var(--odin-primary);
 }
 
-/* Danh sách thông báo: cuộn khi dài */
 .odin-notify-list {
     max-height: min(440px, 65vh);
     overflow-y: auto;
@@ -223,7 +216,6 @@
     background: #f8fafc;
 }
 
-/* Chưa đọc: nền nhạt theo màu giao diện + vạch màu bên trái */
 .odin-notify-item.is-unread {
     background: color-mix(in srgb, var(--odin-primary) 5%, #fff);
 }
@@ -270,7 +262,6 @@
     color: var(--odin-primary);
 }
 
-/* Phần thông báo đã xử lý: vạch ngăn + mờ đi, nằm cuối danh sách */
 .odin-notify-divider {
     padding: 0.4rem 1rem;
     border-bottom: 1px solid #f1f5f9;
@@ -286,7 +277,6 @@
     color: #94a3b8;
 }
 
-/* Màu icon theo nhóm (khi chưa đọc) */
 .odin-notify-item.is-unread .odin-notify-item__icon--care { background: #e0f2fe; color: #0369a1; }
 .odin-notify-item.is-unread .odin-notify-item__icon--appointment { background: #ede9fe; color: #7c3aed; }
 .odin-notify-item.is-unread .odin-notify-item__icon--quotation { background: #fef3c7; color: #b45309; }
@@ -294,7 +284,6 @@
 .odin-notify-item.is-unread .odin-notify-item__icon--paid { background: #dcfce7; color: #15803d; }
 .odin-notify-item.is-unread .odin-notify-item__icon--transfer { background: #fee2e2; color: #b91c1c; }
 
-/* Cảnh báo chuyển khoản cần xử lý (kế toán và Salesperson): nền đỏ nhạt, vạch và icon đỏ, cả khi đã đọc */
 .odin-notify-item.is-alert,
 .odin-notify-item.is-alert.is-unread {
     background: #fef2f2;
@@ -369,7 +358,6 @@
     flex-shrink: 0;
 }
 
-/* Nút "Đã đọc": chấm tròn, rê chuột vào thì hiện dấu tích */
 .odin-notify-item__mark {
     display: inline-flex;
     align-items: center;
@@ -438,7 +426,6 @@
     height: 26px;
 }
 
-/* Link cuối menu */
 .odin-notify-menu__footer {
     display: block;
     padding: 0.7rem 1rem;
@@ -456,7 +443,6 @@
     background: color-mix(in srgb, var(--odin-primary) 8%, #fff);
 }
 
-/* Tài khoản */
 .odin-account-btn {
     display: flex;
     align-items: center;
@@ -540,7 +526,6 @@
     height: 18px;
 }
 
-/* Màn nhỏ: thu hẹp khoảng cách */
 @media (max-width: 575.98px) {
     .odin-topbar {
         padding: 0 1rem;
@@ -551,12 +536,10 @@
     }
 }
 
-/* Nút ngôn ngữ cao bằng các nút icon */
 .odin-topbar .lang-btn {
     height: 40px;
 }
 
-/* ── Popup Cài đặt (components/settings-modal.blade.php) ───────────── */
 
 .odin-settings-modal__section + .odin-settings-modal__section {
     margin-top: 1.1rem;
@@ -593,7 +576,6 @@
     accent-color: var(--odin-primary);
 }
 
-/* ── Lịch việc cần làm (livewire/task-calendar.blade.php) ──────────── */
 
 .odin-cal.dropdown-menu {
     width: max-content;
@@ -752,7 +734,6 @@ button.odin-cal__day:hover {
     border-left: 1px solid var(--odin-border);
 }
 
-/* Lấp đúng chiều cao cột lịch, không kéo dài khung theo số việc */
 .odin-cal__list-inner {
     position: absolute;
     inset: 0;

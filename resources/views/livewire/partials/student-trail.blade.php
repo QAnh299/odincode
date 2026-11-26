@@ -1,6 +1,3 @@
-{{-- Breadcrumb khi đi từ trang Chi tiết học viên (trait App\Livewire\Concerns\StudentTrail).
-     $trail: [['label', 'url'], ...] - mục cuối là trang hiện tại; $class: 'vc-crumb' | 'qt-crumb' theo khung của trang.
-     Nút Quay lại về mục liền trước có link. --}}
 @php
     $back = collect($trail)->slice(0, -1)->reverse()->first(fn ($item) => $item['url']);
 @endphp

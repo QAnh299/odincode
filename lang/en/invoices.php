@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-// Invoice page: list (livewire/invoices/index)
 return [
     'title'              => 'Invoices',
     'subtitle'           => 'Look up order invoices: amount, due date, payment method and payment status.',
 
-    // Search
     'search'             => 'Search',
     'search_placeholder' => 'Search by invoice code, customer, phone, email, order, quotation, employee, accountant, course, amount…',
     'search_hint'        => 'Several keywords · "exact phrase" · -exclude',
@@ -21,13 +19,11 @@ return [
         'Searches: invoice code, status, method, payment type, order / quotation / opportunity code, customer name/phone/email, creator, accountant, courses, amount',
     ],
 
-    // Status cards + totals
     'all'                => 'All',
     'collected'          => 'Collected',
     'outstanding'        => 'Outstanding',
     'totals_label'       => 'Totals for the current filters',
 
-    // Filters
     'filters'            => 'Filters',
     'close'              => 'Close',
     'active_filters'     => 'Filtering by',
@@ -81,34 +77,29 @@ return [
         'customer'    => 'Customer name (A → Z)',
     ],
 
-    // Invoice status (Invoice::STATUSES)
     'status' => [
         'Unpaid'  => 'Awaiting payment',
         'Paid'    => 'Paid',
         'Overdue' => 'Overdue',
     ],
 
-    // Payment method (Invoice::METHODS; none = not chosen)
     'method' => [
         'BankTransfer' => 'Bank transfer',
         'Cash'         => 'Cash',
         'none'         => 'Not chosen',
     ],
 
-    // Order payment type (SalesOrder::PAYMENT_TYPES)
     'payment_type' => [
         'Full'        => 'Full payment',
         'Installment' => 'Installments',
     ],
 
-    // Due state (unpaid invoices only)
     'deadline' => [
         'valid'   => 'Not due yet',
         'soon'    => 'Due soon (≤ 3 days)',
         'overdue' => 'Overdue',
     ],
 
-    // Group labels on active filter chips
     'chip' => [
         'search'       => 'Keywords',
         'statuses'     => 'Status',
@@ -126,7 +117,6 @@ return [
         'to'           => 'to :value',
     ],
 
-    // Table columns
     'code'               => 'Invoice',
     'installment'        => 'Installment :number',
     'customer'           => 'Customer',
@@ -138,7 +128,6 @@ return [
     'days_left'          => ':days day(s) left',
     'days_late'          => ':days day(s) late',
 
-    // ── Create / edit invoice (livewire/invoices/form) ──
     'form' => [
         'create_title'     => 'New invoice for order :code',
         'edit_title'       => 'Edit invoice :code',
@@ -146,7 +135,7 @@ return [
         'back_quotation'   => 'Back to quotation',
         'back_invoice'     => 'Back to invoice',
         'blocked_title'    => 'Cannot create an invoice',
-        // Steps 18 – 19 not met
+
         'blocked' => [
             'not_owner'       => 'Only the salesperson who created this order\'s quotation can create invoices.',
             'completed'       => 'The order is fully paid (Completed).',
@@ -180,7 +169,6 @@ return [
         'overdue_reopen'   => 'This invoice is overdue. Pick a new due date from today and save to reopen it (same invoice code and QR code).',
     ],
 
-    // ── Invoice detail (livewire/invoices/show) ──
     'detail' => [
         'title'            => 'Invoice :code',
         'back'             => 'Back to list',
@@ -236,7 +224,6 @@ return [
         'view_quotation'   => 'View quotation :code',
     ],
 
-    // ── Notification bell (App\Services\InvoiceNotices) ──
     'notice' => [
         'header'            => 'Cash invoices awaiting approval: :count',
         'cash_pending'      => 'Cash invoice :code · :name · :amount awaiting confirmation',
@@ -259,8 +246,6 @@ return [
         'overdue_time'      => 'Due :date · contact the customer and extend the invoice',
     ],
 
-    // ── Invoice email to the customer (step 34) ──
-    // ── Invoice PDF attached to the email (resources/views/pdf/invoice.blade.php) ──
     'pdf' => [
         'title'              => 'Payment invoice',
         'paid_stamp'         => 'Paid',
@@ -295,7 +280,7 @@ return [
         'completed'     => 'The order is fully paid. Thank you for studying at ODIN!',
         'contact'       => 'For any questions, please contact your consultant :name.',
     ],
-    // ── Invoice receipt frame (components/invoice-receipt) ──
+
     'receipt' => [
         'title'          => 'PAYMENT INVOICE',
         'date_format'    => 'dddd, MMMM D, YYYY',

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang Danh sách lịch hẹn của Salesperson (livewire/appointments/index) + nhắc lịch hẹn ở chuông thông báo
 return [
     'title'              => 'Lịch hẹn',
     'subtitle'           => 'Các lịch hẹn test / tư vấn bạn đang phụ trách',
@@ -44,7 +43,6 @@ return [
     'today'              => 'Hôm nay',
     'tomorrow'           => 'Ngày mai',
 
-    // Dùng chung (báo cáo, lọc trạng thái)
     'status' => [
         'Scheduled' => 'Đã lên lịch',
         'Overdue'   => 'Chờ cập nhật kết quả',
@@ -52,7 +50,7 @@ return [
         'Failed'    => 'Khách không đến',
         'Cancelled' => 'Đã hủy',
     ],
-    // Nhãn ngắn trong bảng
+
     'badge' => [
         'Scheduled' => 'Đã lên lịch',
         'Overdue'   => 'Chờ cập nhật',
@@ -61,7 +59,6 @@ return [
         'Cancelled' => 'Đã hủy',
     ],
 
-    // Popup thao tác
     'action' => [
         'reschedule' => 'Đổi lịch',
         'result'     => 'Cập nhật kết quả',
@@ -89,7 +86,6 @@ return [
     'rescheduled'        => 'Đã đổi lịch hẹn sang :time.',
     'cannot_change'      => 'Không đổi / hủy được: lịch hẹn đã tới giờ hẹn, đã có kết quả hoặc cơ hội đã tới stage Chốt.',
 
-    // Chuông thông báo
     'reminder_title'     => 'Lịch hẹn :types với :name',
     'overdue_title'      => 'Cập nhật kết quả lịch hẹn :types với :name',
     'overdue_time'       => 'Đã qua giờ hẹn :time',

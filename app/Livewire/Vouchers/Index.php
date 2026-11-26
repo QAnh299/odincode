@@ -10,10 +10,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách voucher + tra cứu (tìm kiếm, bộ lọc).
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson (không có ở Kế toán).
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -32,7 +28,6 @@ class Index extends Component
     #[Url(except: '')]
     public string $state = '';
 
-    // Khoảng ngày: voucher có hiệu lực giao với khoảng [from, to]
     #[Url(except: '')]
     public string $from = '';
 
@@ -49,9 +44,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Bấm vào thẻ thống kê: lọc theo tình trạng, bấm lại thì bỏ lọc.
-     */
     public function filterState(string $state): void
     {
         $this->state = $this->state === $state ? '' : $state;
@@ -64,18 +56,12 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Prefix route theo vai trò, VD: 'director' → route 'director.vouchers.show'.
-     */
     #[Computed]
     public function routePrefix(): string
     {
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Số voucher theo từng tình trạng (cho các thẻ thống kê).
-     */
     #[Computed]
     public function counts(): array
     {
@@ -105,7 +91,6 @@ class Index extends Component
                 $q->where(function ($q) use ($search) {
                     $q->where('voucher_id', 'like', '%'.addcslashes($search, '%_\\').'%');
 
-                    // Gõ số thì tìm luôn theo giá trị giảm (VD: 10 → voucher 10%)
                     $number = str_replace(['.', ',', ' ', '%', '₫'], '', $search);
                     if (ctype_digit($number)) {
                         $q->orWhere('value', (int) $number);

@@ -3,31 +3,25 @@
 
     $summary = $this->summary;
 
-    // Thẻ tổng quan (chỉ hiển thị, không lọc): [key, icon, tone]
     $cards = [
         ['teams', 'layers', 'all'],
         ['in_team', 'users', 'active'],
         ['without', 'user', 'inactive'],
     ];
 
-    // Số avatar hiện tối đa trong cột Thành viên, còn lại gộp thành "+n"
     $maxAvatars = 5;
 @endphp
 
 <div class="vc em">
-    {{-- Dùng lại giao diện trang voucher (voucher.css), popup + thông báo của trang Lead (lead.css)
-         + phần riêng resources/css/employee.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/employee.css'])
     @endassets
 
-    {{-- ── Tiêu đề ──────────────────────────────────────────────────── --}}
     <header class="vc-head">
         <div>
             <h1 class="visually-hidden">{{ __('employees.teams.title') }}</h1>
         </div>
 
-        {{-- Tạo đội: chỉ Sale Admin --}}
         @if ($this->canManage)
             <div class="ld-actions">
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="openCreate">
@@ -37,7 +31,6 @@
         @endif
     </header>
 
-    {{-- ── Thông báo sau khi lưu ────────────────────────────────────── --}}
     @if ($notice)
         <div class="ld-notice ld-notice--{{ $notice['type'] }}" role="status" wire:key="notice-{{ md5(json_encode($notice)) }}">
             <x-icon :name="$notice['type'] === 'success' ? 'check-circle' : 'alert'" />
@@ -48,7 +41,6 @@
         </div>
     @endif
 
-    {{-- ── Tổng quan ────────────────────────────────────────────────── --}}
     <div class="vc-summary">
         @foreach ($cards as [$key, $icon, $tone])
             <div class="vc-summary__item em-summary-static vc-tone--{{ $tone }}">
@@ -61,7 +53,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tra cứu: tìm kiếm + sắp xếp ──────────────────────────────── --}}
     <section class="vc-card em-filters" aria-label="{{ __('employees.teams.lookup') }}">
         <label class="vc-field">
             <span class="vc-field__label">{{ __('employees.search') }}</span>
@@ -91,7 +82,6 @@
         </div>
     </section>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <div class="vc-results__bar">
             <span>
@@ -132,7 +122,7 @@
                             @php
                                 $detailUrl = route($this->routePrefix.'.sales-teams.show', $team);
                                 $members = $team->employees;
-                                // Chi nhánh của đội: theo trưởng nhóm, chưa có thì theo thành viên (xem SalesTeam::branchId)
+
                                 $teamBranch = $team->leader?->branch ?? $members->first()?->branch;
                             @endphp
                             <tr wire:key="team-{{ $team->team_id }}">
@@ -187,14 +177,12 @@
                                             aria-label="{{ __('employees.teams.view_detail') }} {{ $team->team_name }}">
                                             <x-icon name="eye" />
                                         </a>
-                                        {{-- Sale Admin: Chỉnh sửa đội (gồm cả đổi trưởng nhóm, gắn thành viên) --}}
                                         @if ($this->canManage)
                                             <button type="button" class="vc-icon-btn" wire:click="openEdit('{{ $team->team_id }}')"
                                                 title="{{ __('employees.teams.form.edit') }}">
                                                 <x-icon name="edit" />
                                                 <span class="visually-hidden">{{ __('employees.teams.form.edit') }} {{ $team->team_name }}</span>
                                             </button>
-                                            {{-- Sale Admin: đặt KPI tháng cho đội --}}
                                             <button type="button" class="vc-icon-btn" wire:click="openKpi('{{ $team->team_id }}')"
                                                 title="{{ __('employees.teams.kpi.title') }}">
                                                 <x-icon name="trending" />
@@ -215,7 +203,6 @@
         @endif
     </section>
 
-    {{-- ── Popup Tạo đội / Chỉnh sửa đội (chỉ Sale Admin) ───────────── --}}
     @if (in_array($modal, ['create', 'edit'], true) && $this->canManage)
         @php
             $editing = $this->editingTeam;
@@ -230,7 +217,6 @@
             <div class="ld-modal__backdrop" wire:click="closeModal"></div>
             <form class="ld-modal__dialog em-team-modal" role="dialog" aria-modal="true" aria-labelledby="em-team-title"
                 wire:submit="save">
-                {{-- Không có dòng mô tả → căn icon, tiêu đề, nút đóng theo giữa --}}
                 <header class="ld-modal__head {{ $subKey ? '' : 'ld-modal__head--center' }}">
                     <span class="ld-modal__icon"><x-icon :name="$modalIcon" /></span>
                     <div>
@@ -259,7 +245,6 @@
                     </label>
 
                     @if ($modal === 'create')
-                        {{-- Chọn chi nhánh trước: trưởng nhóm + thành viên bên dưới chỉ lấy người của chi nhánh này --}}
                         <label class="vc-field">
                             <span class="vc-field__label">{{ __('employees.branch') }}<span class="ld-req">*</span></span>
                             <select wire:model.live="form.branch_id" class="vc-control @error('branch_id') is-invalid @enderror">
@@ -279,8 +264,6 @@
                         @error('established_date')<span class="ld-error">{{ $message }}</span>@enderror
                     </label>
 
-                    {{-- Trưởng nhóm: đổi ngay trong popup; .live để khoá / mở thành viên theo chi nhánh của trưởng nhóm.
-                         Tạo đội: chưa chọn chi nhánh thì khoá --}}
                     @php $needBranch = $modal === 'create' && ! $this->createBranchId; @endphp
                     <label class="vc-field {{ $modal === 'create' ? 'ld-form__wide' : '' }}">
                         <span class="vc-field__label">{{ __('employees.team_leader') }}</span>
@@ -307,7 +290,6 @@
                     </label>
 
                     @if ($modal === 'edit')
-                        {{-- Chi nhánh của đội: theo trưởng nhóm đang chọn, chưa chọn thì theo thành viên đang chọn --}}
                         <div class="vc-field ld-form__wide">
                             <span class="vc-field__label">{{ __('employees.teams.form.team_branch') }}</span>
                             <span class="em-fixed">{{ $anchorBranch?->branch_name ?? __('employees.teams.form.branch_undecided') }}</span>
@@ -315,7 +297,6 @@
                     @endif
 
                     @if ($modal === 'edit' || ! $needBranch)
-                        {{-- Thành viên: chỉ Salesperson cùng chi nhánh với đội; người đang ở đội khác bị khoá --}}
                         @php $memberOptions = $this->branchMemberOptions; @endphp
                         <div class="vc-field ld-form__wide" x-data="{ q: '' }">
                             <span class="vc-field__label em-members-label">
@@ -336,14 +317,13 @@
                                     aria-label="{{ __('employees.teams.form.members') }}">
                                     @foreach ($memberOptions as $option)
                                         @php
-                                            // Khoá: đang ở đội khác (mỗi người chỉ thuộc 1 đội) hoặc khác chi nhánh với đội
+
                                             $elsewhere = $option->team_id !== null && $option->team_id !== $editing?->team_id;
                                             $locked = ! $this->canPickMember($option);
                                             $haystack = mb_strtolower($option->full_name.' '.$option->employee_id.' '.$option->branch?->branch_name);
                                         @endphp
                                         <li wire:key="pick-{{ $option->employee_id }}" x-show="@js($haystack).includes(q.toLowerCase())">
                                             <label class="em-pick__item {{ $locked ? 'is-disabled' : '' }}">
-                                                {{-- .live: chọn thành viên thì danh sách trưởng nhóm lọc theo chi nhánh của họ --}}
                                                 <input type="checkbox" class="form-check-input" wire:model.live="form.members"
                                                     value="{{ $option->employee_id }}" @disabled($locked)>
                                                 <span class="odin-avatar em-avatar" aria-hidden="true">{{ $option->initial() }}</span>
@@ -383,7 +363,6 @@
         </div>
     @endif
 
-    {{-- ── Popup KPI đội theo tháng (chỉ Sale Admin) ────────────────── --}}
     @if ($modal === 'kpi' && $this->canManage && $this->editingTeam)
         @php
             $editing = $this->editingTeam;
@@ -409,7 +388,6 @@
                 </header>
 
                 <div class="ld-modal__body ld-form">
-                    {{-- Tháng: .live để nạp KPI đã có của tháng được chọn --}}
                     <label class="vc-field">
                         <span class="vc-field__label">{{ __('employees.teams.kpi.month') }}<span class="ld-req">*</span></span>
                         <select wire:model.live="form.month" class="vc-control @error('month') is-invalid @enderror">
@@ -441,7 +419,6 @@
                                     <span class="em-muted d-inline">({{ $type->unit }})</span>
                                 @endif
                             </span>
-                            {{-- Tháng đã đặt KPI: khoá, chỉ xem --}}
                             <input type="number" wire:model="form.values.{{ $type->target_id }}" min="0"
                                 step="{{ $this->kpiIsMoney($type) ? 1000 : 1 }}" inputmode="numeric" @disabled($kpiSet)
                                 placeholder="{{ $kpiSet ? __('employees.teams.kpi.not_set') : __('employees.teams.kpi.placeholder') }}"

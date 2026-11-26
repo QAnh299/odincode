@@ -2,12 +2,10 @@
     $employee = auth()->user()?->employee;
     $name = $employee?->full_name ?? auth()->user()?->username ?? '';
 
-    // Chữ cái đầu của tên (từ cuối trong họ tên tiếng Việt)
     $parts = preg_split('/\s+/u', trim($name));
     $initial = mb_strtoupper(mb_substr(end($parts) ?: '?', 0, 1));
 @endphp
 
-{{-- Tài khoản đang đăng nhập (menu ngang phía trên) --}}
 <div class="dropdown">
     <button class="odin-account-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         <span class="odin-avatar" aria-hidden="true">{{ $initial }}</span>

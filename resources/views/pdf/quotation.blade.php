@@ -1,5 +1,5 @@
 @php
-    // Mẫu PDF báo giá (dompdf). Font DejaVu Sans có sẵn trong dompdf và hiển thị đủ dấu tiếng Việt.
+
     $lead = $quotation->opportunity?->lead;
     $branch = $lead?->branch;
     $voucher = $quotation->voucher;
@@ -9,7 +9,7 @@
 
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $percent = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
-    // Logo PNG cần extension GD của PHP; máy chưa bật GD thì bỏ logo thay vì lỗi 500
+
     $logo = extension_loaded('gd') ? public_path('images/logoodin-trim.png') : null;
 @endphp
 <!doctype html>

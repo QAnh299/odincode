@@ -1,6 +1,3 @@
-// Tải ảnh QR chuyển khoản của hóa đơn thành tệp PNG (Salesperson gửi khách qua Zalo / email).
-// VietQR trả ảnh SVG; máy chủ chuyển tiếp ảnh qua cùng tên miền (InvoiceQrController) nên trình duyệt
-// vẽ được lên canvas rồi xuất PNG. Nút: <button data-qr-download="url" data-qr-filename="QR-INV001.png">
 const SCALE = 2;
 
 function loadImage(src) {

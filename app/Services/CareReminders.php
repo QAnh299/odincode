@@ -8,17 +8,8 @@ use App\Models\Role;
 use App\Models\Stage;
 use Illuminate\Support\Collection;
 
-/**
- * Nhắc liên hệ cho Salesperson (chuông thông báo trên topbar), cơ hội mình phụ trách:
- *   - Data chưa tương tác được phân quá Opportunity::FIRST_CONTACT_DAYS ngày mà chưa liên hệ lần nào;
- *   - lần liên hệ gần nhất ở stage hiện tại là "Không liên lạc được" và đã qua Opportunity::RECONTACT_DAYS ngày
- *     (Data đã có lịch hẹn chỉ nhắc khi chưa hẹn lại).
- */
 class CareReminders
 {
-    /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: \Illuminate\Support\Carbon}>
-     */
     public static function for(?Employee $employee): Collection
     {
         if ($employee?->role_name !== Role::SALESPERSON) {

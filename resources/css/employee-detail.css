@@ -1,7 +1,3 @@
-/* ── Trang chi tiết nhân viên (livewire/employees/show + partials/performance) ──
-   Tiền tố .ed-. Màu lấy từ --odin-primary (đổi theo bộ chọn màu giao diện) và biến Bootstrap 5.3,
-   không hardcode màu. Chữ dài (email, tên chi nhánh) chỉ xuống dòng ở chỗ hợp lý, không bẻ giữa từ. */
-
 .ed {
     --ed-primary: var(--odin-primary, var(--bs-primary));
     --ed-on-primary: var(--odin-on-primary, #fff);
@@ -27,13 +23,11 @@
     color: var(--ed-muted);
 }
 
-/* ── Quay lại ─────────────────────────────────────────────────────── */
 
 .ed-back {
     margin-bottom: 1rem;
 }
 
-/* ── Thẻ hồ sơ ────────────────────────────────────────────────────── */
 
 .ed-hero {
     position: relative;
@@ -207,9 +201,7 @@
     color: var(--ed-primary);
 }
 
-/* ── Lưới nội dung: thông tin (trái) + đội (phải ~360px) ───────────── */
 
-/* stretch: 2 thẻ trên cùng một hàng luôn cao bằng nhau (không hở khoảng trống dưới thẻ ngắn hơn) */
 .ed-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
@@ -272,7 +264,6 @@
     height: 14px;
 }
 
-/* ── Thông tin nhân viên: nhóm + danh sách nhãn / giá trị ─────────── */
 
 .ed-group + .ed-group {
     margin-top: 1.25rem;
@@ -300,7 +291,6 @@
     min-width: 0;
 }
 
-/* Giá trị dài (chi nhánh + địa chỉ) chiếm 2 cột */
 .ed-field--wide {
     grid-column: span 2;
 }
@@ -348,7 +338,6 @@
     text-decoration: none;
 }
 
-/* ── Đội kinh doanh ───────────────────────────────────────────────── */
 
 .ed-team__summary {
     display: flex;
@@ -538,7 +527,6 @@
     height: 22px;
 }
 
-/* ── Kết quả kinh doanh ───────────────────────────────────────────── */
 
 .ed-perf {
     margin-top: 1.25rem;
@@ -678,7 +666,6 @@
     color: var(--ed-muted);
 }
 
-/* ── Trang chi tiết đội (livewire/sales-teams/show) ───────────────── */
 
 .ed .ed-hero__avatar--team {
     border-radius: 24px;
@@ -716,7 +703,6 @@
     border: 1px solid var(--ed-border);
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .ed-grid {

@@ -7,7 +7,6 @@
 
     $date = fn ($value) => $value?->format('d/m/Y') ?? '-';
 
-    // Thâm niên tính từ ngày vào làm: "3 năm 4 tháng"
     $months = $employee->hire_date ? max(0, (int) $employee->hire_date->diffInMonths(today())) : null;
     $seniority = match (true) {
         $months === null   => null,
@@ -20,7 +19,6 @@
     $isLeader = $team && $team->team_leader_id === $employee->employee_id;
     $listUrl = route($this->routePrefix.'.employees');
 
-    // Thông tin nhân viên theo nhóm: [icon, nhãn, giá trị, dòng phụ, link, chiếm 2 cột]
     $groups = [
         'personal_info' => [
             ['calendar', __('employees.date_of_birth'), $date($employee->date_of_birth), null, null, false],
@@ -39,7 +37,6 @@
 @endphp
 
 <div class="ed">
-    {{-- CSS riêng của trang chi tiết nhân viên: resources/css/employee-detail.css --}}
     @assets
         @vite('resources/css/employee-detail.css')
     @endassets
@@ -48,7 +45,6 @@
         <x-icon name="arrow-left" />{{ __('employees.back_to_list') }}
     </a>
 
-    {{-- ── Thẻ hồ sơ ─────────────────────────────────────────────────── --}}
     <header class="ed-hero">
         <div class="ed-hero__banner" aria-hidden="true"></div>
         <div class="ed-hero__body">
@@ -76,7 +72,6 @@
                 </ul>
             </div>
 
-            {{-- Liên hệ nhanh --}}
             <div class="ed-hero__contact">
                 @if (filled($employee->email))
                     <a href="mailto:{{ $employee->email }}" class="ed-contact" title="{{ __('employees.email') }}">
@@ -92,11 +87,7 @@
         </div>
     </header>
 
-    {{-- Sale Leader / Salesperson: thông tin + Đội kinh doanh (2 cột);
-         Giám đốc, Sale Admin, Kế toán: chỉ thông tin nhân viên.
-         Kết quả kinh doanh xem ở trang chi tiết đội (nút "Xem đội") --}}
     <div class="ed-grid {{ $this->isSales ? '' : 'ed-grid--single' }}">
-        {{-- ── Thông tin nhân viên ───────────────────────────────────── --}}
         <section class="ed-card" aria-labelledby="ed-info-title">
             <h2 class="ed-card__title" id="ed-info-title">{{ __('employees.profile_title') }}</h2>
 
@@ -124,7 +115,6 @@
             @endforeach
         </section>
 
-        {{-- ── Đội kinh doanh (chỉ với Sale Leader / Salesperson) ─────── --}}
         @if ($this->isSales)
             <section class="ed-card ed-team" aria-labelledby="ed-team-title">
                 <div class="ed-card__head">
@@ -169,7 +159,6 @@
                             @foreach ($this->teammates as $member)
                                 @php $linkable = in_array($member->employee_id, $this->linkableIds, true); @endphp
                                 <li wire:key="member-{{ $member->employee_id }}">
-                                    {{-- Chỉ tạo link tới nhân viên mà người đang xem được mở chi tiết --}}
                                     <{{ $linkable ? 'a' : 'div' }} class="ed-person {{ $linkable ? 'is-link' : '' }}"
                                         @if ($linkable) href="{{ route($this->routePrefix.'.employees.show', $member) }}" @endif>
                                         <span class="ed-person__avatar" aria-hidden="true">{{ $member->initial() }}</span>

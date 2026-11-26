@@ -13,7 +13,6 @@
     $pct = fn ($v) => $this->fmtPct($v);
     $money = fn ($v) => trim(implode(' ', $this->shortMoney($v)));
 
-    // Nhãn ô chọn nguồn: Tất cả (6) / tên nguồn / 3 nguồn
     $picked = array_values(array_intersect(Lead::SOURCES, $sources));
     $sourceLabel = match (count($picked)) {
         0, count(Lead::SOURCES) => $ls('all_sources', ['count' => count(Lead::SOURCES)]),
@@ -21,7 +20,6 @@
         default => $ls('n_sources', ['count' => count($picked)]),
     };
 
-    // Mức tăng / giảm của thẻ KPI: ▲ 12,4% · ▼ 0,6 điểm
     $delta = function (?array $d) {
         if (! $d) {
             return null;
@@ -31,14 +29,12 @@
         return [$d['value'] > 0 ? 'up' : ($d['value'] < 0 ? 'down' : 'flat'), ($d['value'] > 0 ? '▲ ' : ($d['value'] < 0 ? '▼ ' : '')).$value];
     };
 
-    // Chiều cao biểu đồ: hàng trên cao bằng nhau theo số nguồn
     $n = count($rows);
     $topHeight = max(300, $n * 52 + 90);
     $outcomeHeight = max(300, $n * 54 + 80);
 @endphp
 
 <div class="vc rp ls">
-    {{-- Dùng lại giao diện chung .vc-* (voucher.css) + phần riêng báo cáo (report.css); Chart.js nạp ở charts.js --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/report.css', 'resources/js/charts.js'])
     @endassets
@@ -52,7 +48,6 @@
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 {{ __('reports.loading') }}
             </span>
-            {{-- Xuất báo cáo tổng hợp dạng văn bản (Giám đốc, Sale Admin) --}}
             @if ($this->canExport)
                 <button type="button" class="vc-btn vc-btn--primary" wire:click="openExport">
                     <x-icon name="file" />
@@ -62,7 +57,6 @@
         </div>
     </header>
 
-    {{-- ── Bộ lọc ──────────────────────────────────────────────────────── --}}
     <section class="vc-card ls-filters" aria-label="{{ $ls('filters') }}">
         <label class="vc-field">
             <span class="vc-field__label">{{ __('reports.from') }}</span>
@@ -72,7 +66,6 @@
             <span class="vc-field__label">{{ __('reports.to') }}</span>
             <input type="date" wire:model.live="to" class="vc-control" min="{{ $from ?: '' }}">
         </label>
-        {{-- Kỳ nhanh: chọn → đặt Từ ngày / Đến ngày; tự nhập ngày khác → hiện "Tự chọn" --}}
         <label class="vc-field">
             <span class="vc-field__label">{{ $ls('quick') }}</span>
             <select class="vc-control" wire:key="quick-{{ $active ?? 'custom' }}" wire:change="preset($event.target.value)">
@@ -100,7 +93,6 @@
                 @endforeach
             </select>
         </label>
-        {{-- Nguồn: chọn nhiều (không chọn = tất cả) --}}
         <div class="vc-field ls-pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
             <span class="vc-field__label">{{ $ls('source') }}</span>
             <button type="button" class="vc-control ls-pick__toggle" @click="open = ! open" :aria-expanded="open">
@@ -126,12 +118,11 @@
         </div>
     </section>
 
-    {{-- ── Thẻ KPI (so với kỳ liền trước + xu hướng theo tháng) ───────── --}}
     <div class="ls-kpis">
         @foreach ($kpis as $k)
             @php($d = $delta($k['delta']))
             <div class="ls-kpi dr-card" wire:key="kpi-{{ $k['key'] }}" role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
-                x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => LeadSources::KPI_DRILLS[$k['key']]]) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from(['kind' => LeadSources::KPI_DRILLS[$k['key']]]) }})">
+                x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => LeadSources::KPI_DRILLS[$k['key']]])) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => LeadSources::KPI_DRILLS[$k['key']]])) }})">
                 <div class="ls-kpi__head">
                     <span class="ls-kpi__icon"><x-icon :name="$k['icon']" /></span>
                     <span>{{ $ls('kpi.'.$k['key']) }}</span>
@@ -166,7 +157,6 @@
     @else
         @php($charts = $this->charts)
 
-        {{-- ── Cơ cấu · tỷ lệ chốt · doanh thu theo nguồn ──────────────── --}}
         <div class="ls-row ls-row--3">
             @foreach (['share', 'win_rate', 'revenue'] as $key)
                 @include('livewire.reports.partials.chart-card', ['id' => 'ls-'.$key, 'spec' => $charts[$key],
@@ -174,7 +164,6 @@
             @endforeach
         </div>
 
-        {{-- ── Lead mới theo tháng · kết quả xử lý ─────────────────────── --}}
         <div class="ls-row ls-row--2">
             @include('livewire.reports.partials.chart-card', ['id' => 'ls-monthly', 'spec' => $charts['monthly'],
                 'title' => $ls('chart.monthly'), 'sub' => $ls('chart.monthly_sub'), 'height' => $outcomeHeight])
@@ -182,7 +171,6 @@
                 'title' => $ls('chart.outcome'), 'sub' => $ls('chart.outcome_sub'), 'height' => $outcomeHeight])
         </div>
 
-        {{-- ── Bảng tổng hợp theo nguồn ────────────────────────────────── --}}
         <section class="vc-card rp-card">
             <h3 class="rp-card__title">{{ $ls('table.title') }}</h3>
             <p class="rp-card__sub">{{ $ls('table.sub') }}</p>
@@ -207,16 +195,16 @@
                                 <th scope="row"><span class="ls-dot" style="--c: {{ $row['color'] }}"></span>{{ $row['dim'] }}</th>
                                 <td class="rp-num">
                                     <span class="ls-volume">
-                                        <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'leads', 'source' => $row['dim']]) }})">{{ $num($row['leads']) }}</button>
+                                        <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'leads', 'source' => $row['dim']])) }})">{{ $num($row['leads']) }}</button>
                                         <span class="ls-volume__track"><span style="width: {{ $row['bar'] }}%"></span></span>
                                     </span>
                                 </td>
                                 <td class="rp-num">{{ $pct($row['share']) }}</td>
-                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['conversion_rate'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'converted', 'source' => $row['dim']]) }})">{{ $pct($row['conversion_rate']) }}</button></span></td>
-                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'won', 'source' => $row['dim']]) }})">{{ $num($row['won']) }}</button></td>
-                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['win_rate'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'won', 'source' => $row['dim']]) }})">{{ $pct($row['win_rate']) }}</button></span></td>
-                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'source' => $row['dim']]) }})">{{ $money($row['revenue']) }}</button></td>
-                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['revenue_per_lead'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'source' => $row['dim']]) }})">{{ $money($row['revenue_per_lead']) }}</button></span></td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['conversion_rate'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'converted', 'source' => $row['dim']])) }})">{{ $pct($row['conversion_rate']) }}</button></span></td>
+                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'won', 'source' => $row['dim']])) }})">{{ $num($row['won']) }}</button></td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['win_rate'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'won', 'source' => $row['dim']])) }})">{{ $pct($row['win_rate']) }}</button></span></td>
+                                <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue', 'source' => $row['dim']])) }})">{{ $money($row['revenue']) }}</button></td>
+                                <td class="rp-num"><span class="ls-heat" style="{{ $row['heat']['revenue_per_lead'] }}"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue', 'source' => $row['dim']])) }})">{{ $money($row['revenue_per_lead']) }}</button></span></td>
                                 <td>
                                     <span class="ls-badge ls-badge--{{ $row['rating'] }}">
                                         @if ($row['rating'] === 'expand')▲ @endif{{ $ls('rating.'.$row['rating']) }}
@@ -228,13 +216,13 @@
                     <tfoot>
                         <tr>
                             <th scope="row">{{ $ls('table.total') }}</th>
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'leads']) }})">{{ $num($t['leads']) }}</button></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'leads'])) }})">{{ $num($t['leads']) }}</button></td>
                             <td class="rp-num">100%</td>
-                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'converted']) }})">{{ $pct($t['conversion_rate']) }}</button></span></td>
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'won']) }})">{{ $num($t['won']) }}</button></td>
-                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'won']) }})">{{ $pct($t['win_rate']) }}</button></span></td>
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue']) }})">{{ $money($t['revenue']) }}</button></td>
-                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue']) }})">{{ $money($t['revenue_per_lead']) }}</button></span></td>
+                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'converted'])) }})">{{ $pct($t['conversion_rate']) }}</button></span></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'won'])) }})">{{ $num($t['won']) }}</button></td>
+                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'won'])) }})">{{ $pct($t['win_rate']) }}</button></span></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue'])) }})">{{ $money($t['revenue']) }}</button></td>
+                            <td class="rp-num"><span class="ls-heat"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue'])) }})">{{ $money($t['revenue_per_lead']) }}</button></span></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -244,10 +232,8 @@
         </section>
     @endif
 
-    {{-- Popup danh sách của số liệu vừa bấm --}}
     @include('livewire.reports.partials.report-drill')
 
-    {{-- Popup xuất Excel: chọn kỳ, tiêu chí, sheet, cột, xem trước --}}
     @if ($this->canExport)
         @include('livewire.reports.partials.report-export')
     @endif

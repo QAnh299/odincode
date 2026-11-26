@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Personal account page (livewire/profile/show.blade.php)
 return [
     'title'           => 'My profile',
     'personal'        => 'Personal information',

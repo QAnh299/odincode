@@ -9,12 +9,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * HĐ27: ảnh QR chuyển khoản của hóa đơn để Salesperson tải về (PNG) và gửi khách qua Zalo / email khi khách không đến
- * trung tâm. Ảnh do img.vietqr.io tạo (SVG, khác tên miền nên trình duyệt không vẽ ra canvas được) → máy chủ chuyển tiếp
- * ảnh qua cùng tên miền; resources/js/qr-download.js vẽ ảnh lên canvas rồi lưu PNG.
- * Nội dung QR giữ nguyên: đúng số tiền, nội dung = mã hóa đơn, nên webhook vẫn tự khớp khi khách chuyển.
- */
 class InvoiceQrController extends Controller
 {
     public function __invoke(Invoice $invoice, InvoiceService $service): Response

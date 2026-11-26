@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-// Employee pages: list (livewire/employees/index), detail (livewire/employees/show)
-// and sales teams (livewire/sales-teams/index)
 return [
     'title'              => 'Employees',
     'subtitle'           => 'Look up employee information, roles, sales teams and branches',
@@ -12,7 +10,6 @@ return [
     'subtitle_no_team'   => 'You are not in any sales team yet',
     'detail_title'       => 'Employee :name',
 
-    // Lookup
     'lookup'             => 'Employee lookup',
     'search'             => 'Search',
     'search_placeholder' => 'Search by code, name, email or phone (e.g. EMP004, Lan, 0901…)…',
@@ -37,7 +34,6 @@ return [
         'resigned' => 'Resigned',
     ],
 
-    // Table columns / fields
     'employee'           => 'Employee',
     'role'               => 'Role',
     'team'               => 'Team',
@@ -50,7 +46,6 @@ return [
     'view'               => 'View details',
     'leader_tag'         => 'Leader',
 
-    // Detail
     'back_to_list'       => 'Back to list',
     'leader_of'          => 'Leader of :team',
     'profile_title'      => 'Employee information',
@@ -78,8 +73,6 @@ return [
     'teammates'          => 'Teammates',
     'no_teammates'       => 'No other members in this team yet.',
 
-
-    // Sales performance (Sale Leader / Salesperson detail) – same rules as the Sales performance report
     'perf' => [
         'title'          => 'Sales performance',
         'title_team'     => 'Sales performance of team :team',
@@ -105,7 +98,6 @@ return [
         'delta_note'     => 'The % badge next to each figure compares with the previous month.',
     ],
 
-    // Sales teams
     'teams' => [
         'detail_title'       => 'Team :name',
         'back_to_list'       => 'Sales teams',
@@ -122,7 +114,6 @@ return [
         'member_count'       => ':count member(s)',
         'view_members'       => 'View employees',
 
-        // Create team / Edit team / Assign leader popups (Sale Admin)
         'form' => [
             'create'           => 'Create team',
             'edit'             => 'Edit team',
@@ -153,7 +144,6 @@ return [
             'saved_edit'       => 'Team :name updated.',
         ],
 
-        // Monthly team KPI popup (Sale Admin, Actions column)
         'kpi' => [
             'title'         => 'Team KPIs',
             'sub'           => 'Set the team\'s monthly targets.',

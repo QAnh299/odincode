@@ -15,17 +15,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-/**
- * Biểu mẫu lập báo giá (HĐ1 – HĐ6) và sửa báo giá Nháp (HĐ10). Chỉ Salesperson.
- * Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
- *
- *   - Lập mới (route salesperson.quotations.create/{opportunity}): kiểm tra điều kiện HĐ2; không đạt thì
- *     hiện lý do và kết thúc, đạt thì hiện biểu mẫu (khách và cơ hội chỉ đọc, hạn mặc định 3 ngày).
- *   - Sửa (route salesperson.quotations.edit/{quotation}): chỉ người lập, báo giá còn Nháp và chưa hết hạn.
- *   - Lưu (HĐ4 → HĐ6): kiểm tra phía server rồi QuotationService::save() tính tiền và lưu trong một giao dịch.
- *
- * Đơn giá và VAT luôn lấy từ khóa học lúc lưu, client chỉ gửi mã khóa học + số lượng.
- */
 #[Layout('layouts.app')]
 class Form extends Component
 {
@@ -35,7 +24,6 @@ class Form extends Component
     #[Locked]
     public ?string $quotationId = null;
 
-    // Lý do không lập được (HĐ2), null = hiện biểu mẫu
     #[Locked]
     public ?string $blocked = null;
 
@@ -45,19 +33,12 @@ class Form extends Component
 
     public string $notes = '';
 
-    // Bổ sung email khách khi hồ sơ còn thiếu (cần để gửi email hóa đơn sau khi thanh toán)
     public string $customerEmail = '';
 
-    // Dòng khóa học: [['course_id' => ..., 'quantity' => ...], ...]
     public array $lines = [];
 
-    // Khóa học đang chọn ở ô "Thêm khóa học"
     public string $pickCourse = '';
 
-    /**
-     * Nhận MÃ từ URL (create/{opportunity}, {quotation}/edit) rồi tự tìm bản ghi: hai route dùng chung component,
-     * nếu khai báo kiểu model có thể null thì route binding của Laravel gán lệch tham số và trả 404.
-     */
     public function mount(?string $opportunity = null, ?string $quotation = null): void
     {
         $service = app(QuotationService::class);
@@ -86,8 +67,6 @@ class Form extends Component
         $this->expiryDate = today()->addDays(QuotationService::DEFAULT_EXPIRY_DAYS)->toDateString();
     }
 
-    // ── Dữ liệu hiển thị ───────────────────────────────────────────────
-
     #[Computed]
     public function opportunity(): Opportunity
     {
@@ -111,7 +90,6 @@ class Form extends Component
     {
         $vouchers = app(QuotationService::class)->validVouchers()->keyBy('voucher_id');
 
-        // Sửa Nháp: voucher đã thống nhất với khách lúc lập báo giá được giữ nguyên dù nay đã hết hiệu lực
         $current = $this->quotation?->voucher;
         if ($current && ! $vouchers->has($current->voucher_id)) {
             $vouchers->put($current->voucher_id, $current);
@@ -120,20 +98,12 @@ class Form extends Component
         return $vouchers;
     }
 
-    /**
-     * Ngày lập: lập mới = hôm nay; sửa = ngày lập của báo giá (hạn không được trước ngày này, HĐ4).
-     */
     #[Computed]
     public function createdDate(): string
     {
         return $this->quotation?->created_at?->toDateString() ?? today()->toDateString();
     }
 
-    /**
-     * Dòng hiển thị kèm đơn giá, VAT, thành tiền (bỏ qua dòng có khóa học không còn kích hoạt).
-     *
-     * @return array<int, array{index: int, course: \App\Models\Course, quantity: int, total: float}>
-     */
     #[Computed]
     public function rows(): array
     {
@@ -157,11 +127,6 @@ class Form extends Component
         return $rows;
     }
 
-    /**
-     * Tạm tính, giảm giá voucher, tổng tiền (cùng công thức Quotation::totalAmount()).
-     *
-     * @return array{subtotal: float, discount: float, total: float, voucher: ?Voucher}
-     */
     #[Computed]
     public function totals(): array
     {
@@ -172,13 +137,6 @@ class Form extends Component
         return ['subtotal' => $subtotal, 'discount' => $discount, 'total' => max(0, $subtotal - $discount), 'voucher' => $voucher];
     }
 
-    /**
-     * Khóa học khách đã có đơn hàng, xét mọi cơ hội của cùng Lead: đơn đã thanh toán ít nhất một phần (đã mua) hoặc
-     * đơn đã xác nhận nhưng chưa thanh toán (dễ lập trùng). Chỉ để cảnh báo Salesperson, vẫn cho chọn (khách có thể
-     * học lại khóa cũ). Một khóa có nhiều đơn: ưu tiên đơn đã thanh toán, cùng loại thì lấy đơn mới nhất.
-     *
-     * @return array<string, array{order: string, paid: bool}>
-     */
     #[Computed]
     public function purchasedCourses(): array
     {
@@ -190,7 +148,6 @@ class Form extends Component
 
         $result = [];
 
-        // Mã đơn dạng ORD + số, quá 999 thì dài thêm: so độ dài trước để ORD1000 đứng sau ORD999
         DB::table('QuotationDetails as d')
             ->join('Quotations as q', 'q.quotation_id', '=', 'd.quotation_id')
             ->join('Opportunities as op', 'op.opportunity_id', '=', 'q.opportunity_id')
@@ -209,9 +166,6 @@ class Form extends Component
         return $result;
     }
 
-    /**
-     * Khóa học còn chọn được ở ô "Thêm khóa học" (chưa có trong báo giá).
-     */
     #[Computed]
     public function availableCourses(): Collection
     {
@@ -220,11 +174,6 @@ class Form extends Component
         return $this->courses->reject(fn ($course) => in_array($course->course_id, $chosen, true));
     }
 
-    // ── Thao tác trên biểu mẫu ─────────────────────────────────────────
-
-    /**
-     * Chọn khóa học ở ô chọn là thêm ngay một dòng (số lượng 1), tạm tính và tổng cập nhật luôn.
-     */
     public function updatedPickCourse(): void
     {
         $this->addCourse();
@@ -249,18 +198,11 @@ class Form extends Component
         $this->forgetLineCache();
     }
 
-    /**
-     * Xóa kết quả computed đã nhớ trong request (danh sách còn chọn được, dòng, tổng) sau khi đổi $lines.
-     */
     private function forgetLineCache(): void
     {
         unset($this->availableCourses, $this->rows, $this->totals);
     }
 
-    /**
-     * Kiểm tra thông tin báo giá và hồ sơ khách hàng (đủ trường, ít nhất một khóa, số lượng > 0, hạn không trước ngày lập,
-     * voucher còn hiệu lực, khách có email); sai thì báo lỗi để sửa, đúng thì lưu Nháp (kèm email bổ sung) và mở trang chi tiết.
-     */
     public function save(QuotationService $service)
     {
         abort_if($this->blocked !== null, 403);
@@ -313,9 +255,6 @@ class Form extends Component
         return view('livewire.quotations.form')->title($title);
     }
 
-    /**
-     * Khách chưa có email: biểu mẫu hiện ô bổ sung email và bắt buộc nhập trước khi lưu.
-     */
     public function needsEmail(): bool
     {
         return blank($this->opportunity->lead?->email);

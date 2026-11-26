@@ -17,39 +17,21 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Dashboard & Báo cáo → Hiệu quả Sales Team / Salesperson theo tháng
- * (Giám đốc, Sale Admin: tất cả đội; Sale Leader: đội của mình).
- *
- * Báo cáo xoay quanh CON NGƯỜI (mọi chỉ số đều nhóm theo đội / salesperson), trả lời 3 câu hỏi:
- *   1. Đội nào, ai đạt / trượt chỉ tiêu?          → thẻ KPI, xếp hạng đội, xếp hạng salesperson
- *   2. Tháng sau có ổn không?                      → pipeline đang mở, xu hướng 6 tháng
- *   3. Ai cần hỗ trợ / nhắc nhở?                   → việc cần xử lý (ảnh chụp hiện tại)
- * Công nợ / tiền đã thu (báo cáo Doanh thu & thanh toán), Lead theo nguồn (Chất lượng nguồn Lead) và
- * tỷ lệ Lead → Cơ hội (Hiệu quả chuyển đổi Lead) không nằm ở đây.
- *
- * Ghi công: kết quả (Won, doanh số, học viên) cho người giữ Cơ hội lúc chốt; hoạt động chăm sóc cho người thực hiện.
- * Định nghĩa và thời điểm tính từng chỉ số: xem App\Services\SalesPerformanceReport.
- */
 #[Layout('layouts.app')]
 class SalesPerformance extends Component
 {
     use ReportDrill;
     use ReportExport;
 
-    // Màu cố định theo chỉ số / nhóm
     public const COLORS = [
         'revenue' => '#2a78d6',
         'target'  => '#c3cad5',
     ];
 
-    // Màu đường của từng đội ở biểu đồ xu hướng tỷ lệ thắng (lặp lại khi nhiều đội hơn)
     public const TEAM_COLORS = ['#2a78d6', '#16a34a', '#d97706', '#9333ea', '#0891b2', '#db2777'];
 
-    // Số dòng hiện trong bảng team / salesperson ('all' = tất cả, bảng có thanh cuộn)
     public const TOPS = ['5', '10', 'all'];
 
-    // Chỉ số dùng để xếp hạng salesperson → chiều sắp (desc: cao là tốt, asc: thấp là tốt)
     public const SORTS = [
         'revenue'            => 'desc',
         'won'                => 'desc',
@@ -62,11 +44,6 @@ class SalesPerformance extends Component
         'avg_response_hours' => 'asc',
     ];
 
-    /**
-     * Cột bảng salesperson theo nhóm → [chiều so sánh với trung bình đội, loại].
-     * Chiều: 1 = cao là tốt, -1 = thấp là tốt, 0 = không tô màu.
-     * Loại: count = so với trung bình mỗi người trong đội, rate = so với tỷ lệ chung của đội.
-     */
     public const COLUMN_GROUPS = [
         'result' => [
             'revenue'    => [1, 'count'],
@@ -87,32 +64,24 @@ class SalesPerformance extends Component
 
     public const TREND_MONTHS = 6;
 
-    // Biểu đồ tỷ lệ thắng tách theo đội khi phạm vi có không quá số đội này
     public const MAX_TREND_TEAMS = 5;
 
-    /* ── Bộ lọc ───────────────────────────────────────────────────────── */
-
-    // Tháng đánh giá (Y-m) - luôn đọc qua activeMonth
     #[Url(except: '')]
     public string $month = '';
 
-    // Đội (Giám đốc, Sale Admin) - '' = Tất cả đội
     #[Url(except: '')]
     public string $team = '';
 
-    // Salesperson - '' = Tất cả; chỉ áp dụng khi có trong employeeOptions
     #[Url(except: '')]
     public string $employee = '';
 
     #[Url(except: 'revenue')]
     public string $sort = 'revenue';
 
-    // Số dòng hiện ở bảng team / salesperson (xem TOPS)
     public string $teamTop = '5';
 
     public string $employeeTop = '10';
 
-    // Đội của bảng salesperson ('' = tất cả đội trong phạm vi)
     public string $employeeTeam = '';
 
     public function updatedTeam(): void
@@ -129,8 +98,6 @@ class SalesPerformance extends Component
     {
         return $this->month !== '' || $this->team !== '' || $this->employee !== '' || $this->sort !== 'revenue';
     }
-
-    /* ── Phạm vi theo vai trò ─────────────────────────────────────────── */
 
     #[Computed]
     public function me(): ?Employee
@@ -150,10 +117,6 @@ class SalesPerformance extends Component
         return SalesTeam::query()->orderBy('team_name')->get(['team_id', 'team_name']);
     }
 
-    /**
-     * Đội đang xem: Giám đốc / Sale Admin = đội đã chọn ('' = tất cả); Sale Leader = đội của mình
-     * (không thuộc đội nào → null và không thấy dữ liệu).
-     */
     #[Computed]
     public function teamScope(): ?string
     {
@@ -164,9 +127,6 @@ class SalesPerformance extends Component
         return $this->me?->team_id;
     }
 
-    /**
-     * Các đội trong phạm vi đang xem.
-     */
     #[Computed]
     public function scopeTeams(): Collection
     {
@@ -177,9 +137,6 @@ class SalesPerformance extends Component
         };
     }
 
-    /**
-     * Salesperson trong phạm vi đang xem (cho bộ lọc và để hiện cả người chưa có số liệu).
-     */
     #[Computed]
     public function employeeOptions(): Collection
     {
@@ -194,11 +151,6 @@ class SalesPerformance extends Component
             ->get(['employee_id', 'full_name', 'team_id', 'status']);
     }
 
-    /* ── Tháng ────────────────────────────────────────────────────────── */
-
-    /**
-     * Các tháng chọn được (mới nhất trước): từ tháng có Lead được giao sớm nhất đến tháng hiện tại.
-     */
     #[Computed]
     public function months(): array
     {
@@ -233,8 +185,6 @@ class SalesPerformance extends Component
         return preg_match('/^(\d{4})-(\d{2})$/', $month, $m) ? "$m[2]/$m[1]" : $month;
     }
 
-    /* ── Số liệu ──────────────────────────────────────────────────────── */
-
     #[Computed]
     public function totals(): array
     {
@@ -249,18 +199,12 @@ class SalesPerformance extends Component
         return $this->report()->totals($this->filterValues($this->previousMonth));
     }
 
-    /**
-     * Chỉ tiêu tháng của các đội trong phạm vi (không áp dụng khi đang lọc 1 salesperson).
-     */
     #[Computed]
     public function targets(): array
     {
         return $this->targetsFor($this->activeMonth, $this->filterValues($this->activeMonth));
     }
 
-    /**
-     * Tổng chỉ tiêu của phạm vi đang xem: ['revenue' => ?float, 'students' => ?float].
-     */
     #[Computed]
     public function targetTotals(): array
     {
@@ -273,29 +217,18 @@ class SalesPerformance extends Component
         return $sum;
     }
 
-    /**
-     * Việc cần xử lý hiện tại theo salesperson (ảnh chụp, không theo tháng).
-     */
     #[Computed]
     public function alerts(): array
     {
         return $this->report()->alerts($this->filterValues($this->activeMonth));
     }
 
-    /**
-     * Chỉ số theo salesperson, kèm pipeline, việc cần xử lý, % đóng góp vào doanh số đội,
-     * hạng theo chỉ số đang chọn và so sánh với trung bình đội.
-     * Người chưa có số liệu trong tháng vẫn hiện (đang làm việc), xếp cuối và không có hạng.
-     */
     #[Computed]
     public function byEmployee(): array
     {
         return $this->employeeRows($this->filterValues($this->activeMonth), true);
     }
 
-    /**
-     * $current = gắn pipeline + việc cần xử lý (ảnh chụp hiện tại - chỉ dùng trên trang, không dùng khi xuất kỳ cũ).
-     */
     protected function employeeRows(array $filters, bool $current = false): array
     {
         $rows = $this->report()->aggregate($filters, 'employee');
@@ -330,7 +263,6 @@ class SalesPerformance extends Component
         }
         unset($row);
 
-        // % đóng góp vào doanh số của đội
         $teamRevenue = [];
         foreach ($rows as $row) {
             $teamRevenue[$row['team_id']] = ($teamRevenue[$row['team_id']] ?? 0) + $row['revenue'];
@@ -348,18 +280,12 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Đội chọn được ở bảng salesperson: chỉ khi phạm vi có từ 2 đội và không lọc 1 salesperson.
-     */
     #[Computed]
     public function employeeTeamOptions(): Collection
     {
         return $this->employee === '' && $this->scopeTeams->count() > 1 ? $this->scopeTeams : collect();
     }
 
-    /**
-     * Dòng bảng salesperson theo đội chọn ở đầu bảng; lọc 1 đội thì xếp hạng lại trong đội.
-     */
     #[Computed]
     public function employeeView(): array
     {
@@ -377,9 +303,6 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Dòng tổng cộng của bảng salesperson (theo đội đang chọn ở bảng).
-     */
     #[Computed]
     public function employeeViewTotals(): array
     {
@@ -391,17 +314,12 @@ class SalesPerformance extends Component
         ];
     }
 
-    /**
-     * Chỉ số theo đội trong phạm vi + chỉ tiêu + pipeline + việc cần xử lý, xếp hạng theo % đạt chỉ tiêu doanh số.
-     */
     #[Computed]
     public function byTeam(): array
     {
         $filters = $this->filterValues($this->activeMonth);
         $rows = $this->teamRows($filters, $this->byEmployee, $this->targets);
 
-        // Hạng luôn tính trên toàn bộ đội: phạm vi chỉ có 1 phần các đội (Sale Leader - đội của mình,
-        // hoặc đang lọc 1 đội) thì lấy hạng của đội trong bảng xếp hạng chung, không phải hạng trong phạm vi
         $ranks = [];
         if ($rows && ($filters['team'] ?? null)) {
             $all = ['team' => null] + $filters;
@@ -420,17 +338,11 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Chỉ tiêu của mọi đội trong phạm vi $filters (cùng kỳ với số liệu) - để xếp hạng trên toàn bộ đội.
-     */
     protected function rankTargets(array $filters): array
     {
         return $this->targetsFor($this->activeMonth, $filters);
     }
 
-    /**
-     * $people = dòng salesperson cùng kỳ (đếm số thành viên), $targets = chỉ tiêu cùng kỳ theo đội.
-     */
     protected function teamRows(array $filters, array $people, array $targets): array
     {
         $teams = $this->filterTeams($filters);
@@ -455,7 +367,6 @@ class SalesPerformance extends Component
             $rows[] = $row;
         }
 
-        // Có chỉ tiêu xếp trước, % đạt giảm dần; rồi doanh số
         usort($rows, fn ($a, $b) => [$b['attain']['revenue'] !== null, $b['attain']['revenue'] ?? 0, $b['revenue']]
             <=> [$a['attain']['revenue'] !== null, $a['attain']['revenue'] ?? 0, $a['revenue']]);
         foreach ($rows as $i => &$row) {
@@ -466,9 +377,6 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Việc cần xử lý: salesperson có ít nhất 1 việc, nhiều việc nhất trước.
-     */
     #[Computed]
     public function alertRows(): array
     {
@@ -478,18 +386,12 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Xu hướng 6 tháng tính đến tháng đang xem.
-     */
     #[Computed]
     public function trend(): array
     {
         return $this->trendRows($this->trailingMonths($this->activeMonth), $this->filterValues($this->activeMonth));
     }
 
-    /**
-     * TREND_MONTHS tháng liên tiếp kết thúc ở $month.
-     */
     protected function trailingMonths(string $month): array
     {
         $end = CarbonImmutable::parse($month.'-01');
@@ -501,9 +403,6 @@ class SalesPerformance extends Component
         return $months;
     }
 
-    /**
-     * Chỉ số từng tháng (Y-m liên tiếp) kèm tổng chỉ tiêu doanh số của các đội trong phạm vi $filters (đội / salesperson).
-     */
     protected function trendRows(array $months, array $filters): array
     {
         $data = $this->report()->aggregate($this->monthsFilter($months, $filters), 'month');
@@ -514,9 +413,6 @@ class SalesPerformance extends Component
         ], $months);
     }
 
-    /**
-     * $filters với khoảng ngày phủ các tháng (Y-m liên tiếp).
-     */
     protected function monthsFilter(array $months, array $filters): array
     {
         $end = CarbonImmutable::parse(end($months).'-01');
@@ -524,24 +420,17 @@ class SalesPerformance extends Component
         return ['from' => $months[0].'-01', 'to' => $end->endOfMonth()->toDateString()] + $filters;
     }
 
-    /**
-     * Dòng hiện trong bảng: $top dòng đầu (đã xếp hạng) hoặc tất cả.
-     */
     public function topRows(array $rows, string $top): array
     {
         return in_array($top, self::TOPS, true) && $top !== 'all' ? array_slice($rows, 0, (int) $top) : $rows;
     }
 
-    /**
-     * Biểu đồ: doanh số 6 tháng so với chỉ tiêu, tỷ lệ thắng 6 tháng theo đội.
-     */
     #[Computed]
     public function charts(): array
     {
         $label = fn ($m) => __('reports.sales_performance.metric.'.$m);
         $charts = [];
 
-        // Doanh số 6 tháng so với chỉ tiêu
         $trend = $this->trend;
         $months = array_map(fn ($r) => $this->monthLabel($r['month']), $trend);
         $revenueSeries = [['label' => $label('revenue'), 'color' => self::COLORS['revenue'], 'data' => array_column($trend, 'revenue')]];
@@ -551,7 +440,6 @@ class SalesPerformance extends Component
         $charts['trend_revenue'] = ['type' => 'bar', 'unit' => 'money', 'labels' => $months, 'series' => $revenueSeries,
             'drills' => [$this->monthDrills('revenue', array_column($trend, 'month'))]];
 
-        // Tỷ lệ thắng 6 tháng: mỗi đội 1 đường khi có 2..MAX_TREND_TEAMS đội (nhiều hơn thì rối) - còn lại 1 đường chung
         $teams = $this->employee === '' ? $this->scopeTeams : collect();
         if ($teams->count() > 1 && $teams->count() <= self::MAX_TREND_TEAMS) {
             $data = $this->report()->aggregate($this->monthsFilter(array_column($trend, 'month'), $this->filterValues($this->activeMonth)), 'team_month');
@@ -566,19 +454,57 @@ class SalesPerformance extends Component
         $charts['trend_close'] = ['type' => 'line', 'unit' => 'percent', 'labels' => $months, 'series' => $series,
             'drills' => $this->teamDrills('closed', array_column($trend, 'month'), count($series) > 1 ? $teams : collect())];
 
-        return $charts;
+        return $this->drillCharts($charts);
     }
 
-    /* ── Bấm số liệu → danh sách (trait ReportDrill) ──────────────────── */
-
-    // Cột bảng salesperson → loại danh sách
     public const COLUMN_DRILLS = [
         'revenue' => 'revenue', 'won' => 'won', 'close_rate' => 'closed', 'avg_order' => 'revenue', 'open' => 'open',
         'activity' => 'activity', 'reach_rate' => 'care', 'show_rate' => 'appts', 'avg_response_hours' => 'response',
     ];
 
-    // Ảnh chụp hiện tại: không theo kỳ
     public const CURRENT_DRILLS = ['open', 'uncontacted', 'flagged', ...SalesPerformanceReport::ALERTS];
+
+    protected array $drillEmployeeTeams = [];
+
+    protected function drillUrl(string $kind, array $params): ?string
+    {
+        $page = self::DRILL_PAGES[$kind] ?? null;
+        $f = $this->filterValues($this->activeMonth);
+        if ($page === null || ($f['branch'] ?? null) || $f['team'] === '__none__') {
+            return null;
+        }
+
+        $team = $this->drillText($params, 'team');
+        if ($team !== null && $f['team'] !== null && $team !== $f['team']) {
+            return null;
+        }
+        $team ??= $f['team'];
+
+        $ids = array_values(array_filter((array) ($params['employees'] ?? []), 'is_string'));
+        if (count($ids) > 1 || ($ids && $f['employee'] && $ids[0] !== $f['employee'])) {
+            return null;
+        }
+        $employee = $ids[0] ?? $f['employee'];
+        if ($employee !== null) {
+            $team = $this->drillEmployeeTeams[$employee] ??= (string) Employee::query()->whereKey($employee)->value('team_id');
+            if ($team === '' || ($f['team'] !== null && $team !== $f['team'])) {
+                return null;
+            }
+        }
+
+        $team = $this->canFilterTeam ? $team : null;
+
+        $month = $this->drillMonth($params);
+        [$from, $to] = $month ? $this->drillMonthRange($month) : [$f['from'], $f['to']];
+
+        return match ($kind) {
+            'open'     => $employee === null ? null : $this->listUrlFor($page, ['team' => $team, 'employee' => $employee]),
+            'revenue'  => $this->listUrlFor($page, ['created_from' => $from, 'created_to' => $to, 'team' => $team, 'employee' => $employee]),
+            'students' => $this->listUrlFor($page, ['from' => $from, 'to' => $to, 'team' => $team, 'employee' => $employee]),
+        };
+    }
+
+    public const DRILL_PAGES = ['open' => 'opportunities', 'revenue' => 'orders', 'students' => 'students'];
 
     protected function drillKinds(): array
     {
@@ -596,9 +522,6 @@ class SalesPerformance extends Component
             + array_fill_keys(self::CURRENT_DRILLS, $open);
     }
 
-    /**
-     * Tham số của số vừa bấm chỉ thu hẹp thêm (đội, nhân viên, tháng) trong phạm vi vai trò và bộ lọc của trang.
-     */
     protected function drillList(string $kind, array $params): array
     {
         $filters = $this->filterValues($this->activeMonth);
@@ -646,17 +569,11 @@ class SalesPerformance extends Component
         ]];
     }
 
-    /**
-     * Tham số danh sách cho 1 dãy biểu đồ theo tháng.
-     */
     protected function monthDrills(string $kind, array $months, ?string $team = null): array
     {
         return array_map(fn ($m) => ['kind' => $kind, 'month' => $m] + ($team === null ? [] : ['team' => $team]), $months);
     }
 
-    /**
-     * Biểu đồ theo tháng: mỗi đội 1 dãy, không tách đội thì 1 dãy chung.
-     */
     protected function teamDrills(string $kind, array $months, Collection $teams): array
     {
         return $teams->isEmpty()
@@ -664,21 +581,14 @@ class SalesPerformance extends Component
             : $teams->values()->map(fn ($t) => $this->monthDrills($kind, $months, $t->team_id))->all();
     }
 
-    /* ── Xuất Excel (popup chọn sheet / cột / xem trước - trait ReportExport) ── */
-
-    // Sheet: Sales Team · Salesperson; cột luôn có của từng sheet
     public const EXPORT_SHEETS = ['teams', 'employees'];
 
     public const EXPORT_LOCKED = ['teams' => 'team', 'employees' => 'employee'];
 
-    // Tiêu chí riêng của popup ('' = tất cả)
     public string $exportTeam = '';
 
     public string $exportEmployee = '';
 
-    /**
-     * Xuất Excel: Giám đốc, Sale Admin.
-     */
     #[Computed]
     public function canExport(): bool
     {
@@ -720,9 +630,6 @@ class SalesPerformance extends Component
         ];
     }
 
-    /**
-     * Salesperson chọn được trong popup: theo đội đã chọn.
-     */
     #[Computed]
     public function exportEmployeeOptions(): Collection
     {
@@ -755,9 +662,6 @@ class SalesPerformance extends Component
         ];
     }
 
-    /**
-     * Số liệu của kỳ: salesperson và đội (so với chỉ tiêu cộng dồn các tháng của kỳ).
-     */
     protected function exportData(array $period, array $filters, array $sheets): array
     {
         $f = ['from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()] + $filters;
@@ -786,17 +690,11 @@ class SalesPerformance extends Component
         return 'bao-cao-hieu-qua-sales';
     }
 
-    /**
-     * Năm chọn được trong popup: các năm có trong danh sách tháng đánh giá.
-     */
     public function exportYears(): array
     {
         return array_values(array_unique(array_map(fn ($m) => (int) substr($m, 0, 4), $this->months)));
     }
 
-    /**
-     * Sales Team: dòng tổng cộng (chỉ tiêu cộng các đội có chỉ tiêu) rồi từng đội theo hạng.
-     */
     protected function teamExportRows(array $teams): array
     {
         if (! $teams) {
@@ -839,9 +737,6 @@ class SalesPerformance extends Component
         return $rows;
     }
 
-    /**
-     * Salesperson nhóm theo đội (thứ tự đội theo hạng ở sheet Sales Team): dòng tổng cộng, dòng đội (I, II...) = cộng các thành viên.
-     */
     protected function employeeExportRows(array $people, array $teams): array
     {
         if (! $people) {
@@ -903,25 +798,16 @@ class SalesPerformance extends Component
         return $text;
     }
 
-    /* ── Hỗ trợ ───────────────────────────────────────────────────────── */
-
     public function activeSort(): string
     {
         return isset(self::SORTS[$this->sort]) ? $this->sort : 'revenue';
     }
 
-    /**
-     * Cột bảng salesperson (phẳng): [khoá => [chiều, loại]].
-     */
     public static function columns(): array
     {
         return array_merge(...array_values(self::COLUMN_GROUPS));
     }
 
-    /**
-     * Sắp và gán hạng: người có số liệu xếp trước theo chỉ số chọn (không có giá trị thì xuống cuối),
-     * hoà thì xét doanh số, rồi số Lead chốt. Người chưa có số liệu không có hạng.
-     */
     protected function rank(array &$rows, string $metric): void
     {
         $desc = self::SORTS[$metric] === 'desc';
@@ -950,10 +836,6 @@ class SalesPerformance extends Component
         unset($row);
     }
 
-    /**
-     * Gắn trạng thái so với trung bình đội cho từng ô: compare[col] = 'up' (tốt hơn) | 'down' (kém hơn) | null.
-     * Chỉ so khi đội có từ 2 người có số liệu.
-     */
     protected function compareWithTeam(array &$rows): void
     {
         $columns = self::columns();
@@ -990,10 +872,6 @@ class SalesPerformance extends Component
         unset($row);
     }
 
-    /**
-     * Các đội thuộc phạm vi của bộ lọc: lọc 1 salesperson hoặc không có đội ('__none__') → không có;
-     * lọc 1 đội → đội đó; không lọc → tất cả đội.
-     */
     protected function filterTeams(array $filters): Collection
     {
         return match (true) {
@@ -1003,9 +881,6 @@ class SalesPerformance extends Component
         };
     }
 
-    /**
-     * Salesperson của 1 đội (null = tất cả) - để hiện cả người chưa có số liệu.
-     */
     protected function salespeople(?string $team): Collection
     {
         return Employee::query()
@@ -1015,9 +890,6 @@ class SalesPerformance extends Component
             ->get(['employee_id', 'full_name', 'team_id', 'status']);
     }
 
-    /**
-     * Chỉ tiêu 1 tháng của các đội thuộc phạm vi bộ lọc (không áp dụng khi lọc 1 salesperson).
-     */
     protected function targetsFor(string $month, array $filters): array
     {
         $teams = $this->filterTeams($filters);
@@ -1025,9 +897,6 @@ class SalesPerformance extends Component
         return $teams->isEmpty() ? [] : $this->report()->targets($month, $teams->pluck('team_id')->all());
     }
 
-    /**
-     * Chỉ tiêu cộng dồn các tháng của 1 kỳ: [team_id => [chỉ số => tổng]].
-     */
     protected function targetsForMonths(array $months, array $filters): array
     {
         $sum = [];
@@ -1047,9 +916,6 @@ class SalesPerformance extends Component
         return app(SalesPerformanceReport::class);
     }
 
-    /**
-     * Bộ lọc của 1 tháng (giá trị không hợp lệ bị bỏ qua). Sale Leader không có đội → không thấy gì.
-     */
     protected function filterValues(string $month): array
     {
         $start = CarbonImmutable::parse($month.'-01');
@@ -1057,9 +923,6 @@ class SalesPerformance extends Component
         return $this->filterRange($start->toDateString(), $start->endOfMonth()->toDateString());
     }
 
-    /**
-     * Bộ lọc của 1 khoảng ngày (Y-m-d), cùng phạm vi đội / salesperson.
-     */
     protected function filterRange(string $from, string $to): array
     {
         return [

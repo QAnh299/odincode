@@ -1,6 +1,5 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
 
-/* ── Style dùng chung cho toàn bộ Odin CRM ────────────────────────── */
 
 :root {
     --odin-primary: #005e12;
@@ -12,7 +11,6 @@
     --font-inter: "Inter";
 }
 
-/* Link tham chiếu và nút chức năng: không gạch chân (Bootstrap mặc định gạch chân thẻ <a>) */
 a,
 a:hover,
 a:focus,
@@ -26,7 +24,6 @@ body {
     color: var(--odin-ink);
 }
 
-/* Nút đổi ngôn ngữ */
 .lang-btn {
     border: 1px solid var(--odin-border);
     background: #fff;
@@ -66,9 +63,6 @@ body {
     display: none !important;
 }
 
-/* Toàn site vuông góc, trừ:
-   - phần tử cần hình tròn để dùng được / dễ nhìn (spinner, radio, chấm trạng thái, ảnh đại diện, núm công tắc)
-   - popup, menu thả xuống, thông báo: bo góc nhẹ (khối ngay bên dưới) */
 *:not(.spinner-border, .spinner-grow, input[type="radio"], .dot, [class*="__dot"], [class*="__thumb"], [class*="avatar"],
     .modal-content, .ld-modal__dialog, .dropdown-menu, .alert, .toast,
     .ld-notice, .qt-notice, .od-notice, .pw-alert, .auth-alert, .pf-toast, .odin-back, .lang-btn) {
@@ -90,7 +84,6 @@ body {
     border-radius: 10px !important;
 }
 
-/* Nút Quay lại ở đầu trang chi tiết: dùng chung mọi trang */
 .odin-back {
     display: inline-flex;
     align-items: center;
@@ -140,14 +133,12 @@ body {
     }
 }
 
-/* Nội dung vuông bên trong không chườm ra ngoài góc bo */
 .modal-content,
 .ld-modal__dialog,
 .dropdown-menu {
     overflow: hidden;
 }
 
-/* Nhãn trạng thái: chỉ chấm + chữ theo màu trạng thái, không nền / viền */
 .vc-badge.vc-badge,
 .iv-badge.iv-badge,
 .od-badge.od-badge,
@@ -166,7 +157,6 @@ body {
     box-shadow: none !important;
 }
 
-/* Phân trang: dãy số + ô nhập số trang (resources/views/vendor/livewire/bootstrap.blade.php) */
 .pg-bar {
     display: flex;
     flex-wrap: wrap;

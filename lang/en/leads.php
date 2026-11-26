@@ -2,19 +2,16 @@
 
 declare(strict_types=1);
 
-// Lead list page (livewire/leads/index)
 return [
     'title'                  => 'Leads',
     'subtitle'               => 'Track newly added leads and their distribution to the sales teams',
     'subtitle_branch'        => 'Leads of :branch',
 
-    // Action buttons (Distribute not functional yet)
     'add'                    => 'Add lead',
     'import'                 => 'Import Excel',
     'close'                  => 'Close',
     'cancel'                 => 'Cancel',
 
-    // Field names - used by the Add lead popup, the Excel template headers and error messages
     'field' => [
         'full_name'      => 'Full name',
         'phone'          => 'Phone',
@@ -25,7 +22,6 @@ return [
         'branch_id'      => 'Branch code',
     ],
 
-    // Add lead popup
     'form' => [
         'title'              => 'Add a new lead',
         'required_hint'      => 'Fields marked with * are required.',
@@ -47,7 +43,6 @@ return [
         'branch_invalid'     => 'The branch code does not exist.',
     ],
 
-    // Returning-customer check when adding / importing leads (App\Services\LeadDuplicateService)
     'duplicate' => [
         'title' => [
             'ok'   => 'Returning customer',
@@ -79,7 +74,7 @@ return [
         'other_example'  => 'For example: siblings, a parent registering several children,...',
         'other_button'   => 'Create new lead',
         'recheck'       => 'Check again',
-        // Same person, lead waiting: update the existing lead
+
         'changes_title'  => 'Entered details differ from the existing lead',
         'compare_title'  => 'Compared with the entered details',
         'compare_same'   => 'The entered details match this lead.',
@@ -96,7 +91,6 @@ return [
         'update_none'    => 'Please choose at least one detail to update.',
     ],
 
-    // Import Excel popup + template + result file
     'excel' => [
         'title'          => 'Import leads from Excel',
         'step_template'  => 'Download the template',
@@ -161,7 +155,6 @@ return [
         ],
     ],
 
-    // Two-step import - preview table (LeadImportService::preview / commit)
     'import_review' => [
         'sub'             => 'Review each row and choose how to handle it before saving. Nothing has been saved yet.',
         'step_review'     => 'Review and confirm',
@@ -223,12 +216,10 @@ return [
     'distribute_team'        => 'Distribute leads to sales teams',
     'distribute_salesperson' => 'Distribute leads to salespeople',
 
-    // Bell notifications for Sale Leaders (App\Services\LeadAssignmentNotices)
     'notice' => [
         'title' => 'Sale Admin assigned :count leads to team :team - waiting for you to distribute',
     ],
 
-    // Lead distribution popup (Leads\Distribute)
     'distribute' => [
         'title_team'              => 'Distribute leads to sales teams',
         'title_person'            => 'Distribute leads to salespeople',
@@ -257,7 +248,7 @@ return [
         'days'                    => ':count days',
         'money_million'           => ':value M ₫',
         'money_billion'           => ':value B ₫',
-        // Below the minimum sample size → ranked last on this criterion
+
         'sample_short' => [
             'close_rate'     => 'not enough data (:count/:min closed)',
             'avg_close_days' => 'not enough data (:count/:min won)',
@@ -287,7 +278,7 @@ return [
         'nothing'                 => 'No leads were assigned.',
         'done_team'               => 'Leads distributed: :count leads assigned to :receivers teams.',
         'done_person'             => 'Leads distributed: :count leads assigned to :receivers salespeople.',
-        // Suggestions for returning customers / relatives sharing a phone number or email
+
         'suggest_title'           => 'Assignment suggestions',
         'suggest_returning'       => ':count returning customers',
         'suggest_family'          => ':count leads with relatives (shared phone / email) who already have an owner',
@@ -297,7 +288,6 @@ return [
         'suggest_row'             => ':count leads preferred (returning / relatives)',
     ],
 
-    // Assign one specific lead (Leads\AssignOne)
     'assign_one' => [
         'button'              => 'Assign lead',
         'title_team'          => 'Assign lead to a sales team',
@@ -335,7 +325,6 @@ return [
         'invalid_person'      => 'The selected salesperson is not in your team or no longer works here.',
     ],
 
-    // Statistics
     'stat' => [
         'all'          => 'Total leads',
         'Unassigned'   => 'Not sent to a team',
@@ -343,7 +332,6 @@ return [
         'Converted'    => 'Converted',
     ],
 
-    // Filters
     'filters'                => 'Lead filters',
     'search'                 => 'Search',
     'search_placeholder'     => 'Search',
@@ -357,7 +345,6 @@ return [
     'empty'                  => 'No leads found',
     'empty_sub'              => 'Try another keyword or remove some filters.',
 
-    // Table columns
     'code'                   => 'Lead code',
     'customer'               => 'Customer',
     'phone'                  => 'Phone',
@@ -373,7 +360,6 @@ return [
     'actions'                => 'Actions',
     'view'                   => 'View details',
 
-    // Lead list - stat cards, filters, columns, pagination
     'card' => [
         'all'          => 'Total leads',
         'Unassigned'   => 'Waiting',
@@ -399,7 +385,6 @@ return [
     'prev'                   => 'Previous',
     'next'                   => 'Next',
 
-    // Lead details
     'detail_title'           => 'Lead :code',
     'back'                   => 'Back to list',
     'info'                   => 'Contact information',

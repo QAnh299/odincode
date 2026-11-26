@@ -22,7 +22,6 @@
                 </header>
 
                 <div class="ld-modal__body ld-pick">
-                    {{-- Lead được phân --}}
                     <div class="ld-pick__lead">
                         <span class="ld-pick__avatar">{{ $initial($lead->full_name) }}</span>
                         <div class="ld-pick__lead-info">
@@ -41,7 +40,6 @@
                         </p>
                     @endif
 
-                    {{-- Người thân dùng chung SĐT / email: chọn để phân chung cùng đội / người với Lead này --}}
                     @if ($this->family->isNotEmpty())
                         @php
                             $selectable = $this->family->where('assignable', true);
@@ -72,7 +70,7 @@
                                     @php
                                         $selectable = $relative['assignable'];
                                         $on = $selectable && in_array($relative['lead_id'], $withFamily, true);
-                                        // Chọn được → cả dòng là nhãn của ô tick; không chọn được → chỉ hiển thị
+
                                         $tag = $selectable ? 'label' : 'div';
                                     @endphp
                                     <li wire:key="family-{{ $relative['lead_id'] }}">
@@ -96,8 +94,6 @@
                         </section>
                     @endif
 
-
-                    {{-- Đội / Salesperson nhận Lead --}}
                     <fieldset class="ld-pick__group">
                         <legend class="vc-field__label">{{ __('leads.assign_one.choose_label_'.$kind) }}<span class="ld-req">*</span></legend>
 

@@ -11,9 +11,6 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * POST /api/login - cấp token Sanctum.
-     */
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -47,9 +44,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/logout - thu hồi token hiện tại.
-     */
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
@@ -57,9 +51,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Đăng xuất thành công.']);
     }
 
-    /**
-     * GET /api/me - thông tin tài khoản đang đăng nhập.
-     */
     public function me(Request $request): JsonResponse
     {
         return response()->json(['user' => $this->profile($request->user()->load('employee.role'))]);

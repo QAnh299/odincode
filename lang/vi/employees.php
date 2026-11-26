@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang nhân viên: danh sách (livewire/employees/index), chi tiết (livewire/employees/show)
-// và đội kinh doanh (livewire/sales-teams/index)
 return [
     'title'              => 'Quản lý nhân viên',
     'subtitle'           => 'Tra cứu thông tin nhân viên, vai trò, đội kinh doanh và chi nhánh',
@@ -12,7 +10,6 @@ return [
     'subtitle_no_team'   => 'Bạn chưa thuộc đội kinh doanh nào',
     'detail_title'       => 'Nhân viên :name',
 
-    // Tra cứu
     'lookup'             => 'Tra cứu nhân viên',
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã, họ tên, email hoặc số điện thoại (VD: EMP004, Lan, 0901…)…',
@@ -37,7 +34,6 @@ return [
         'resigned' => 'Đã nghỉ việc',
     ],
 
-    // Cột bảng / trường
     'employee'           => 'Nhân viên',
     'role'               => 'Vai trò',
     'team'               => 'Đội',
@@ -50,7 +46,6 @@ return [
     'view'               => 'Xem chi tiết',
     'leader_tag'         => 'Trưởng nhóm',
 
-    // Chi tiết
     'back_to_list'       => 'Quay lại danh sách',
     'leader_of'          => 'Trưởng nhóm :team',
     'profile_title'      => 'Thông tin nhân viên',
@@ -78,8 +73,6 @@ return [
     'teammates'          => 'Thành viên cùng đội',
     'no_teammates'       => 'Chưa có thành viên nào khác trong đội.',
 
-
-    // Kết quả kinh doanh (chi tiết Sale Leader / Salesperson) – cùng cách tính với báo cáo Phân tích hiệu quả Sales
     'perf' => [
         'title'          => 'Kết quả kinh doanh',
         'title_team'     => 'Kết quả kinh doanh của đội :team',
@@ -105,7 +98,6 @@ return [
         'delta_note'     => 'Nhãn % bên cạnh mỗi chỉ số: so với tháng trước.',
     ],
 
-    // Đội kinh doanh
     'teams' => [
         'detail_title'       => 'Đội :name',
         'back_to_list'       => 'Danh sách đội kinh doanh',
@@ -122,7 +114,6 @@ return [
         'member_count'       => ':count thành viên',
         'view_members'       => 'Xem nhân viên',
 
-        // Popup Tạo đội / Chỉnh sửa đội / Gắn trưởng nhóm (Sale Admin)
         'form' => [
             'create'           => 'Tạo đội',
             'edit'             => 'Chỉnh sửa đội',
@@ -153,7 +144,6 @@ return [
             'saved_edit'       => 'Đã cập nhật đội :name.',
         ],
 
-        // Popup KPI đội theo tháng (Sale Admin, cột Thao tác)
         'kpi' => [
             'title'         => 'KPI đội',
             'sub'           => 'Đặt chỉ tiêu tháng cho đội.',

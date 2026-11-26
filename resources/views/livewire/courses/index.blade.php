@@ -4,26 +4,22 @@
 
     $counts = $this->counts;
 
-    // Thẻ thống kê: [key trạng thái, icon]
     $cards = [
         ['', 'layers'],
         [Course::STATE_ACTIVE, 'check-circle'],
         [Course::STATE_INACTIVE, 'pause'],
     ];
 
-    // Nút chuyển chế độ hiển thị: [giá trị, icon]
     $views = [['grid', 'grid'], ['table', 'list']];
 @endphp
 
 <div class="vc cs">
-    {{-- Dùng lại giao diện trang voucher (resources/css/voucher.css) + phần riêng resources/css/course.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/course.css'])
     @endassets
 
     <h1 class="visually-hidden">{{ __('courses.title') }}</h1>
 
-    {{-- ── Thống kê nhanh (bấm để lọc theo trạng thái) ─────────────── --}}
     <div class="vc-summary">
         @foreach ($cards as [$key, $icon])
             <button type="button" wire:click="filterState('{{ $key }}')"
@@ -38,7 +34,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tra cứu: tìm kiếm + trạng thái + sắp xếp ─────────────────── --}}
     <section class="vc-card cs-filters" aria-label="{{ __('courses.lookup') }}">
         <label class="vc-field cs-filters__search">
             <span class="vc-field__label">{{ __('courses.search') }}</span>
@@ -78,7 +73,6 @@
         </div>
     </section>
 
-    {{-- ── Thanh kết quả: số lượng + chuyển Thẻ / Bảng ──────────────── --}}
     <div class="cs-bar">
         <span class="cs-bar__count">
             {!! __('courses.result_count', ['count' => '<strong>'.$courses->total().'</strong>']) !!}
@@ -99,7 +93,6 @@
         </div>
     </div>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     @if ($courses->isEmpty())
         <section class="vc-card">
             <div class="vc-empty">
@@ -114,7 +107,6 @@
             </div>
         </section>
     @elseif ($view === 'grid')
-        {{-- Dạng thẻ: cả thẻ là một liên kết tới trang chi tiết --}}
         <div class="cs-grid" wire:loading.class="is-loading">
             @foreach ($courses as $course)
                 @php $courseState = $course->state(); @endphp
@@ -150,7 +142,6 @@
             @endforeach
         </div>
     @else
-        {{-- Dạng bảng: bấm cả dòng hoặc nút xem đều mở trang chi tiết --}}
         <section class="vc-card vc-results">
             <div class="vc-table-wrap" wire:loading.class="is-loading">
                 <table class="vc-table">

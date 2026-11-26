@@ -1,4 +1,3 @@
-{{-- Lịch việc cần làm (App\Livewire\TaskCalendar). wire:ignore.self giữ trạng thái mở của dropdown Bootstrap khi Livewire cập nhật lại --}}
 @php
     $selected = $day !== '' ? \Carbon\CarbonImmutable::parse($day) : null;
     $monthStart = \Carbon\CarbonImmutable::createFromFormat('!Y-m', $month);

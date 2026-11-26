@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Opportunity Kanban page (livewire/opportunities/kanban)
 return [
     'title'              => 'Opportunities',
     'subtitle'           => 'Opportunities you own, grouped by stage',
@@ -83,7 +82,6 @@ return [
         'todo'     => 'To do',
     ],
 
-    // Conversion date filter
     'filter_title'       => 'Filter by conversion date',
     'from'               => 'From',
     'to'                 => 'To',
@@ -103,7 +101,6 @@ return [
     'all_sources'        => 'All sources',
     'source'             => 'Source',
 
-    // Detail
     'detail_title'       => 'Opportunity :code',
     'back'               => 'Back to Kanban',
     'create_quotation'   => 'Create quotation',
@@ -230,7 +227,6 @@ return [
         'Completed' => 'Completed',
     ],
 
-    // Create new opportunity for returning customers (Opportunities\Create)
     'create' => [
         'title'              => 'New opportunity',
         'back'               => 'Back',
@@ -238,7 +234,6 @@ return [
         'btn_new_short'      => 'New',
         'btn_enroll'         => 'New enrolment',
 
-        // Customer search
         'search_label'       => 'Find customer',
         'search_placeholder' => 'Search by name, phone, email, student code or opportunity code…',
         'searching'          => 'Searching…',
@@ -246,13 +241,11 @@ return [
         'no_results_hint'    => 'For a brand-new customer, ask Sale Admin to create a lead.',
         'result_count'       => ':count customer(s) found',
 
-        // Result table columns
         'col_customer'       => 'Customer',
         'col_phone'          => 'Phone',
         'col_status'         => 'Status',
         'col_action'         => '',
 
-        // Status shown inline on each result row
         'status_ok'              => 'Can create opportunity',
         'status_warning'         => 'Can create — see notes',
         'status_blocked'         => 'Cannot create',
@@ -260,33 +253,27 @@ return [
         'status_other_in_progress' => 'Currently handled by :name',
         'status_in_queue'        => 'Awaiting assignment',
 
-        // Selected customer panel
         'selected_title'     => 'New opportunity for :name',
         'btn_select'         => 'Select',
         'btn_change'         => 'Choose another customer',
         'btn_confirm'        => 'Confirm new opportunity',
         'btn_confirming'     => 'Creating…',
 
-        // Block messages
         'blocked_own_in_progress'   => 'This customer already has an active opportunity you are handling (:opp).',
         'blocked_other_in_progress' => 'This customer is currently being handled by :name (phone: :phone).',
         'blocked_in_queue'          => 'This customer has been re-entered and is awaiting assignment. Please contact your team leader or Sale Admin.',
         'no_phone'                   => 'no phone on record',
 
-        // Link to active opportunity
         'view_active_opp'    => 'View active opportunity →',
 
-        // Non-blocking warnings
         'warning_studying'   => 'Customer is currently studying: :courses.',
         'warning_debt'       => 'Outstanding tuition balance:',
         'warning_debt_item'  => ':course — :amount remaining',
         'warning_note'       => 'You can still create a new opportunity.',
 
-        // Result
         'created'            => 'Opportunity :opp created for :name.',
         'error_no_permission' => 'You do not have permission to create an opportunity for this customer.',
 
-        // Update contact information
         'contact_title'      => 'Contact information',
         'source_url_hint'    => '(Facebook, Zalo...)',
         'contact_phone'      => 'Phone number',
@@ -294,7 +281,6 @@ return [
         'contact_source_url' => 'Source link',
         'contact_unchanged'  => 'Keep unchanged',
 
-        // Layout once a customer is selected
         'warning_studying_line' => 'Currently studying :courses.',
         'warning_debt_line'  => ':amount outstanding for :course. Remind the customer to pay.',
         'notes_title'        => 'Notes',

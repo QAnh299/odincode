@@ -1,5 +1,5 @@
 @php
-    // HĐ34: email hóa đơn đã thanh toán gửi khách (giống mẫu emails/temporary-password)
+
     $order = $invoice->order;
     $lead = $order?->quotation?->opportunity?->lead;
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang đổi mật khẩu (livewire/profile/change-password.blade.php)
 return [
     'title'               => 'Đổi mật khẩu',
     'subtitle'            => 'Nhập mật khẩu hiện tại để xác nhận, sau đó đặt mật khẩu mới',
@@ -25,7 +24,6 @@ return [
     'success'             => 'Đổi mật khẩu thành công',
     'success_sub'         => 'Lần đăng nhập sau, hãy dùng mật khẩu mới.',
 
-    // Lỗi
     'current_required'    => 'Vui lòng nhập mật khẩu hiện tại.',
     'current_wrong'       => 'Mật khẩu hiện tại không đúng.',
     'new_required'        => 'Vui lòng nhập mật khẩu mới.',

@@ -3,7 +3,6 @@
 
     $counts = $this->counts;
 
-    // Thẻ thống kê: [key tình trạng, icon]
     $cards = [
         ['', 'layers'],
         [Voucher::STATE_ACTIVE, 'check-circle'],
@@ -12,14 +11,12 @@
 @endphp
 
 <div class="vc">
-    {{-- CSS riêng của trang voucher: resources/css/voucher.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/voucher.css')
     @endassets
 
     <h1 class="visually-hidden">{{ __('vouchers.title') }}</h1>
 
-    {{-- ── Thống kê nhanh (bấm để lọc theo tình trạng) ─────────────── --}}
     <div class="vc-summary">
         @foreach ($cards as [$key, $icon])
             <button type="button" wire:click="filterState('{{ $key }}')"
@@ -34,7 +31,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tra cứu: tìm kiếm + bộ lọc ───────────────────────────────── --}}
     <section class="vc-card vc-filters" aria-label="{{ __('vouchers.lookup') }}">
         <div class="vc-search">
             <x-icon name="search" />
@@ -92,7 +88,6 @@
         </div>
     </section>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="vc-card vc-results">
         <div class="vc-results__bar">
             <span>

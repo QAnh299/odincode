@@ -11,14 +11,12 @@ class TeamSalesTarget extends Model
     use HasCompositeKey;
     use HasFactory;
 
-    // status (odin.sql): Active, Completed, Ended, Cancelled
     public const STATUS_ACTIVE = 'Active';
 
     public const STATUS_CANCELLED = 'Cancelled';
 
     protected $table = 'TeamSalesTargets';
 
-    // Khoá chính ghép (target_id, team_id, target_month)
     protected $primaryKey = 'target_id';
 
     protected array $compositeKey = ['target_id', 'team_id', 'target_month'];
@@ -27,7 +25,6 @@ class TeamSalesTarget extends Model
 
     protected $keyType = 'string';
 
-    // updated_at do MySQL tự cập nhật (ON UPDATE CURRENT_TIMESTAMP)
     public $timestamps = false;
 
     protected $fillable = [

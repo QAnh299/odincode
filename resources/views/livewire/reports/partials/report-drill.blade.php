@@ -1,8 +1,10 @@
-{{-- Popup danh sách bản ghi của số liệu vừa bấm (trait App\Livewire\Reports\Concerns\ReportDrill). Cần lead.css (.ld-modal) + report.css (.dr).
-     Mở bằng sự kiện "report-drill" (thẻ, ô bảng, biểu đồ); nội dung tải riêng, không render lại trang báo cáo. --}}
 <div wire:ignore x-data="{
         open: false, loading: false, html: '', params: {}, pages: 1, request: 0,
         show(params) {
+            if (params.url) {
+                window.location.assign(params.url);
+                return;
+            }
             this.params = params;
             this.pages = 1;
             this.html = '';

@@ -14,17 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use RuntimeException;
 
-/**
- * Tạo cơ hội mới cho khách cũ quay lại đăng ký thêm khóa.
- *
- * Luồng:
- *   1. candidates()  – tìm danh sách khách trong phạm vi salesperson (gộp theo khách).
- *   2. check()       – phân loại tình trạng khách: chặn / cảnh báo / được tạo.
- *   3. create()      – tạo cơ hội trong transaction có khóa dòng, kiểm tra lại sau khi khóa.
- *
- * Không tạo Lead mới. Không phá luồng phân Lead của Sale Admin.
- * Dùng lại LeadDuplicateService::stateOf() để phân loại tình trạng, không viết logic trùng.
- */
 class OpportunityCreateService
 {
     public function __construct(
@@ -33,26 +22,15 @@ class OpportunityCreateService
     ) {
     }
 
-    // ── Tìm khách ─────────────────────────────────────────────────────
-
-    /**
-     * Tìm khách trong phạm vi salesperson: học viên của mình + cơ hội Lost/Archived của mình (chưa có học viên).
-     * Gộp theo khách (Lead), trả về Collection của Lead kèm thông tin hiển thị.
-     * Mỗi dòng là một khách duy nhất — dù khách vừa có học viên vừa có cơ hội cũ cũng chỉ hiện một dòng.
-     *
-     * @return Collection<int, Lead>
-     */
     public function candidates(Employee $salesperson, string $search = ''): Collection
     {
         $search = trim($search);
 
-        // Lead ID của học viên salesperson phụ trách
         $viaStudent = Opportunity::query()
             ->where('employee_id', $salesperson->employee_id)
             ->whereHas('student')
             ->select('lead_id');
 
-        // Lead ID của cơ hội Lost/Archived salesperson phụ trách (chưa có học viên)
         $viaOldOpp = Opportunity::query()
             ->where('employee_id', $salesperson->employee_id)
             ->whereIn('status', [Opportunity::STATUS_LOST, Opportunity::STATUS_ARCHIVED])
@@ -79,9 +57,6 @@ class OpportunityCreateService
         return $query->orderBy('full_name')->get();
     }
 
-    /**
-     * Danh sách khách phân trang (không lọc tìm kiếm) — dùng cho màn hình mặc định trước khi tìm.
-     */
     public function candidatesPaginated(Employee $salesperson, int $perPage = 10): LengthAwarePaginator
     {
         $viaStudent = Opportunity::query()
@@ -102,10 +77,6 @@ class OpportunityCreateService
             ->paginate($perPage, pageName: 'defaultPage');
     }
 
-    /**
-     * Tìm một khách theo Lead ID, kiểm tra salesperson có quyền với khách này không.
-     * Trả về Lead (kèm chi tiết) hoặc null nếu không có quyền.
-     */
     public function findForSalesperson(string $leadId, Employee $salesperson): ?Lead
     {
         $lead = Lead::query()
@@ -117,7 +88,6 @@ class OpportunityCreateService
             return null;
         }
 
-        // Kiểm tra salesperson đã từng có ít nhất một cơ hội với khách này
         if (! $lead->opportunities->contains('employee_id', $salesperson->employee_id)) {
             return null;
         }
@@ -125,29 +95,8 @@ class OpportunityCreateService
         return $lead;
     }
 
-    // ── Kiểm tra tình trạng ───────────────────────────────────────────
-
-    /**
-     * Phân loại tình trạng của khách:
-     * [
-     *   'state'    => 'blocked' | 'warning' | 'ok',
-     *   'blocks'   => [ ['type' => ..., ...] ],   // chặn tạo
-     *   'warnings' => [ ['type' => ..., ...] ],   // cảnh báo không chặn
-     * ]
-     *
-     * Loại block:
-     *   'own_in_progress'   – cơ hội đang tư vấn của chính mình (kèm opportunity_id, url)
-     *   'other_in_progress' – cơ hội đang tư vấn của người khác (kèm owner_name, owner_phone)
-     *   'in_queue'          – khách đang chờ phân
-     *
-     * Loại warning:
-     *   'studying'  – học viên đang học (kèm course names)
-     *   'debt'      – còn nợ học phí (kèm danh sách ['course' => ..., 'remaining' => ...])
-     */
     public function check(Lead $lead, Employee $salesperson): array
     {
-        // Caller chịu trách nhiệm load quan hệ cần thiết (findForSalesperson và candidates đã làm điều này).
-        // Nếu gọi trực tiếp với Lead chưa load, các quan hệ sẽ lazy-load khi cần.
         $state = $this->duplicate->stateOf($lead);
 
         $blocks   = [];
@@ -173,7 +122,6 @@ class OpportunityCreateService
             }
         }
 
-        // Cảnh báo: học viên đang học
         $studyingCourses = $this->studyingCourses($lead);
         if ($studyingCourses->isNotEmpty()) {
             $warnings[] = [
@@ -182,7 +130,6 @@ class OpportunityCreateService
             ];
         }
 
-        // Cảnh báo: đơn trả góp còn nợ (chỉ tính đơn đã đóng ít nhất một lần, paid_amount > 0)
         $debts = $this->outstandingDebts($lead);
         if ($debts->isNotEmpty()) {
             $warnings[] = [
@@ -198,33 +145,19 @@ class OpportunityCreateService
         ];
     }
 
-    // ── Tạo cơ hội ────────────────────────────────────────────────────
-
-    /**
-     * Tạo cơ hội mới cho khách trong một transaction có khóa dòng Lead.
-     * Kiểm tra lại tình trạng sau khi khóa để chống trùng đồng thời.
-     * Cập nhật thông tin liên hệ (phone/email/source_url) nếu có thay đổi, cùng transaction.
-     * Không tạo Lead mới, Lead giữ nguyên trạng thái Converted.
-     *
-     * @param  array{phone?: string, email?: string, source_url?: string}  $contact  Dữ liệu liên hệ mới
-     * @throws RuntimeException  Khi tình trạng khách đã thay đổi (bị chặn), salesperson không có quyền, hoặc dữ liệu liên hệ vi phạm luật Lead.
-     */
     public function create(Lead $lead, Employee $salesperson, array $contact = []): Opportunity
     {
         return DB::transaction(function () use ($lead, $salesperson, $contact) {
-            // Khóa dòng Lead rồi đọc lại cùng cơ hội để tránh trùng đồng thời
             $locked = Lead::query()
                 ->whereKey($lead->getKey())
                 ->lockForUpdate()
                 ->firstOrFail()
                 ->load($this->leadDetails());
 
-            // Kiểm tra quyền sau khi khóa: salesperson phải từng có cơ hội với khách này
             if (! $locked->opportunities->contains('employee_id', $salesperson->employee_id)) {
                 throw new RuntimeException(__('opportunities.create.error_no_permission'));
             }
 
-            // Kiểm tra lại tình trạng sau khi khóa
             $state = $this->duplicate->stateOf($locked);
 
             if ($state === LeadDuplicateService::IN_QUEUE) {
@@ -247,13 +180,11 @@ class OpportunityCreateService
                 ]));
             }
 
-            // Cập nhật thông tin liên hệ nếu có thay đổi (cùng transaction với tạo cơ hội)
             $contactUpdate = $this->resolveContactUpdate($locked, $contact);
             if ($contactUpdate !== []) {
                 $locked->update($contactUpdate);
             }
 
-            // Tạo cơ hội mới — giống luồng assignToSalespersons: insert trực tiếp, không ghi StageHistory ban đầu
             [$id] = Opportunity::nextIds(1);
 
             Opportunity::insert([
@@ -269,18 +200,8 @@ class OpportunityCreateService
         });
     }
 
-    /**
-     * Xác định các trường liên hệ cần cập nhật trên Lead.
-     * Chỉ cập nhật phone / email / source_url (LeadDuplicateService::CONTACT_FIELDS), đã chuẩn hoá.
-     * Kiểm tra bản ghi sau khi merge theo luật hiện có của Lead (LeadImportService::rules()).
-     *
-     * @param  array{phone?: string, email?: string, source_url?: string}  $contact
-     * @return array<string, string|null>  Các trường thực sự thay đổi (để update), rỗng nếu không có gì đổi.
-     * @throws RuntimeException  Nếu dữ liệu mới vi phạm luật Lead (VD: kênh Facebook nhưng xóa source_url).
-     */
     public function resolveContactUpdate(Lead $lead, array $contact): array
     {
-        // Khách cũ chỉ sửa thông tin liên hệ (LeadDuplicateService::editableFields - họ tên gắn với hoá đơn cũ)
         $update = [];
 
         foreach (LeadDuplicateService::CONTACT_FIELDS as $field) {
@@ -288,7 +209,6 @@ class OpportunityCreateService
                 continue;
             }
 
-            // Chuẩn hoá như khi thêm / sửa Lead: "0912 345 678" → "0912345678", email chữ thường
             $new = trim((string) $contact[$field]);
             $new = match (true) {
                 $new === ''        => null,
@@ -298,7 +218,6 @@ class OpportunityCreateService
             };
             $old = $lead->$field;
 
-            // Bỏ qua nếu giá trị không thay đổi (dùng sameValue để so sánh email/URL đúng chuẩn)
             if ($old === $new || ($new !== null && $this->duplicate->sameValue($field, $old, $new))) {
                 continue;
             }
@@ -310,7 +229,6 @@ class OpportunityCreateService
             return [];
         }
 
-        // Kiểm tra bản ghi sau khi merge không vi phạm luật Lead
         $merged = array_merge(
             $lead->only(array_keys(array_flip(LeadImportService::COLUMNS))),
             $update,
@@ -330,13 +248,6 @@ class OpportunityCreateService
         return $update;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Tên khóa học của các học viên đang học (Student::Studying) của khách.
-     *
-     * @return Collection<int, string>
-     */
     public function studyingCourses(Lead $lead): Collection
     {
         if ($lead->student?->status !== Student::STATUS_STUDYING) {
@@ -352,12 +263,6 @@ class OpportunityCreateService
             ->values();
     }
 
-    /**
-     * Các khoản nợ còn lại theo khóa học: đơn đã đóng tiền ít nhất một lần (paid_amount > 0),
-     * còn remaining_amount > 0. Trả về Collection của ['course' => string, 'remaining' => float].
-     *
-     * @return Collection<int, array{course: string, remaining: float}>
-     */
     public function outstandingDebts(Lead $lead): Collection
     {
         $debts = collect();
@@ -372,7 +277,6 @@ class OpportunityCreateService
                     continue;
                 }
 
-                // Tên khóa học từ chi tiết báo giá
                 $courses = $quotation->details
                     ->map(fn ($d) => $d->course?->course_name ?? $d->course_id)
                     ->filter()
@@ -388,9 +292,6 @@ class OpportunityCreateService
         return $debts;
     }
 
-    /**
-     * Quan hệ cần load cho Lead để xét tình trạng và cảnh báo.
-     */
     protected function leadDetails(): array
     {
         return [

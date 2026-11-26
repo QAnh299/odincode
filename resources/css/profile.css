@@ -1,8 +1,3 @@
-/* ── Trang thông tin tài khoản (livewire/profile/show.blade.php) ──────
-   Chỉ nạp ở trang này qua @assets. Mọi class dùng tiền tố .pf- để không
-   đụng với menu dọc (sidebar.css) và menu ngang (topbar.css).
-   Màu chính lấy theo --odin-primary nên đổi theo bộ chọn màu giao diện. */
-
 .pf {
     --pf-primary: var(--odin-primary, #005e12);
     --pf-on-primary: var(--odin-on-primary, #fff);
@@ -21,7 +16,6 @@
     max-width: 1200px;
     margin: 0 auto;
     color: var(--pf-ink);
-    /* backwards: hết hiệu ứng thì bỏ transform, để popup (position: fixed) phủ cả trang thay vì chỉ trong khung */
     animation: pf-in 0.35s ease-out backwards;
 }
 
@@ -41,7 +35,6 @@
     height: 13px;
 }
 
-/* ── Thẻ tổng quan ─────────────────────────────────────────────────── */
 
 .pf-hero {
     position: relative;
@@ -127,7 +120,6 @@
     padding-bottom: 0.25rem;
 }
 
-/* Số liệu nhanh */
 .pf-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -174,7 +166,6 @@
     text-overflow: ellipsis;
 }
 
-/* ── Chip / nút ────────────────────────────────────────────────────── */
 
 .pf-chip {
     display: inline-flex;
@@ -279,7 +270,6 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--pf-primary) 35%, transparent);
 }
 
-/* ── Thông báo đã lưu ──────────────────────────────────────────────── */
 
 .pf-toast {
     display: flex;
@@ -310,7 +300,6 @@
     height: 15px;
 }
 
-/* ── Lưới nội dung ─────────────────────────────────────────────────── */
 
 .pf-grid {
     display: grid;
@@ -378,7 +367,6 @@
     border-top: 1px dashed var(--pf-border);
 }
 
-/* Ô thông tin */
 .pf-fields {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -434,7 +422,6 @@
     overflow-wrap: anywhere;
 }
 
-/* Ô nhập khi sửa */
 .pf-input {
     display: flex;
     flex-direction: column;
@@ -481,7 +468,6 @@
     color: var(--pf-danger);
 }
 
-/* Trưởng nhóm */
 .pf-leader {
     display: flex;
     align-items: center;
@@ -541,7 +527,6 @@
     color: var(--pf-muted);
 }
 
-/* Danh sách dòng (tài khoản) */
 .pf-rows {
     margin: 0;
     padding: 0;
@@ -579,7 +564,6 @@
     font-size: 0.85rem;
 }
 
-/* Bảo mật */
 .pf-security {
     display: flex;
     flex-wrap: wrap;
@@ -635,7 +619,6 @@
     transform: translateX(3px);
 }
 
-/* ── Responsive ────────────────────────────────────────────────────── */
 
 @media (max-width: 1199.98px) {
     .pf-grid {

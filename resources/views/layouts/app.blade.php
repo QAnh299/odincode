@@ -15,7 +15,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    {{-- Áp màu giao diện + trạng thái thu gọn menu trước khi vẽ trang để không bị nháy --}}
     <script>
         try {
             var root = document.documentElement;
@@ -38,11 +37,9 @@
 
 <body>
     <div class="odin-shell">
-        {{-- Menu dọc bên trái theo vai trò: resources/views/components/sidebar.blade.php --}}
         <x-sidebar />
 
         <div class="odin-main">
-            {{-- Menu ngang phía trên: resources/views/components/topbar.blade.php --}}
             <x-topbar :title="$title ?? null" />
 
             <main class="container-fluid py-4 px-4">

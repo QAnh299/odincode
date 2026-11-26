@@ -13,7 +13,6 @@ class QuotationDetail extends Model
 
     protected $table = 'QuotationDetails';
 
-    // Khoá chính ghép (quotation_id, course_id)
     protected $primaryKey = 'quotation_id';
 
     protected array $compositeKey = ['quotation_id', 'course_id'];

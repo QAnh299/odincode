@@ -1,7 +1,6 @@
 @php
     $counts = $this->counts;
 
-    // Thẻ thống kê (bấm để lọc theo trạng thái): [khoá đếm, giá trị lọc, tone]
     $cards = [
         ['total', '', 'total'],
         ['Scheduled', 'Scheduled', 'scheduled'],
@@ -9,7 +8,6 @@
         ['Failed', 'Failed', 'failed'],
     ];
 
-    // Bộ lọc + trang đang xem, gửi sang chi tiết cơ hội để nút Quay lại / breadcrumb "Lịch hẹn" về đúng danh sách
     $listQuery = http_build_query(array_filter([
         'q'      => $search,
         'status' => $status,
@@ -31,14 +29,12 @@
 @endphp
 
 <div class="vc ap">
-    {{-- voucher.css (bảng, thẻ), lead.css (popup, thông báo), opportunity.css (màu loại / trạng thái lịch hẹn) + appointment.css --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/opportunity.css', 'resources/css/appointment.css'])
     @endassets
 
     <h1 class="visually-hidden">{{ __('appointments.title') }}</h1>
 
-    {{-- ── Thống kê (bấm để lọc trạng thái) ─────────────────────────── --}}
     <div class="ap-stats">
         @foreach ($cards as [$key, $filter, $tone])
             <button type="button" wire:click="setStatus('{{ $filter }}')"
@@ -50,7 +46,6 @@
         @endforeach
     </div>
 
-    {{-- ── Tìm kiếm + lọc ──────────────────────────────────────────── --}}
     <section class="ap-toolbar" aria-label="{{ __('appointments.filters') }}">
         <label class="ap-search">
             <x-icon name="search" />
@@ -79,7 +74,6 @@
         @endif
     </section>
 
-    {{-- ── Thông báo sau thao tác ─────────────────────────────────── --}}
     @if ($notice)
         <div class="ld-notice ld-notice--{{ $notice['tone'] }} ap-notice" role="status" wire:key="notice-{{ md5($notice['text']) }}">
             <x-icon :name="$notice['tone'] === 'danger' ? 'alert' : 'check-circle'" />
@@ -90,7 +84,6 @@
         </div>
     @endif
 
-    {{-- ── Danh sách ────────────────────────────────────────────────── --}}
     <section class="vc-card ap-list">
         <span class="ap-loading" wire:loading.delay wire:target="search, status, period, setStatus, resetFilters, gotoPage, nextPage, previousPage">
             <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{ __('appointments.loading') }}
@@ -150,7 +143,6 @@
                                 <td data-label="{{ __('appointments.actions') }}" class="ap-table__actions" onclick="event.stopPropagation()">
                                     <div class="ap-actions">
                                         @if ($apt->can_mark || $apt->can_change)
-                                            {{-- Đổi lịch --}}
                                             @if ($apt->can_change)
                                                 <button type="button" class="ap-act ap-act--reschedule" wire:click="openDialog('reschedule', {!! $args !!})"
                                                     title="{{ __('appointments.action.reschedule') }}" aria-label="{{ __('appointments.action.reschedule') }} {{ $apt->appointment_id }}">
@@ -160,7 +152,6 @@
                                                 <span class="ap-act ap-act--blank" aria-hidden="true"></span>
                                             @endif
 
-                                            {{-- Cập nhật kết quả: từ giờ hẹn trở đi --}}
                                             <button type="button" class="ap-act ap-act--result" wire:click="openDialog('result', {!! $args !!})"
                                                 @disabled(! $apt->can_mark)
                                                 title="{{ $apt->can_mark ? __('appointments.action.result') : __('appointments.action.wait') }}"
@@ -168,7 +159,6 @@
                                                 <x-icon name="check" />
                                             </button>
 
-                                            {{-- Hủy lịch --}}
                                             @if ($apt->can_change)
                                                 <button type="button" class="ap-act ap-act--cancel" wire:click="openDialog('cancel', {!! $args !!})"
                                                     title="{{ __('appointments.action.cancel') }}" aria-label="{{ __('appointments.action.cancel') }} {{ $apt->appointment_id }}">
@@ -219,7 +209,6 @@
         @endif
     </section>
 
-    {{-- ── Popup thao tác: cập nhật kết quả / đổi lịch / hủy lịch ─────── --}}
     @if ($dialog && ($row = $this->target))
         @php
             $lead = $row->opportunity?->lead;
@@ -245,7 +234,6 @@
                 </header>
 
                 <div class="ld-modal__body ap-dialog__body">
-                    {{-- Tóm tắt lịch hẹn --}}
                     <dl class="ap-brief">
                         <div>
                             <dt>{{ __('appointments.customer') }}</dt>

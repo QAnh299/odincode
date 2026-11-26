@@ -8,24 +8,12 @@ use App\Models\Role;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/**
- * Thông báo hóa đơn ở chuông trên topbar, suy ra từ dữ liệu (odin.sql không có bảng thông báo):
- *   - Kế toán (chỉ hóa đơn thuộc cơ sở mình phụ trách - Employee::coveredBranchIds): hóa đơn TIỀN MẶT đang Chờ thanh toán = hàng đợi cần đối chiếu và duyệt (HĐ30 – HĐ32);
- *     và hóa đơn vừa thanh toán thành công (HĐ33: "thông báo SP và kế toán").
- *   - Salesperson: hóa đơn mình lập vừa thanh toán thành công (chuyển khoản do hệ thống xác nhận / tiền mặt do kế toán duyệt);
- *     hóa đơn mình lập đã Quá hạn (liên hệ khách, gia hạn để mở lại).
- * "Vừa thanh toán" = ngày thanh toán từ đầu hôm qua tới nay (RECENT_DAYS); hóa đơn chuyển khoản không cần kế toán duyệt.
- */
 class InvoiceNotices
 {
     public const RECENT_DAYS = 1;
 
     public const LIMIT = 10;
 
-    /**
-     * @return Collection<int, array{title: string, time: string, url: string, at: Carbon, kind: string}>
-     *   kind: cash (tiền mặt chờ duyệt) | transfer (chuyển khoản lệch / quá hạn) | overdue (quá hạn thanh toán) | paid (vừa thanh toán)
-     */
     public static function for(?Employee $employee): Collection
     {
         return match ($employee?->role_name) {
@@ -37,9 +25,6 @@ class InvoiceNotices
         };
     }
 
-    /**
-     * Số hóa đơn tiền mặt đang chờ kế toán duyệt (dùng cho dòng mô tả của chuông).
-     */
     public static function cashQueueCount(?Employee $accountant = null): int
     {
         return Invoice::query()
@@ -49,9 +34,6 @@ class InvoiceNotices
             ->count();
     }
 
-    /**
-     * HĐ30: hóa đơn tiền mặt Chờ thanh toán, cũ nhất trước (kế toán xử lý theo thứ tự gửi).
-     */
     private static function cashQueue(Employee $accountant): Collection
     {
         return Invoice::query()
@@ -74,15 +56,12 @@ class InvoiceNotices
                     'by'   => $invoice->createdBy?->full_name ?? '-',
                 ]),
                 'url'   => route('accountant.invoices.show', $invoice),
-                // Hàng đợi xếp lên đầu chuông
+
                 'at'    => Carbon::create(1970),
                 'kind'  => 'cash',
             ]);
     }
 
-    /**
-     * Chuyển khoản lệch số tiền chưa được xác nhận (TransferAlerts). $creatorId = null → tất cả (kế toán); có giá trị → hóa đơn SP đó lập.
-     */
     private static function transferAlerts(?string $creatorId, string $role, ?Employee $accountant = null): Collection
     {
         $alerts = TransferAlerts::all();
@@ -101,8 +80,7 @@ class InvoiceNotices
             ->get()
             ->map(function (Invoice $invoice) use ($prefix) {
                 $alert = TransferAlerts::find($invoice->invoice_id);
-                // Ba tình huống (giống khung cảnh báo ở trang hóa đơn): chuyển vào hóa đơn đang Quá hạn;
-                // chuyển khi quá hạn và SP đã gia hạn (chờ kế toán xác nhận); chuyển lệch số tiền
+
                 $case = match (true) {
                     $invoice->status === Invoice::STATUS_OVERDUE => 'transfer_overdue',
                     $alert['overdue']                            => 'transfer_reopened',
@@ -116,10 +94,10 @@ class InvoiceNotices
                         'received' => self::money($alert['amount']),
                         'amount'   => self::money($invoice->payment_amount),
                     ]),
-                    // Kế toán: kiểm tra và xác nhận; Salesperson: theo dõi, nhắc khách nếu chuyển thiếu
+
                     'time'  => __('invoices.notice.'.$case.'_time'.($prefix === 'accountant' ? '' : '_sp'), ['time' => $alert['at']->format('d/m H:i')]),
                     'url'   => route($prefix.'.invoices.show', $invoice),
-                    // Lỗi cần xử lý xếp lên đầu chuông
+
                     'at'    => Carbon::create(1970),
                     'kind'  => 'transfer',
                 ];
@@ -127,9 +105,6 @@ class InvoiceNotices
             ->values();
     }
 
-    /**
-     * Hóa đơn Salesperson lập đã Quá hạn (lệnh invoices:mark-overdue): nhắc liên hệ khách và gia hạn để mở lại.
-     */
     private static function overdue(string $creatorId): Collection
     {
         return Invoice::query()
@@ -152,9 +127,6 @@ class InvoiceNotices
             ]);
     }
 
-    /**
-     * HĐ33: hóa đơn vừa thanh toán thành công. $creatorId = null → tất cả (kế toán); có giá trị → hóa đơn SP đó lập.
-     */
     private static function recentlyPaid(?string $creatorId, string $role, ?Employee $accountant = null): Collection
     {
         $prefix = $role === Role::ACCOUNTANT ? 'accountant' : 'salesperson';

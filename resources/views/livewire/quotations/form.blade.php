@@ -15,7 +15,6 @@
         @vite('resources/css/quotation.css')
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="qt-crumb" aria-label="breadcrumb">
         <a href="{{ $backUrl }}" class="odin-back">
             <x-icon name="arrow-left" />{{ $isEdit ? __('quotations.form.back_quotation') : __('quotations.form.back_opportunity') }}
@@ -35,7 +34,6 @@
     </header>
 
     @if ($blocked)
-        {{-- HĐ2 không đạt: thông báo lý do, kết thúc --}}
         <section class="qt-card qt-panel-card qt-form-blocked" role="alert">
             <span class="qt-empty__icon"><x-icon name="alert" /></span>
             <p class="qt-empty__title">{{ __('quotations.form.blocked_title') }}</p>
@@ -45,13 +43,11 @@
     @else
         <form wire:submit="save" class="qt-detail-grid" novalidate>
             <div class="qt-detail-main">
-                {{-- ── Khóa học (HĐ3): chọn khóa đang kích hoạt + số lượng; đơn giá và VAT lấy từ khóa học ── --}}
                 <section class="qt-card">
                     <div class="qt-section-head">
                         <h2 class="qt-section-title">{{ __('quotations.form.courses') }}</h2>
                     </div>
 
-                    {{-- Chọn là thêm ngay (updatedPickCourse); ô chọn trở về trống để chọn tiếp khóa khác --}}
                     <div class="qt-form-pick">
                         <select wire:model.live="pickCourse" class="qt-control" aria-label="{{ __('quotations.form.pick_course') }}"
                             @disabled($this->availableCourses->isEmpty())>
@@ -128,7 +124,6 @@
                         <p class="qt-field__error qt-form-error">{{ $message }}</p>
                     @enderror
 
-                    {{-- Tạm tính − voucher = tổng (tổng không lưu trong CSDL, luôn tính ra) --}}
                     @php $totals = $this->totals; @endphp
                     <dl class="qt-totals">
                         <div class="qt-totals__row">
@@ -148,7 +143,6 @@
                     </dl>
                 </section>
 
-                {{-- ── Thông tin báo giá: hạn, voucher, ghi chú ── --}}
                 <section class="qt-card qt-panel-card">
                     <h2 class="qt-section-title">{{ __('quotations.detail.general') }}</h2>
                     <div class="qt-form-fields">
@@ -199,7 +193,6 @@
                 </div>
             </div>
 
-            {{-- ── Cột phải: khách hàng + cơ hội (chỉ đọc) ── --}}
             <aside class="qt-detail-side">
                 <section class="qt-card qt-panel-card">
                     <h2 class="qt-section-title">{{ __('quotations.detail.customer') }}</h2>
@@ -211,7 +204,6 @@
                         @endunless
                     </dl>
                     @if ($this->needsEmail())
-                        {{-- Hồ sơ khách thiếu email: bổ sung ngay khi lập báo giá --}}
                         <label class="qt-field">
                             <span class="qt-field__label">{{ __('quotations.form.customer_email') }}</span>
                             <input type="email" wire:model="customerEmail" maxlength="254" @class(['qt-control', 'is-invalid' => $errors->has('customerEmail')])>

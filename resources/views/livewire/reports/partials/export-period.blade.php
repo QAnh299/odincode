@@ -1,4 +1,3 @@
-{{-- Popup chọn thời gian xuất báo cáo (App\Livewire\Reports\Concerns\ExportPeriod). Cần lead.css (.ld-modal). --}}
 @php
     $P = fn ($key, $replace = []) => __('reports.export_period.'.$key, $replace);
 @endphp

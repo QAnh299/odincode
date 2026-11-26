@@ -24,17 +24,6 @@ use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use RuntimeException;
 
-/**
- * Danh sách Lead + bộ lọc + thống kê theo bộ lọc.
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader.
- *
- * Quyền theo vai trò:
- *   - Giám đốc: chỉ xem, tất cả chi nhánh (lọc được theo chi nhánh).
- *   - Sale Admin: tất cả chi nhánh; có nút Thêm, Import Excel, Phân chia Lead cho Sale Team.
- *   - Sale Leader: chỉ Lead thuộc chi nhánh của mình; có nút Phân chia Lead cho Salesperson.
- * Thêm Lead (popup), Import Excel (tải file mẫu, tải lên, trả file kết quả);
- * Phân chia Lead là popup riêng (Leads\Distribute), xong thì báo về qua sự kiện 'leads-distributed'.
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -43,25 +32,17 @@ class Index extends Component
 
     public const PER_PAGE = 10;
 
-    // Cache thẻ thống kê (giây): [còn mới, tối đa] - sau mốc đầu vẫn trả số cũ và tính lại ở nền (Cache::flexible),
-    // để khi hết hạn không có nhiều yêu cầu cùng chạy lại các câu đếm toàn bảng
     public const STATS_TTL = [30, 120];
 
-    // Tiến độ phân chia (lọc từ thẻ thống kê, không phải trạng thái Lead):
-    // chưa phân cho đội / đội đã nhận, chờ phân cho Salesperson
     public const UNASSIGNED = 'Unassigned';
 
     public const PENDING_SALESPERSON = 'PendingSales';
 
-    // Đã phân: Sale Admin - đã giao cho đội (không còn chờ phân cho đội); Sale Leader - đã giao cho Salesperson
     public const ASSIGNED = 'Assigned';
 
-    // Khách cũ quay lại: chờ phân cho đội nhưng từng có cơ hội đã kết thúc (Lead::scopeReturning)
     public const RETURNING = 'Returning';
 
     public const ASSIGN_FILTERS = [self::UNASSIGNED, self::PENDING_SALESPERSON, self::ASSIGNED, self::RETURNING];
-
-    // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -69,7 +50,6 @@ class Index extends Component
     #[Url(except: '')]
     public string $status = '';
 
-    // Tiến độ phân chia: '' | ASSIGN_FILTERS
     #[Url(except: '')]
     public string $assign = '';
 
@@ -79,11 +59,9 @@ class Index extends Component
     #[Url(except: '')]
     public string $method = '';
 
-    // Chi nhánh (Giám đốc, Sale Admin) - '' = Tất cả
     #[Url(except: '')]
     public string $branch = '';
 
-    // Khoảng ngày tạo (Y-m-d)
     #[Url(except: '')]
     public string $from = '';
 
@@ -92,32 +70,23 @@ class Index extends Component
 
     public const FILTERS = ['search', 'status', 'assign', 'source', 'method', 'branch', 'from', 'to'];
 
-    // Popup đang mở: '' | 'create' | 'import'
     public string $modal = '';
 
-    // Dữ liệu popup Thêm Lead
     public array $form = [];
 
-    // Khách cũ khớp với dữ liệu đang nhập (LeadDuplicateService): ['case', 'message', 'lead' => mã Lead cùng người | null,
-    // 'leads' => [['lead_id', 'name', 'learner', 'state', 'owner', 'url'], ...]]; null = chưa kiểm tra / không trùng
     #[Locked]
     public ?array $duplicate = null;
 
-    // Các trường được chọn để cập nhật vào Lead cũ (cùng người, Lead đang chờ phân / đang tư vấn)
     public array $updateFields = [];
 
-    // File Excel tải lên (popup Import)
     public $file = null;
 
-    // Kết quả import gần nhất: total, success, failed, result (đường dẫn file kết quả)
     #[Locked]
     public ?array $importResult = null;
 
     #[Locked]
     public string $importError = '';
 
-    // Import 2 bước - bảng xem trước (LeadImportService::preview): mã file tạm, cách xử lý đã chọn [dòng => cách xử lý],
-    // bộ lọc (all | review | invalid | new), trang, dòng đang mở so sánh
     #[Locked]
     public string $previewToken = '';
 
@@ -131,7 +100,6 @@ class Index extends Component
 
     public const PREVIEW_PER_PAGE = 20;
 
-    // Thông báo sau khi thêm / import: ['type' => success|warning|danger, 'text' => ...]
     public ?array $notice = null;
 
     public function updated(string $property): void
@@ -140,15 +108,11 @@ class Index extends Component
             $this->resetPage();
         }
 
-        // Sửa dữ liệu popup Thêm Lead → kết quả kiểm tra trùng cũ không còn đúng
         if (str_starts_with($property, 'form')) {
             $this->duplicate = null;
         }
     }
 
-    /**
-     * Bấm vào thẻ thống kê: lọc theo trạng thái hoặc tiến độ phân chia (chỉ một thẻ), bấm lại thì bỏ lọc.
-     */
     public function filterCard(string $key): void
     {
         $active = $this->activeCard() === $key;
@@ -157,17 +121,11 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Thẻ thống kê đang chọn ('' = Tổng Lead).
-     */
     public function activeCard(): string
     {
         return $this->assign !== '' ? $this->assign : $this->status;
     }
 
-    /**
-     * Thẻ "Chờ phân" theo vai trò: Sale Leader - chờ phân cho Salesperson; còn lại - chờ phân cho đội.
-     */
     #[Computed]
     public function pendingKey(): string
     {
@@ -186,28 +144,18 @@ class Index extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Có nút Phân chia Lead (Sale Admin, Sale Leader).
-     */
     #[Computed]
     public function canManage(): bool
     {
         return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true);
     }
 
-    /**
-     * Có nút Thêm Lead / Import Excel - chỉ Sale Admin.
-     */
     #[Computed]
     public function canCreate(): bool
     {
         return $this->routePrefix === Role::SALE_ADMIN;
     }
 
-    /**
-     * Có nút "Phân Lead" ở dòng (xét nhanh trên cơ hội gần nhất đã nạp sẵn; popup Leads\AssignOne kiểm tra lại đầy đủ):
-     * Sale Admin - Lead chưa phân cho đội; Sale Leader - Lead đội mình đang giữ, chờ phân cho Salesperson.
-     */
     public function canAssign(Lead $lead): bool
     {
         if ($lead->status !== Lead::STATUS_NEW) {
@@ -237,8 +185,6 @@ class Index extends Component
         $this->resetValidation();
     }
 
-    /* ── Thêm Lead ────────────────────────────────────────────────────── */
-
     public function openCreate(): void
     {
         $this->authorizeCreate();
@@ -257,9 +203,6 @@ class Index extends Component
         $this->modal = 'create';
     }
 
-    /**
-     * Lưu Lead: kiểm tra trùng khách cũ trước; không trùng thì tạo luôn, trùng thì hiện lựa chọn trong popup.
-     */
     public function saveLead(LeadImportService $service, LeadDuplicateService $duplicates): void
     {
         $this->authorizeCreate();
@@ -276,14 +219,10 @@ class Index extends Component
         $this->duplicate = $this->describeMatch($duplicates, $match, $validated);
     }
 
-    /**
-     * "Người học khác": vẫn tạo Lead mới dù trùng liên hệ (VD con thứ hai của phụ huynh).
-     */
     public function createAsOther(LeadImportService $service, LeadDuplicateService $duplicates): void
     {
         $this->authorizeCreate();
 
-        // Dữ liệu vừa bị sửa (updated() đã xoá kết quả cũ) → kiểm tra lại thay vì tạo luôn
         if (! $this->duplicate) {
             $this->saveLead($service, $duplicates);
 
@@ -293,10 +232,6 @@ class Index extends Component
         $this->createLead($service, $this->validatedForm($service));
     }
 
-    /**
-     * "Cùng người" với Lead $leadId: không còn cơ hội đang tư vấn → đưa Lead cũ về hàng chờ phân công;
-     * còn thì báo tình trạng của Lead đó (không tạo Lead mới).
-     */
     public function sameAs(string $leadId, LeadImportService $service, LeadDuplicateService $duplicates): void
     {
         $this->authorizeCreate();
@@ -316,14 +251,11 @@ class Index extends Component
         $state = $duplicates->stateOf($lead);
 
         if ($state !== LeadDuplicateService::REOPEN) {
-            // Đã xác nhận cùng người → không còn hỏi "người học khác"; hiện thông tin khác để cập nhật vào Lead cũ
             $this->duplicate = $this->describeMatch($duplicates, ['case' => $state, 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
 
             return;
         }
 
-        // Vừa bấm "Cùng người" (từ khớp liên hệ) mà có thông tin liên hệ khác → hiện bảng so sánh để chọn cập nhật,
-        // bấm "Đăng ký khoá mới" mới đưa về hàng chờ
         if ($this->duplicate['case'] !== LeadDuplicateService::REOPEN) {
             $described = $this->describeMatch($duplicates, ['case' => $state, 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
 
@@ -337,7 +269,6 @@ class Index extends Component
         try {
             $result = $duplicates->reopen($lead, $validated, $this->updateFields);
         } catch (RuntimeException) {
-            // Lead vừa đổi tình trạng (VD vừa được phân) → hiện lại tình trạng mới
             $lead = $duplicates->find($leadId);
             $this->duplicate = $this->describeMatch($duplicates, ['case' => $duplicates->stateOf($lead), 'lead' => $lead, 'leads' => collect([$lead])], $validated, confirmed: true);
 
@@ -349,14 +280,11 @@ class Index extends Component
 
         $this->modal = '';
         $this->duplicate = null;
-        // Có thông tin khác Lead cũ → hiện thành cảnh báo trên trang để Sale Admin đọc kỹ
+
         $this->announce(['type' => $notes ? 'warning' : 'success', 'text' => trim($text.' '.implode(' ', $notes))]);
         $this->resetPage();
     }
 
-    /**
-     * Cùng người, Lead đang chờ phân: cập nhật các trường đã chọn vào Lead cũ (không tạo Lead mới).
-     */
     public function updateExisting(LeadImportService $service, LeadDuplicateService $duplicates): void
     {
         $this->authorizeCreate();
@@ -391,17 +319,11 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Nhãn trường trong bảng so sánh: chi nhánh hiện tên cơ sở nên ghi "Chi nhánh" thay vì "Mã chi nhánh".
-     */
     protected function fieldLabel(string $field): string
     {
         return $field === 'branch_id' ? __('leads.branch') : __('leads.field.'.$field);
     }
 
-    /**
-     * Giá trị hiển thị trong bảng so sánh: chi nhánh hiện tên, kênh liên hệ hiện nhãn.
-     */
     protected function displayValue(string $field, ?string $value): string
     {
         if ($value === null || $value === '') {
@@ -433,22 +355,17 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Kết quả kiểm tra trùng → dữ liệu hiển thị trong popup (giữ trong state Livewire nên chỉ gồm giá trị đơn giản).
-     */
     protected function describeMatch(LeadDuplicateService $duplicates, array $match, array $data, bool $confirmed = false): array
     {
         $leads = $match['lead'] ? collect([$match['lead']]) : $match['leads'];
 
-        // Đã xác định cùng người (khớp liên hệ + họ tên, hoặc bấm "Cùng người") → bảng so sánh cho chọn cập nhật
-        // (LeadDuplicateService::updatableFields; khách cũ cập nhật lúc đưa về hàng chờ); còn lại bảng chỉ để đối chiếu
         $updatable = $match['lead'] !== null
             && in_array($match['case'], [LeadDuplicateService::IN_QUEUE, LeadDuplicateService::IN_PROGRESS, LeadDuplicateService::REOPEN], true);
 
         $items = $leads->map(function (Lead $lead) use ($duplicates, $data, $updatable) {
             $active = $lead->opportunities->firstWhere('status', Opportunity::STATUS_IN_PROGRESS);
             $state = $duplicates->stateOf($lead);
-            // Lead "Mới" mà đã có cơ hội đang mở = đội đang giữ, chờ phân Salesperson (người giữ là trưởng nhóm, không hiện tên)
+
             $waitingTeam = $state === LeadDuplicateService::IN_QUEUE && $active;
 
             return [
@@ -459,7 +376,7 @@ class Index extends Component
                 'state'     => $waitingTeam ? 'in_queue_team' : $state,
                 'owner'     => $waitingTeam ? null : $active?->employee?->full_name,
                 'url'       => route($this->routePrefix.'.leads.show', $lead),
-                // Vì sao có trường không cập nhật được (leads.import_review.locked.*)
+
                 'locked_reason' => $duplicates->lockReason($lead),
                 'changes'   => collect($duplicates->changes($lead, $data, $updatable))
                     ->map(fn ($change, $field) => $change + [
@@ -476,8 +393,7 @@ class Index extends Component
 
         return [
             'case'      => $match['case'],
-            // Chỉ ẩn "Tạo Lead mới" khi Sale Admin tự bấm "Cùng người". Hệ thống tự khớp liên hệ + họ tên vẫn giữ nút:
-            // Lead có thể mang tên phụ huynh, phụ huynh đăng ký thêm cho con khác thì trùng cả tên lẫn SĐT
+
             'confirmed' => $confirmed,
             'updatable' => $updatable,
             'message'   => $duplicates->message($match['case'], $match['lead'], $match['leads']),
@@ -486,13 +402,10 @@ class Index extends Component
         ];
     }
 
-    /* ── Import Excel ─────────────────────────────────────────────────── */
-
     public function openImport(): void
     {
         $this->authorizeCreate();
 
-        // Mở lại popup: bỏ bảng xem trước cũ (nếu có)
         if ($this->previewToken !== '') {
             app(LeadImportService::class)->discardPreview($this->previewToken);
         }
@@ -530,9 +443,6 @@ class Index extends Component
         );
     }
 
-    /**
-     * Bước 1: kiểm tra file → bảng xem trước (chưa ghi DB).
-     */
     public function checkFile(LeadImportService $service): void
     {
         $this->authorizeCreate();
@@ -551,31 +461,24 @@ class Index extends Component
 
         $this->previewToken = $result['token'];
         unset($this->preview);
-        // Chọn sẵn cách xử lý mặc định cho từng dòng (ô chọn hiển thị đúng giá trị)
+
         $this->decisions = collect($this->preview['rows'] ?? [])->mapWithKeys(fn ($row) => [$row['line'] => $row['default']])->all();
         $this->previewFilter = 'review';
         $this->previewPage = 1;
         $this->previewOpen = null;
         unset($this->preview);
 
-        // Không có dòng nào cần kiểm tra → mở sẵn tất cả
         if (! $this->previewCount('review')) {
             $this->previewFilter = 'all';
         }
     }
 
-    /**
-     * Bảng xem trước đang mở (đọc từ file tạm), null nếu không có / hết hạn.
-     */
     #[Computed]
     public function preview(): ?array
     {
         return $this->previewToken !== '' ? app(LeadImportService::class)->loadPreview($this->previewToken) : null;
     }
 
-    /**
-     * Số dòng theo bộ lọc: all | review (cần kiểm tra: trùng trong file / trùng khách cũ) | invalid (lỗi dữ liệu) | new.
-     */
     public function previewCount(string $filter): int
     {
         return count($this->previewRows($filter));
@@ -593,9 +496,6 @@ class Index extends Component
         });
     }
 
-    /**
-     * Các dòng của trang hiện tại theo bộ lọc.
-     */
     public function previewPageRows(): array
     {
         return array_slice($this->previewRows($this->previewFilter), ($this->previewPage - 1) * self::PREVIEW_PER_PAGE, self::PREVIEW_PER_PAGE);
@@ -624,9 +524,6 @@ class Index extends Component
         $this->previewOpen = $this->previewOpen === $line ? null : $line;
     }
 
-    /**
-     * Cách xử lý đang chọn của một dòng (chọn sai / chưa chọn → mặc định).
-     */
     public function decisionFor(array $row): string
     {
         $chosen = $this->decisions[$row['line']] ?? null;
@@ -634,9 +531,6 @@ class Index extends Component
         return in_array($chosen, $row['options'], true) ? $chosen : $row['default'];
     }
 
-    /**
-     * Tóm tắt sẽ ghi nhận theo lựa chọn hiện tại: số dòng tạo mới / cập nhật / về hàng chờ / bỏ qua.
-     */
     public function previewSummary(): array
     {
         $summary = ['create' => 0, 'update' => 0, 'reopen' => 0, 'skip' => 0];
@@ -650,9 +544,6 @@ class Index extends Component
         return $summary;
     }
 
-    /**
-     * Huỷ bảng xem trước, quay lại chọn file.
-     */
     public function cancelPreview(LeadImportService $service): void
     {
         $this->authorizeCreate();
@@ -665,9 +556,6 @@ class Index extends Component
         unset($this->preview);
     }
 
-    /**
-     * Bước 2: ghi nhận theo lựa chọn từng dòng, tạo file kết quả.
-     */
     public function confirmImport(LeadImportService $service): void
     {
         $this->authorizeCreate();
@@ -710,9 +598,6 @@ class Index extends Component
         return Storage::disk('local')->download($path, 'ket-qua-import-lead-'.now()->format('Ymd-His').'.xlsx');
     }
 
-    /**
-     * Popup Phân chia Lead báo đã phân xong.
-     */
     #[On('leads-distributed')]
     public function distributed(array $notice): void
     {
@@ -720,9 +605,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Ghi nhận thông báo; thành công thì hiện toast thay vì banner trên trang.
-     */
     private function announce(array $notice): void
     {
         $this->notice = $notice;
@@ -743,9 +625,6 @@ class Index extends Component
         return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN], true);
     }
 
-    /**
-     * Chi nhánh cố định của Sale Leader (null với vai trò khác).
-     */
     #[Computed]
     public function fixedBranch(): ?Branch
     {
@@ -764,23 +643,15 @@ class Index extends Component
             : collect();
     }
 
-    /**
-     * Nguồn Lead cho bộ lọc Nguồn.
-     */
     #[Computed]
     public function sources(): array
     {
         return Lead::SOURCES;
     }
 
-    /**
-     * Thống kê theo bộ lọc hiện tại (trừ bộ lọc trạng thái, để các thẻ trạng thái luôn có số).
-     */
     #[Computed]
     public function stats(): array
     {
-        // Các câu đếm quét toàn bộ bảng Leads → cache theo người xem (phạm vi vai trò) + bộ lọc (trừ trạng thái).
-        // Lead::STATS_VERSION_KEY đổi khi dữ liệu thay đổi; STATS_TTL là giới hạn trễ với thay đổi không qua model.
         $key = 'leads.stats:'.md5(json_encode([
             Cache::get(Lead::STATS_VERSION_KEY),
             Auth::id(),
@@ -811,10 +682,6 @@ class Index extends Component
         ];
     }
 
-    /**
-     * Tổng số dòng của danh sách lấy từ thẻ thống kê (đã cache) để phân trang không phải đếm lại.
-     * null = bộ lọc không có thẻ tương ứng → paginate() tự đếm.
-     */
     protected function knownTotal(): ?int
     {
         $status = in_array($this->status, Lead::STATUSES, true) ? $this->status : '';
@@ -845,17 +712,11 @@ class Index extends Component
         return false;
     }
 
-    /**
-     * Phạm vi dữ liệu theo vai trò - Lead::visibleTo().
-     */
     protected function scoped(Builder $query): Builder
     {
         return $query->visibleTo(Auth::user()->employee);
     }
 
-    /**
-     * Phạm vi vai trò + các bộ lọc trên màn hình.
-     */
     protected function filtered(Builder $query, bool $withStatus = true): Builder
     {
         $search = trim($this->search);
@@ -911,8 +772,6 @@ class Index extends Component
 
     public function render()
     {
-        // Phân trang 2 bước: lấy mã Lead của trang (chỉ đọc index created_at + lead_id, trang sâu vẫn nhanh)
-        // rồi mới nạp đủ dòng và quan hệ cho đúng 10 mã đó
         $leads = $this->filtered(Lead::query())
             ->orderByDesc('created_at')
             ->orderByDesc('lead_id')

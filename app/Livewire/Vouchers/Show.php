@@ -11,9 +11,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Chi tiết một voucher + các báo giá đã áp dụng voucher (trong phạm vi được xem của vai trò).
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
@@ -34,18 +31,12 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Sale Leader / Salesperson chỉ thấy báo giá của nhóm / của mình.
-     */
     #[Computed]
     public function limitedScope(): bool
     {
         return in_array(Auth::user()->role_name, [Role::SALE_LEADER, Role::SALESPERSON], true);
     }
 
-    /**
-     * Báo giá đã áp dụng voucher, kèm tổng tiền trước giảm và tiền được giảm.
-     */
     #[Computed]
     public function quotations()
     {
@@ -61,9 +52,6 @@ class Show extends Component
             });
     }
 
-    /**
-     * Một trang (10 báo giá) của danh sách trên; số liệu tổng vẫn tính trên toàn bộ danh sách.
-     */
     #[Computed]
     public function pagedQuotations(): LengthAwarePaginator
     {

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Trang Quản lý Opportunity dạng Kanban (livewire/opportunities/kanban)
 return [
     'title'              => 'Quản lý Opportunity',
     'subtitle'           => 'Các cơ hội bạn đang phụ trách, chia theo giai đoạn chăm sóc',
@@ -83,7 +82,6 @@ return [
         'todo'     => 'Việc cần xử lý',
     ],
 
-    // Bộ lọc ngày chuyển đổi
     'filter_title'       => 'Lọc theo ngày chuyển đổi',
     'from'               => 'Từ ngày',
     'to'                 => 'Đến ngày',
@@ -103,7 +101,6 @@ return [
     'all_sources'        => 'Tất cả kênh nguồn',
     'source'             => 'Kênh nguồn',
 
-    // Chi tiết
     'detail_title'       => 'Opportunity :code',
     'back'               => 'Quay lại Kanban',
     'create_quotation'   => 'Tạo báo giá',
@@ -230,15 +227,13 @@ return [
         'Completed' => 'Đã hoàn thành',
     ],
 
-    // Tạo cơ hội mới cho khách cũ (Opportunities\Create)
     'create' => [
         'title'              => 'Tạo cơ hội mới',
         'back'               => 'Quay lại',
         'btn_new'            => 'Tạo cơ hội',
-        'btn_new_short'      => 'Tạo',           // hiện trên màn nhỏ (chỉ icon + chữ ngắn)
-        'btn_enroll'         => 'Đăng ký khóa mới', // nút trên trang học viên
+        'btn_new_short'      => 'Tạo',
+        'btn_enroll'         => 'Đăng ký khóa mới',
 
-        // Tìm khách
         'search_label'       => 'Tìm khách',
         'search_placeholder' => 'Tìm theo tên, SĐT, email, mã học viên hoặc mã cơ hội…',
         'searching'          => 'Đang tìm…',
@@ -246,13 +241,11 @@ return [
         'no_results_hint'    => 'Khách hoàn toàn mới liên hệ với Sale Admin để nhập Lead.',
         'result_count'       => 'Tìm thấy :count khách',
 
-        // Cột bảng kết quả tìm kiếm
         'col_customer'       => 'Khách hàng',
         'col_phone'          => 'Số điện thoại',
         'col_status'         => 'Tình trạng',
         'col_action'         => '',
 
-        // Tình trạng hiện ngay trên dòng kết quả
         'status_ok'              => 'Có thể tạo cơ hội',
         'status_warning'         => 'Có thể tạo, cần lưu ý',
         'status_blocked'         => 'Không thể tạo',
@@ -260,33 +253,27 @@ return [
         'status_other_in_progress' => 'Đang tư vấn bởi :name',
         'status_in_queue'        => 'Đang chờ phân công',
 
-        // Chọn khách - hiện cảnh báo / chặn
         'selected_title'     => 'Tạo cơ hội cho :name',
         'btn_select'         => 'Chọn',
         'btn_change'         => 'Chọn khách khác',
         'btn_confirm'        => 'Xác nhận tạo cơ hội',
         'btn_confirming'     => 'Đang tạo…',
 
-        // Thông báo chặn
         'blocked_own_in_progress'   => 'Khách đang có cơ hội đang tư vấn do bạn phụ trách (:opp).',
         'blocked_other_in_progress' => 'Khách đang được :name tư vấn (SĐT: :phone).',
         'blocked_in_queue'          => 'Khách này đã được nhập lại và đang chờ phân công. Vui lòng liên hệ trưởng nhóm hoặc Sale Admin.',
         'no_phone'                   => 'chưa cập nhật SĐT',
 
-        // Link xem cơ hội đang tư vấn
         'view_active_opp'    => 'Xem cơ hội đang chăm sóc →',
 
-        // Cảnh báo không chặn
         'warning_studying'   => 'Khách đang học: :courses.',
         'warning_debt'       => 'Còn nợ học phí:',
         'warning_debt_item'  => ':course — còn :amount',
         'warning_note'       => 'Bạn vẫn có thể tạo cơ hội mới.',
 
-        // Kết quả
         'created'            => 'Đã tạo cơ hội :opp cho :name.',
         'error_no_permission' => 'Bạn không có quyền tạo cơ hội cho khách này.',
 
-        // Cập nhật thông tin liên hệ
         'contact_title'      => 'Thông tin liên hệ',
         'source_url_hint'    => '(Facebook, Zalo...)',
         'contact_phone'      => 'Số điện thoại',
@@ -294,7 +281,6 @@ return [
         'contact_source_url' => 'Link nguồn',
         'contact_unchanged'  => 'Giữ nguyên',
 
-        // Bố cục trang khi đã chọn khách
         'warning_studying_line' => 'Học viên đang học khóa :courses.',
         'warning_debt_line'  => 'Còn nợ :amount ở khóa :course. Bạn nên nhắc khách thanh toán.',
         'notes_title'        => 'Lưu ý',

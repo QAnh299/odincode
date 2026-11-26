@@ -1,9 +1,3 @@
-{{--
-    Popup chỉnh sửa thông tin Lead (trait App\Livewire\Leads\Concerns\EditsLead).
-    Chỉ hiện các trường được sửa ($this->leadEditableFields(), luôn gồm SĐT, email, link nguồn); SĐT, Link nguồn
-    bắt buộc tuỳ kênh liên hệ.
-    Tham số: $lead - Lead đang sửa; $branches - chi nhánh để chọn (khi được sửa chi nhánh).
---}}
 @php
     $fields = $this->leadEditableFields();
     $method = $leadForm['contact_method'] ?? $lead->contact_method;

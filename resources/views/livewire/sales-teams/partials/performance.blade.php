@@ -1,6 +1,3 @@
-{{-- Kết quả kinh doanh trên trang chi tiết đội (livewire/sales-teams/show): 4 ô chỉ số tổng quan của đội,
-     so với chỉ tiêu tháng và tháng trước. Xem chi tiết (từng thành viên, phễu, xu hướng…) ở báo cáo
-     Phân tích hiệu quả Sales – nút "Xem báo cáo chi tiết". Cách tính giống báo cáo đó (SalesPerformanceReport). --}}
 @php
     use App\Livewire\SalesTeams\Show;
 
@@ -37,7 +34,6 @@
         $prev = $this->previousPerformance;
         $target = $this->target;
 
-        // So với tháng trước: % tăng / giảm (null = không so sánh được)
         $delta = function (string $key) use ($perf, $prev) {
             if ($prev === null) {
                 return null;
@@ -48,7 +44,6 @@
             return $before > 0 ? (int) round(($now - $before) / $before * 100) : ($now > 0 ? 'new' : null);
         };
 
-        // Ô chỉ số: [key, icon, giá trị hiển thị, khoá chỉ tiêu, dòng phụ]
         $kpis = [
             ['revenue', 'wallet', $money($perf['revenue']), 'revenue',
                 __('employees.perf.paid', ['amount' => $money($perf['paid'])])],

@@ -7,33 +7,18 @@ use App\Services\LeadImportService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * Popup chỉnh sửa thông tin Lead, dùng ở chi tiết Lead (Sale Admin) và chi tiết cơ hội (Salesperson phụ trách).
- * Trường được sửa theo tình trạng Lead (LeadDuplicateService::editableFields).
- * Kiểm tra như khi thêm Lead (LeadImportService); trường không được sửa giữ nguyên giá trị hiện tại.
- * Component dùng trait khai báo Lead được sửa, các trường được sửa và việc cần làm sau khi lưu.
- */
 trait EditsLead
 {
     public bool $editingLead = false;
 
     public array $leadForm = [];
 
-    /**
-     * Lead người dùng hiện tại được sửa, null nếu không được sửa.
-     */
     abstract protected function leadToEdit(): ?Lead;
 
-    /**
-     * Các cột của Leads được sửa (trong LeadImportService::COLUMNS).
-     */
     abstract public function leadEditableFields(): array;
 
     abstract protected function leadUpdated(Lead $lead): void;
 
-    /**
-     * Có nút "Sửa" (view gọi).
-     */
     public function canEditLead(): bool
     {
         return $this->leadToEdit() !== null;

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Change password page (livewire/profile/change-password.blade.php)
 return [
     'title'               => 'Change password',
     'subtitle'            => 'Enter your current password to confirm, then set a new one',
@@ -25,7 +24,6 @@ return [
     'success'             => 'Password changed',
     'success_sub'         => 'Use your new password the next time you sign in.',
 
-    // Errors
     'current_required'    => 'Please enter your current password.',
     'current_wrong'       => 'Your current password is incorrect.',
     'new_required'        => 'Please enter a new password.',

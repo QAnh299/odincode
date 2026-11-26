@@ -15,43 +15,24 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use RuntimeException;
 
-/**
- * Popup Phân bổ Lead (nhúng trong trang Quản lý Lead).
- *   - Sale Admin: phân Lead mới của 1 chi nhánh cho các Sales Team (đội cùng chi nhánh, có trưởng nhóm).
- *   - Sale Leader: phân Lead đội đang giữ cho Salesperson trong đội (ngưỡng 50 Lead đang xử lý/người).
- * Chọn phương thức trước (dropdown) rồi mới hiện chi nhánh / nguồn / kênh liên hệ / danh sách nhận Lead.
- * Chia tự động: chia đều, chỉ khi có Lead dư mới hiện chỉ số hiệu suất (tháng trước) để chọn Top 2.
- * Chia thủ công: bảng đội / salesperson - số lượng nhập tay.
- * Ngưỡng 50 (chỉ áp cho Salesperson) chỉ là cảnh báo: thanh tải đổi đỏ + ghi "vượt X" ngay khi nhập / xem trước;
- * chia tự động ưu tiên người còn chỗ, hết chỗ thì phần còn lại vẫn giao cho Top 2 hiệu suất.
- * Bấm Phân công mà có người vượt 50 → hộp xác nhận liệt kê ai vượt bao nhiêu Lead, "Vẫn phân" thì ghi luôn.
- * Khách cũ quay lại / người thân dùng chung SĐT, email: gợi ý đội / người đang hoặc từng phụ trách; khi phân được
- * ưu tiên giao cho họ nếu họ nhận Lead, người thân cùng lần phân được giao chung (LeadDistributionService::matchPreferred).
- */
 class Distribute extends Component
 {
     public const MODES = ['auto', 'manual'];
 
     public bool $open = false;
 
-    // '' = chưa chọn → chỉ hiện ô chọn phương thức
     public string $mode = '';
 
-    // Chi nhánh của Lead (chỉ Sale Admin)
     public string $branch = '';
 
-    // '' = Tất cả
     public string $source = '';
 
     public string $method = '';
 
-    // Chia tự động: các id được chọn (team_id hoặc employee_id)
     public array $selected = [];
 
-    // Chia thủ công: [id => số Lead]
     public array $amounts = [];
 
-    // Đang hỏi xác nhận phân dù có Salesperson vượt ngưỡng 50 (đổi bất kỳ lựa chọn nào thì bỏ)
     #[Locked]
     public bool $confirming = false;
 
@@ -72,9 +53,6 @@ class Distribute extends Component
         abort_unless(in_array($this->role, [Role::SALE_ADMIN, Role::SALE_LEADER], true), 403);
     }
 
-    /**
-     * Mở sẵn popup khi vào trang từ thông báo (?distribute=1).
-     */
     public function mount(bool $autoOpen = false): void
     {
         if ($autoOpen && in_array($this->role, [Role::SALE_ADMIN, Role::SALE_LEADER], true)) {
@@ -99,9 +77,6 @@ class Distribute extends Component
         $this->resetValidation();
     }
 
-    /**
-     * Hộp xác nhận vượt ngưỡng → "Quay lại" để sửa số lượng.
-     */
     public function cancelConfirm(): void
     {
         $this->confirming = false;
@@ -109,7 +84,6 @@ class Distribute extends Component
 
     public function updated(string $property): void
     {
-        // Đổi tiêu chí lọc thì danh sách đội / Lead khả dụng thay đổi → bỏ lựa chọn không còn hợp lệ
         if (in_array($property, ['branch', 'mode'], true)) {
             $this->reset('selected', 'amounts');
         }
@@ -117,11 +91,6 @@ class Distribute extends Component
         $this->resetValidation();
     }
 
-    /**
-     * Id được "Chọn tất cả": bỏ qua salesperson đã đủ 50 Lead, trừ khi cả đội đều đã đủ.
-     *
-     * @return string[]
-     */
     #[Computed]
     public function selectableIds(): array
     {
@@ -130,9 +99,6 @@ class Distribute extends Component
         return $open ?: $this->targets->pluck('id')->all();
     }
 
-    /**
-     * Chia tự động: chọn / bỏ chọn tất cả.
-     */
     public function toggleAll(): void
     {
         $ids = $this->selectableIds;
@@ -142,9 +108,6 @@ class Distribute extends Component
         $this->resetValidation();
     }
 
-    /**
-     * Nút − / + của ô số lượng (chia thủ công).
-     */
     public function adjust(string $id, int $delta): void
     {
         if (! $this->targets->contains('id', $id)) {
@@ -158,21 +121,12 @@ class Distribute extends Component
         $this->resetValidation();
     }
 
-    /**
-     * Số Lead sắp nhận của từng đối tượng theo phương thức hiện tại (để vẽ thanh tải + tóm tắt).
-     *
-     * @return array<string, int>
-     */
     #[Computed]
     public function incoming(): array
     {
         return $this->mode === 'auto' ? $this->preview : $this->manualPlan();
     }
 
-    /**
-     * Salesperson sẽ vượt ngưỡng 50 theo kế hoạch hiện tại (đội không áp ngưỡng):
-     * [employee_id => ['name', 'load', 'add', 'after', 'over']].
-     */
     #[Computed]
     public function overLimit(): array
     {
@@ -190,18 +144,12 @@ class Distribute extends Component
         return $rows;
     }
 
-    /* ── Dữ liệu ──────────────────────────────────────────────────────── */
-
     #[Computed]
     public function branches(): Collection
     {
         return $this->forTeams ? Branch::query()->orderBy('branch_id')->get(['branch_id', 'branch_name']) : collect();
     }
 
-    /**
-     * Đội do Sale Leader đang đăng nhập làm trưởng nhóm (cùng điều kiện với AssignOne::team):
-     * chỉ phân Lead đội mình đang giữ cho Salesperson trong đội mình; không làm trưởng nhóm đội nào thì không phân được.
-     */
     #[Computed]
     public function team(): ?SalesTeam
     {
@@ -214,9 +162,6 @@ class Distribute extends Component
         return $this->team?->team_leader_id;
     }
 
-    /**
-     * Đối tượng nhận Lead: [['id', 'name', 'sub', 'owner' (người giữ Lead), 'load', 'capacity', 'perf'], ...].
-     */
     #[Computed]
     public function targets(): Collection
     {
@@ -227,7 +172,6 @@ class Distribute extends Component
                 return collect();
             }
 
-            // Đội có trưởng nhóm đang làm việc thuộc chi nhánh đã chọn (Lead của đội do trưởng nhóm giữ)
             $teams = $service->branchTeams($this->branch);
             $perf = $service->performance('team');
 
@@ -267,12 +211,6 @@ class Distribute extends Component
         return $this->targets->pluck('load', 'id')->filter(fn ($n) => $n !== null)->all();
     }
 
-    /**
-     * Nhóm được xếp hạng: chia tự động chỉ xếp hạng trong các đối tượng được chọn
-     * (Lead dư chỉ chia cho Top 2 của nhóm này), chia thủ công thì xếp hạng cả đội.
-     *
-     * @return string[]
-     */
     protected function rankingIds(): array
     {
         $ids = $this->targets->pluck('id')->all();
@@ -282,18 +220,12 @@ class Distribute extends Component
             : $ids;
     }
 
-    /**
-     * Hạng theo từng tiêu chí + tổng hạng của nhóm được xếp hạng (xem LeadDistributionService::scoreboard).
-     */
     #[Computed]
     public function scoreboard(): array
     {
         return app(LeadDistributionService::class)->scoreboard($this->rankingIds(), $this->targets->pluck('perf', 'id')->all());
     }
 
-    /**
-     * Thứ hạng hiệu suất chung (theo tổng hạng): [id => hạng].
-     */
     #[Computed]
     public function ranks(): array
     {
@@ -316,9 +248,6 @@ class Distribute extends Component
         return in_array($this->method, Lead::CONTACT_METHODS, true) ? $this->method : null;
     }
 
-    /**
-     * Số Lead khả dụng theo tiêu chí đã chọn.
-     */
     #[Computed]
     public function available(): int
     {
@@ -335,11 +264,6 @@ class Distribute extends Component
             : 0;
     }
 
-    /**
-     * Gợi ý trong số Lead khả dụng: khách cũ, Lead có người thân (dùng chung SĐT / email) đã có người phụ trách,
-     * Lead có người thân cùng chờ phân: ['returning', 'family', 'batch' => số Lead,
-     * 'by' => [owner (trưởng nhóm | salesperson) => số Lead được ưu tiên giao cho người đó]].
-     */
     #[Computed]
     public function returning(): array
     {
@@ -358,22 +282,19 @@ class Distribute extends Component
         $related = $service->relatedLeads($leadIds);
         $owners = $service->suggestedOwners($leadIds, $related);
         $key = $this->forTeams ? 'leader_id' : 'employee_id';
-        // Chỉ tính gợi ý trỏ tới đối tượng đang có trong danh sách nhận (VD người thân đang chờ ở trưởng nhóm thì bỏ qua)
+
         $targetIds = $this->targets->pluck('owner')->all();
         $owners = array_filter($owners, fn ($owner) => in_array($owner[$key], $targetIds, true));
 
         return [
             'returning' => count(array_filter($owners, fn ($o) => $o['reason'] === 'returning')),
             'family'    => count(array_filter($owners, fn ($o) => $o['reason'] === 'family')),
-            // Lead có người thân cũng nằm trong danh sách chờ phân → sẽ được giao chung
+
             'batch'     => count($service->familiesIn($leadIds, $related)),
             'by'        => array_count_values(array_column($owners, $key)),
         ];
     }
 
-    /**
-     * Id được chọn hợp lệ (chia tự động), theo thứ hạng hiệu suất.
-     */
     protected function selectedRanked(): array
     {
         $valid = array_values(array_intersect($this->targets->pluck('id')->all(), $this->selected));
@@ -385,9 +306,6 @@ class Distribute extends Component
         );
     }
 
-    /**
-     * Lead dư của chia tự động: remainder = phần dư khi chia đều, over = phần vượt ngưỡng 50 (chỉ Salesperson).
-     */
     #[Computed]
     public function leftover(): array
     {
@@ -404,18 +322,12 @@ class Distribute extends Component
         return ['remainder' => $this->available % $count, 'over' => $over];
     }
 
-    /**
-     * Cần xếp hạng hiệu suất: chia tự động có Lead dư (phần dư chia đều / phần vượt ngưỡng → Top 2).
-     */
     #[Computed]
     public function needsRanking(): bool
     {
         return array_sum($this->leftover) > 0;
     }
 
-    /**
-     * Kết quả dự kiến của chia tự động: [id => n].
-     */
     #[Computed]
     public function preview(): array
     {
@@ -430,9 +342,6 @@ class Distribute extends Component
         return $this->forTeams ? $plan : $service->capAuto($plan, $this->load, $ranked);
     }
 
-    /**
-     * Chia thủ công: [id => số Lead] chỉ gồm đối tượng hợp lệ, số nguyên >= 0.
-     */
     protected function manualPlan(): array
     {
         $plan = [];
@@ -449,16 +358,11 @@ class Distribute extends Component
         return array_sum($this->manualPlan());
     }
 
-    /* ── Phân công ────────────────────────────────────────────────────── */
-
     public function submit(LeadDistributionService $service): void
     {
         $this->process($service, false);
     }
 
-    /**
-     * "Vẫn phân" trong hộp xác nhận vượt ngưỡng.
-     */
     public function confirmAssign(LeadDistributionService $service): void
     {
         $this->process($service, true);
@@ -493,7 +397,6 @@ class Distribute extends Component
                 return;
             }
 
-            // Chia đều, phần dư / phần vượt ngưỡng → Top 2 hiệu suất (xem capAuto)
             $plan = $this->preview;
         } else {
             foreach ($this->amounts as $value) {
@@ -519,7 +422,6 @@ class Distribute extends Component
             }
         }
 
-        // Có Salesperson vượt ngưỡng 50 → hỏi xác nhận trước (ngưỡng chỉ là cảnh báo, không áp cho đội)
         if (! $confirmed && $this->overLimit) {
             $this->confirming = true;
 
@@ -529,11 +431,6 @@ class Distribute extends Component
         $this->commit($service, $plan);
     }
 
-    /**
-     * Ghi kết quả, đóng popup và báo về trang danh sách.
-     *
-     * @param  array  $plan  [team_id | employee_id => số Lead]
-     */
     protected function commit(LeadDistributionService $service, array $plan): void
     {
         $owners = $this->targets->pluck('owner', 'id')->all();

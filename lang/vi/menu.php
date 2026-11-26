@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Nhãn menu dọc bên trái (config/sidebar.php)
 return [
     'main'       => 'Menu chính',
     'open'       => 'Mở menu',
@@ -20,7 +19,6 @@ return [
     'courses'    => 'Quản lý khóa học',
     'vouchers'   => 'Quản lý voucher',
 
-    // Menu con
     'employee_list' => 'Nhân viên',
     'sales_teams'   => 'Đội kinh doanh',
     'lead_list'     => 'Lead',

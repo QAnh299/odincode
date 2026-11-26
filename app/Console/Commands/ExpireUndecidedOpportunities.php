@@ -6,12 +6,6 @@ use App\Models\Opportunity;
 use App\Models\Stage;
 use Illuminate\Console\Command;
 
-/**
- * Kết thúc cơ hội quá hạn → chuyển sang Lưu trữ (Archived):
- *   - Data đã có lịch hẹn: quá 7 ngày kể từ buổi khách không đến mà chưa hẹn lại;
- *   - Data đã xử lý: quá hạn quyết định (14 ngày kể từ khi chuyển sang stage này) mà khách chưa đồng ý.
- * Lên lịch hằng ngày trong routes/console.php.
- */
 class ExpireUndecidedOpportunities extends Command
 {
     protected $signature = 'opportunities:expire-undecided';

@@ -7,7 +7,6 @@
     $stats = $this->stats;
     $state = $course->state();
 
-    // Màu theo trạng thái (class tiện ích Bootstrap 5.3) - luôn đi kèm chữ, không chỉ dựa vào màu
     $tones = [
         Quotation::STATUS_DRAFT     => 'secondary',
         Quotation::STATUS_CONFIRMED => 'success',
@@ -23,12 +22,10 @@
     $money = fn ($value) => number_format((float) $value, 0, ',', '.').' ₫';
     $number = fn ($value) => number_format((int) $value, 0, ',', '.');
 
-    // Tỷ lệ chốt: "100%", "66,7%"; chưa có báo giá đã kết thúc thì "—"
     $rate = $stats['close_rate'];
     $rateText = $rate === null ? '-'
         : rtrim(rtrim(number_format($rate, 1, ',', '.'), '0'), ',').'%';
 
-    // Thanh trạng thái: tổng các báo giá có trạng thái hợp lệ (tổng 0 thì thanh rỗng)
     $barTotal = array_sum($stats['by_status']);
     $percentOf = fn (int $count) => $barTotal > 0 ? (int) round($count / $barTotal * 100) : 0;
     $barLabel = collect($stats['by_status'])
@@ -39,12 +36,10 @@
 @endphp
 
 <div class="cd">
-    {{-- CSS riêng của trang khóa học: resources/css/course.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/course.css')
     @endassets
 
-    {{-- ── Đầu trang ────────────────────────────────────────────────── --}}
     <header class="cd-head">
         <a href="{{ $listUrl }}" class="odin-back cd-back">
             <x-icon name="arrow-left" />{{ __('courses.back_to_list') }}
@@ -82,7 +77,6 @@
                             </select>
                         </label>
                     @else
-                        {{-- Sale Leader: đội cố định là đội của mình --}}
                         <div class="cd-scope__field">
                             <span class="form-label">{{ __('courses.team') }}</span>
                             <span class="cd-scope__fixed">{{ $team?->team_name ?? __('courses.no_team') }}</span>
@@ -101,7 +95,6 @@
                         </select>
                     </label>
 
-                    {{-- Sale Admin: bỏ được cả Đội lẫn Nhân viên; Sale Leader: chỉ bỏ chọn Nhân viên --}}
                     @if (($this->canFilterTeam && $team !== null) || $this->activeEmployee !== null)
                         <button type="button" class="btn btn-outline-secondary cd-scope__clear" wire:click="clearScopeFilters">
                             <x-icon name="x" />{{ __('courses.clear_scope') }}
@@ -116,7 +109,6 @@
             </section>
         @endif
 
-        {{-- Nội dung khóa học --}}
         <section class="card cd-card cd-area-content">
             <div class="card-body">
                 <h2 class="cd-card__title">{{ __('courses.content') }}</h2>
@@ -125,7 +117,6 @@
                     <div class="cd-overview__main">
                         <h3 class="cd-label">{{ __('courses.overview_heading') }}</h3>
                         @if (filled($course->description))
-                            {{-- Mỗi dòng trong mô tả là một đoạn; nội dung luôn được escape --}}
                             <div class="cd-desc">
                                 @foreach (preg_split('/\R+/', trim($course->description)) as $paragraph)
                                     <p>{{ $paragraph }}</p>
@@ -159,7 +150,6 @@
             </div>
         </section>
 
-        {{-- Thống kê --}}
         <section class="card cd-card cd-area-stats">
             <div class="card-body">
                 <h2 class="cd-card__title">{{ __('courses.stats') }}</h2>
@@ -191,7 +181,6 @@
             </div>
         </section>
 
-        {{-- Báo giá theo trạng thái (bấm để lọc danh sách bên dưới) --}}
         <section class="card cd-card cd-area-status">
             <div class="card-body">
                 <h2 class="cd-card__title">{{ __('courses.by_status') }}</h2>
@@ -232,7 +221,6 @@
             </div>
         </section>
 
-        {{-- Báo giá có khóa học này (cột trái, ngay dưới nội dung) --}}
         <section class="card cd-card cd-area-list">
             <div class="card-body pb-0">
                 <div class="cd-list-head">
@@ -285,7 +273,6 @@
                                 @foreach ($quotations as $line)
                                     @php $tone = $toneOf($line->quotation_status); @endphp
                                     <tr wire:key="quotation-{{ $line->quotation_id }}">
-                                        {{-- Chưa có trang chi tiết báo giá → hiện mã dạng chữ, không tạo link --}}
                                         <td><span class="cd-code">{{ $line->quotation_id }}</span></td>
                                         @if ($this->canFilterEmployee)
                                             <td>{{ $line->employee_name ?? '-' }}</td>

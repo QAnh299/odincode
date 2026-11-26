@@ -1,5 +1,3 @@
-{{-- Thẻ biểu đồ: $id (khoá duy nhất trên trang), $spec (cấu hình odinChart), $title, $sub, $height (px, mặc định 300), $wide.
-     $spec['htmlLegend'] = true: chú thích vẽ bằng HTML ngay dưới tiêu đề (canh trái), không dùng chú thích của Chart.js. --}}
 @php
     $hasData = ! empty($spec['series']) && collect($spec['series'])->contains(fn ($s) => collect($s['data'])->filter()->isNotEmpty());
     $htmlLegend = $hasData && ! empty($spec['htmlLegend']) && count($spec['series']) > 1;

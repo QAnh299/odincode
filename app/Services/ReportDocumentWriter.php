@@ -20,18 +20,6 @@ use OpenSpout\Writer\XLSX\Options\PageSetup;
 use OpenSpout\Writer\XLSX\Options\PaperSize;
 use OpenSpout\Writer\XLSX\Writer;
 
-/**
- * Ghi báo cáo tổng hợp dạng văn bản hành chính ra file .xlsx (để in / trình ký):
- * tên công ty + quốc hiệu, số / ngày báo cáo, tiêu đề, kỳ báo cáo, phạm vi, bảng số liệu có
- * dòng tổng cộng, nhóm (A, B / I, II) và chi tiết (1, 2...), ghi chú cách tính, khối chữ ký.
- *
- * Tài liệu: ['number' => ký hiệu số báo cáo, 'date' => ngày lập, 'preparer' => người lập, 'approver' => ?giám đốc,
- *            'sheets' => [sheet, ...]]
- * Sheet: ['name', 'title', 'period' => ?string, 'scope' => [dòng phạm vi...], 'unit' => ?string,
- *         'columns' => [[tiêu đề, kiểu], ...], 'rows' => [[loại dòng, [giá trị...]], ...], 'notes' => [...]]
- * Kiểu cột: stt | label | text | int | money | decimal | percent (giá trị 0-100) - null ghi thành ô trống.
- * Loại dòng: total (tổng cộng) | group (nhóm có số liệu) | section (tiêu đề nhóm, gộp ô hết hàng) | item.
- */
 class ReportDocumentWriter
 {
     public const FONT = 'Times New Roman';
@@ -45,7 +33,6 @@ class ReportDocumentWriter
 
     public const FILLS = ['total' => 'FCE4D6', 'group' => 'EDEDED', 'section' => 'EDEDED', 'header' => 'E8F0E9'];
 
-    // Chiều cao 1 dòng chữ cỡ 12 (point)
     public const LINE_HEIGHT = 16;
 
     protected Writer $writer;
@@ -54,13 +41,8 @@ class ReportDocumentWriter
 
     protected int $rowNo = 0;
 
-    /** @var float[] độ rộng từng cột (0-based) của sheet đang ghi */
     protected array $widths = [];
 
-    /**
-     * Tài liệu với thông tin chung: ngày lập = hôm nay, người lập = người đang đăng nhập,
-     * người duyệt = Giám đốc đang làm việc.
-     */
     public function document(array $sheets): array
     {
         $director = Employee::query()
@@ -78,9 +60,6 @@ class ReportDocumentWriter
         ];
     }
 
-    /**
-     * Ghi tài liệu ra file tạm, trả về đường dẫn file.
-     */
     public function write(array $document): string
     {
         $options = new Options();
@@ -114,11 +93,6 @@ class ReportDocumentWriter
         return $path;
     }
 
-    /* ── Các phần của trang ───────────────────────────────────────────── */
-
-    /**
-     * Tên công ty (trái) + quốc hiệu (phải), số / địa điểm ngày, tiêu đề, kỳ, phạm vi, đơn vị tính.
-     */
     protected function writeHeading(array $document, array $sheet): void
     {
         $d = fn ($key, $replace = []) => __('reports.document.'.$key, $replace);
@@ -153,7 +127,6 @@ class ReportDocumentWriter
     {
         $columns = array_values($sheet['columns']);
 
-        // Dòng tiêu đề cột + dòng đánh số cột (1), (2)...
         $header = $this->style()->setFontBold()->setShouldWrapText()->setBackgroundColor(self::FILLS['header'])
             ->setCellAlignment(CellAlignment::CENTER)->setCellVerticalAlignment(CellVerticalAlignment::CENTER)->setBorder($this->border());
         $cells = array_map(fn ($c) => Cell::fromValue($c[0], $header), $columns);
@@ -186,9 +159,6 @@ class ReportDocumentWriter
         }
     }
 
-    /**
-     * Người lập biểu (trái) và Giám đốc (phải).
-     */
     protected function writeSignatures(array $document): void
     {
         $d = fn ($key) => __('reports.document.'.$key);
@@ -201,8 +171,6 @@ class ReportDocumentWriter
         $this->blank();
         $this->pair([$document['preparer'] ?? '', true], [$document['approver'] ?? '', true]);
     }
-
-    /* ── Dòng / ô ─────────────────────────────────────────────────────── */
 
     protected function dataRow(array $columns, string $kind, array $values): Row
     {
@@ -258,9 +226,6 @@ class ReportDocumentWriter
         };
     }
 
-    /**
-     * 1 dòng gộp hết chiều ngang bảng.
-     */
     protected function line(string $text, Style $style, ?float $height = null): void
     {
         $style->setCellVerticalAlignment(CellVerticalAlignment::CENTER);
@@ -273,10 +238,6 @@ class ReportDocumentWriter
         $this->merge(0, count($this->widths) - 1);
     }
 
-    /**
-     * 1 dòng chia 2 khối căn giữa: trái (tên đơn vị, người lập) và phải (quốc hiệu, giám đốc).
-     * Mỗi khối: [chữ, đậm, nghiêng].
-     */
     protected function pair(array $left, array $right): void
     {
         $count = count($this->widths);
@@ -299,9 +260,6 @@ class ReportDocumentWriter
         $this->merge($split, $count - 1);
     }
 
-    /**
-     * Các khối [chữ, kiểu, số cột] → danh sách ô (ô đầu khối có chữ, các ô sau để trống cùng kiểu).
-     */
     protected function spread(array $blocks): array
     {
         $cells = [];
@@ -326,9 +284,6 @@ class ReportDocumentWriter
         $this->rowNo++;
     }
 
-    /**
-     * Gộp ô trên dòng vừa ghi (cột 0-based).
-     */
     protected function merge(int $from, int $to): void
     {
         if ($to > $from) {
@@ -336,12 +291,6 @@ class ReportDocumentWriter
         }
     }
 
-    /* ── Kích thước ───────────────────────────────────────────────────── */
-
-    /**
-     * Độ rộng cột: STT hẹp, cột tên theo nội dung dài nhất (có xuống dòng), cột số đủ cho số lớn nhất
-     * và từ dài nhất của tiêu đề.
-     */
     protected function columnWidths(array $sheet): array
     {
         $widths = [];
@@ -382,9 +331,6 @@ class ReportDocumentWriter
         return $lines * self::LINE_HEIGHT + 4;
     }
 
-    /**
-     * Ước lượng số dòng khi xuống dòng tự động (Excel không tự giãn chiều cao ô gộp).
-     */
     protected function lines(string $text, float $width): int
     {
         $perLine = max(1, $width * 1.05 - 1);

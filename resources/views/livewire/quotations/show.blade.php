@@ -28,17 +28,14 @@
     $percent = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',').'%';
     $dash = fn ($value) => filled($value) ? $value : '-';
 
-    // Nhãn từ lang; giá trị chưa có bản dịch (dữ liệu cũ) thì hiện nguyên văn
     $label = fn (string $group, ?string $value) => $value === null ? '-'
         : (Lang::has('quotations.'.$group.'.'.$value) ? __('quotations.'.$group.'.'.$value) : $value);
 
-    // Link chỉ tạo khi vai trò hiện tại có route tương ứng
     $opportunityUrl = $opportunity && Route::has($prefix.'.opportunities.show')
         ? route($prefix.'.opportunities.show', [$opportunity] + $this->trailQuery()) : null;
     $voucherUrl = $voucher && Route::has($prefix.'.vouchers.show')
         ? route($prefix.'.vouchers.show', $voucher) : null;
 
-    // Tiến trình suy ra từ dữ liệu có sẵn: [key, icon, đã tới?, nội dung]
     $paid = (float) ($order?->paid_amount ?? 0);
     $steps = [
         ['quotation', 'file', true, __('quotations.status.'.$status)],
@@ -49,12 +46,10 @@
 @endphp
 
 <div class="qt qt-detail">
-    {{-- CSS riêng của trang báo giá: resources/css/quotation.css (dùng chung với trang danh sách) --}}
     @assets
         @vite('resources/css/quotation.css')
     @endassets
 
-    {{-- ── Điều hướng: mở từ cơ hội thì quay lại cơ hội, ngược lại về danh sách báo giá ── --}}
     @php $backToOpportunity = $fromOpportunity && $opportunityUrl; @endphp
     @if ($trailStudent)
         @include('livewire.partials.student-trail', ['class' => 'qt-crumb', 'trail' => $this->studentTrail([['opportunities', $opportunity?->opportunity_id], ['quotations', $quotation->quotation_id]])])
@@ -75,7 +70,6 @@
         </nav>
     @endif
 
-    {{-- ── Đầu trang: mã + trạng thái + hạn ────────────────────────── --}}
     <header class="qt-detail-head">
         <h1 class="qt-detail-head__title">
             <span class="qt-detail-head__icon"><x-icon name="file" /></span>
@@ -96,15 +90,12 @@
         @endif
     </header>
 
-    {{-- Thông báo sau thao tác (lưu, từ chối, kết thúc cơ hội) --}}
     @if ($notice)
         <p @class(['qt-notice', 'qt-notice--'.$notice['tone']]) role="status">
             <x-icon :name="$notice['tone'] === 'success' ? 'check-circle' : 'info'" />{{ $notice['text'] }}
         </p>
     @endif
 
-    {{-- ── Thanh thao tác (chỉ SP lập báo giá + báo giá Nháp): Sửa (HĐ10), Xuất PDF (HĐ7 – HĐ8),
-         Xác nhận (HĐ16 – HĐ17: tạo đơn hàng), Từ chối (HĐ12 – HĐ13) ── --}}
     @if ($this->actions !== [])
         <section class="qt-actions" aria-label="{{ __('quotations.detail.actions') }}">
             <div class="qt-actions__buttons">
@@ -118,7 +109,6 @@
                             <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
                         </button>
                     @elseif (isset($button['confirm']))
-                        {{-- Hỏi xác nhận bằng popup của hệ thống (components/confirm-modal.blade.php) --}}
                         <button type="button" class="qt-btn qt-btn--{{ $button['tone'] }}" wire:loading.attr="disabled" wire:target="{{ $button['action'] }}"
                             x-on:click="$dispatch('odin-confirm', { title: @js(__('quotations.detail.'.$button['key'].'_title')), message: @js($button['confirm']), ok: @js(__('quotations.detail.'.$button['key'])), run: () => $wire.call(@js($button['action'])) })">
                             <x-icon :name="$button['icon']" />{{ __('quotations.detail.'.$button['key']) }}
@@ -131,7 +121,6 @@
                     @endif
                 @endforeach
             </div>
-            {{-- HĐ15: popup chọn lý do từ chối – không đồng ý → Thất bại, không phản hồi đến khi quá hạn → Lưu trữ --}}
             @if ($rejectReason !== null)
                 <div class="modal d-block odin-confirm" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="qtRejectTitle"
                     x-data x-on:keydown.escape.window="$wire.cancelReject()">
@@ -170,7 +159,6 @@
     @endif
 
 
-    {{-- ── Tiến trình: Báo giá → Đơn hàng → Hóa đơn → Thanh toán ────── --}}
     <section class="qt-card qt-progress" aria-label="{{ __('quotations.detail.progress') }}">
         <ol class="qt-progress__steps">
             @foreach ($steps as $i => [$key, $icon, $reached, $text])
@@ -191,7 +179,6 @@
     </section>
 
     <div class="qt-detail-grid">
-        {{-- ── Cột trái: thông tin chung, khóa học + tổng tiền, voucher, đơn hàng ── --}}
         <div class="qt-detail-main">
             <section class="qt-card qt-panel-card">
                 <h2 class="qt-section-title">{{ __('quotations.detail.general') }}</h2>
@@ -238,7 +225,6 @@
                     </div>
                     <div class="qt-info__row qt-info__row--wide">
                         <dt>{{ __('quotations.detail.notes') }}</dt>
-                        {{-- Giữ xuống dòng bằng CSS (white-space: pre-line), nội dung vẫn được escape --}}
                         <dd class="qt-notes">{{ filled($quotation->notes) ? $quotation->notes : __('quotations.detail.no_notes') }}</dd>
                     </div>
                 </dl>
@@ -274,7 +260,6 @@
                                         <td data-label="{{ __('quotations.detail.unit_price') }}" class="text-lg-end">{{ $money($line->unit_price) }}</td>
                                         <td data-label="{{ __('quotations.detail.quantity') }}" class="text-lg-center">{{ $line->quantity }}</td>
                                         <td data-label="{{ __('quotations.detail.vat') }}" class="text-lg-end">{{ $percent($line->VAT) }}</td>
-                                        {{-- line_total lấy đúng giá trị đã lưu, không tính lại --}}
                                         <td data-label="{{ __('quotations.detail.line_total') }}" class="text-lg-end"><strong>{{ $money($line->line_total) }}</strong></td>
                                     </tr>
                                 @endforeach
@@ -283,7 +268,6 @@
                     </div>
                 @endif
 
-                {{-- Tổng tiền: tạm tính − giảm giá voucher = tổng cộng (không lưu trong CSDL) --}}
                 <dl class="qt-totals">
                     <div class="qt-totals__row">
                         <dt>{{ __('quotations.detail.subtotal') }}</dt>
@@ -392,7 +376,6 @@
             @endif
         </div>
 
-        {{-- ── Cột phải: khách hàng + cơ hội ───────────────────────────── --}}
         <aside class="qt-detail-side">
             <section class="qt-card qt-panel-card">
                 <h2 class="qt-section-title">{{ __('quotations.detail.customer') }}</h2>

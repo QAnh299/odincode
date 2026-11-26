@@ -1,4 +1,3 @@
-{{-- Bảng xếp hạng đội: $teamRows, $teamShown. Dùng chung giữa sales-performance và sales-team-performance; nhận biến của view cha qua @include ($sp, $money, $num, $pct, $formats...) --}}
     <section class="vc-card rp-card">
         @include('livewire.reports.partials.sp-top', ['model' => 'teamTop', 'shown' => count($teamShown), 'total' => count($teamRows)])
         <div class="rp-scroll">
@@ -23,13 +22,12 @@
                                 {{ $row['name'] }}
                                 <span class="rp-sub">{{ $sp('members_count', ['count' => $row['members']]) }}</span>
                             </th>
-                            {{-- Mỗi chỉ tiêu 1 ô: thực tế + % đạt, thanh tiến độ, chỉ tiêu --}}
                             @foreach (['revenue' => $money, 'students' => $num] as $metric => $fmt)
                                 @php $rate = $row['attain'][$metric]; @endphp
                                 <td>
                                     <div class="rp-goal {{ $rate !== null && $rate >= 100 ? 'is-done' : '' }}">
                                         <div class="rp-goal__top">
-                                            <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => $metric, 'team' => $row['id']]) }})"><strong>{{ $fmt($row[$metric]) }}</strong></button>
+                                            <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => $metric, 'team' => $row['id']])) }})"><strong>{{ $fmt($row[$metric]) }}</strong></button>
                                             @if ($rate !== null)
                                                 <span class="rp-goal__pct">{{ $pct($rate) }}</span>
                                             @endif
@@ -44,17 +42,17 @@
                                 </td>
                             @endforeach
                             <td class="rp-num">
-                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'closed', 'team' => $row['id']]) }})">{{ $pct($row['close_rate']) }}</button>
+                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'closed', 'team' => $row['id']])) }})">{{ $pct($row['close_rate']) }}</button>
                                 <span class="rp-sub">{{ $sp('won_lost', ['won' => $row['won'], 'lost' => $row['lost']]) }}</span>
                             </td>
-                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'revenue', 'team' => $row['id']]) }})">{{ $money($row['avg_order']) }}</button></td>
+                            <td class="rp-num"><button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'revenue', 'team' => $row['id']])) }})">{{ $money($row['avg_order']) }}</button></td>
                             <td class="rp-num">
-                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'open', 'team' => $row['id']]) }})">{{ $num($row['open']) }}</button>
+                                <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'open', 'team' => $row['id']])) }})">{{ $num($row['open']) }}</button>
                                 <span class="rp-sub">{{ $money($row['open_value']) }}</span>
                             </td>
                             <td class="rp-num">
                                 @if ($row['flagged'])
-                                    <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from(['kind' => 'flagged', 'team' => $row['id']]) }})"><span class="rp-flag">{{ $row['flagged'] }}</span></button>
+                                    <button type="button" class="dr-cell" x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget(['kind' => 'flagged', 'team' => $row['id']])) }})"><span class="rp-flag">{{ $row['flagged'] }}</span></button>
                                 @else
                                     <span class="rp-ok">✓</span>
                                 @endif

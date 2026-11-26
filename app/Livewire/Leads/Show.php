@@ -16,12 +16,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-/**
- * Chi tiết Lead: thông tin liên hệ (nguồn, chi nhánh, ngày tạo) và các cơ hội đã tạo từ Lead.
- * Giám đốc, Sale Admin, Sale Leader xem theo Lead::visibleTo() (cùng phạm vi với danh sách Lead).
- * Sale Admin chỉnh sửa các trường theo tình trạng Lead (LeadDuplicateService::editableFields); mọi cơ hội đã kết thúc
- * mà Lead chưa về hàng chờ thì không có nút Sửa.
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
@@ -45,9 +39,6 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Cơ hội tạo từ Lead, mới nhất lên đầu; mỗi cơ hội kèm url chi tiết khi vai trò xem được cơ hội đó.
-     */
     #[Computed]
     public function opportunities(): Collection
     {
@@ -66,17 +57,11 @@ class Show extends Component
                 : null);
     }
 
-    /**
-     * Có nút "Phân Lead" (Sale Admin: Lead chưa phân cho đội; Sale Leader: Lead đội mình đang giữ).
-     */
     public function canAssign(): bool
     {
         return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true) && AssignOne::assignable($this->lead);
     }
 
-    /**
-     * Popup Phân Lead báo đã phân xong → tải lại Lead, danh sách cơ hội và hiện toast.
-     */
     #[On('leads-distributed')]
     public function distributed(array $notice): void
     {

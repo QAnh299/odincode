@@ -1,4 +1,3 @@
-{{-- Nội dung popup danh sách ($drill - ReportDrill::drill); nạp qua x-html trong report-drill nên chỉ dùng Alpine, không dùng wire:* --}}
 @php
     $D = fn ($key, $replace = []) => __('reports.drill.'.$key, $replace);
     $numeric = fn ($type) => in_array($type, ['money', 'int', 'decimal'], true);

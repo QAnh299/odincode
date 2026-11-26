@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Dashboard & Reports
 return [
     'other'         => 'Other',
     'money_billion' => 'bn',
@@ -19,7 +18,6 @@ return [
     'loading'       => 'Loading…',
     'no_data'       => 'No data for the current filters.',
 
-    // Export period popup (App\Livewire\Reports\Concerns\ExportPeriod)
     'export_period' => [
         'title'          => 'Export Excel report',
         'sub'            => 'Choose the period of the report',
@@ -48,7 +46,6 @@ return [
         'err_future'     => 'The selected period has not started yet.',
     ],
 
-    // Header / footer of the formal Excel report (App\Services\ReportDocumentWriter)
     'document' => [
         'company_1'  => 'ODIN EDUCATION AND TRAINING',
         'company_2'  => 'DEVELOPMENT JOINT STOCK COMPANY',
@@ -88,7 +85,6 @@ return [
         'revenue_per_lead' => 'Avg revenue / lead',
     ],
 
-    // Popup danh sách khi bấm vào số liệu báo cáo
     'drill' => [
         'hint' => 'Click to view the list',
         'open' => 'Open details (new tab)',
@@ -158,6 +154,7 @@ return [
             'total_amount' => 'Total',
             'paid_amount' => 'Paid',
             'student_id' => 'Student ID',
+            'notes' => 'Notes',
             'student_name' => 'Student',
         ],
     ],
@@ -325,7 +322,6 @@ return [
         ],
     ],
 
-    // Shared report export dialog (sheets, columns, preview)
     'export_ui' => [
         'period'          => 'Period',
         'quarters'        => 'Quarters',
@@ -350,7 +346,6 @@ return [
         'stt'             => 'No.',
     ],
 
-    // Sales staff performance (2 tabs: Sales teams / Salespeople)
     'sales_team' => [
         'title'       => 'Sales staff performance',
         'month_option' => 'Month :month',
@@ -626,8 +621,28 @@ return [
         ],
     ],
 
-    // Lead conversion analysis
     'lead_conversion' => [
+        'drill' => [
+            'contacts' => 'Contacts',
+            'appointments' => 'Appointments',
+            'set' => [
+                'all' => 'Leads',
+                'opportunities' => 'Leads converted to opportunities',
+                'contacted' => 'Contacted leads',
+                'won' => 'Won leads',
+                'open' => 'Leads in progress',
+                'lost' => 'Rejected leads',
+                'archived' => 'Unreachable leads',
+                'new' => 'Leads without opportunity',
+                'failed' => 'Failed leads (rejected / unreachable)',
+                'closed' => 'Closed leads (won / lost)',
+                'students' => 'Leads that became students',
+                'within24' => 'Leads contacted within 24 hours',
+                'stuck' => 'Stuck opportunities',
+                'untouched' => 'Open leads not yet contacted',
+                'cohort' => 'Cohort leads',
+            ],
+        ],
         'title'        => 'Lead conversion analysis',
         'subtitle'     => 'Conversion rates by lead creation date',
         'from'         => 'Leads created from',
@@ -960,7 +975,6 @@ return [
         ],
     ],
 
-    // Revenue & payment analysis (livewire/reports/revenue)
     'revenue' => [
         'title'      => 'Revenue & payment analysis',
         'subtitle'   => 'Order revenue, cash collected, payment methods and receivables to collect',

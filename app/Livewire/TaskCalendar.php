@@ -10,13 +10,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-/**
- * Lịch việc cần làm trên topbar (Salesperson): lưới tháng chỉ hiện số việc của từng ngày,
- * bấm 1 ngày mở danh sách việc của ngày đó. Dữ liệu từ App\Services\SalesCalendar.
- */
 class TaskCalendar extends Component
 {
-    // Số việc mỗi trang của danh sách ngày (vừa chiều cao lưới tháng)
     public const DAY_PAGE_SIZE = 3;
 
     #[Locked]
@@ -90,9 +85,6 @@ class TaskCalendar extends Component
         return collect($employee ? app(SalesCalendar::class)->month($employee, $this->monthStart()) : []);
     }
 
-    /**
-     * Các ô của lưới tháng (thứ Hai đến Chủ nhật, gồm cả ngày đầu / cuối của tháng liền kề).
-     */
     #[Computed]
     public function cells(): array
     {
@@ -121,12 +113,10 @@ class TaskCalendar extends Component
 
     public function render()
     {
-        // Huy hiệu: số việc còn lại hôm nay (tháng đang xem có thể khác tháng hiện tại)
         $today = now()->format('Y-m') === $this->month
             ? $this->items
             : collect(app(SalesCalendar::class)->month(Auth::user()->employee, CarbonImmutable::now()));
 
-        // Việc cần làm chưa quá hạn trước, rồi quá hạn, cuối cùng đã xong; trong mỗi nhóm theo thời gian
         $dayItems = $this->items->where('day', $this->day)
             ->sortBy(fn ($item) => [$item['done'] ? 2 : ($item['overdue'] ? 1 : 0), $item['at']->timestamp, $item['key']])
             ->values();

@@ -3,7 +3,9 @@
 namespace App\Livewire\Students;
 
 use App\Models\Course;
+use App\Models\Branch;
 use App\Models\Employee;
+use App\Models\Lead;
 use App\Models\Role;
 use App\Models\SalesTeam;
 use App\Models\Student;
@@ -16,13 +18,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách học viên + tra cứu. Học viên = Opportunity đã có lần thanh toán thành công (toàn bộ hoặc kỳ trả góp đầu).
- * Dùng chung cho mọi vai trò, phạm vi theo Student::visibleTo():
- *   - Giám đốc, Sale Admin: tất cả; Kế toán: khách thuộc cơ sở mình phụ trách; lọc theo Đội rồi đến Salesperson của đội.
- *   - Sale Leader: học viên của đội mình; lọc theo Salesperson trong đội.
- *   - Salesperson: học viên từ cơ hội mình phụ trách.
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -30,9 +25,9 @@ class Index extends Component
 
     public const PER_PAGE = 10;
 
-    public const FILTERS = ['search', 'status', 'course', 'team', 'employee', 'from', 'to'];
+    public const FILTERS = ['search', 'status', 'course', 'team', 'employee', 'from', 'to', ...self::LEAD_FILTERS];
 
-    // Các bộ lọc có thể bị sửa từ client → chỉ áp dụng giá trị nằm trong danh sách hợp lệ
+    public const LEAD_FILTERS = ['source', 'method', 'branch', 'lead_from', 'lead_to'];
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -49,12 +44,26 @@ class Index extends Component
     #[Url(except: '')]
     public string $employee = '';
 
-    // Khoảng ngày trở thành học viên (Y-m-d)
     #[Url(except: '')]
     public string $from = '';
 
     #[Url(except: '')]
     public string $to = '';
+
+    #[Url(except: '')]
+    public string $source = '';
+
+    #[Url(except: '')]
+    public string $method = '';
+
+    #[Url(except: '')]
+    public string $branch = '';
+
+    #[Url(except: '')]
+    public string $lead_from = '';
+
+    #[Url(except: '')]
+    public string $lead_to = '';
 
     public function updated(string $property): void
     {
@@ -67,9 +76,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Bấm thẻ thống kê: lọc theo trạng thái, bấm lại thì bỏ lọc.
-     */
     public function filterStatus(string $status): void
     {
         $this->status = $this->status === $status ? '' : $status;
@@ -82,6 +88,26 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function resetLeadFilters(): void
+    {
+        $this->reset(...self::LEAD_FILTERS);
+        $this->resetPage();
+    }
+
+    public function leadFilterParts(): array
+    {
+        $t = fn (string $key, array $replace) => __('students.lead_filter.'.$key, $replace);
+        $from = $this->validDate($this->lead_from) ? $this->lead_from : null;
+        $to = $this->validDate($this->lead_to) ? $this->lead_to : null;
+
+        return array_values(array_filter([
+            $this->source !== '' ? $t('source', ['value' => $this->source]) : null,
+            in_array($this->method, Lead::CONTACT_METHODS, true) ? $t('method', ['value' => __('leads.method.'.$this->method)]) : null,
+            $this->branch !== '' ? $t('branch', ['value' => Branch::find($this->branch)?->branch_name ?? $this->branch]) : null,
+            $from || $to ? $t('created', ['from' => $from ? date('d/m/Y', strtotime($from)) : '…', 'to' => $to ? date('d/m/Y', strtotime($to)) : '…']) : null,
+        ]));
+    }
+
     public function hasFilters(): bool
     {
         foreach (self::FILTERS as $filter) {
@@ -92,8 +118,6 @@ class Index extends Component
 
         return false;
     }
-
-    // ── Phạm vi theo vai trò ──────────────────────────────────────────
 
     #[Computed]
     public function me(): ?Employee
@@ -127,9 +151,6 @@ class Index extends Component
             : collect();
     }
 
-    /**
-     * Đội đang xem: Giám đốc / Sale Admin / Kế toán = đội đã chọn; Sale Leader = đội của mình.
-     */
     #[Computed]
     public function activeTeam(): ?SalesTeam
     {
@@ -162,11 +183,6 @@ class Index extends Component
         return Course::query()->orderBy('course_id')->get(['course_id', 'course_name']);
     }
 
-    // ── Truy vấn ──────────────────────────────────────────────────────
-
-    /**
-     * Phạm vi vai trò + bộ lọc trên màn hình (bỏ bộ lọc trạng thái khi tính thẻ thống kê).
-     */
     protected function filtered(bool $withStatus = true): Builder
     {
         $search = trim($this->search);
@@ -199,7 +215,14 @@ class Index extends Component
                 fn ($q) => $q->whereHas('lead.opportunities', fn ($o) => $o->where('employee_id', $this->employee))
             )
             ->when($this->validDate($this->from), fn ($q) => $q->whereDate('conversion_date', '>=', $this->from))
-            ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to));
+            ->when($this->validDate($this->to), fn ($q) => $q->whereDate('conversion_date', '<=', $this->to))
+            ->when($this->leadFilterParts() !== [], fn ($q) => $q->whereHas('lead', fn ($l) => $l
+                ->when($this->source !== '', fn ($l) => $l->where('source_name', $this->source))
+                ->when(in_array($this->method, Lead::CONTACT_METHODS, true), fn ($l) => $l->where('contact_method', $this->method))
+                ->when($this->branch !== '', fn ($l) => $l->where('branch_id', $this->branch))
+                ->when($this->validDate($this->lead_from), fn ($l) => $l->whereDate('created_at', '>=', $this->lead_from))
+                ->when($this->validDate($this->lead_to), fn ($l) => $l->whereDate('created_at', '<=', $this->lead_to))
+            ));
     }
 
     protected function validDate(string $value): bool
@@ -207,9 +230,6 @@ class Index extends Component
         return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) && strtotime($value) !== false;
     }
 
-    /**
-     * Số học viên theo trạng thái (theo bộ lọc, trừ bộ lọc trạng thái).
-     */
     #[Computed]
     public function stats(): array
     {

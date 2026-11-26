@@ -1,11 +1,7 @@
-/* ── Trang Quản lý Opportunity dạng Kanban (livewire/opportunities/kanban) ──
-   Nạp cùng voucher.css, dùng lại class .vc-*; phần riêng tiền tố .ok-. */
-
 .ok {
     max-width: none;
 }
 
-/* Tổng số Opportunity ở góc phải tiêu đề */
 .ok-total {
     margin: 0;
     color: var(--vc-muted);
@@ -16,7 +12,6 @@
     color: var(--vc-ink);
 }
 
-/* ── Bộ lọc ngày chuyển đổi: nút chọn nhanh + Từ ngày - Đến ngày ───── */
 
 .ok-filter {
     display: flex;
@@ -31,7 +26,6 @@
     width: 170px;
 }
 
-/* Đội / Salesperson (Sale Leader, Giám đốc) */
 .ok-filter__select {
     width: 200px;
 }
@@ -67,12 +61,10 @@
     color: var(--vc-on-primary);
 }
 
-/* Chỉ hiện với Sale Leader: đội đang xem */
 .ok-subtitle {
     margin: 0 0 0.75rem;
 }
 
-/* ── Thanh công cụ: bên trái kiểu xem, sắp xếp, tổng số; bên phải tìm kiếm + 2 nút icon ── */
 
 .ok-toolbar {
     display: grid;
@@ -132,7 +124,6 @@
     color: var(--vc-primary);
 }
 
-/* Chấm đỏ ở góc nút: số việc cần xử lý */
 .ok-tool-btn__dot {
     position: absolute;
     top: -9px;
@@ -178,9 +169,7 @@
     text-decoration: none;
 }
 
-/* ── Bảng Kanban: cột cuộn ngang ───────────────────────────────────── */
 
-/* Các cột chia đều chiều ngang (tối thiểu 280px, thiếu chỗ thì cuộn ngang); cột Lưu trữ thu gọn là dải hẹp */
 .ok-board {
     display: flex;
     align-items: stretch;
@@ -195,12 +184,11 @@
     pointer-events: none;
 }
 
-/* Mỗi stage một màu đậm đủ cho chữ trắng (theo sort_order) */
-.ok-col--1 { --stage: #475569; } /* Data chưa tương tác */
-.ok-col--2 { --stage: #0369a1; } /* Data đã có lịch hẹn */
-.ok-col--3 { --stage: #b45309; } /* Data đã xử lý */
-.ok-col--4 { --stage: #15803d; } /* Chốt */
-.ok-col--5 { --stage: #78716c; } /* Lưu trữ */
+.ok-col--1 { --stage: #475569; }
+.ok-col--2 { --stage: #0369a1; }
+.ok-col--3 { --stage: #b45309; }
+.ok-col--4 { --stage: #15803d; }
+.ok-col--5 { --stage: #78716c; }
 
 .ok-col {
     display: flex;
@@ -259,10 +247,9 @@
     padding: 0.6rem;
 }
 
-/* Nút "Xem thêm" cuối cột / cuối danh sách */
 .ok-col__more {
     width: 100%;
-    margin-top: auto; /* đẩy xuống đáy cột để các cột thẳng hàng */
+    margin-top: auto;
     padding: 0.6rem;
     border: 1.5px dashed var(--vc-border);
     background: transparent;
@@ -276,7 +263,6 @@
     border-color: var(--vc-primary);
 }
 
-/* Cột Lưu trữ đang mở: mũi tên (→) thu gọn lại sang phải */
 .ok-col__toggle {
     display: inline-flex;
     margin-left: auto;
@@ -292,7 +278,6 @@
     height: 16px;
 }
 
-/* Cột Lưu trữ thu gọn: dải hẹp ở mép phải, cả dải là nút mở rộng */
 .ok-col.is-collapsed {
     flex: 0 0 56px;
     min-width: 56px;
@@ -315,14 +300,12 @@
     background: color-mix(in srgb, var(--stage, #94a3b8) 88%, #000);
 }
 
-/* Mũi tên (←) mở rộng sang trái */
 .vc .ok-col__rail .odin-icon {
     width: 16px;
     height: 16px;
     transform: rotate(180deg);
 }
 
-/* Tên cột dựng đứng */
 .ok-col__rail-name {
     font-size: 0.9rem;
     font-weight: 700;
@@ -339,7 +322,6 @@
     text-align: center;
 }
 
-/* ── Thẻ Opportunity ───────────────────────────────────────────────── */
 
 .ok-card {
     display: flex;
@@ -369,7 +351,6 @@
     min-width: 0;
 }
 
-/* Tên class có "avatar" nên giữ được hình tròn (xem quy tắc vuông góc trong app.css) */
 .ok-card__avatar {
     display: inline-grid;
     flex-shrink: 0;
@@ -390,11 +371,9 @@
     overflow-wrap: anywhere;
 }
 
-/* Trạng thái trong stage Lưu trữ: Từ chối (Lost) / Lưu trữ (Archived) */
 .ok-status--Lost { --tone: #b91c1c; --tone-bg: #fee2e2; }
 .ok-status--Archived { --tone: #64748b; --tone-bg: #f1f5f9; }
 
-/* Thẻ cần xử lý: giữ nền và viền như thẻ thường, chỉ thêm biểu tượng nhỏ ở góc phải trên */
 .ok-card--attention {
     position: relative;
 }
@@ -403,7 +382,6 @@
     padding-right: 1.5rem;
 }
 
-/* Biểu tượng góc phải trên của thẻ, rê chuột hiện việc cần xử lý */
 .ok-card__alert {
     position: absolute;
     top: 0.7rem;
@@ -417,7 +395,6 @@
     height: 18px;
 }
 
-/* Hai đầu mỗi dòng: SĐT - thời gian, giá trị - người phụ trách */
 .ok-card__row {
     display: flex;
     align-items: center;
@@ -480,7 +457,6 @@
     font-weight: 500;
 }
 
-/* ── Xem dưới dạng danh sách ───────────────────────────────────────── */
 
 .ok-list__customer {
     display: flex;
@@ -534,7 +510,6 @@
     margin-top: 0.85rem;
 }
 
-/* Bộ lọc Stage nằm trong tiêu đề cột Giai đoạn, trông như chữ tiêu đề */
 .ok-th-select {
     max-width: 190px;
     padding: 0.1rem 0.1rem 0.1rem 0;
@@ -557,14 +532,12 @@
     font-weight: 700;
 }
 
-/* Tên giai đoạn trong danh sách xổ xuống giữ nguyên chữ thường */
 .ok-th-select option {
     color: var(--vc-ink);
     font-weight: 500;
     text-transform: none;
 }
 
-/* Màn nhỏ: bảng thành thẻ, bỏ dòng tiêu đề nhưng vẫn giữ bộ lọc Giai đoạn */
 @media (max-width: 991.98px) {
     .ok-list .vc-table thead,
     .ok-list .vc-table thead tr {
@@ -609,7 +582,6 @@
     }
 }
 
-/* ══ Chi tiết Opportunity (livewire/opportunities/show), tiền tố .od- ═══ */
 
 .od-res--Success,
 .od-apt--Success { --tone: #15803d; --tone-bg: #dcfce7; }
@@ -624,7 +596,6 @@
     font-size: 0.82rem;
 }
 
-/* ── Đầu trang ─────────────────────────────────────────────────────── */
 
 .od-head__top {
     display: flex;
@@ -650,7 +621,6 @@
     overflow-wrap: anywhere;
 }
 
-/* Thanh giai đoạn dạng mũi tên (giống statusbar của Odoo) */
 .od-stages {
     display: flex;
     margin: 0;
@@ -703,7 +673,6 @@
     height: 14px;
 }
 
-/* ── Lưới 2 cột: trái linh hoạt, phải 360px ────────────────────────── */
 
 .od-grid {
     display: grid;
@@ -723,7 +692,6 @@
     font-weight: 700;
 }
 
-/* Tiêu đề card kèm nút thao tác bên phải (VD: Khách hàng - Sửa) */
 .od-title-row {
     display: flex;
     align-items: center;
@@ -741,7 +709,6 @@
     padding-inline: 0.75rem;
 }
 
-/* Tiêu đề trong card có bảng (card không padding) */
 .od-title--bar {
     margin: 0;
     padding: 1rem 1.25rem;
@@ -764,7 +731,6 @@
     border-top: 1px solid var(--vc-border);
 }
 
-/* ── Lịch sử chăm sóc: dòng thời gian ──────────────────────────────── */
 
 .od-timeline__item {
     position: relative;
@@ -777,7 +743,6 @@
     padding-bottom: 0;
 }
 
-/* Đường nối giữa các chấm */
 .od-timeline__item:not(:last-child)::before {
     content: "";
     position: absolute;
@@ -810,7 +775,6 @@
     gap: 0.5rem;
 }
 
-/* Lịch sử chăm sóc tách theo hoạt động: Liên hệ ban đầu - Xếp lại lịch - Chốt đăng ký */
 .od-care-group + .od-care-group {
     margin-top: 1.25rem;
     padding-top: 1.1rem;
@@ -834,7 +798,6 @@
     overflow-wrap: anywhere;
 }
 
-/* ── Thông tin dạng nhãn - giá trị ─────────────────────────────────── */
 
 .od-info {
     display: grid;
@@ -860,13 +823,11 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Thông tin khách hàng lên trước */
     .od-side {
         order: -1;
     }
 }
 
-/* ── Tab Lịch sử chăm sóc / Lịch hẹn ───────────────────────────────── */
 
 .od-tabs {
     display: flex;
@@ -930,7 +891,6 @@
     pointer-events: none;
 }
 
-/* ── Thẻ lịch hẹn ──────────────────────────────────────────────────── */
 
 .od-apt {
     padding: 0.95rem 1.1rem;
@@ -980,7 +940,6 @@
     white-space: pre-line;
 }
 
-/* Ô ghi kết quả khi khách đã đến */
 .od-attend {
     display: grid;
     gap: 0.25rem;
@@ -1020,14 +979,12 @@
     border-color: #b91c1c;
 }
 
-/* Lịch hẹn có loại đã đến, loại chưa / không đến */
 .od-apt--Mixed { --tone: #b45309; --tone-bg: #fef3c7; }
 
 .od-notice {
     margin-bottom: 1rem;
 }
 
-/* Từng loại trong một lịch hẹn: Test / Tư vấn */
 .od-apt__rows {
     display: grid;
     gap: 0.6rem;
@@ -1058,7 +1015,6 @@
 .od-type--Test { color: #7c3aed; }
 .od-type--Consultation { color: #0369a1; }
 
-/* Dòng được tham chiếu từ trang Danh sách lịch hẹn (?apt=) */
 .od-apt__row.is-focus {
     background: color-mix(in srgb, var(--vc-primary) 8%, #fff);
     box-shadow: inset 3px 0 0 var(--vc-primary), 0 0 0 1px color-mix(in srgb, var(--vc-primary) 30%, transparent);
@@ -1077,9 +1033,7 @@
     margin-top: 0.6rem;
 }
 
-/* ── Hàng nút Đổi lịch - Tạo lịch hẹn + form ──────────────────────── */
 
-/* Nút thao tác của tab đang mở, nằm cùng hàng với tên tab (bên phải) */
 .od-tabs__actions {
     display: flex;
     flex-wrap: wrap;
@@ -1099,7 +1053,6 @@
     color: var(--vc-primary);
 }
 
-/* Nút chữ xanh, không nền; rê chuột mới hiện nền xanh (VD: Ghi nhận Chốt đăng ký) */
 .vc .od-btn--text {
     background: transparent;
     color: var(--vc-primary);
@@ -1194,7 +1147,6 @@
     }
 }
 
-/* ── Ghi nhận liên hệ: chọn kết quả ────────────────────────────────── */
 
 .od-create__sub {
     margin: -0.4rem 0 0;
@@ -1223,7 +1175,6 @@
     accent-color: var(--tone);
 }
 
-/* Thời gian + cơ sở riêng cho từng loại lịch hẹn (Test / Tư vấn) */
 .od-slot {
     display: grid;
     grid-template-columns: 130px minmax(0, 260px);
@@ -1239,7 +1190,6 @@
     align-self: center;
 }
 
-/* Đổi lịch: ô thời gian / cơ sở mới ngay dưới từng lịch được tick */
 .od-picks {
     display: grid;
     gap: 0.5rem;
@@ -1270,7 +1220,6 @@
     }
 }
 
-/* ── Sale Leader / Giám đốc: chỉ xem, chuyển người phụ trách ─────────── */
 
 .od-readonly {
     display: inline-flex;
@@ -1294,8 +1243,6 @@
     margin-top: 1rem;
 }
 
-/* Popup chuyển người phụ trách: thẻ người đang giữ → danh sách salesperson nhận, kèm thanh tải x/50
-   (dùng lại .ld-dist__avatar / .ld-dist__load / .ld-dist__bar của lead.css) */
 .od-reassign {
     --d-ok: #16a34a;
     --d-warn: #d97706;
@@ -1445,7 +1392,6 @@
     }
 }
 
-/* Lịch sử chuyển người phụ trách (thẻ Thông tin cơ hội) */
 .od-transfers {
     margin-top: 1rem;
     padding-top: 1rem;
@@ -1484,7 +1430,6 @@
     overflow-wrap: anywhere;
 }
 
-/* Lịch sử chăm sóc: người thực hiện (người phụ trách trước / hiện tại) */
 .od-timeline__by {
     display: flex;
     flex-wrap: wrap;
@@ -1492,7 +1437,6 @@
     gap: 0.35rem 0.75rem;
 }
 
-/* Tên nhân viên liên hệ: canh phải dòng thời gian */
 .od-by {
     display: inline-flex;
     align-items: center;
@@ -1507,7 +1451,6 @@
     height: 12px;
 }
 
-/* Popup thành công */
 .od-success {
     width: min(440px, 100%);
 }
@@ -1549,7 +1492,6 @@
     justify-content: center;
 }
 
-/* Địa điểm lịch hẹn cố định: cơ sở của khách */
 .od-place {
     display: flex;
     align-items: center;
@@ -1576,7 +1518,6 @@
     font-size: 0.85rem;
 }
 
-/* Nhãn "Phân vân · còn N ngày" (HĐ11, tính ra từ báo giá Nháp còn hạn) + link mã báo giá */
 .od-undecided {
     gap: 0.3rem;
     background: #fef3c7;
@@ -1597,7 +1538,6 @@
     text-decoration: none;
 }
 
-/* Bảng báo giá trong cơ hội: bấm cả dòng mở chi tiết báo giá; số ngày còn lại của báo giá Nháp */
 .vc-table tbody tr.od-row-link {
     cursor: pointer;
 }
@@ -1626,12 +1566,8 @@
     color: #b91c1c;
 }
 
-/* ══ Tạo cơ hội mới (livewire/opportunities/create), tiền tố .ok-create- ══
-   Nạp cùng opportunity.css; dùng lại class .vc-* của voucher.css.         */
 
-/* ── Nút "Tạo cơ hội" trên toolbar Kanban ─────────────────────────── */
 
-/* Nút dạng pill cạnh ô tìm kiếm: icon + nhãn đầy đủ trên màn lớn, chỉ icon trên màn nhỏ */
 .ok-tool-btn--create {
     display: inline-flex;
     align-items: center;
@@ -1651,7 +1587,6 @@
 }
 
 @media (max-width: 575.98px) {
-    /* Màn nhỏ: chỉ hiện icon để toolbar không bị tràn */
     .ok-tool-btn--create {
         width: 42px;
         padding: 0;
@@ -1663,7 +1598,6 @@
     }
 }
 
-/* ── Trang tạo cơ hội ──────────────────────────────────────────────── */
 
 .vc .vc-page-title {
     margin: 0.75rem 0 0.25rem;
@@ -1677,7 +1611,6 @@
     color: var(--vc-muted);
 }
 
-/* Không có tiêu đề trang: chừa khoảng cách dưới breadcrumb */
 .ok-create > .vc-crumb {
     margin-bottom: 1.25rem;
 }
@@ -1693,7 +1626,6 @@
     color: var(--vc-ink);
 }
 
-/* ── Tìm kiếm ──────────────────────────────────────────────────────── */
 
 .ok-create__search-panel .vc-search {
     margin-bottom: 0.75rem;
@@ -1742,7 +1674,6 @@
     font-weight: 600;
 }
 
-/* Badge tình trạng trên dòng kết quả */
 .ok-create__badge {
     font-size: 0.76rem;
     font-weight: 700;
@@ -1753,7 +1684,6 @@
 .ok-create__badge--warning { color: #b45309; }
 .ok-create__badge--blocked { color: #b91c1c; }
 
-/* ── Bố cục khi đã chọn khách: 2 cột cao bằng nhau, không bo góc ─── */
 
 .ok-create__layout {
     display: grid;
@@ -1768,7 +1698,6 @@
     }
 }
 
-/* Cột trái: thẻ khách + thẻ liên hệ; thẻ liên hệ giãn để đáy bằng cột phải */
 .ok-create__col {
     display: flex;
     flex-direction: column;
@@ -1796,7 +1725,6 @@
     color: var(--vc-muted);
 }
 
-/* ── Thẻ khách đang chọn ──────────────────────────────────────────── */
 
 .ok-create__customer {
     display: flex;
@@ -1876,7 +1804,6 @@
     }
 }
 
-/* ── Form thông tin liên hệ ────────────────────────────────────────── */
 
 .ok-create__contact {
     display: grid;
@@ -1903,7 +1830,6 @@
     grid-column: 1 / -1;
 }
 
-/* Ô nhập có icon bên trái */
 .ok-create__input {
     position: relative;
     display: block;
@@ -1932,7 +1858,6 @@
     }
 }
 
-/* ── Lưu ý: hộp xám nhạt có icon ───────────────────────────────────── */
 
 .ok-create__notes {
     display: flex;
@@ -1985,7 +1910,6 @@
     font-weight: 600;
 }
 
-/* ── Tóm tắt cơ hội sẽ được tạo ────────────────────────────────────── */
 
 .ok-create__summary {
     display: flex;
@@ -2041,7 +1965,6 @@
     font-weight: 600;
 }
 
-/* Nút dính đáy để hai cột bằng nhau vẫn gọn */
 .ok-create__summary-foot {
     margin-top: auto;
     padding: 1rem 1.5rem 1.5rem;
@@ -2060,7 +1983,6 @@
     font-size: 0.95rem;
 }
 
-/* Lỗi chung khi tạo (đầu trang) */
 .ok-create__alert {
     display: flex;
     gap: 0.6rem;
@@ -2078,7 +2000,6 @@
     margin-top: 2px;
 }
 
-/* ── Màu tối ───────────────────────────────────────────────────────── */
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .ok-create__badge--ok      { color: #4ade80; }
@@ -2096,7 +2017,6 @@
 :root[data-theme="dark"] .ok-create__alert,
 :root[data-theme="dark"] .ok-create__summary-blocked { color: #fca5a5; }
 
-/* Nút nhỏ (Chọn, Chọn khách khác) */
 .vc .ok-create__btn-sm {
     height: 34px;
     padding: 0 0.85rem;
@@ -2104,7 +2024,6 @@
     font-size: 0.82rem;
 }
 
-/* Trang tạo cơ hội không bo góc: thẻ tìm kiếm, ô tìm, nút */
 .vc.ok-create .vc-card,
 .vc.ok-create .vc-search,
 .vc.ok-create .vc-btn,

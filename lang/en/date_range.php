@@ -1,6 +1,5 @@
 <?php
 
-// Date range picker (components/date-range.blade.php)
 return [
     'placeholder' => 'Select date range',
     'hint_start'  => 'Pick a start date',

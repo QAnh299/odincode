@@ -18,20 +18,6 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Danh sách báo giá + tìm kiếm nâng cao + bộ lọc. Chỉ xem: lập, sửa, xác nhận, từ chối
- * báo giá làm ở trang chi tiết (bước sau). Quy trình: docs/quy-trinh-bao-gia-thanh-toan.md.
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson, Kế toán (Kế toán chỉ xem).
- *
- * Phạm vi dữ liệu luôn theo Quotation::visibleTo(): Giám đốc / Sale Admin xem tất cả, Kế toán xem khách thuộc cơ sở mình phụ trách,
- * Sale Leader xem của đội mình, Salesperson xem của chính mình.
- *
- * Tìm kiếm (cập nhật ngay): nhiều từ khóa (AND), mỗi từ khóa khớp ít nhất một trường (OR);
- * "cụm từ" giữ nguyên; -từ khóa để loại trừ; không phân biệt hoa/thường và dấu tiếng Việt.
- *
- * Bộ lọc (bấm "Lọc" mới áp dụng): người dùng chọn trên $form; applyFilters() mới chép sang
- * các thuộc tính đã áp dụng (lưu trên URL) và danh sách chỉ đọc các thuộc tính đã áp dụng.
- */
 #[Layout('layouts.app')]
 class Index extends Component
 {
@@ -41,19 +27,15 @@ class Index extends Component
 
     public const SORTS = ['newest', 'oldest', 'expiring', 'code', 'total_desc', 'total_asc', 'customer'];
 
-    // Tình trạng hạn (chỉ xét báo giá Nháp)
     public const DEADLINES = ['valid', 'soon', 'overdue'];
 
-    // "Sắp hết hạn": còn 0 - SOON_DAYS ngày
     public const SOON_DAYS = 3;
 
     public const ORDER_STATES = ['with', 'without'];
 
-    // Giới hạn tìm kiếm: số từ khóa, độ dài mỗi từ khóa (phần vượt quá bỏ qua)
     public const MAX_TERMS = 8;
     public const MAX_TERM_LENGTH = 100;
 
-    // Giá trị mặc định của các bộ lọc (key của $form = tên thuộc tính đã áp dụng)
     public const FILTER_DEFAULTS = [
         'statuses'    => [],
         'deadline'    => '',
@@ -66,56 +48,41 @@ class Index extends Component
         'employee'    => '',
     ];
 
-    // Các giá trị có thể bị sửa từ client → luôn đọc qua các hàm active*() / *Range đã kiểm tra lại.
-    // Không khai báo kiểu string: URL kiểu ?q[]=x sẽ gán mảng và gây lỗi 500 trước khi kịp kiểm tra;
-    // giá trị không phải chuỗi được đưa về mặc định ở sanitizeFilters().
-
     #[Url(as: 'q', except: '')]
     public $search = '';
 
-    // ── Bộ lọc ĐÃ ÁP DỤNG (danh sách đọc các giá trị này) ──
-
-    // Trạng thái (chọn nhiều, thuộc Quotation::STATUSES)
     #[Url(as: 'status')]
     public $statuses = [];
 
-    // Tình trạng hạn: '' hoặc một trong DEADLINES
     #[Url(as: 'deadline', except: '')]
     public $deadline = '';
 
-    // Đơn hàng: '' hoặc một trong ORDER_STATES
     #[Url(as: 'order', except: '')]
     public $orderState = '';
 
-    // Khoảng ngày tạo
     #[Url(as: 'created_from', except: '')]
     public $createdFrom = '';
 
     #[Url(as: 'created_to', except: '')]
     public $createdTo = '';
 
-    // Khoảng ngày hết hạn
     #[Url(as: 'expiry_from', except: '')]
     public $expiryFrom = '';
 
     #[Url(as: 'expiry_to', except: '')]
     public $expiryTo = '';
 
-    // Đội (Giám đốc, Sale Admin, Kế toán), '' = Tất cả
     #[Url(except: '')]
     public $team = '';
 
-    // Nhân viên lập (Giám đốc, Sale Admin, Kế toán, Sale Leader), '' = Tất cả
     #[Url(except: '')]
     public $employee = '';
 
     #[Url(except: 'newest')]
     public $sort = 'newest';
 
-    // ── Bộ lọc ĐANG CHỌN trên form (chưa áp dụng cho tới khi bấm "Lọc") ──
     public array $form = self::FILTER_DEFAULTS;
 
-    // Danh sách nhân viên theo đội (tránh truy vấn lặp trong một request)
     private array $employeesCache = [];
 
     public function mount(): void
@@ -124,10 +91,6 @@ class Index extends Component
         $this->form = $this->appliedFilters();
     }
 
-    /**
-     * Ô tìm kiếm / sắp xếp áp dụng ngay nên về trang 1; đổi bộ lọc trên form thì chưa đổi danh sách.
-     * Đổi đội trên form thì bỏ chọn nhân viên không còn thuộc đội đó.
-     */
     public function updated(string $property): void
     {
         $this->sanitizeFilters();
@@ -145,9 +108,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Nút "Lọc": kiểm tra khoảng ngày trên form; hợp lệ thì áp dụng toàn bộ bộ lọc và về trang 1.
-     */
     public function applyFilters(): void
     {
         $this->sanitizeFilters();
@@ -169,24 +129,15 @@ class Index extends Component
 
         $this->resetPage();
 
-        // Giao diện: áp dụng thành công thì đóng panel bộ lọc
         $this->dispatch('quotation-filters-applied');
     }
 
-    /**
-     * Nút "Đặt lại" trong panel: đưa các ô của panel về mặc định, CHƯA áp dụng (bấm "Áp dụng" mới đổi danh sách).
-     * Trạng thái do tab chọn nên giữ nguyên.
-     */
     public function resetForm(): void
     {
         $this->form = array_merge(self::FILTER_DEFAULTS, ['statuses' => $this->form['statuses']]);
         $this->resetErrorBag();
     }
 
-    /**
-     * Bấm vào thẻ thống kê: lọc ngay đúng một trạng thái, bấm lại thì bỏ lọc ('' = Tất cả).
-     * Ô Trạng thái trên form cũng đổi theo.
-     */
     public function filterStatus(string $status): void
     {
         $this->statuses = $status === '' || $this->activeStatuses() === [$status] ? [] : [$status];
@@ -194,9 +145,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Nút × trên chip: bỏ riêng một nhóm bộ lọc (cả giá trị đã áp dụng lẫn trên form).
-     */
     public function clearFilter(string $key): void
     {
         $properties = match ($key) {
@@ -223,9 +171,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-    /**
-     * Xóa tất cả: từ khóa, bộ lọc (đã áp dụng và trên form) và đưa sắp xếp về mặc định.
-     */
     public function resetFilters(): void
     {
         $this->reset('search', 'sort', ...array_keys(self::FILTER_DEFAULTS));
@@ -234,29 +179,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    // ── Quyền và danh sách lựa chọn của bộ lọc ─────────────────────────
-
-    /**
-     * Prefix route theo vai trò, VD: 'director' → route 'director.quotations'.
-     */
     #[Computed]
     public function routePrefix(): string
     {
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Có bộ lọc Đội (Giám đốc, Sale Admin, Kế toán - các vai trò xem toàn bộ báo giá).
-     */
     #[Computed]
     public function canFilterTeam(): bool
     {
         return in_array($this->routePrefix, [Role::DIRECTOR, Role::SALE_ADMIN, Role::ACCOUNTANT], true);
     }
 
-    /**
-     * Có bộ lọc và cột Nhân viên lập (Salesperson chỉ thấy báo giá của mình nên ẩn).
-     */
     #[Computed]
     public function canFilterEmployee(): bool
     {
@@ -271,40 +205,24 @@ class Index extends Component
             : collect();
     }
 
-    /**
-     * Đội đã áp dụng: phải có trong danh sách đội, giá trị lạ (sửa URL) coi như Tất cả.
-     */
     #[Computed]
     public function activeTeam(): ?SalesTeam
     {
         return $this->findTeam($this->team);
     }
 
-    /**
-     * Nhân viên cho ô chọn trên form: thu hẹp theo đội đang chọn trên form.
-     */
     #[Computed]
     public function formEmployeeOptions(): Collection
     {
         return $this->employeesFor($this->findTeam($this->form['team']));
     }
 
-    /**
-     * Nhân viên đã áp dụng: phải thuộc danh sách được phép của đội đã áp dụng, giá trị lạ coi như Tất cả.
-     */
     #[Computed]
     public function activeEmployee(): ?Employee
     {
         return $this->employee === '' ? null : $this->employeesFor($this->activeTeam)->firstWhere('employee_id', $this->employee);
     }
 
-    // ── Giá trị bộ lọc đã kiểm tra phía server ─────────────────────────
-
-    /**
-     * Trạng thái đang lọc (bỏ giá trị lạ), theo thứ tự của Quotation::STATUSES.
-     *
-     * @return array<int, string>
-     */
     public function activeStatuses(): array
     {
         return array_values(array_intersect(Quotation::STATUSES, $this->stringList($this->statuses)));
@@ -325,40 +243,24 @@ class Index extends Component
         return in_array($this->sort, self::SORTS, true) ? $this->sort : 'newest';
     }
 
-    /**
-     * Khoảng ngày tạo đã áp dụng: [from, to, có lỗi?].
-     */
     #[Computed]
     public function createdRange(): array
     {
         return $this->dateRange($this->createdFrom, $this->createdTo);
     }
 
-    /**
-     * Khoảng ngày hết hạn đã áp dụng: [from, to, có lỗi?].
-     */
     #[Computed]
     public function expiryRange(): array
     {
         return $this->dateRange($this->expiryFrom, $this->expiryTo);
     }
 
-    /**
-     * Từ khóa tìm kiếm đã phân tích (xem parseTerms).
-     *
-     * @return array<int, array{text: string, needle: string, exclude: bool}>
-     */
     #[Computed]
     public function terms(): array
     {
         return $this->parseTerms($this->search);
     }
 
-    // ── Số liệu hiển thị ───────────────────────────────────────────────
-
-    /**
-     * Số báo giá theo từng trạng thái (thẻ thống kê): áp mọi điều kiện tìm kiếm / lọc đã áp dụng TRỪ trạng thái.
-     */
     #[Computed]
     public function counts(): array
     {
@@ -376,20 +278,12 @@ class Index extends Component
         return $counts;
     }
 
-    /**
-     * Có báo giá nào trong phạm vi quyền không (phân biệt 2 trạng thái rỗng).
-     */
     #[Computed]
     public function hasAnyQuotation(): bool
     {
         return $this->scopedQuery()->exists();
     }
 
-    /**
-     * Chip của các bộ lọc ĐÃ áp dụng: [key => nhãn]. Key dùng cho clearFilter().
-     *
-     * @return array<string, string>
-     */
     #[Computed]
     public function chips(): array
     {
@@ -435,9 +329,6 @@ class Index extends Component
         return $chips;
     }
 
-    /**
-     * Form có thay đổi chưa bấm "Lọc" (hiện nhắc người dùng).
-     */
     public function hasPendingChanges(): bool
     {
         $normalize = function (array $filters): array {
@@ -455,10 +346,6 @@ class Index extends Component
             || $this->form != self::FILTER_DEFAULTS || $this->appliedFilters() != self::FILTER_DEFAULTS;
     }
 
-    /**
-     * Đánh dấu <mark> các từ khóa (không loại trừ) trong một ô của bảng.
-     * Escape HTML trước, so khớp không phân biệt hoa/thường và dấu tiếng Việt.
-     */
     public function highlight(?string $text): HtmlString
     {
         $text = (string) $text;
@@ -468,7 +355,6 @@ class Index extends Component
             return new HtmlString(e($text));
         }
 
-        // fold() giữ nguyên số ký tự nên vị trí trong chuỗi đã bỏ dấu dùng được cho chuỗi gốc
         $haystack = self::fold($text);
         $ranges = [];
 
@@ -483,7 +369,6 @@ class Index extends Component
             return new HtmlString(e($text));
         }
 
-        // Gộp các đoạn chồng lên nhau rồi ghép lại
         sort($ranges);
         $merged = [array_shift($ranges)];
         foreach ($ranges as [$start, $end]) {
@@ -528,24 +413,16 @@ class Index extends Component
         ])->title(__('quotations.title'));
     }
 
-    // ── Truy vấn ───────────────────────────────────────────────────────
-
     private function viewer(): ?Employee
     {
         return Auth::user()->employee;
     }
 
-    /**
-     * Báo giá trong phạm vi quyền của người đang đăng nhập (mọi truy vấn đều bắt đầu từ đây).
-     */
     private function scopedQuery(): Builder
     {
         return Quotation::query()->visibleTo($this->viewer());
     }
 
-    /**
-     * Phạm vi quyền + từ khóa + mọi bộ lọc đã áp dụng. $withStatus = false dùng cho thẻ thống kê.
-     */
     private function filteredQuery(bool $withStatus): Builder
     {
         $query = $this->scopedQuery();
@@ -556,15 +433,6 @@ class Index extends Component
         return $query;
     }
 
-    /**
-     * Phân tích chuỗi tìm kiếm thành các từ khóa:
-     *   - tách theo khoảng trắng; "cụm từ" trong ngoặc kép giữ nguyên (ngoặc kép lẻ thì coi như văn bản thường);
-     *   - từ khóa bắt đầu bằng "-" là loại trừ (VD: -QUO001, -"Nguyễn Văn A");
-     *   - tối đa MAX_TERMS từ khóa, mỗi từ khóa tối đa MAX_TERM_LENGTH ký tự.
-     * needle là từ khóa đã đổi đ/Đ → d/D để so với cột cũng đã đổi (xem foldColumn).
-     *
-     * @return array<int, array{text: string, needle: string, exclude: bool}>
-     */
     private function parseTerms(string $search): array
     {
         $search = trim($search);
@@ -601,9 +469,6 @@ class Index extends Component
         return $terms;
     }
 
-    /**
-     * Áp từ khóa: mọi từ khóa phải khớp (AND); từ khóa loại trừ thì báo giá khớp bị bỏ.
-     */
     private function applySearch(Builder $query): void
     {
         foreach ($this->terms as $term) {
@@ -615,12 +480,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Trạng thái có mã hoặc nhãn (vi / en) bắt đầu một từ bằng từ khóa, VD "draft", "nhap", "tu choi"
-     * (so khớp bỏ dấu). Từ khóa dưới 3 ký tự không xét, tránh "a", "da"… khớp mọi trạng thái.
-     *
-     * @return array<int, string>
-     */
     private function matchingStatuses(string $text): array
     {
         $needle = self::fold($text);
@@ -638,12 +497,6 @@ class Index extends Component
         ])->contains(fn ($label) => preg_match($pattern, self::fold($label)) === 1)));
     }
 
-    /**
-     * Một từ khóa khớp ít nhất một trường (OR). Dùng EXISTS (whereHas), không join nhân bản dòng.
-     * Cột có thể NULL bọc COALESCE để NOT (...) của từ khóa loại trừ không bỏ sót dòng.
-     *
-     * @param  array<int, string>  $statuses  trạng thái có tên khớp từ khóa (matchingStatuses)
-     */
     private function matchTerm(Builder $query, string $like, array $statuses): void
     {
         $query
@@ -664,9 +517,6 @@ class Index extends Component
                 ->orWhereHas('course', fn ($q) => $q->whereRaw($this->foldColumn('Courses.course_name').' LIKE ?', [$like])));
     }
 
-    /**
-     * Áp các nhóm bộ lọc đã áp dụng (kết hợp AND).
-     */
     private function applyFilterConditions(Builder $query, bool $withStatus): void
     {
         if ($withStatus && ($statuses = $this->activeStatuses())) {
@@ -686,10 +536,6 @@ class Index extends Component
         }
     }
 
-    /**
-     * Tình trạng hạn, chỉ xét báo giá Nháp: Còn hạn (hết hạn ≥ hôm nay), Sắp hết hạn (còn 0 - SOON_DAYS ngày),
-     * Quá hạn (hết hạn < hôm nay).
-     */
     private function applyDeadline(Builder $query): void
     {
         $deadline = $this->activeDeadline();
@@ -729,10 +575,6 @@ class Index extends Component
             ->when($expiryTo, fn ($q, $date) => $q->whereDate('Quotations.expiry_date', '<=', $date));
     }
 
-    /**
-     * Sắp xếp theo danh sách trắng SORTS, luôn có thứ tự phụ theo mã để phân trang ổn định.
-     * "Sắp hết hạn trước": báo giá Nháp lên đầu, trạng thái khác xuống cuối.
-     */
     private function applySort(Builder $query): void
     {
         match ($this->activeSort()) {
@@ -752,11 +594,6 @@ class Index extends Component
         };
     }
 
-    // ── Tiện ích ───────────────────────────────────────────────────────
-
-    /**
-     * Bộ lọc đã áp dụng dưới dạng mảng cùng key với $form.
-     */
     private function appliedFilters(): array
     {
         $filters = [];
@@ -767,10 +604,6 @@ class Index extends Component
         return $filters;
     }
 
-    /**
-     * Giá trị dạng chuỗi nhận giá trị không phải chuỗi (sửa URL / payload) thì đưa về mặc định;
-     * giá trị dạng danh sách luôn là mảng chuỗi. Áp cho cả thuộc tính đã áp dụng lẫn $form.
-     */
     private function sanitizeFilters(): void
     {
         $text = fn ($value, string $default) => is_string($value) ? $value : $default;
@@ -798,10 +631,6 @@ class Index extends Component
         return $teamId === '' ? null : $this->teams->firstWhere('team_id', $teamId);
     }
 
-    /**
-     * Nhân viên được phép chọn: người có báo giá trong phạm vi quyền (Sale Leader: đội mình),
-     * thu hẹp theo đội nếu có. Salesperson không có bộ lọc này.
-     */
     private function employeesFor(?SalesTeam $team): Collection
     {
         if (! $this->canFilterEmployee) {
@@ -815,18 +644,11 @@ class Index extends Component
             ->get(['employee_id', 'full_name']);
     }
 
-    /**
-     * Collation utf8mb4_unicode_ci đã bỏ qua dấu khi so sánh, trừ đ/Đ (khác d) → đổi đ/Đ thành d/D ở cả hai phía.
-     * $column chỉ là tên cột cố định trong code, không phải dữ liệu người dùng.
-     */
     private function foldColumn(string $column): string
     {
         return "REPLACE(REPLACE($column, 'đ', 'd'), 'Đ', 'D')";
     }
 
-    /**
-     * Chữ thường + bỏ dấu tiếng Việt, giữ nguyên số ký tự (dùng cho đánh dấu từ khóa).
-     */
     private static function fold(string $text): string
     {
         static $map = null;
@@ -852,11 +674,6 @@ class Index extends Component
         return strtr(mb_strtolower($text), $map);
     }
 
-    /**
-     * Ép giá trị từ URL / client thành danh sách chuỗi (giá trị không phải mảng chuỗi thì bỏ).
-     *
-     * @return array<int, string>
-     */
     private function stringList(mixed $value): array
     {
         return array_values(array_filter(is_array($value) ? $value : [$value], 'is_string'));
@@ -871,11 +688,6 @@ class Index extends Component
         };
     }
 
-    /**
-     * Ngày kết thúc nhỏ hơn ngày bắt đầu thì không lọc theo khoảng đó (trả về cờ lỗi).
-     *
-     * @return array{0: ?string, 1: ?string, 2: bool}
-     */
     private function dateRange(string $from, string $to): array
     {
         $from = $this->validDate($from) ? $from : null;

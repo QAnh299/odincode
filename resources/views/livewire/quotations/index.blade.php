@@ -7,16 +7,13 @@
     $showEmployee = $this->canFilterEmployee;
     $pending = $this->hasPendingChanges();
 
-    // Chip bộ lọc đang áp dụng. Trạng thái đã thể hiện ở tab nên chỉ hiện chip khi lọc nhiều trạng thái (từ URL)
     $chips = $this->chips;
     if (count($activeStatuses) <= 1) {
         unset($chips['statuses']);
     }
 
-    // Số bộ lọc trong panel đang áp dụng (huy hiệu trên nút "Bộ lọc")
     $panelCount = count(array_intersect_key($this->chips, array_flip(['deadline', 'order', 'created', 'expiry', 'team', 'employee'])));
 
-    // Tab trạng thái: [trạng thái, icon]
     $tabs = [
         ['', 'layers'],
         [Quotation::STATUS_DRAFT, 'edit'],
@@ -28,18 +25,13 @@
 @endphp
 
 <div class="qt">
-    {{-- CSS riêng của trang báo giá: resources/css/quotation.css (chỉ nạp ở trang này) --}}
     @assets
         @vite('resources/css/quotation.css')
     @endassets
 
-    {{-- Tiêu đề hiển thị ở thanh trên cùng; giữ thẻ h1 ẩn cho trình đọc màn hình.
-         Không có nút Thêm mới: báo giá được lập từ cơ hội (HĐ1). --}}
     <h1 class="visually-hidden">{{ __('quotations.title') }}</h1>
 
-    {{-- ── Khối dính khi cuộn: tab trạng thái + thanh công cụ + chip bộ lọc ── --}}
     <div class="qt-sticky">
-        {{-- Tab trạng thái (bấm để lọc ngay; số đếm theo mọi bộ lọc trừ trạng thái) --}}
         <nav class="qt-tabs" aria-label="{{ __('quotations.status_label') }}">
             @foreach ($tabs as [$key, $icon])
                 @php $current = $key === '' ? $activeStatuses === [] : $activeStatuses === [$key]; @endphp
@@ -53,7 +45,6 @@
             @endforeach
         </nav>
 
-        {{-- Thanh công cụ: tìm kiếm (cập nhật ngay) + nút Bộ lọc + Xoá bộ lọc --}}
         <div class="qt-toolbar" x-data="{ open: false }" x-on:keydown.escape.window="open = false"
             x-on:quotation-filters-applied.window="open = false">
             <div class="qt-search">
@@ -64,7 +55,6 @@
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 </span>
 
-                {{-- Hướng dẫn cú pháp tìm kiếm (thay cho dòng gợi ý luôn hiện) --}}
                 <span class="qt-hint" x-data="{ tip: false }" x-on:click.outside="tip = false">
                     <button type="button" class="qt-hint__btn" x-on:click="tip = ! tip" :aria-expanded="tip.toString()"
                         title="{{ __('quotations.search_hint') }}">
@@ -90,12 +80,10 @@
                     @if ($panelCount)
                         <span class="qt-btn__badge">{{ $panelCount }}</span>
                     @endif
-                    {{-- Chấm báo: đã đổi bộ lọc trong panel nhưng chưa bấm Áp dụng --}}
                     <span class="qt-btn__dot" title="{{ __('quotations.pending') }}"
                         @unless ($pending) wire:dirty wire:target="form" @endunless></span>
                 </button>
 
-                {{-- Panel bộ lọc: thả xuống trên màn rộng, drawer toàn màn hình trên màn hẹp --}}
                 <div class="qt-panel" id="qt-panel" x-show="open" x-cloak x-transition.opacity role="dialog"
                     aria-label="{{ __('quotations.filters') }}">
                     <form wire:submit="applyFilters" class="qt-panel__form">
@@ -128,7 +116,6 @@
                                 </select>
                             </label>
 
-                            {{-- Khoảng ngày: cặp từ / đến trong một nhóm (không có thư viện date range picker) --}}
                             <fieldset class="qt-field">
                                 <legend class="qt-field__label">{{ __('quotations.created_range') }}</legend>
                                 <div class="qt-range">
@@ -162,7 +149,6 @@
                             @if ($this->canFilterTeam)
                                 <label class="qt-field">
                                     <span class="qt-field__label">{{ __('quotations.team') }}</span>
-                                    {{-- .live chỉ để thu hẹp danh sách nhân viên theo đội, danh sách báo giá chưa đổi --}}
                                     <select wire:model.live="form.team" class="qt-control">
                                         <option value="">{{ __('quotations.all_teams') }}</option>
                                         @foreach ($this->teams as $option)
@@ -186,7 +172,6 @@
                         </div>
 
                         <div class="qt-panel__foot">
-                            {{-- Nhắc khi bộ lọc trên form khác bộ lọc đang áp dụng (wire:dirty: đổi phía trình duyệt chưa gửi) --}}
                             <span class="qt-pending" role="status" @unless ($pending) wire:dirty wire:target="form" @endunless>
                                 <x-icon name="info" />{{ __('quotations.pending') }}
                             </span>
@@ -203,7 +188,6 @@
                 </div>
             </div>
 
-            {{-- Chỉ hiện khi có bộ lọc / từ khóa đang áp dụng --}}
             @if ($this->chips !== [])
                 <button type="button" class="qt-btn qt-btn--ghost qt-btn--clear" wire:click="resetFilters">
                     <x-icon name="refresh" /><span>{{ __('quotations.reset') }}</span>
@@ -211,7 +195,6 @@
             @endif
         </div>
 
-        {{-- Bộ lọc đang áp dụng (hiện cả khi panel đã đóng) --}}
         @if ($chips !== [])
             <div class="qt-chips" aria-label="{{ __('quotations.active_filters') }}">
                 <span class="qt-chips__title">{{ __('quotations.active_filters') }}:</span>
@@ -229,7 +212,6 @@
         @endif
     </div>
 
-    {{-- ── Kết quả ──────────────────────────────────────────────────── --}}
     <section class="qt-card qt-results">
         <div class="qt-results__bar">
             <span>
@@ -291,7 +273,6 @@
                                 $tone = in_array($quotation->status, Quotation::STATUSES, true) ? strtolower($quotation->status) : 'all';
                                 $url = route($this->routePrefix.'.quotations.show', $quotation);
                             @endphp
-                            {{-- Bấm cả dòng mở trang chi tiết (giống danh sách khóa học); dùng bàn phím: Tab tới mã báo giá rồi Enter --}}
                             <tr wire:key="quotation-{{ $quotation->quotation_id }}" class="qt-row-link" onclick="window.location='{{ $url }}'">
                                 <td data-label="{{ __('quotations.code') }}">
                                     <a href="{{ $url }}" class="qt-code" onclick="event.stopPropagation()">
@@ -336,7 +317,6 @@
                                     </span>
                                 </td>
                                 <td data-label="{{ __('quotations.total') }}" class="text-lg-end">
-                                    {{-- computed_total: cùng biểu thức SQL dùng để sắp xếp theo tổng tiền --}}
                                     <span class="qt-amount">{{ $money((float) $quotation->computed_total) }}</span>
                                 </td>
                                 <td data-label="{{ __('quotations.status_label') }}">

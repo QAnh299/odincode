@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-// Trang báo giá: danh sách (livewire/quotations/index)
 return [
     'title'              => 'Quản lý báo giá',
 
-    // Tìm kiếm
     'search'             => 'Tìm kiếm',
     'search_placeholder' => 'Tìm theo mã báo giá, khách hàng, SĐT, email, nhân viên, khóa học, voucher, mã đơn hàng…',
     'search_hint'        => 'Gõ nhiều từ khóa để thu hẹp kết quả · "cụm từ" để tìm chính xác · -từ khóa để loại trừ',
@@ -19,7 +17,6 @@ return [
         'Tìm trong: mã báo giá, trạng thái, ghi chú, mã cơ hội, tên/SĐT/email khách, nhân viên lập, mã đơn hàng, mã voucher, khóa học',
     ],
 
-    // Bộ lọc
     'filters'            => 'Bộ lọc',
     'close'              => 'Đóng',
     'active_filters'     => 'Đang lọc',
@@ -60,14 +57,12 @@ return [
         'customer'   => 'Tên khách hàng (A → Z)',
     ],
 
-    // Trạng thái báo giá (Quotation::STATUSES)
     'status' => [
         'Draft'     => 'Nháp',
         'Confirmed' => 'Đã xác nhận',
         'Rejected'  => 'Từ chối',
     ],
 
-    // Tình trạng hạn (chỉ báo giá Nháp)
     'deadline' => [
         'valid'   => 'Còn hạn',
         'soon'    => 'Sắp hết hạn (≤ 3 ngày)',
@@ -79,7 +74,6 @@ return [
         'without' => 'Chưa có đơn hàng',
     ],
 
-    // Nhãn nhóm trên chip bộ lọc đang áp dụng
     'chip' => [
         'search'   => 'Từ khóa',
         'statuses' => 'Trạng thái',
@@ -94,14 +88,13 @@ return [
         'to'       => 'đến :value',
     ],
 
-    // ── Lập / sửa báo giá (livewire/quotations/form) ──
     'form' => [
         'create_title'     => 'Lập báo giá',
         'edit_title'       => 'Sửa báo giá :code',
         'back_opportunity' => 'Quay lại cơ hội',
         'back_quotation'   => 'Quay lại báo giá',
         'blocked_title'    => 'Không thể lập báo giá',
-        // HĐ2 không đạt
+
         'blocked' => [
             'not_owner'     => 'Chỉ Salesperson đang phụ trách cơ hội mới được lập báo giá.',
             'not_closed'    => 'Cơ hội chưa ở giai đoạn Chốt.',
@@ -113,7 +106,7 @@ return [
         'course'           => 'khóa học',
         'pick_course'      => 'Chọn khóa học đang mở…',
         'all_courses_added' => 'Đã chọn hết các khóa học đang mở',
-        // Khóa khách đã có đơn hàng: chỉ cảnh báo, vẫn cho chọn
+
         'purchased_tag'     => 'Khách đã mua',
         'purchased_warning' => 'Khách đã mua khóa này (đơn :order). Kiểm tra lại nếu không phải học lại.',
         'ordered_tag'       => 'Đang có đơn chưa thanh toán',
@@ -138,7 +131,6 @@ return [
         'updated'          => 'Đã lưu thay đổi báo giá :code. Xuất lại PDF để gửi bản mới cho khách hàng.',
     ],
 
-    // Nhắc báo giá Nháp chờ khách phản hồi ở chuông thông báo của Salesperson (HĐ11)
     'reminder' => [
         'header'   => 'Lịch hẹn & báo giá cần theo dõi hôm nay, ngày mai',
         'today'    => 'Báo giá :code · :name hết hạn hôm nay',
@@ -147,8 +139,6 @@ return [
         'time'     => 'Hết hạn :date · liên hệ khách để chốt',
     ],
 
-
-    // ── Mẫu PDF báo giá (pdf/quotation) ──
     'pdf' => [
         'title'           => 'Báo giá',
         'company'         => 'ODIN Language Academy',
@@ -162,14 +152,13 @@ return [
         'consultant_sign' => 'Nhân viên tư vấn',
     ],
 
-    // ── Trang chi tiết (livewire/quotations/show) ──
     'detail_title'       => 'Báo giá :code',
 
     'detail' => [
         'back'              => 'Quay lại danh sách',
         'back_opportunity'  => 'Quay lại cơ hội :code',
         'expires_on'        => 'Hết hạn :date',
-        // Thanh thao tác (HĐ7, HĐ10, HĐ12, HĐ16)
+
         'actions'           => 'Thao tác',
         'edit'              => 'Chỉnh sửa',
         'export_pdf'        => 'Xuất PDF',
@@ -180,7 +169,7 @@ return [
         'confirm_confirm'   => 'Khách đã đồng ý báo giá :code? Xác nhận sẽ tạo đơn hàng và không sửa hay từ chối báo giá được nữa.',
         'confirm_title'     => 'Xác nhận báo giá',
         'confirmed_done'    => 'Đã xác nhận báo giá :code và tạo đơn hàng :order. Bấm "Tạo hóa đơn" để lập hóa đơn cho khách.',
-        // HĐ17 không đạt
+
         'confirm_blocked'   => [
             'not_author'      => 'Chỉ Salesperson lập báo giá mới được xác nhận.',
             'not_draft'       => 'Báo giá không còn ở trạng thái Nháp.',
@@ -206,7 +195,7 @@ return [
         'reject_cancel' => 'Hủy',
         'reject_submit' => 'Từ chối báo giá',
         'opportunity_kept'  => 'Cơ hội đã Thành công nên giữ nguyên.',
-        // Tiến trình
+
         'progress'          => 'Tiến trình',
         'step_quotation'    => 'Báo giá',
         'step_order'        => 'Đơn hàng',
@@ -216,7 +205,7 @@ return [
         'invoice_count'     => ':count hóa đơn',
         'paid_of'           => ':paid / :total',
         'rejected_note'     => 'Báo giá đã bị từ chối nên không tạo đơn hàng',
-        // Thông tin chung
+
         'general'           => 'Thông tin chung',
         'created_at'        => 'Ngày tạo',
         'updated_at'        => 'Cập nhật gần nhất',
@@ -224,7 +213,7 @@ return [
         'employee'          => 'Nhân viên lập',
         'notes'             => 'Ghi chú',
         'no_notes'          => 'Không có ghi chú',
-        // Khách hàng, cơ hội
+
         'customer'          => 'Khách hàng',
         'full_name'         => 'Họ tên',
         'email'             => 'Email',
@@ -233,7 +222,7 @@ return [
         'opportunity_id'    => 'Mã cơ hội',
         'stage'             => 'Giai đoạn',
         'opportunity_state' => 'Trạng thái cơ hội',
-        // Khóa học + tổng tiền
+
         'courses'           => 'Khóa học trong báo giá',
         'no_courses'        => 'Báo giá chưa có khóa học nào',
         'no'                => '#',
@@ -246,14 +235,14 @@ return [
         'subtotal'          => 'Tạm tính',
         'discount'          => 'Voucher :code (−:value)',
         'grand_total'       => 'Tổng cộng',
-        // Voucher
+
         'voucher'           => 'Voucher áp dụng',
         'voucher_code'      => 'Mã voucher',
         'voucher_type'      => 'Loại giảm giá',
         'voucher_value'     => 'Giá trị',
         'voucher_validity'  => 'Thời gian hiệu lực',
         'voucher_invalid'   => 'Voucher hiện không còn hiệu lực; số tiền giảm vẫn tính như khi lập báo giá',
-        // Đơn hàng
+
         'order'             => 'Đơn hàng',
         'order_id'          => 'Mã đơn hàng',
         'order_created'     => 'Ngày tạo đơn',
@@ -267,7 +256,6 @@ return [
         'create_next_invoice' => 'Tạo hóa đơn kỳ tiếp',
     ],
 
-    // Trạng thái cơ hội (Opportunity::STATUSES)
     'opportunity_status' => [
         'InProgress' => 'Đang xử lý',
         'Won'        => 'Thành công',
@@ -275,20 +263,17 @@ return [
         'Archived'   => 'Lưu trữ',
     ],
 
-    // Trạng thái đơn hàng (SalesOrders.status)
     'order_status' => [
         'InProgress' => 'Đang xử lý',
         'Completed'  => 'Hoàn tất',
     ],
 
-    // Hình thức thanh toán (SalesOrders.payment_type)
     'payment_type' => [
         'Full'        => 'Toàn bộ',
         'Installment' => 'Trả góp',
         'none'        => 'Chưa xác định',
     ],
 
-    // Cột bảng
     'code'               => 'Mã báo giá',
     'customer'           => 'Khách hàng',
     'employee'           => 'Nhân viên lập',

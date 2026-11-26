@@ -4,13 +4,6 @@ namespace App\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Khoá chính dạng chuỗi theo chuẩn odin.sql: tiền tố + số thứ tự (LEAD001, ROLE01, ...).
- *
- * Model sử dụng trait cần khai báo:
- *   protected string $idPrefix = 'LEAD';
- *   protected int $idLength = 3;   // số chữ số phần đuôi
- */
 trait HasStringId
 {
     public function initializeHasStringId(): void
@@ -28,9 +21,6 @@ trait HasStringId
         });
     }
 
-    /**
-     * Sinh mã tiếp theo, ví dụ LEAD012 -> LEAD013.
-     */
     public static function nextId(): string
     {
         $model = new static();
@@ -48,11 +38,6 @@ trait HasStringId
         return $prefix.str_pad((string) $number, $model->idLength, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Sinh liên tiếp $count mã tiếp theo (dùng khi tạo hàng loạt trong 1 transaction).
-     *
-     * @return string[]
-     */
     public static function nextIds(int $count): array
     {
         $model = new static();

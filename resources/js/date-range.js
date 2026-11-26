@@ -1,6 +1,3 @@
-// Ô chọn khoảng ngày (components/date-range.blade.php): bấm 2 ngày trên cùng một lịch → khoảng [từ, đến].
-// Giá trị lấy / ghi thẳng vào 2 thuộc tính Livewire (Y-m-d), nên bộ lọc phía server không phải đổi.
-
 const pad = (n) => String(n).padStart(2, "0");
 const toIso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const fromIso = (s) => {
@@ -15,10 +12,8 @@ const toDisplay = (s) => {
 document.addEventListener("alpine:init", () => {
     window.Alpine.data("dateRange", ({ fromProp, toProp, months }) => ({
         open: false,
-        // Ngày bấm đầu tiên, chờ bấm ngày thứ hai
         start: null,
         hover: null,
-        // Tháng đang xem (ngày 1 của tháng)
         view: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
 
         get from() {
@@ -39,7 +34,6 @@ document.addEventListener("alpine:init", () => {
             return `${months[this.view.getMonth()]} ${this.view.getFullYear()}`;
         },
 
-        // 6 tuần × 7 ngày, tuần bắt đầu từ thứ Hai
         get days() {
             const first = new Date(this.view);
             const offset = (first.getDay() + 6) % 7;
@@ -59,7 +53,6 @@ document.addEventListener("alpine:init", () => {
         },
 
         show() {
-            // Mở lịch ở tháng của ngày bắt đầu đang chọn (nếu có)
             const base = fromIso(this.from) || new Date();
             this.view = new Date(base.getFullYear(), base.getMonth(), 1);
             this.start = null;
@@ -77,7 +70,6 @@ document.addEventListener("alpine:init", () => {
             this.view = new Date(this.view.getFullYear(), this.view.getMonth() + step, 1);
         },
 
-        // Khoảng đang hiển thị: đang chọn dở (ngày đầu → ngày rê chuột) hoặc khoảng đã áp dụng
         bounds() {
             if (this.start) {
                 const end = this.hover || this.start;
@@ -107,7 +99,6 @@ document.addEventListener("alpine:init", () => {
         },
 
         apply(a, b) {
-            // Ghi 2 thuộc tính trong cùng một lần gửi lên server
             this.$wire.$set(fromProp, a, false);
             this.$wire.$set(toProp, b);
             this.close();

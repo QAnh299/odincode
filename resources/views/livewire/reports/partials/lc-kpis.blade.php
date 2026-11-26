@@ -1,8 +1,9 @@
-{{-- Thẻ KPI báo cáo chuyển đổi Lead: $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh.
-     Bố cục dọc: icon + tên → số lớn → chú thích neo đáy thẻ (các thẻ cùng hàng cao bằng nhau, chú thích thẳng hàng). --}}
 <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
-    @foreach ($kpis as [$key, $icon, $value, $hint, $change])
-        <div class="rp-stat">
+    @foreach ($kpis as $kpi)
+        @php [$key, $icon, $value, $hint, $change, $drill] = $kpi + [5 => null]; @endphp
+        <div @class(['rp-stat', 'dr-card' => $drill])
+            @if ($drill) role="button" tabindex="0" title="{{ __('reports.drill.hint') }}"
+                x-on:click="$dispatch('report-drill', {{ Js::from($this->drillTarget($drill)) }})" x-on:keydown.enter="$dispatch('report-drill', {{ Js::from($this->drillTarget($drill)) }})" @endif>
             <div class="rp-stat__head">
                 <span class="rp-stat__icon"><x-icon :name="$icon" /></span>
                 <span>{{ __('reports.lead_conversion.kpi.'.$key) }}</span>

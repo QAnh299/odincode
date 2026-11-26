@@ -16,55 +16,22 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * Phân bổ Lead (quy trình PhanLead.docx):
- *
- *   1. Sale Admin → Sales Team: Lead 'New' của 1 chi nhánh được chuyển thành Cơ hội ở stage đầu,
- *      người phụ trách = trưởng nhóm của đội (odin.sql không có cột lưu đội của Lead).
- *      Lead vẫn 'New' (đội đang giữ, chưa phân cho salesperson).
- *   2. Sale Leader → Salesperson: Cơ hội trưởng nhóm đang giữ (stage đầu, InProgress, chưa chăm sóc)
- *      được đổi người phụ trách sang salesperson, ngày giao (conversion_date) = lúc phân.
- *      Lúc này Lead mới chuyển sang 'Converted'.
- *
- * Chia tự động: chia đều phần nguyên, Lead dư lần lượt cho Top 2 theo hiệu suất tháng trước.
- * Hiệu suất = cộng hạng: xếp hạng riêng theo từng tiêu chí (doanh thu, tỷ lệ chốt, TB thời gian xử lý)
- * rồi cộng 3 thứ hạng; tổng hạng càng nhỏ càng tốt (không cần chuẩn hoá hay đặt trọng số).
- * Ngưỡng MAX_PER_SALESPERSON Cơ hội đang xử lý (InProgress)/salesperson (chỉ áp cho Salesperson, không áp cho đội)
- * chỉ là cảnh báo: chia tự động ưu tiên người còn chỗ, hết chỗ thì phần còn lại vẫn giao cho Top 2 hiệu suất;
- * có người vượt ngưỡng thì trưởng nhóm xác nhận (thấy rõ ai vượt bao nhiêu) trước khi ghi.
- *
- * Khách cũ quay lại (LeadDuplicateService::reopen đưa Lead về 'New') và người thân dùng chung SĐT / email
- * (anh chị em, phụ huynh đăng ký cho các con…): popup phân chia gợi ý đội / người đang hoặc từng phụ trách;
- * khi ghi kết quả, các Lead này được ưu tiên giao cho đội / người đó, người thân cùng lần phân được giao chung
- * (số lượng mỗi người nhận vẫn đúng kế hoạch) - xem suggestedOwners(), familiesIn(), matchPreferred().
- */
 class LeadDistributionService
 {
     public const MAX_PER_SALESPERSON = 50;
 
-    // Tiêu chí cộng hạng hiệu suất (tính theo tháng trước) → khoá chỉ số trong SalesPerformanceReport
-    //   avg_close_days = TB số ngày từ lúc được giao Lead đến khi chốt thành công (Won)
     public const CRITERIA = ['revenue', 'close_rate', 'avg_close_days'];
 
-    // Tiêu chí càng nhỏ càng tốt
     public const LOWER_IS_BETTER = ['avg_close_days'];
 
-    // Cỡ mẫu tối thiểu để tiêu chí tỷ lệ / trung bình đáng tin (tránh 1/1 = 100%, 1 đơn chốt trong 1 ngày):
-    //   close_rate     → số Cơ hội đã đóng (Won + Lost) trong tháng
-    //   avg_close_days → số Cơ hội chốt thành công (Won) trong tháng
-    // Chưa đủ thì coi như không có số liệu (xếp cuối). Doanh thu là số tuyệt đối nên không cần ngưỡng.
     public const MIN_SAMPLE = ['close_rate' => 15, 'avg_close_days' => 4];
 
-    // Số đội / salesperson nhận Lead dư
     public const TOP = 2;
 
     public function __construct(protected SalesPerformanceReport $report)
     {
     }
 
-    /**
-     * Tháng trước (tháng hiện tại chưa kết thúc nên chưa đủ số liệu): [from, to, nhãn m/Y].
-     */
     public function previousMonth(): array
     {
         $start = Carbon::now()->subMonthNoOverflow()->startOfMonth();
@@ -72,10 +39,6 @@ class LeadDistributionService
         return [$start->toDateString(), $start->copy()->endOfMonth()->toDateString(), $start->format('m/Y')];
     }
 
-    /**
-     * Hiệu suất tháng trước theo đội ('team') hoặc nhân viên ('employee'):
-     * [id => ['revenue' => float, 'close_rate' => ?float, 'avg_close_days' => ?float, 'closed' => int, 'won' => int]].
-     */
     public function performance(string $dimension, ?string $teamId = null): array
     {
         [$from, $to] = $this->previousMonth();
@@ -91,9 +54,6 @@ class LeadDistributionService
         ], $rows);
     }
 
-    /**
-     * Cỡ mẫu của tiêu chí: [đã có, tối thiểu]; tiêu chí không cần ngưỡng → null.
-     */
     public function sample(?array $performance, string $criterion): ?array
     {
         $min = self::MIN_SAMPLE[$criterion] ?? null;
@@ -106,9 +66,6 @@ class LeadDistributionService
         return [$count, $min];
     }
 
-    /**
-     * Giá trị tiêu chí dùng để xếp hạng; null = không có số liệu hoặc chưa đủ cỡ mẫu tối thiểu.
-     */
     public function score(?array $performance, string $criterion): ?float
     {
         $value = $performance[$criterion] ?? null;
@@ -117,14 +74,6 @@ class LeadDistributionService
         return $value === null || ($sample && $sample[0] < $sample[1]) ? null : (float) $value;
     }
 
-    /**
-     * Bảng cộng hạng trong nhóm $ids: [id => ['revenue' => hạng, 'close_rate' => hạng, 'avg_close_days' => hạng, 'total' => tổng hạng]].
-     * Mỗi tiêu chí xếp hạng riêng (TB thời gian xử lý: nhanh hơn là tốt hơn); bằng giá trị thì đồng hạng (1, 1, 3);
-     * không có / chưa đủ số liệu thì cùng xếp cuối ở tiêu chí đó.
-     *
-     * @param  string[]  $ids
-     * @return array<string, array<string, int>>
-     */
     public function scoreboard(array $ids, array $performance): array
     {
         $board = array_fill_keys($ids, ['total' => 0]);
@@ -147,13 +96,6 @@ class LeadDistributionService
         return $board;
     }
 
-    /**
-     * Xếp hạng từ tốt đến kém theo tổng hạng (nhỏ hơn là tốt hơn);
-     * hoà thì ai đang giữ ít Lead hơn trước, cuối cùng theo mã.
-     *
-     * @param  string[]  $ids
-     * @return string[]
-     */
     public function rank(array $ids, array $performance, array $load = []): array
     {
         $board = $this->scoreboard($ids, $performance);
@@ -163,12 +105,6 @@ class LeadDistributionService
         return $ids;
     }
 
-    /**
-     * Chia đều $total cho các id (đã xếp hạng); phần dư lần lượt cho Top 2.
-     *
-     * @param  string[]  $rankedIds
-     * @return array<string, int>
-     */
     public function splitEvenly(int $total, array $rankedIds): array
     {
         $count = count($rankedIds);
@@ -186,11 +122,6 @@ class LeadDistributionService
         return $plan;
     }
 
-    /**
-     * Số Cơ hội đang xử lý (InProgress) của từng nhân viên.
-     *
-     * @return array<string, int>
-     */
     public function currentLoad(array $employeeIds): array
     {
         return Opportunity::query()
@@ -203,17 +134,11 @@ class LeadDistributionService
             ->all();
     }
 
-    /**
-     * Số Lead còn nhận thêm được của salesperson.
-     */
     public function capacity(string $employeeId, array $load): int
     {
         return max(0, self::MAX_PER_SALESPERSON - ($load[$employeeId] ?? 0));
     }
 
-    /**
-     * Cắt phần vượt ngưỡng 50 Lead/người: [kế hoạch đã cắt, tổng phần vượt].
-     */
     public function excess(array $plan, array $load): array
     {
         $over = 0;
@@ -226,13 +151,6 @@ class LeadDistributionService
         return [$plan, $over];
     }
 
-    /**
-     * Chia tự động có ngưỡng: phần vượt được phân lại lần lượt cho Top 2 salesperson còn chỗ
-     * (theo thứ hạng hiệu suất); không ai còn chỗ dưới ngưỡng thì phần còn lại vẫn chia lần lượt cho Top 2
-     * của nhóm được chọn (ngưỡng chỉ là cảnh báo, trưởng nhóm xác nhận trước khi ghi).
-     *
-     * @return array<string, int>
-     */
     public function capAuto(array $plan, array $load, array $rankedIds): array
     {
         [$plan, $over] = $this->excess($plan, $load);
@@ -256,13 +174,6 @@ class LeadDistributionService
         return $plan;
     }
 
-    /**
-     * Salesperson sẽ vượt ngưỡng sau lần phân này (chỉ người có nhận thêm Lead):
-     * [employee_id => ['load' => đang quản lý, 'add' => nhận thêm, 'after' => sau khi phân, 'over' => số Lead vượt ngưỡng]].
-     *
-     * @param  array<string, int>  $plan
-     * @param  array<string, int>  $load
-     */
     public function overLimit(array $plan, array $load): array
     {
         $result = [];
@@ -281,15 +192,8 @@ class LeadDistributionService
         return $result;
     }
 
-    /* ── Lead khả dụng ────────────────────────────────────────────────── */
-
-    /**
-     * Lead chưa phân cho đội (Sale Admin), cũ trước.
-     */
     public function availableLeads(string $branchId, ?string $source = null, ?string $method = null): Builder
     {
-        // Không có cơ hội đang xử lý (cùng điều kiện với Lead::scopeUnassigned): khách cũ được đưa về hàng chờ
-        // còn các cơ hội đã kết thúc vẫn được phân
         return Lead::query()
             ->where('status', Lead::STATUS_NEW)
             ->where('branch_id', $branchId)
@@ -300,9 +204,6 @@ class LeadDistributionService
             ->orderBy('lead_id');
     }
 
-    /**
-     * Lead đội đang chờ phân cho Salesperson (Cơ hội trưởng nhóm giữ ở stage đầu, chưa chăm sóc), cũ trước.
-     */
     public function pendingOpportunities(string $leaderId, ?string $source = null, ?string $method = null): Builder
     {
         return Opportunity::query()
@@ -317,15 +218,6 @@ class LeadDistributionService
             ->orderBy('opportunity_id');
     }
 
-    /* ── Khách cũ quay lại ────────────────────────────────────────────── */
-
-    /**
-     * Người / đội từng phụ trách khách cũ, theo cơ hội đã kết thúc gần nhất của Lead:
-     * [lead_id => ['employee_id' => người phụ trách, 'leader_id' => trưởng nhóm của đội người đó đang ở]].
-     * Lead chưa có cơ hội nào đã kết thúc (khách mới) không có trong kết quả.
-     *
-     * @param  string[]  $leadIds
-     */
     public function previousOwners(array $leadIds): array
     {
         if (! $leadIds) {
@@ -347,17 +239,6 @@ class LeadDistributionService
             ->all();
     }
 
-    /**
-     * Ghép Lead với người nhận theo kế hoạch; số lượng của từng người giữ đúng kế hoạch:
-     *   1. Lead có người nhận ưu tiên (khách cũ, người thân đã có người phụ trách) → người đó, nếu còn suất;
-     *   2. Lead có người thân trong cùng lần phân → cùng người nhận với người thân, nếu còn suất;
-     *   3. còn lại lần lượt theo kế hoạch.
-     *
-     * @param  array<string, ?string>  $preferred  [mã (Lead / cơ hội) => người nhận ưu tiên | null], theo thứ tự phân (cũ trước)
-     * @param  array<string, int>  $plan  [người nhận => số lượng]
-     * @param  array<string, string>  $families  [mã => mã nhóm người thân] (familiesIn)
-     * @return array<string, string[]>  [người nhận => [mã...]]
-     */
     public function matchPreferred(array $preferred, array $plan, array $families = []): array
     {
         $remaining = $plan;
@@ -373,7 +254,6 @@ class LeadDistributionService
             }
         };
 
-        // 1. Có người nhận ưu tiên (khách cũ / người thân đã có người phụ trách) và người đó còn suất
         foreach ($preferred as $key => $owner) {
             if ($owner !== null && ($remaining[$owner] ?? 0) > 0) {
                 $take((string) $key, $owner);
@@ -382,7 +262,6 @@ class LeadDistributionService
             }
         }
 
-        // 2. Còn lại: theo người thân cùng lần phân nếu người đó còn suất, không thì lần lượt theo kế hoạch
         foreach ($rest as $key) {
             $owner = $familyOwner[$families[$key] ?? ''] ?? null;
 
@@ -396,15 +275,6 @@ class LeadDistributionService
         return $groups;
     }
 
-    /* ── Người thân dùng chung liên hệ ────────────────────────────────── */
-
-    /**
-     * Lead khác dùng chung SĐT / email với từng Lead (người thân: anh chị em, phụ huynh đăng ký cho các con…),
-     * tìm cả trong Leads và Students: [lead_id => [lead_id người thân...]]; Lead không có người thân không có trong kết quả.
-     *
-     * @param  string[]  $leadIds
-     * @return array<string, string[]>
-     */
     public function relatedLeads(array $leadIds): array
     {
         $leads = Lead::query()->whereIn('lead_id', $leadIds)->get(['lead_id', 'phone', 'email']);
@@ -415,7 +285,6 @@ class LeadDistributionService
             return [];
         }
 
-        // Liên hệ → các Lead mang liên hệ đó (email so không phân biệt hoa thường)
         $byContact = [];
         $add = function (?string $type, ?string $value, string $leadId) use (&$byContact) {
             if ($value) {
@@ -451,12 +320,6 @@ class LeadDistributionService
         return $result;
     }
 
-    /**
-     * Nhóm người thân trong cùng lần phân: [lead_id => mã nhóm] cho các Lead có người thân cũng nằm trong $leadIds.
-     *
-     * @param  string[]  $leadIds
-     * @return array<string, string>
-     */
     public function familiesIn(array $leadIds, ?array $related = null): array
     {
         $related ??= $this->relatedLeads($leadIds);
@@ -472,14 +335,6 @@ class LeadDistributionService
         return $families;
     }
 
-    /**
-     * Đội / người nên nhận từng Lead:
-     *   - 'returning': khách cũ → người phụ trách cơ hội đã kết thúc gần nhất của chính Lead (previousOwners);
-     *   - 'family': người thân dùng chung liên hệ đã có cơ hội → người phụ trách cơ hội gần nhất của người thân.
-     * [lead_id => ['employee_id', 'leader_id', 'reason' => 'returning'|'family', 'related' => lead_id người thân | null]].
-     *
-     * @param  string[]  $leadIds
-     */
     public function suggestedOwners(array $leadIds, ?array $related = null): array
     {
         $suggested = array_map(fn ($owner) => $owner + ['reason' => 'returning', 'related' => null], $this->previousOwners($leadIds));
@@ -491,7 +346,6 @@ class LeadDistributionService
             return $suggested;
         }
 
-        // Cơ hội gần nhất của từng người thân (mọi trạng thái)
         $latest = Opportunity::query()
             ->whereIn('lead_id', $relatedIds)
             ->with(['employee:employee_id,team_id', 'employee.team:team_id,team_leader_id', 'employee.ledTeam:team_id,team_leader_id'])
@@ -523,11 +377,6 @@ class LeadDistributionService
         return $suggested;
     }
 
-    /* ── Đối tượng nhận Lead ──────────────────────────────────────────── */
-
-    /**
-     * Đội nhận Lead của chi nhánh: đội có trưởng nhóm đang làm việc thuộc chi nhánh (Lead của đội do trưởng nhóm giữ).
-     */
     public function branchTeams(string $branchId): Collection
     {
         return SalesTeam::query()
@@ -537,9 +386,6 @@ class LeadDistributionService
             ->get();
     }
 
-    /**
-     * Salesperson đang làm việc của đội.
-     */
     public function teamSalespersons(string $teamId): Collection
     {
         return Employee::query()
@@ -550,13 +396,6 @@ class LeadDistributionService
             ->get(['employee_id', 'full_name', 'job_title']);
     }
 
-    /* ── Phân một Lead cụ thể ─────────────────────────────────────────── */
-
-    /**
-     * Sale Admin phân một Lead cụ thể cho đội (trưởng nhóm $leaderId): như assignToTeams() nhưng chỉ định Lead.
-     *
-     * @throws RuntimeException  Lead không còn chờ phân / đội không hợp lệ
-     */
     public function assignLeadToTeam(string $leadId, string $leaderId): void
     {
         DB::transaction(function () use ($leadId, $leaderId) {
@@ -579,16 +418,9 @@ class LeadDistributionService
             ]);
         });
 
-        // insert() không phát sự kiện model
         Lead::touchStats();
     }
 
-    /**
-     * Sale Leader phân một Lead cụ thể đội đang giữ cho Salesperson $employeeId: như assignToSalespersons()
-     * nhưng chỉ định Lead. Ngưỡng MAX_PER_SALESPERSON chỉ là cảnh báo (được phép vượt).
-     *
-     * @throws RuntimeException  Lead không còn chờ phân / Salesperson không thuộc đội
-     */
     public function assignLeadToSalesperson(string $leaderId, string $leadId, string $employeeId): void
     {
         DB::transaction(function () use ($leaderId, $leadId, $employeeId) {
@@ -608,11 +440,6 @@ class LeadDistributionService
         });
     }
 
-    /* ── Ghi kết quả ──────────────────────────────────────────────────── */
-
-    /**
-     * Phân Lead cho các đội: $plan = [trưởng nhóm employee_id => số Lead]. Trả về số Lead đã phân.
-     */
     public function assignToTeams(array $plan, string $branchId, ?string $source, ?string $method): int
     {
         $plan = array_filter($plan);
@@ -629,7 +456,6 @@ class LeadDistributionService
                 throw new RuntimeException(__('leads.distribute.exceed'));
             }
 
-            // Khách cũ / người thân ưu tiên về đội đang / từng phụ trách; người thân cùng lần phân về chung một đội
             $related = $this->relatedLeads($leadIds);
             $owners = $this->suggestedOwners($leadIds, $related);
             $groups = $this->matchPreferred(
@@ -656,22 +482,18 @@ class LeadDistributionService
             }
 
             Opportunity::insert($rows);
-            Lead::touchStats(); // insert() không phát sự kiện model
+            Lead::touchStats();
 
             return $total;
         });
     }
 
-    /**
-     * Phân Lead của đội cho salesperson: $plan = [employee_id => số Lead]. Trả về số Lead đã phân.
-     */
     public function assignToSalespersons(string $leaderId, array $plan, ?string $source, ?string $method): int
     {
         $plan = array_filter($plan);
         $total = array_sum($plan);
 
         return DB::transaction(function () use ($leaderId, $plan, $total, $source, $method) {
-            // [opportunity_id => lead_id], theo thứ tự phân (cũ trước)
             $oppLeads = $this->pendingOpportunities($leaderId, $source, $method)
                 ->lockForUpdate()
                 ->limit($total)
@@ -682,7 +504,6 @@ class LeadDistributionService
                 throw new RuntimeException(__('leads.distribute.exceed'));
             }
 
-            // Khách cũ / người thân ưu tiên về Salesperson đang / từng phụ trách; người thân cùng lần phân về chung một người
             $leadIds = array_values($oppLeads);
             $related = $this->relatedLeads($leadIds);
             $owners = $this->suggestedOwners($leadIds, $related);
@@ -703,7 +524,7 @@ class LeadDistributionService
 
             Lead::whereIn('lead_id', array_values($oppLeads))
                 ->update(['status' => Lead::STATUS_CONVERTED]);
-            Lead::touchStats(); // update() hàng loạt không phát sự kiện model
+            Lead::touchStats();
 
             return $total;
         });

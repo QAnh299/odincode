@@ -9,7 +9,7 @@
     $selOpp = $sel['opportunity'] ?? null;
     $selOrder = $this->selectedOrder;
     $selQuotation = $sel['quotation'] ?? null;
-    // Mã có link sang trang chi tiết (nếu vai trò có trang đó), không thì chỉ hiện mã
+
     $ref = function (string $route, $model, string $text, string $class = 'st-chip') {
         $url = $this->detailUrl($route, $model);
 
@@ -20,13 +20,10 @@
 @endphp
 
 <div class="vc st">
-    {{-- voucher.css (khung, bảng, nhãn) + lead.css (popup, thông báo) + opportunity.css (tab, lịch sử chăm sóc,
-         lịch hẹn) + student.css (phần riêng) --}}
     @assets
         @vite(['resources/css/voucher.css', 'resources/css/lead.css', 'resources/css/opportunity.css', 'resources/css/student.css'])
     @endassets
 
-    {{-- ── Điều hướng ───────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
         <a href="{{ $listUrl }}" class="odin-back"><x-icon name="arrow-left" />{{ __('students.back') }}</a>
         <span class="vc-crumb__path">
@@ -44,7 +41,6 @@
         </div>
     @endif
 
-    {{-- ── Đầu trang: học viên + số liệu học phí ───────────────────── --}}
     <section class="vc-card st-head">
         <div class="st-head__main">
             <span class="st-avatar">{{ mb_strtoupper(mb_substr(trim(\Illuminate\Support\Str::afterLast($student->full_name, ' ')), 0, 1)) }}</span>
@@ -74,7 +70,6 @@
 
     <div class="st-grid">
         <div class="st-main">
-            {{-- ── Khóa học đã đăng ký: thẻ cuộn ngang ───────────────── --}}
             @if ($cards->isEmpty())
                 <section class="vc-card"><p class="st-empty">{{ __('students.no_opportunities') }}</p></section>
             @else
@@ -104,7 +99,6 @@
                 </div>
             @endif
 
-            {{-- ── Chi tiết khóa đang chọn ─────────────────────────────── --}}
             @if ($sel)
                 <section class="vc-card st-detail" wire:key="detail-{{ $sel['key'] }}">
                     <header class="st-detail__head">
@@ -219,7 +213,6 @@
             @endif
         </div>
 
-        {{-- ── Cột phải: thông tin học viên, nguồn gốc ──────────────── --}}
         <aside class="st-side">
             <section class="vc-card">
                 <div class="st-title-row">
@@ -269,7 +262,6 @@
         </aside>
     </div>
 
-    {{-- ── Popup chỉnh sửa (Sale Leader, Salesperson) ──────────────── --}}
     @if ($editing)
         <div class="ld-modal" wire:key="modal-edit" x-data x-on:keydown.escape.window="$wire.cancelEdit()">
             <div class="ld-modal__backdrop" wire:click="cancelEdit"></div>

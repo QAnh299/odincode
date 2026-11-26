@@ -8,27 +8,59 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Renderless;
 
-/**
- * Bấm vào 1 số liệu (biểu đồ, thẻ KPI, ô bảng) → popup danh sách bản ghi tạo nên số đó.
- * Giao diện: livewire.reports.partials.report-drill; biểu đồ: spec['drills'][dãy][điểm] (resources/js/charts.js).
- *
- * Component dùng trait khai báo:
- *   drillKinds()  [loại danh sách => [cột => kiểu]] - kiểu: text | date | money | int | decimal
- *   drillList()   [dòng, phạm vi (mảng chữ)]; mỗi dòng có thể kèm _lead, _opportunity, _order, _student để tạo liên kết
- * Tham số do trình duyệt gửi lên nên drillList() phải luôn giữ bộ lọc / phạm vi vai trò của trang.
- */
 trait ReportDrill
 {
-    // Số dòng hiện mỗi lần trong popup
     public static int $drillStep = 50;
 
     abstract protected function drillKinds(): array;
 
     abstract protected function drillList(string $kind, array $params): array;
 
-    /**
-     * HTML danh sách cho popup. Renderless: không tính lại cả báo cáo mỗi lần mở / xem thêm.
-     */
+    protected function drillUrl(string $kind, array $params): ?string
+    {
+        return null;
+    }
+
+    public function drillTarget(array $params): array
+    {
+        $kind = $this->drillText($params, 'kind') ?? '';
+        $url = isset($this->drillKinds()[$kind]) ? $this->drillUrl($kind, $params) : null;
+
+        return $url ? ['url' => $url] : $params;
+    }
+
+    public function drillTargets(array $spec): array
+    {
+        if (isset($spec['drills'])) {
+            $spec['drills'] = array_map(
+                fn ($row) => array_map(fn ($params) => is_array($params) ? $this->drillTarget($params) : $params, $row),
+                $spec['drills']
+            );
+        }
+
+        return $spec;
+    }
+
+    protected function drillCharts(array $charts): array
+    {
+        return array_map(fn ($spec) => is_array($spec) ? $this->drillTargets($spec) : $spec, $charts);
+    }
+
+    protected function listUrlFor(string $page, array $query): ?string
+    {
+        $name = Auth::user()->role_name.'.'.$page;
+
+        return Route::has($name) ? route($name, array_filter($query, fn ($v) => $v !== null && $v !== '')) : null;
+    }
+
+    protected function drillMonthRange(string $month, ?string $from = null, ?string $to = null): array
+    {
+        $start = $month.'-01';
+        $end = date('Y-m-t', strtotime($start));
+
+        return [$from !== null && $from > $start ? $from : $start, $to !== null && $to < $end ? $to : $end];
+    }
+
     #[Renderless]
     public function drillHtml(array $params, int $pages = 1): string
     {
@@ -37,9 +69,6 @@ trait ReportDrill
         return $drill ? view('livewire.reports.partials.report-drill-list', ['drill' => $drill])->render() : '';
     }
 
-    /**
-     * Danh sách của số vừa bấm: tiêu đề, phạm vi, cột, các dòng hiện ra, tổng số dòng, tổng các cột tiền.
-     */
     protected function drill(array $params, int $pages = 1): ?array
     {
         $kind = $this->drillText($params, 'kind') ?? '';
@@ -48,7 +77,7 @@ trait ReportDrill
             return null;
         }
 
-        [$rows, $scope] = $this->drillList($kind, $params);
+        [$rows, $scope, $title] = $this->drillList($kind, $params) + [2 => null];
         $sums = [];
         foreach ($columns as $column => $type) {
             if ($type === 'money') {
@@ -57,7 +86,7 @@ trait ReportDrill
         }
 
         return [
-            'title'   => __('reports.drill.kind.'.$kind),
+            'title'   => $title ?? __('reports.drill.kind.'.$kind),
             'scope'   => implode(' · ', array_filter($scope)),
             'columns' => $columns,
             'rows'    => $this->linkDrillRows(array_slice($rows, 0, max(1, $pages) * static::$drillStep)),
@@ -66,9 +95,6 @@ trait ReportDrill
         ];
     }
 
-    /**
-     * Gắn liên kết tới trang chi tiết mà người xem mở được: đơn hàng / học viên, rồi cơ hội, rồi Lead.
-     */
     protected function linkDrillRows(array $rows): array
     {
         $employee = Auth::user()->employee;
@@ -103,9 +129,6 @@ trait ReportDrill
         }, $rows);
     }
 
-    /**
-     * Giá trị chữ trong tham số (không hợp lệ → null).
-     */
     protected function drillText(array $params, string $key): ?string
     {
         return is_string($params[$key] ?? null) && $params[$key] !== '' ? $params[$key] : null;

@@ -17,15 +17,6 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use RuntimeException;
 
-/**
- * Popup "Phân Lead" cho một Lead cụ thể (bổ sung cho phân theo số lượng ở Leads\Distribute):
- *   - Sale Admin: Lead chưa phân cho đội → chọn đội của chi nhánh Lead.
- *   - Sale Leader: Lead đội đang giữ, chờ phân → chọn Salesperson trong đội (ngưỡng 50 chỉ cảnh báo).
- * Khách cũ quay lại / người thân dùng chung SĐT, email: hiện người thân và chọn sẵn đội / người đang hoặc từng
- * phụ trách (nếu còn trong danh sách) để người thân được chăm sóc chung. Người thân cũng đang chờ phân có ô
- * "Phân chung" (tick sẵn) để phân cùng lúc cho cùng đội / người.
- * Mở bằng sự kiện 'open-assign-one' (leadId), xong thì phát 'leads-distributed' như popup phân chia.
- */
 class AssignOne extends Component
 {
     public bool $open = false;
@@ -33,10 +24,8 @@ class AssignOne extends Component
     #[Locked]
     public string $leadId = '';
 
-    // team_leader_id (Sale Admin) hoặc employee_id (Sale Leader)
     public string $target = '';
 
-    // Người thân (lead_id) được phân chung cùng đội / người với Lead này
     public array $withFamily = [];
 
     #[Computed]
@@ -51,9 +40,6 @@ class AssignOne extends Component
         return $this->role === Role::SALE_ADMIN;
     }
 
-    /**
-     * Đội do Sale Leader đang đăng nhập làm trưởng nhóm.
-     */
     #[Computed]
     public function team(): ?SalesTeam
     {
@@ -66,16 +52,13 @@ class AssignOne extends Component
         return $this->leadId !== '' ? Lead::with('branch:branch_id,branch_name')->find($this->leadId) : null;
     }
 
-    /**
-     * Lead còn phân được bởi người dùng hiện tại (cùng điều kiện với LeadDistributionService::assignLead*).
-     */
     public static function assignable(Lead $lead): bool
     {
         $employee = Auth::user()->employee;
 
         return match ($employee?->role_name) {
             Role::SALE_ADMIN  => Lead::query()->whereKey($lead->lead_id)->unassigned()->exists(),
-            // Chỉ trưởng nhóm phân Lead của đội mình đang giữ
+
             Role::SALE_LEADER => $employee->ledTeam !== null
                 && app(LeadDistributionService::class)->pendingOpportunities($employee->employee_id)->where('lead_id', $lead->lead_id)->exists(),
             default           => false,
@@ -92,10 +75,9 @@ class AssignOne extends Component
         unset($this->lead, $this->targets, $this->previous, $this->family);
         $this->resetValidation();
 
-        // Chọn sẵn đội / người từng phụ trách khách cũ / đang phụ trách người thân (nếu còn nhận Lead)
         $suggested = $this->previous['owner'] ?? null;
         $this->target = $suggested && $this->targets->contains('id', $suggested) ? $suggested : '';
-        // Tick sẵn "Phân chung" cho người thân cũng đang chờ người dùng này phân
+
         $this->withFamily = $this->family->where('assignable', true)->pluck('lead_id')->values()->all();
         $this->open = true;
     }
@@ -106,11 +88,6 @@ class AssignOne extends Component
         $this->resetValidation();
     }
 
-    /**
-     * Đội / người nên nhận Lead (LeadDistributionService::suggestedOwners):
-     * ['owner' => id đối tượng nhận, 'name' => tên người phụ trách · đội, 'reason' => 'returning'|'family'];
-     * null nếu không có gợi ý.
-     */
     #[Computed]
     public function previous(): ?array
     {
@@ -132,10 +109,6 @@ class AssignOne extends Component
         ];
     }
 
-    /**
-     * Người thân dùng chung SĐT / email (anh chị em, phụ huynh đăng ký cho các con…) và tình trạng của họ:
-     * [['lead_id', 'name', 'state' => mô tả ai đang / từng phụ trách], ...].
-     */
     #[Computed]
     public function family(): Collection
     {
@@ -162,7 +135,6 @@ class AssignOne extends Component
                     default => __('leads.assign_one.family_state.'.$opportunity->status, ['name' => $owner?->full_name ?? '-']),
                 };
 
-                // Màu nhãn trạng thái: chờ phân = cam, đang tư vấn / học viên = xanh, đã kết thúc = xám
                 $tone = match (true) {
                     ! $opportunity || $relative->status === Lead::STATUS_NEW => 'wait',
                     in_array($opportunity->status, [Opportunity::STATUS_IN_PROGRESS, Opportunity::STATUS_WON], true) => 'active',
@@ -174,17 +146,13 @@ class AssignOne extends Component
                     'name'       => $relative->full_name,
                     'state'      => $state,
                     'tone'       => $tone,
-                    // Phân chung được: người thân cũng đang chờ người dùng này phân; Sale Admin thêm điều kiện cùng
-                    // chi nhánh (đội nhận Lead theo chi nhánh)
+
                     'assignable' => ($this->forTeams ? $relative->branch_id === $this->lead->branch_id : true)
                         && self::assignable($relative),
                 ];
             });
     }
 
-    /**
-     * Đối tượng nhận: [['id', 'name', 'sub', 'load' (null với đội), 'full' (đủ ngưỡng 50)], ...].
-     */
     #[Computed]
     public function targets(): Collection
     {
@@ -232,12 +200,10 @@ class AssignOne extends Component
             return;
         }
 
-        // Lead này + người thân được tick "Phân chung" (chỉ nhận người thân còn phân được)
         $relatives = $this->family->where('assignable', true)->whereIn('lead_id', $this->withFamily);
         $leadIds = [$lead->lead_id, ...$relatives->pluck('lead_id')->all()];
 
         try {
-            // Phân chung: tất cả thành công hoặc không Lead nào được phân
             DB::transaction(function () use ($service, $leadIds, $target) {
                 foreach ($leadIds as $leadId) {
                     $this->forTeams

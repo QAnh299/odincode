@@ -1,11 +1,7 @@
 @props(['order', 'invoice' => null, 'installment' => 1, 'issuedDate' => null, 'type' => 'invoice'])
 
 @php
-    // Khung phiếu hóa đơn dùng chung cho trang tạo / sửa (livewire/invoices/form) và chi tiết (livewire/invoices/show);
-    // type = 'order': cùng khung cho chi tiết đơn hàng (livewire/orders/show) – tiêu đề, ngày tạo và số đơn thay cho số hóa đơn.
-    // Bố cục theo phiếu thu của ODIN: đầu phiếu (logo + chi nhánh), tiêu đề + ngày + số phiếu, thông tin khách,
-    // bảng khóa học của đơn, tổng đơn / đã đóng / còn lại; phần riêng của từng trang đặt vào $slot (cuối phiếu).
-    // Chỉ hiện trường có trong CSDL của nhóm (không có ngày sinh, CCCD).
+
     use App\Models\SalesOrder;
     use Illuminate\Support\Carbon;
     use Illuminate\Support\Str;
@@ -26,7 +22,6 @@
 @endphp
 
 <article {{ $attributes->merge(['class' => 'iv-doc']) }}>
-    {{-- Đầu phiếu: logo + chi nhánh của khách --}}
     <header class="iv-doc__top">
         <img src="{{ asset('images/logoodin-trim.png') }}" alt="ODIN Language Center" class="iv-doc__logo">
         <div class="iv-doc__branch">
@@ -51,14 +46,12 @@
         @endif
     </div>
 
-    {{-- Thông tin khách + đơn --}}
     <dl class="iv-doc__info">
         <div><dt>{{ __('invoices.receipt.customer') }}</dt><dd>{{ $lead?->full_name ?? '-' }}</dd></div>
         <div><dt>{{ __('invoices.receipt.phone') }}</dt><dd>{{ $lead?->phone ?: '-' }}</dd></div>
         <div><dt>{{ __('invoices.receipt.email') }}</dt><dd>{{ $lead?->email ?: '-' }}</dd></div>
         <div><dt>{{ __('invoices.receipt.consultant') }}</dt><dd>{{ $consultant?->full_name ?? '-' }}</dd></div>
         <div><dt>{{ __('invoices.receipt.quotation') }}</dt><dd>{{ $quotation?->quotation_id ?? '-' }}</dd></div>
-        {{-- Đơn chưa xác định hình thức: không hiện dòng này (SP chọn ở phần nhập bên dưới – HĐ21) --}}
         @if ($paymentType)
             <div><dt>{{ __('invoices.payment_type_label') }}</dt><dd>{{ __('invoices.payment_type.'.$paymentType) }}</dd></div>
         @elseif ($isOrder)
@@ -67,7 +60,6 @@
         {{ $info ?? '' }}
     </dl>
 
-    {{-- Khóa học của đơn (từ báo giá đã xác nhận) --}}
     <div class="iv-doc__lines">
         <table>
             <thead>
@@ -98,7 +90,6 @@
         </table>
     </div>
 
-    {{-- Tổng đơn (giá trị đã lưu trong SalesOrders) / đã đóng / còn lại --}}
     <dl class="iv-doc__sum">
         <div><dt>{{ __('invoices.receipt.subtotal') }}</dt><dd>{{ $money($subtotal) }}</dd></div>
         @if ($voucher)
@@ -109,7 +100,6 @@
         <div class="is-remaining"><dt>{{ __('invoices.receipt.remaining') }}</dt><dd>{{ $money($order->remaining_amount) }}</dd></div>
     </dl>
 
-    {{-- Phần riêng của từng trang: nhập kỳ thanh toán (tạo / sửa) hoặc thanh toán kỳ này (chi tiết) --}}
     @if (trim($slot) !== '')
         <section class="iv-doc__part">
             {{ $slot }}

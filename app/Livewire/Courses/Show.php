@@ -15,38 +15,21 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-/**
- * Chi tiết khóa học (chỉ xem): nội dung khóa học, thống kê + báo giá theo trạng thái,
- * danh sách báo giá có khóa học này (lọc theo trạng thái khi bấm vào khối bên phải).
- * Dùng chung cho Giám đốc, Sale Admin, Sale Leader, Salesperson.
- *
- * Phạm vi dữ liệu (áp dụng cho cả thống kê, thanh trạng thái và danh sách):
- *   - Giám đốc: tất cả.
- *   - Sale Admin: tất cả; lọc được theo Đội, chọn Đội rồi mới lọc được theo Nhân viên của đội đó.
- *   - Sale Leader: chỉ đội của mình; lọc được theo Nhân viên trong đội.
- *   - Salesperson: chỉ báo giá do chính mình lập.
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
     use WithPagination;
 
-    // Số báo giá mỗi trang ở mục Báo giá
     public const PER_PAGE = 5;
 
     public Course $course;
 
-    // Các bộ lọc có thể bị sửa từ client → luôn đọc qua activeStatus() / activeTeam / activeEmployee
-
-    // Trạng thái báo giá (chỉ lọc danh sách): null = Tất cả
     #[Url]
     public ?string $status = null;
 
-    // Đội (Sale Admin) - '' = Tất cả đội
     #[Url(except: '')]
     public string $team = '';
 
-    // Nhân viên (Sale Admin, Sale Leader) - '' = Tất cả nhân viên
     #[Url(except: '')]
     public string $employee = '';
 
@@ -55,9 +38,6 @@ class Show extends Component
         $this->course = $course;
     }
 
-    /**
-     * Bấm một trạng thái: lọc theo trạng thái đó; bấm lại đúng trạng thái đang chọn thì bỏ lọc.
-     */
     public function filterStatus(?string $status = null): void
     {
         $status = $this->validStatus($status);
@@ -70,7 +50,6 @@ class Show extends Component
         $this->resetPage();
     }
 
-    // Đổi đội thì bỏ chọn nhân viên (danh sách nhân viên phụ thuộc đội)
     public function updatedTeam(): void
     {
         $this->employee = '';
@@ -88,9 +67,6 @@ class Show extends Component
         $this->resetPage();
     }
 
-    /**
-     * Trạng thái đang lọc sau khi kiểm tra danh sách trắng (giá trị lạ coi như Tất cả).
-     */
     public function activeStatus(): ?string
     {
         return $this->validStatus($this->status);
@@ -108,18 +84,12 @@ class Show extends Component
         return $this->routePrefix === Role::SALE_ADMIN;
     }
 
-    /**
-     * Có bộ lọc Nhân viên và cột Nhân viên trong danh sách.
-     */
     #[Computed]
     public function canFilterEmployee(): bool
     {
         return in_array($this->routePrefix, [Role::SALE_ADMIN, Role::SALE_LEADER], true);
     }
 
-    /**
-     * Danh sách đội cho bộ lọc (chỉ Sale Admin).
-     */
     #[Computed]
     public function teams(): Collection
     {
@@ -128,9 +98,6 @@ class Show extends Component
             : collect();
     }
 
-    /**
-     * Đội đang xem: Sale Admin = đội đã chọn (phải có trong danh sách); Sale Leader = đội của mình.
-     */
     #[Computed]
     public function activeTeam(): ?SalesTeam
     {
@@ -141,9 +108,6 @@ class Show extends Component
         };
     }
 
-    /**
-     * Nhân viên cho bộ lọc: chỉ nhân viên thuộc đội đang xem.
-     */
     #[Computed]
     public function employeeOptions(): Collection
     {
@@ -163,10 +127,6 @@ class Show extends Component
         return $this->employee === '' ? null : $this->employeeOptions->firstWhere('employee_id', $this->employee);
     }
 
-    /**
-     * Phạm vi nhân viên, tính lại phía server mỗi request (không tin dữ liệu từ client):
-     * null = tất cả báo giá; mảng = chỉ báo giá do các nhân viên này lập ([] = không có gì).
-     */
     #[Computed]
     public function scopeEmployeeIds(): ?array
     {
@@ -177,7 +137,7 @@ class Show extends Component
             Role::SALE_LEADER => match (true) {
                 $this->activeEmployee !== null => [$this->activeEmployee->employee_id],
                 $this->activeTeam !== null     => $this->employeeOptions->pluck('employee_id')->all(),
-                default                        => $own ? [$own] : [], // leader chưa thuộc đội nào
+                default                        => $own ? [$own] : [],
             },
             Role::SALE_ADMIN => match (true) {
                 $this->activeEmployee !== null => [$this->activeEmployee->employee_id],
@@ -188,9 +148,6 @@ class Show extends Component
         };
     }
 
-    /**
-     * Mô tả phạm vi đang xem (hiện dưới khối Thống kê); null = toàn hệ thống.
-     */
     #[Computed]
     public function scopeNote(): ?string
     {
@@ -206,9 +163,6 @@ class Show extends Component
         };
     }
 
-    /**
-     * Thống kê khóa học trong phạm vi quyền + bộ lọc Đội / Nhân viên (không phụ thuộc bộ lọc trạng thái).
-     */
     #[Computed]
     public function stats(): array
     {

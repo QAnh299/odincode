@@ -13,26 +13,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-/**
- * Nghiệp vụ hóa đơn và thanh toán, giai đoạn D – G của quy trình (docs/quy-trinh-bao-gia-thanh-toan.md):
- *   - Tạo hóa đơn từ đơn hàng (HĐ18 – HĐ26), sửa hóa đơn Chờ thanh toán (HĐ36): chỉ Salesperson lập báo giá / hóa đơn.
- *   - Chuyển khoản: hệ thống so khớp giao dịch ngân hàng / cổng QR với hóa đơn (HĐ29), KHÔNG có kế toán.
- *   - Tiền mặt: kế toán đối chiếu và duyệt (HĐ32), ghi accountant_id.
- *   - Ghi nhận thanh toán (HĐ33 – HĐ35): hóa đơn Đã thanh toán, cập nhật đơn, cơ hội Won, email hóa đơn cho khách.
- *
- * Quyết định của nhóm: chỉ hóa đơn Unpaid (Chờ thanh toán) nhận thanh toán. Hóa đơn qua hạn được lệnh hằng ngày
- * chuyển sang Overdue (không nhận thanh toán); SP gia hạn để mở lại chính hóa đơn đó, không lập hóa đơn thay thế
- * (chốt 28/10/2026) – nên Overdue vẫn tính vào "đang chờ" khi tính số tiền tối đa của hóa đơn mới.
- */
 class InvoiceService
 {
-    // Hạn thanh toán mặc định của hóa đơn mới (ngày, tính từ ngày lập)
     public const DEFAULT_DUE_DAYS = 7;
 
-    /**
-     * HĐ18 – HĐ19: lý do không tạo được hóa đơn (khóa lang invoices.form.blocked.*), null = được tạo.
-     * Chỉ Salesperson lập báo giá của đơn; đơn còn Đang xử lý; còn phần nợ chưa lập hóa đơn; khách có SĐT và email.
-     */
     public function blockerFor(SalesOrder $order, ?Employee $employee): ?string
     {
         $order->loadMissing('quotation.opportunity.lead');
@@ -48,9 +32,6 @@ class InvoiceService
         };
     }
 
-    /**
-     * Tổng tiền các hóa đơn chưa thanh toán (Chờ thanh toán + Quá hạn chờ gia hạn) của đơn, trừ hóa đơn $except (khi sửa).
-     */
     public function pendingTotal(SalesOrder $order, ?string $except = null): float
     {
         return (float) $order->invoices()
@@ -59,34 +40,21 @@ class InvoiceService
             ->sum('payment_amount');
     }
 
-    /**
-     * HĐ25: số tiền tối đa của một hóa đơn = còn lại − tổng các hóa đơn đang chờ khác.
-     */
     public function maxAmount(SalesOrder $order, ?string $except = null): float
     {
         return round(max(0, (float) $order->remaining_amount - $this->pendingTotal($order, $except)), 2);
     }
 
-    /**
-     * Hóa đơn đầu tiên của đơn (chưa có hóa đơn nào): SP chọn hình thức Toàn bộ / Trả góp (HĐ21 – HĐ22).
-     */
     public function isFirstInvoice(SalesOrder $order): bool
     {
         return ! $order->invoices()->exists();
     }
 
-    /**
-     * HĐ21: cần SP chọn hình thức khi đơn chưa xác định hình thức (NULL / rỗng) – thực tế là hóa đơn đầu tiên.
-     * Đã có Full / Installment thì không hỏi lại (HĐ38).
-     */
     public function needsPaymentType(SalesOrder $order): bool
     {
         return ! in_array($order->payment_type, SalesOrder::PAYMENT_TYPES, true);
     }
 
-    /**
-     * Sửa hóa đơn (HĐ36): Salesperson lập hóa đơn, hóa đơn Chờ thanh toán hoặc Quá hạn (sửa = gia hạn để mở lại).
-     */
     public function canEdit(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::SALESPERSON
@@ -94,10 +62,6 @@ class InvoiceService
             && in_array($invoice->status, [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE], true);
     }
 
-    /**
-     * HĐ27: Salesperson lập hóa đơn tải ảnh QR chuyển khoản để tự gửi khách (Zalo, email) khi khách không đến trung tâm.
-     * Chỉ hóa đơn Chuyển khoản còn Chờ thanh toán (Quá hạn không nhận thanh toán nên không có QR).
-     */
     public function canDownloadQr(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::SALESPERSON
@@ -106,9 +70,6 @@ class InvoiceService
             && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER;
     }
 
-    /**
-     * Kế toán duyệt tiền mặt (HĐ32): hóa đơn Tiền mặt còn Chờ thanh toán, thuộc cơ sở kế toán phụ trách.
-     */
     public function canApproveCash(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::ACCOUNTANT
@@ -117,11 +78,6 @@ class InvoiceService
             && $this->inAccountantScope($invoice, $employee);
     }
 
-    /**
-     * Ngoại lệ của chuyển khoản (chốt 18/10/2026): khách chuyển lệch số tiền nên hệ thống không tự khớp và báo lỗi
-     * (TransferAlerts); thiếu thì SP nhắc khách chuyển đủ, kế toán đối chiếu sao kê rồi xác nhận thủ công.
-     * Số tiền hóa đơn giữ nguyên; chuyển thừa / hoàn tiền nằm ngoài phạm vi.
-     */
     public function canConfirmTransfer(Invoice $invoice, ?Employee $employee): bool
     {
         return $employee?->role_name === Role::ACCOUNTANT
@@ -130,21 +86,11 @@ class InvoiceService
             && $this->inAccountantScope($invoice, $employee);
     }
 
-    /**
-     * Hóa đơn thuộc cơ sở Kế toán phụ trách (Invoice::visibleTo → Employee::coveredBranchIds).
-     */
     private function inAccountantScope(Invoice $invoice, Employee $accountant): bool
     {
         return Invoice::query()->visibleTo($accountant)->whereKey($invoice->getKey())->exists();
     }
 
-    /**
-     * HĐ26: một giao dịch tạo hóa đơn Chờ thanh toán (kỳ = kỳ lớn nhất + 1) và ghi hình thức cho đơn nếu là
-     * hóa đơn đầu tiên. Toàn bộ: số tiền = còn lại của đơn (khóa). Trả góp: 0 < số tiền ≤ còn lại − đang chờ.
-     * Khóa dòng đơn hàng để hai lần bấm cùng lúc không vượt số tiền tối đa.
-     *
-     * @param  array{payment_type: ?string, amount: float, due_date: string, method: string}  $data
-     */
     public function create(SalesOrder $order, Employee $employee, array $data): Invoice
     {
         return DB::transaction(function () use ($order, $employee, $data) {
@@ -157,7 +103,6 @@ class InvoiceService
 
             $amount = $this->resolveAmount($order, $type, $data['amount']);
 
-            // HĐ26: ghi hình thức cho đơn nếu chưa có (chọn một lần ở hóa đơn đầu tiên)
             if ($needsType) {
                 $order->update(['payment_type' => $type]);
             }
@@ -175,30 +120,16 @@ class InvoiceService
         });
     }
 
-    /**
-     * Sửa hóa đơn (chốt 28/10/2026): đổi hình thức của đơn chỉ khi đây là hóa đơn đầu tiên và duy nhất của đơn.
-     */
     public function canChangePaymentType(Invoice $invoice): bool
     {
         return Invoice::query()->where('order_id', $invoice->order_id)->count() === 1;
     }
 
-    /**
-     * Hệ thống đã nhận giao dịch chuyển khoản lệch số tiền cho hóa đơn: chỉ còn sửa được hạn thanh toán; số tiền,
-     * hình thức và phương thức giữ nguyên để kế toán đối chiếu sao kê (số tiền hóa đơn giữ nguyên – chốt 18/10/2026).
-     */
     public function isTransferLocked(Invoice $invoice): bool
     {
         return TransferAlerts::find($invoice->invoice_id) !== null;
     }
 
-    /**
-     * HĐ36: SP sửa hóa đơn Chờ thanh toán: hạn thanh toán, phương thức, số tiền (Trả góp) và hình thức của đơn
-     * (chỉ hóa đơn đầu tiên và duy nhất); số tiền kiểm tra lại như HĐ25. Có giao dịch lệch thì chỉ đổi hạn.
-     * Hóa đơn Quá hạn: hạn mới phải từ hôm nay trở đi, lưu xong hóa đơn quay về Chờ thanh toán (cùng mã, cùng QR).
-     *
-     * @param  array{payment_type: ?string, amount: float, due_date: string, method: string}  $data
-     */
     public function update(Invoice $invoice, Employee $employee, array $data): Invoice
     {
         return DB::transaction(function () use ($invoice, $employee, $data) {
@@ -206,7 +137,6 @@ class InvoiceService
             $invoice = Invoice::query()->whereKey($invoice->getKey())->lockForUpdate()->firstOrFail();
             abort_unless($this->canEdit($invoice, $employee), 409);
 
-            // Gia hạn hóa đơn Quá hạn: hạn mới từ hôm nay, mở lại về Chờ thanh toán
             $reopen = $invoice->status === Invoice::STATUS_OVERDUE;
             abort_if($reopen && $data['due_date'] < today()->toDateString(), 422);
             $status = $reopen ? ['status' => Invoice::STATUS_UNPAID] : [];
@@ -235,9 +165,6 @@ class InvoiceService
         });
     }
 
-    /**
-     * HĐ32: kế toán đối chiếu khớp và duyệt hóa đơn tiền mặt → ghi nhận thanh toán (HĐ33), ghi mã kế toán.
-     */
     public function approveCash(Invoice $invoice, Employee $accountant): Invoice
     {
         abort_unless($this->canApproveCash($invoice, $accountant), 409);
@@ -245,10 +172,6 @@ class InvoiceService
         return $this->recordPayment($invoice, $accountant->employee_id, now());
     }
 
-    /**
-     * Kế toán xác nhận thủ công hóa đơn chuyển khoản sau khi đối chiếu sao kê → ghi nhận thanh toán.
-     * Ghi mã kế toán vào accountant_id (15/11/2026) để phân biệt với giao dịch hệ thống tự khớp (accountant_id trống).
-     */
     public function confirmTransfer(Invoice $invoice, Employee $accountant): Invoice
     {
         abort_unless($this->canConfirmTransfer($invoice, $accountant), 409);
@@ -260,11 +183,6 @@ class InvoiceService
         return $this->recordPayment($invoice, $accountant->employee_id, now());
     }
 
-    /**
-     * HĐ29: nhận thông báo giao dịch từ ngân hàng / cổng QR, so khớp nội dung (mã hóa đơn) và số tiền với hóa đơn
-     * Chuyển khoản còn Chờ thanh toán. Khớp → ghi nhận thanh toán (không có kế toán). Không khớp → không ghi nhận,
-     * lưu giao dịch vào log 'payments' (CSDL chưa có bảng giao dịch) và trả về null.
-     */
     public function handleBankTransfer(float $amount, string $content, ?string $reference = null, ?Carbon $paidAt = null): ?Invoice
     {
         $code = preg_match('/INV\d+/i', $content, $m) ? strtoupper($m[0]) : null;
@@ -281,8 +199,6 @@ class InvoiceService
                 'invoice'   => $code, 'invoice_status' => $invoice?->status, 'invoice_amount' => $invoice?->payment_amount,
             ]);
 
-            // Đúng hóa đơn chuyển khoản nhưng lệch số tiền, hoặc hóa đơn đã Quá hạn (khách quét QR cũ) → báo kế toán và SP,
-            // không ghi nhận tiền; hóa đơn Quá hạn chờ SP gia hạn rồi kế toán đối chiếu, xác nhận
             if ($invoice && $invoice->payment_method === Invoice::METHOD_BANK_TRANSFER
                 && in_array($invoice->status, [Invoice::STATUS_UNPAID, Invoice::STATUS_OVERDUE], true)) {
                 TransferAlerts::add($invoice->invoice_id, $amount, $paidAt, $invoice->status === Invoice::STATUS_OVERDUE);
@@ -296,12 +212,6 @@ class InvoiceService
         return $this->recordPayment($invoice, null, $paidAt ?? now());
     }
 
-    /**
-     * HĐ33 – HĐ35 trong một giao dịch: hóa đơn → Đã thanh toán (ngày thanh toán; mã kế toán khi kế toán xác nhận,
-     * trống khi hệ thống tự khớp giao dịch chuyển khoản);
-     * đơn tăng đã thanh toán, tính lại còn lại, Completed khi hết nợ; lần thanh toán đầu: cơ hội → Won (SalesOrder tự tạo học viên).
-     * Sau khi giao dịch xong: gửi email hóa đơn cho khách (HĐ34) – lỗi gửi chỉ ghi log, không hoàn tác thanh toán.
-     */
     public function recordPayment(Invoice $invoice, ?string $accountantId, Carbon $paidAt): Invoice
     {
         $paid = DB::transaction(function () use ($invoice, $accountantId, $paidAt) {
@@ -327,7 +237,6 @@ class InvoiceService
                 'status'           => $remaining <= 0 ? SalesOrder::STATUS_COMPLETED : SalesOrder::STATUS_IN_PROGRESS,
             ]);
 
-            // Lần thanh toán thành công đầu tiên (trả toàn bộ hoặc kỳ trả góp đầu) → cơ hội Won, khách thành học viên
             $opportunity = $order->quotation?->opportunity;
             if ($opportunity && $opportunity->status !== Opportunity::STATUS_WON) {
                 $opportunity->update(['status' => Opportunity::STATUS_WON]);
@@ -342,9 +251,6 @@ class InvoiceService
         return $paid;
     }
 
-    /**
-     * HĐ34: gửi thông tin hóa đơn đến email khách hàng của cơ hội. Lỗi gửi: ghi log, không hoàn tác thanh toán.
-     */
     public function sendInvoiceEmail(Invoice $invoice): bool
     {
         $email = $invoice->order?->quotation?->opportunity?->lead?->email;
@@ -366,10 +272,6 @@ class InvoiceService
         }
     }
 
-    /**
-     * Số tiền hợp lệ của hóa đơn (HĐ25). Toàn bộ: bằng phần còn lại chưa lập hóa đơn (khóa, bỏ qua số SP nhập).
-     * Trả góp: 0 < số tiền ≤ tối đa; sai thì 422 (biểu mẫu đã kiểm tra trước, đây là lớp chặn cuối khi có tranh chấp).
-     */
     private function resolveAmount(SalesOrder $order, ?string $type, float $amount, ?string $except = null): float
     {
         $max = $this->maxAmount($order, $except);

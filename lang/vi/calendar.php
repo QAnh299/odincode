@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Lịch việc cần làm trên topbar (livewire/task-calendar.blade.php)
 return [
     'title'         => 'Lịch việc cần làm',
     'month'         => 'Tháng :month, :year',

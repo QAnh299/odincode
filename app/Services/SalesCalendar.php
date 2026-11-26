@@ -11,21 +11,8 @@ use App\Models\Stage;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 
-/**
- * Hoạt động trong 1 tháng của Salesperson (lịch trên topbar), suy ra từ dữ liệu vì odin.sql không có bảng công việc:
- *   - Lịch hẹn Test / Tư vấn mình phụ trách: theo giờ hẹn; xong khi đã cập nhật kết quả. Test + Tư vấn cùng mã gom 1 dòng.
- *   - Liên hệ ban đầu: Cơ hội ở stage đầu chưa liên hệ lần nào, theo ngày được giao.
- *   - Liên hệ lại: lần liên hệ gần nhất là "Không liên lạc được", theo Opportunity::recontactAt().
- *   - Báo giá Nháp: theo ngày hết hạn.
- *   - Lần chăm sóc đã thực hiện: việc đã xong.
- * Việc chưa xong đã qua thời điểm là quá hạn; việc quá hạn nằm ở đúng ngày phát sinh của nó.
- */
 class SalesCalendar
 {
-    /**
-     * @return array<int, array{key: string, day: string, at: Carbon, time: ?string, kind: string, label: string,
-     *                          name: string, detail: ?string, url: string, done: bool, overdue: bool}>
-     */
     public function month(Employee $employee, CarbonImmutable $month): array
     {
         $from = $month->startOfMonth();
@@ -72,9 +59,6 @@ class SalesCalendar
             ->all();
     }
 
-    /**
-     * Liên hệ ban đầu + liên hệ lại của các Cơ hội đang xử lý.
-     */
     protected function contacts(Employee $employee, CarbonImmutable $from, CarbonImmutable $to): array
     {
         $items = [];

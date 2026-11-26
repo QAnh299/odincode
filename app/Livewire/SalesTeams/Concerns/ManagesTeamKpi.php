@@ -12,36 +12,18 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 
-/**
- * Popup KPI đội (danh sách đội kinh doanh, cột Thao tác - chỉ Sale Admin): mỗi tháng đặt chỉ tiêu cho đội
- * theo các loại chỉ tiêu trong SalesTargets (doanh thu, học viên mới) → TeamSalesTargets.
- *
- * Chỉ đặt cho tháng hiện tại và KPI_NEXT_MONTHS tháng tới. KPI của một tháng chỉ đặt một lần:
- * đã đặt (có chỉ tiêu chưa huỷ) thì khoá, popup chỉ xem. Chỉ tiêu bỏ trống thì không tạo dòng.
- * Chưa có KPI thì gợi ý sẵn theo KPI tháng trước của đội.
- *
- * Component dùng trait có sẵn: $modal, $teamId, $form, $notice, openModal(), closeModal(), authorizeManage(), editingTeam.
- */
 trait ManagesTeamKpi
 {
-    // Số tháng tới (ngoài tháng hiện tại) đặt KPI trước được
     public const KPI_NEXT_MONTHS = 2;
 
-    // Giới hạn DECIMAL(18,2)
     public const KPI_MAX_VALUE = 9999999999999999;
 
-    /**
-     * Các loại chỉ tiêu (ô nhập trong popup): chỉ những loại báo cáo so sánh được (SalesPerformanceReport::TARGETS).
-     */
     #[Computed]
     public function kpiTypes(): Collection
     {
         return SalesTarget::whereIn('target_type', array_keys(SalesPerformanceReport::TARGETS))->orderBy('target_id')->get();
     }
 
-    /**
-     * Tháng đặt KPI được: tháng hiện tại + KPI_NEXT_MONTHS tháng tới ('Y-m').
-     */
     #[Computed]
     public function kpiMonths(): array
     {
@@ -55,18 +37,12 @@ trait ManagesTeamKpi
         return CarbonImmutable::parse($month.'-01')->format('m/Y');
     }
 
-    /**
-     * KPI của đội đang mở ở tháng đang chọn (kể cả đã huỷ): [target_id => TeamSalesTarget].
-     */
     #[Computed]
     public function kpiCurrent(): array
     {
         return $this->kpiRows($this->kpiMonth());
     }
 
-    /**
-     * KPI còn hiệu lực tháng trước tháng đang chọn (gợi ý khi nhập): [target_id => TeamSalesTarget].
-     */
     #[Computed]
     public function kpiPrevious(): array
     {
@@ -75,17 +51,11 @@ trait ManagesTeamKpi
         return $this->activeOnly($this->kpiRows($previous));
     }
 
-    /**
-     * Tháng đang chọn đã có KPI (chưa huỷ) chưa.
-     */
     public function kpiIsSet(): bool
     {
         return (bool) $this->activeOnly($this->kpiCurrent);
     }
 
-    /**
-     * Tên loại chỉ tiêu theo ngôn ngữ (theo target_type), loại lạ thì dùng target_name trong CSDL.
-     */
     public function kpiTypeLabel(SalesTarget $type): string
     {
         $key = 'employees.teams.kpi.types.'.$type->target_type;
@@ -93,9 +63,6 @@ trait ManagesTeamKpi
         return __($key) !== $key ? __($key) : $type->target_name;
     }
 
-    /**
-     * Loại chỉ tiêu tính bằng tiền (nhập số tiền, còn lại nhập số nguyên).
-     */
     public function kpiIsMoney(SalesTarget $type): bool
     {
         return $type->target_type === 'Revenue';
@@ -106,9 +73,6 @@ trait ManagesTeamKpi
         return number_format($value, 0, ',', '.').($this->kpiIsMoney($type) ? ' ₫' : '');
     }
 
-    /**
-     * Mở popup KPI của một đội (mặc định tháng hiện tại).
-     */
     public function openKpi(string $teamId): void
     {
         $this->authorizeManage();
@@ -121,9 +85,6 @@ trait ManagesTeamKpi
         $this->loadKpiValues();
     }
 
-    /**
-     * Đổi tháng trong popup → nạp lại KPI của tháng đó.
-     */
     public function updatedFormMonth(): void
     {
         if ($this->modal === 'kpi') {
@@ -132,9 +93,6 @@ trait ManagesTeamKpi
         }
     }
 
-    /**
-     * Lưu KPI của đội cho tháng đang chọn.
-     */
     protected function saveKpi(): void
     {
         $team = $this->editingTeam;
@@ -144,7 +102,6 @@ trait ManagesTeamKpi
         $month = $data['month'].'-01';
 
         $saved = DB::transaction(function () use ($data, $team, $month) {
-            // Kiểm tra lại lúc ghi (khoá dòng): tháng đã có KPI thì không ghi đè
             $locked = TeamSalesTarget::query()
                 ->where('team_id', $team->team_id)
                 ->where('target_month', $month)
@@ -171,7 +128,6 @@ trait ManagesTeamKpi
                 }
             }
 
-            // upsert: dòng đã huỷ từ trước (nếu có) được bật lại theo giá trị mới
             TeamSalesTarget::upsert($rows, ['target_id', 'team_id', 'target_month'], ['target_value', 'status']);
 
             return true;
@@ -191,8 +147,6 @@ trait ManagesTeamKpi
         $this->closeModal();
     }
 
-    /* ── Nội bộ ───────────────────────────────────────────────────────── */
-
     private function kpiMonth(): string
     {
         $month = (string) ($this->form['month'] ?? '');
@@ -200,9 +154,6 @@ trait ManagesTeamKpi
         return in_array($month, $this->kpiMonths, true) ? $month : $this->kpiMonths[0];
     }
 
-    /**
-     * KPI của đội đang mở trong một tháng 'Y-m': [target_id => TeamSalesTarget].
-     */
     private function kpiRows(string $month): array
     {
         if (! $this->teamId) {
@@ -222,25 +173,18 @@ trait ManagesTeamKpi
         return array_filter($rows, fn (TeamSalesTarget $t) => $t->status !== TeamSalesTarget::STATUS_CANCELLED);
     }
 
-    /**
-     * Điền ô nhập: KPI đang có của tháng, chưa có thì theo KPI tháng trước.
-     */
     private function loadKpiValues(): void
     {
         unset($this->kpiCurrent, $this->kpiPrevious);
 
         $rows = $this->activeOnly($this->kpiCurrent) ?: $this->kpiPrevious;
 
-        // Số dạng chuỗi cho ô nhập, bỏ phần thập phân .00
         $this->form['values'] = array_map(
             fn (TeamSalesTarget $t) => rtrim(rtrim(number_format((float) $t->target_value, 2, '.', ''), '0'), '.'),
             $rows
         );
     }
 
-    /**
-     * Kiểm tra dữ liệu popup (luôn kiểm tra lại phía server): tháng chưa có KPI, nhập ít nhất một chỉ tiêu.
-     */
     private function validateKpi(): array
     {
         $data = [

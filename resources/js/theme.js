@@ -1,8 +1,3 @@
-// ── Đổi màu giao diện theo ý người dùng ──────────────────────────────
-// Từ 1 màu chính, tính ra các biến CSS (màu nền sidebar, màu chữ trên
-// nền màu chính...) rồi lưu vào localStorage. Script nhỏ trong <head>
-// của layouts/app.blade.php áp lại các biến này trước khi vẽ trang.
-
 const STORAGE_KEY = "odin.theme";
 const DEFAULT_COLOR = "#005e12";
 const ACCENT = "#fcda43";
@@ -17,7 +12,6 @@ function rgbToHex(rgb) {
     return "#" + rgb.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
 }
 
-// Độ sáng tương đối theo WCAG (0 = đen, 1 = trắng)
 function luminance(hex) {
     const [r, g, b] = hexToRgb(hex).map((c) => {
         const v = c / 255;
@@ -34,7 +28,6 @@ function buildVars(color) {
     const isLight = luminance(color) > 0.4;
     const onPrimary = isLight ? "#1f2937" : "#ffffff";
 
-    // Nền sidebar: làm tối màu chính đến khi đủ tối cho chữ trắng
     let sidebarBg = darken(color, 0.57);
     while (luminance(sidebarBg) > 0.05) {
         sidebarBg = darken(sidebarBg, 0.85);
@@ -74,7 +67,6 @@ function applyTheme(color) {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ color, vars }));
     } catch (e) {
-        // Trình duyệt chặn localStorage: vẫn đổi màu được, chỉ không nhớ.
     }
 }
 
@@ -99,7 +91,6 @@ document.addEventListener("click", (event) => {
     }
 });
 
-// Đổi ngôn ngữ trong popup Cài đặt: chuyển tới route lang.switch rồi quay lại trang đang xem
 document.addEventListener("change", (event) => {
     if (event.target.matches("[data-odin-language]")) {
         window.location.href = event.target.dataset.odinLanguage;

@@ -8,9 +8,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Email gửi mật khẩu tạm cho chức năng quên mật khẩu.
- */
 class TemporaryPasswordMail extends Mailable
 {
     use Queueable;

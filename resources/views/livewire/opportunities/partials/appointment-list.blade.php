@@ -1,9 +1,3 @@
-{{--
-    Danh sách lịch hẹn của một Opportunity - dùng chung cho chi tiết Opportunity và chi tiết học viên.
-    $appointments: nhóm theo mã lịch hẹn, mới nhất lên đầu - mỗi nhóm ['id', 'no', 'rows' (Test trước, Tư vấn sau)].
-    $place: địa điểm (cơ sở của khách). Dòng có can_mark (chỉ ở chi tiết Opportunity) hiện nút Khách đã đến / không đến.
-    $focus (tuỳ chọn): dòng được tham chiếu từ trang Danh sách lịch hẹn ("APT006-Test") - làm nổi bật và cuộn tới.
---}}
 @php
     $focus = $focus ?? '';
     $label = fn (string $key, string $value) => \Illuminate\Support\Facades\Lang::has("$key.$value") ? __("$key.$value") : $value;
@@ -23,7 +17,6 @@
             <p class="od-place od-place--card"><x-icon name="tag" />{{ $place }}</p>
         @endif
 
-        {{-- Từng loại: Test / Tư vấn - thời gian, kết quả riêng --}}
         <ul class="od-apt__rows">
             @foreach ($group['rows'] as $row)
                 @php $rowKey = $row->appointment_id.'-'.$row->appointment_type; @endphp
@@ -51,7 +44,6 @@
                     @endif
 
                     @if ($row->can_mark && $this->attendKey === $row->appointment_id.'-'.$row->appointment_type)
-                        {{-- Khách đã đến: ghi kết quả buổi hẹn (lưu nối vào ghi chú lịch hẹn) --}}
                         <form class="od-attend" wire:submit="saveAttended">
                             <label class="vc-field">
                                 <span class="vc-field__label">{{ __('opportunities.apt_result') }} <span class="ld-req">*</span></span>
@@ -80,7 +72,6 @@
                             </button>
                         </div>
                     @elseif ($row->can_reschedule && $this->cancelKey === $row->appointment_id.'-'.$row->appointment_type)
-                        {{-- Hủy buổi hẹn trước giờ hẹn: bắt buộc lý do (lưu nối vào ghi chú lịch hẹn) --}}
                         <form class="od-attend" wire:submit="saveCancel">
                             <label class="vc-field">
                                 <span class="vc-field__label">{{ __('opportunities.apt_cancel_reason') }} <span class="ld-req">*</span></span>

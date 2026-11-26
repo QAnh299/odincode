@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// Salesperson appointment list (livewire/appointments/index) + appointment reminders in the notification bell
 return [
     'title'              => 'Appointments',
     'subtitle'           => 'Placement test / consultation appointments you are handling',
@@ -59,7 +58,6 @@ return [
         'Cancelled' => 'Cancelled',
     ],
 
-    // Action popups
     'action' => [
         'reschedule' => 'Reschedule',
         'result'     => 'Update result',
@@ -87,7 +85,6 @@ return [
     'rescheduled'        => 'Appointment moved to :time.',
     'cannot_change'      => 'Cannot reschedule / cancel: the appointment time has passed, it already has a result, or the opportunity has reached the Closing stage.',
 
-    // Notification bell
     'reminder_title'     => ':types appointment with :name',
     'overdue_title'      => 'Update the :types appointment result with :name',
     'overdue_time'       => 'Past appointment time :time',

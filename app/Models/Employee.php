@@ -12,13 +12,11 @@ class Employee extends Model
     use HasFactory;
     use HasStringId;
 
-    // Trạng thái nhân viên (cột status): Đang làm việc hoặc Đã nghỉ việc
     public const STATUS_WORKING = 'Working';
     public const STATUS_RESIGNED = 'Resigned';
 
-    // Key trạng thái dùng cho bộ lọc / nhãn hiển thị (lang employees.state.*)
-    public const STATE_WORKING = 'working';   // status = 'Working'
-    public const STATE_RESIGNED = 'resigned'; // status khác 'Working'
+    public const STATE_WORKING = 'working';
+    public const STATE_RESIGNED = 'resigned';
 
     public const STATES = [self::STATE_WORKING, self::STATE_RESIGNED];
 
@@ -52,8 +50,6 @@ class Employee extends Model
         'hire_date'     => 'date',
     ];
 
-    // ── Relationships ──────────────────────────────────────
-
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id', 'role_id');
@@ -69,9 +65,6 @@ class Employee extends Model
         return $this->belongsTo(SalesTeam::class, 'team_id', 'team_id');
     }
 
-    /**
-     * Đội mà nhân viên này làm trưởng nhóm (SalesTeams.team_leader_id).
-     */
     public function ledTeam()
     {
         return $this->hasOne(SalesTeam::class, 'team_leader_id', 'employee_id');
@@ -112,22 +105,11 @@ class Employee extends Model
         return $this->hasMany(Invoice::class, 'accountant_id', 'employee_id');
     }
 
-    // ── Helpers ────────────────────────────────────────────
-
-    /**
-     * Lấy role_name của nhân viên (shortcut).
-     */
     public function getRoleNameAttribute(): ?string
     {
         return $this->role?->role_name;
     }
 
-    /**
-     * Cơ sở Kế toán phụ trách (chốt 06/11/2026): cơ sở của mình; kế toán trụ sở chính nhận thêm các cơ sở chưa có
-     * kế toán đang làm việc. Hóa đơn thuộc cơ sở của khách (Leads.branch_id). Vai trò khác: mảng rỗng.
-     *
-     * @return list<string>
-     */
     public function coveredBranchIds(): array
     {
         if ($this->role_name !== Role::ACCOUNTANT) {
@@ -171,13 +153,6 @@ class Employee extends Model
         return $this->isActive() ? self::STATE_WORKING : self::STATE_RESIGNED;
     }
 
-    /**
-     * Vai trò của những nhân viên mà vai trò $viewerRole được xem (null = mọi vai trò):
-     *   - Giám đốc: tất cả.
-     *   - Sale Admin: Sale Leader + Salesperson (không thấy Giám đốc, Kế toán, Sale Admin).
-     *   - Sale Leader: Salesperson (trong đội của mình).
-     *   - Vai trò khác: không có.
-     */
     public static function visibleRolesFor(?string $viewerRole): ?array
     {
         return match ($viewerRole) {
@@ -188,10 +163,6 @@ class Employee extends Model
         };
     }
 
-    /**
-     * Nhân viên mà $viewer được xem (xem visibleRolesFor); Sale Leader chỉ thấy
-     * Salesperson trong đội của mình, chưa thuộc đội nào thì không thấy ai.
-     */
     public function scopeVisibleTo(Builder $query, ?self $viewer): Builder
     {
         $roles = self::visibleRolesFor($viewer?->role_name);
@@ -209,9 +180,6 @@ class Employee extends Model
             ->when($viewer->hasRole(Role::SALE_LEADER), fn ($q) => $q->where('team_id', $viewer->team_id));
     }
 
-    /**
-     * Chữ cái đại diện (avatar): chữ đầu của tên, VD "Nguyễn Minh Anh" → "A".
-     */
     public function initial(): string
     {
         $parts = preg_split('/\s+/u', trim((string) $this->full_name)) ?: [];

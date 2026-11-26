@@ -6,7 +6,7 @@
     $lead    = $sel ? $sel['lead'] : null;
     $profile = $sel ? $sel['profile'] : null;
     $blocked = $check && $check['state'] === 'blocked';
-    // Chữ viết tắt trên avatar: chữ đầu của từ đầu và từ cuối trong tên
+
     $words    = $lead ? preg_split('/\s+/u', trim($lead->full_name), -1, PREG_SPLIT_NO_EMPTY) : [];
     $initials = mb_strtoupper(mb_substr($words[0] ?? '', 0, 1).(count($words) > 1 ? mb_substr(end($words), 0, 1) : ''));
 @endphp
@@ -16,7 +16,6 @@
         @vite(['resources/css/voucher.css', 'resources/css/opportunity.css'])
     @endassets
 
-    {{-- ── Breadcrumb ────────────────────────────────────────────── --}}
     <nav class="vc-crumb" aria-label="breadcrumb">
         <a href="{{ $this->backUrl() }}" class="odin-back" wire:navigate>
             <x-icon name="arrow-left" />{{ $C('back') }}
@@ -34,7 +33,6 @@
         </span>
     </nav>
 
-    {{-- ── Lỗi chung (chặn khi confirm) ──────────────────────────── --}}
     @error('general')
         <div class="ok-create__alert ok-create__alert--danger" role="alert">
             <x-icon name="alert" />
@@ -43,7 +41,6 @@
     @enderror
 
     @if (! $sel)
-        {{-- ══ Chưa chọn khách: chỉ hiện mục Tìm kiếm ═══════════════ --}}
         <section class="vc-card ok-create__search-panel" wire:key="search-panel">
             <h2 class="ok-create__card-title">{{ $C('search_title') }}</h2>
             <div class="vc-search">
@@ -141,7 +138,7 @@
                         <tbody>
                             @foreach ($results as $row)
                                 @php
-                                    $rowState = $row['check']['state'];      // ok | warning | blocked
+                                    $rowState = $row['check']['state'];
                                     $b        = $row['check']['blocks'][0] ?? null;
                                 @endphp
                                 <tr wire:key="row-{{ $row['lead_id'] }}">
@@ -178,9 +175,7 @@
             @endif
         </section>
     @else
-        {{-- ══ Đã chọn khách: thông tin khách (trái) + cơ hội sẽ tạo (phải) ══ --}}
         <div class="ok-create__layout" wire:key="selected-{{ $lead->lead_id }}">
-            {{-- ── Cột trái: khách đang chọn + thông tin liên hệ (sửa được) ── --}}
             <div class="ok-create__col">
                 <section class="ok-create__box ok-create__customer">
                     <span class="ok-create__avatar" aria-hidden="true">{{ $initials }}</span>
@@ -195,7 +190,6 @@
                             </div>
                         @endif
                     </div>
-                    {{-- Vào từ trang học viên thì khách cố định, không đổi được --}}
                     @unless ($lockedLead)
                         <button type="button" class="vc-btn vc-btn--ghost ok-create__change" wire:click="clearSelection">
                             <x-icon name="swap" />{{ $C('btn_change') }}
@@ -206,7 +200,6 @@
                 <section class="ok-create__box ok-create__contact-box">
                     <h3 class="ok-create__section-title">{{ $C('contact_title') }}</h3>
 
-                    {{-- Form sửa liên hệ (ẩn khi khách bị chặn) --}}
                     @unless ($blocked)
                         <div class="ok-create__contact">
                             <label class="vc-field">
@@ -243,7 +236,6 @@
                         </div>
                     @endunless
 
-                    {{-- Lưu ý: chặn / cảnh báo --}}
                     @if ($check['blocks'] || $check['warnings'])
                         <div class="ok-create__notes {{ $blocked ? 'is-blocked' : '' }}">
                             <x-icon name="info" />
@@ -282,7 +274,6 @@
                 </section>
             </div>
 
-            {{-- ── Cột phải: cơ hội sẽ được tạo ────────────────────── --}}
             <aside class="ok-create__box ok-create__summary">
                 <h3 class="ok-create__section-title ok-create__summary-head">{{ $C('summary_title') }}</h3>
 

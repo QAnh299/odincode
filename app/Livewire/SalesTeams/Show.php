@@ -15,25 +15,15 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/**
- * Chi tiết một đội kinh doanh (chỉ xem): thông tin đội, kết quả kinh doanh của đội và thành viên.
- * Dùng cho Giám đốc và Sale Admin (route chỉ có ở 2 vai trò này).
- *
- * Kết quả kinh doanh dùng chung cách tính với báo cáo Phân tích hiệu quả Sales (SalesPerformanceReport),
- * so với chỉ tiêu tháng của đội; chỉ hiện 4 chỉ số tổng quan, xem chi tiết ở trang báo cáo (reportUrl).
- */
 #[Layout('layouts.app')]
 class Show extends Component
 {
-    // Kỳ xem: 'all' = toàn bộ thời gian; không chọn / giá trị lạ = tháng hiện tại
     public const ALL_TIME = 'all';
 
-    // Số tháng trong danh sách chọn kỳ (tính lùi từ tháng hiện tại)
     public const MONTHS = 12;
 
     public SalesTeam $team;
 
-    // Kỳ của khối Kết quả kinh doanh: 'Y-m' hoặc 'all'
     #[Url(except: '')]
     public string $month = '';
 
@@ -48,9 +38,6 @@ class Show extends Component
         return (string) Auth::user()->role_name;
     }
 
-    /**
-     * Thành viên đang làm việc: trưởng nhóm trước, rồi theo tên.
-     */
     #[Computed]
     public function members(): Collection
     {
@@ -62,20 +49,12 @@ class Show extends Component
             ->values();
     }
 
-    /**
-     * Chi nhánh của đội (suy ra từ trưởng nhóm / thành viên – SalesTeam::branchId).
-     */
     #[Computed]
     public function branch(): ?Branch
     {
         return ($id = $this->team->branchId()) ? Branch::find($id) : null;
     }
 
-    /* ── Kết quả kinh doanh ───────────────────────────────────────────── */
-
-    /**
-     * Danh sách kỳ: 12 tháng gần nhất (mới nhất trước) + Toàn bộ thời gian.
-     */
     #[Computed]
     public function months(): array
     {
@@ -84,9 +63,6 @@ class Show extends Component
         return array_map(fn ($i) => $current->subMonths($i)->format('Y-m'), range(0, self::MONTHS - 1));
     }
 
-    /**
-     * Kỳ đang xem sau khi kiểm tra (giá trị lạ từ URL coi như tháng hiện tại).
-     */
     #[Computed]
     public function period(): string
     {
@@ -102,18 +78,12 @@ class Show extends Component
             : __('employees.perf.month', ['month' => CarbonImmutable::parse($period.'-01')->format('m/Y')]);
     }
 
-    /**
-     * Tổng kết quả của đội trong kỳ.
-     */
     #[Computed]
     public function performance(): array
     {
         return $this->report()->totals($this->filters($this->period));
     }
 
-    /**
-     * Tổng kết quả tháng trước (để so sánh); null khi xem Toàn bộ thời gian.
-     */
     #[Computed]
     public function previousPerformance(): ?array
     {
@@ -126,9 +96,6 @@ class Show extends Component
         return $this->report()->totals($this->filters($previous));
     }
 
-    /**
-     * Chỉ tiêu tháng của đội (doanh thu, học viên mới) – chỉ khi xem theo tháng.
-     */
     #[Computed]
     public function target(): array
     {
@@ -139,9 +106,6 @@ class Show extends Component
         return $this->report()->targets($this->period, [$this->team->team_id])[$this->team->team_id] ?? [];
     }
 
-    /**
-     * Link sang báo cáo Phân tích hiệu quả Sales đã lọc sẵn đội + tháng (nếu vai trò có trang báo cáo).
-     */
     #[Computed]
     public function reportUrl(): ?string
     {
@@ -161,9 +125,6 @@ class Show extends Component
             ->title(__('employees.teams.detail_title', ['name' => $this->team->team_name]));
     }
 
-    /**
-     * Bộ lọc cho SalesPerformanceReport: đội này + kỳ.
-     */
     private function filters(string $period): array
     {
         $range = $period === self::ALL_TIME ? [] : [

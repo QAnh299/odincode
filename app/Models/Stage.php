@@ -11,19 +11,14 @@ class Stage extends Model
     use HasFactory;
     use HasStringId;
 
-    // Stage "Data chưa tương tác": vừa được phân chia
     public const UNTOUCHED = 'STG001';
 
-    // Stage "Data đã có lịch hẹn": tạo lịch hẹn đầu tiên thì chuyển sang stage này
     public const APPOINTED = 'STG002';
 
-    // Stage "Data đã xử lý": đã test và/hoặc tư vấn xong (mọi loại lịch hẹn đều có lần khách đến)
     public const PROCESSED = 'STG003';
 
-    // Stage "Chốt": khách đã đồng ý đăng ký
     public const CLOSED = 'STG004';
 
-    // Stage "Lưu trữ": kết thúc xử lý - trạng thái Lost (khách từ chối) hoặc Archived (không liên lạc được)
     public const ARCHIVED = 'STG005';
 
     protected $table = 'Stages';

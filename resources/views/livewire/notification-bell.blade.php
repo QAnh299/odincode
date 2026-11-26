@@ -1,4 +1,3 @@
-{{-- Chuông thông báo (App\Livewire\NotificationBell). wire:ignore.self giữ trạng thái mở của dropdown Bootstrap khi Livewire cập nhật lại --}}
 <div class="dropdown" wire:poll.15s>
     <button class="odin-icon-btn position-relative" type="button" data-bs-toggle="dropdown"
         data-bs-auto-close="outside" aria-expanded="false" aria-label="{{ __('topbar.notifications') }}"
@@ -38,7 +37,6 @@
             @endif
         </div>
 
-        {{-- Tab nhóm thông báo: Tất cả + từng nhóm của vai trò, kèm số chưa đọc --}}
         @if ($tabs)
             <div class="odin-notify-tabs" role="tablist" aria-label="{{ __('topbar.notifications') }}">
                 @foreach ($tabs as $key => $t)
@@ -53,7 +51,6 @@
         <div class="odin-notify-list">
             @php $doneShown = false; @endphp
             @forelse ($items as $notification)
-                {{-- Vạch ngăn trước phần thông báo đã xử lý (luôn ở cuối danh sách) --}}
                 @if ($notification['done'] && ! $doneShown)
                     @php $doneShown = true; @endphp
                     <div class="odin-notify-divider" wire:key="notify-divider">{{ __('topbar.notify_done') }}</div>
@@ -63,7 +60,6 @@
                     wire:key="notify-{{ $notification['key'] }}">
                     <a href="{{ $notification['url'] }}" class="odin-notify-item__link"
                         wire:click.prevent="open('{{ $notification['key'] }}')">
-                        {{-- Icon theo nhóm thông báo (Liên hệ, Lịch hẹn, Báo giá, Hóa đơn…) --}}
                         <span class="odin-notify-item__icon odin-notify-item__icon--{{ $notification['group'] }}" aria-hidden="true">
                             <x-icon :name="$isAlert ? 'alert' : ($groups[$notification['group']]['icon'] ?? 'info')" />
                         </span>

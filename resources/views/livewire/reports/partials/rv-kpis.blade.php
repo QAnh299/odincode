@@ -1,5 +1,3 @@
-{{-- Thẻ KPI báo cáo doanh thu & thanh toán (cùng giao diện lc-kpis): $kpis = [[key, icon, giá trị, gợi ý, [so sánh, class] | null], ...]; $prevLabel = kỳ so sánh.
-     Thẻ có liên kết (Revenue::kpiUrl) bấm được để mở danh sách hóa đơn / đơn hàng tương ứng. --}}
 <div class="rp-kpis rp-kpis--fit" style="--n: {{ count($kpis) }}">
     @foreach ($kpis as [$key, $icon, $value, $hint, $change])
         @php $url = $this->kpiUrl($key); @endphp

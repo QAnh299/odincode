@@ -1,6 +1,5 @@
 <?php
 
-// Ô chọn khoảng ngày (components/date-range.blade.php)
 return [
     'placeholder' => 'Chọn khoảng ngày',
     'hint_start'  => 'Chọn ngày bắt đầu',
